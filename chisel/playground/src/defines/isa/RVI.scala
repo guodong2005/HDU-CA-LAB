@@ -32,8 +32,18 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def LUI   = BitPat("b????????????????????_?????_0110111")
 
   val table = Array(
-    ADDI  -> List(InstrI, FuType.alu, ALUOpType.add),
-    // TODO: 完成其他指令的解析
+    ADDI  -> List(InstrI, FuType.alu, ALUOpType.add), // why not ALUOpType.addi ? 
+    // only R-type for lab1
+    ADD -> List(InstrR, FuType.alu, ALUOpType.add),
+    SLL   -> List(InstrR, FuType.alu, ALUOpType.sll),
+    SLT   -> List(InstrR, FuType.alu, ALUOpType.slt),
+    SLTU  -> List(InstrR, FuType.alu, ALUOpType.sltu),
+    XOR   -> List(InstrR, FuType.alu, ALUOpType.xor),
+    SRL   -> List(InstrR, FuType.alu, ALUOpType.srl),
+    OR    -> List(InstrR, FuType.alu, ALUOpType.or),
+    AND   -> List(InstrR, FuType.alu, ALUOpType.and),
+    SUB   -> List(InstrR, FuType.alu, ALUOpType.sub),
+    SRA   -> List(InstrR, FuType.alu, ALUOpType.sra)
   )
 }
 
@@ -50,6 +60,15 @@ object RV64IInstr extends HasInstrType {
 
   val table = Array(
     // TODO: 完成RV64I指令集的解析
+    ADDIW  -> List(InstrI, FuType.alu, ALUOpType.addw), // why not ALUOpType.addi ? 
+    SLLIW  -> List(InstrI, FuType.alu, ALUOpType.sllw),
+    SRLIW  -> List(InstrI, FuType.alu, ALUOpType.srlw),
+    SRAIW  -> List(InstrI, FuType.alu, ALUOpType.sraw),
+    SLLW   -> List(InstrR, FuType.alu, ALUOpType.sllw),
+    SRLW   -> List(InstrR, FuType.alu, ALUOpType.srlw),
+    SRAW   -> List(InstrR, FuType.alu, ALUOpType.sraw),
+    ADDW   -> List(InstrR, FuType.alu, ALUOpType.addw),
+    SUBW   -> List(InstrR, FuType.alu, ALUOpType.subw)
   )
 }
 
