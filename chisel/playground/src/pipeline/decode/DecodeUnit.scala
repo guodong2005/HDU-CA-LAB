@@ -23,12 +23,15 @@ class DecodeUnit extends Module {
   info       := decoder.out.info
   info.valid := io.decodeStage.data.valid
 
-  // TODO:完成寄存器堆的读取
-  // io.regfile.src1.raddr := 
-  // io.regfile.src2.raddr := 
 
-  // TODO: 完成DecodeUnit模块的逻辑
-  // io.executeStage.data.pc                 := 
+  io.regfile.src1.raddr := decoder.out.info.src1_raddr
+  io.regfile.src2.raddr := decoder.out.info.src2_raddr
+
+  io.executeStage.data.pc                 := pc
+  io.executeStage.data.info               := info
+  io.executeStage.data.src_info.src1_data := io.regfile.src1.rdata
+  io.executeStage.data.src_info.src2_data := io.regfile.src2.rdata
+
   // io.executeStage.data.info               := 
   // io.executeStage.data.src_info.src1_data := 
   // io.executeStage.data.src_info.src2_data := 
