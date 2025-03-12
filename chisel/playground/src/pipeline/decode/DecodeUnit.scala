@@ -31,6 +31,8 @@ class DecodeUnit extends Module {
   io.executeStage.data.info               := info
   io.executeStage.data.src_info.src1_data := io.regfile.src1.rdata
   io.executeStage.data.src_info.src2_data := io.regfile.src2.rdata
+  // why doesnt need op type ?
+  
 
   // io.executeStage.data.info               := 
   // io.executeStage.data.src_info.src1_data := 

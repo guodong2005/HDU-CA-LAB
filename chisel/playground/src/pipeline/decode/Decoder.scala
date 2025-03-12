@@ -27,6 +27,7 @@ class Decoder extends Module with HasInstrType {
     // Decode R-type instruction
     io.out.info.src1_raddr := rs1
     io.out.info.src2_raddr := rs2
+    // io.out.info.op := decodeFuOpType(funct7, funct3) // Use a decoding function
     io.out.info.reg_wen := true.B  // unneccesary ?  
     io.out.info.reg_waddr := rd
   }

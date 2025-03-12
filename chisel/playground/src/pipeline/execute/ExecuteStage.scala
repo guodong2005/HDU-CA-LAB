@@ -23,6 +23,8 @@ class ExecuteStage extends Module {
   })
 
   val data = RegInit(0.U.asTypeOf(new IdExeData()))
+  data := io.decodeUnit.data;
 
-  // TODO: 完成ExecuteStage模块的逻辑
+  io.executeUnit.data := data;
+  // imitate
 }

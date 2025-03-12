@@ -15,15 +15,15 @@ class ExecuteUnit extends Module {
   })
 
   val fu = Module(new Fu()).io
+
   fu.data.pc       := io.executeStage.data.pc
   fu.data.info     := io.executeStage.data.info
   fu.data.src_info := io.executeStage.data.src_info
 
   io.dataSram <> fu.dataSram
 
-  // TODO: 完成ExecuteUnit模块的逻辑
-  // io.memoryStage.data.pc       := 
-  // io.memoryStage.data.info     := 
-  // io.memoryStage.data.src_info := 
-  // io.memoryStage.data.rd_info  := 
+  io.memoryStage.data.pc       := fu.data.pc
+  io.memoryStage.data.info     := fu.data.info
+  io.memoryStage.data.src_info := fu.data.src_info
+  io.memoryStage.data.rd_info  := fu.data.rd_info;
 }
