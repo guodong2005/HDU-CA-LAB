@@ -12,6 +12,15 @@ class WriteBackUnit extends Module {
     val regfile        = Output(new RegWrite())
     val debug          = new DEBUG()
   })
+  
+  val validData = io.writeBackStage.data
 
-  // TODO: 完成WriteBackUnit模块的逻辑
+  // Write to the register file
+  io.regfile.wen := validData.info.reg_wen // Enable register write based on control signal
+  io.regfile.waddr := validData.info.reg_waddr // Write to the destination register
+  io.regfile.wdata := validData.rd_info.wdata // Write the computed or memory-loaded value
+
+  // Debugging output
+  io.debug.pc := validData.pc // Track the program counter for debugging
+  io.debug.rf_wdata := validData.rd_info.wdata
 }
