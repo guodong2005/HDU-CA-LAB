@@ -1,6 +1,7 @@
 // import Mill dependency
 import mill._
 import mill.scalalib._
+
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.scalalib.TestModule.ScalaTest
 // support BSP

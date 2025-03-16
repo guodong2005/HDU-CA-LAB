@@ -29,6 +29,16 @@ class Core extends Module {
   // 取指单元
   fetchUnit.instSram <> io.instSram
   fetchUnit.decodeStage <> decodeStage.fetchUnit
+  //
+  decodeUnit.regfile <> regfile
+  decodeUnit.executeStage <> executeStage.decodeUnit
 
-  // TODO: 完成Core模块的逻辑
+  executeUnit.dataSram <> io.dataSram
+  executeUnit.memoryStage <> memoryStage.executeUnit
+
+
+  memoryUnit.writeBackStage <> writeBackStage.memoryUnit
+
+
+
 }
