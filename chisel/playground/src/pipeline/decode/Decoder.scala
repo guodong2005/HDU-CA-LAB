@@ -17,7 +17,9 @@ class Decoder extends Module with HasInstrType {
     })
   })
   val opcode = io.in.inst(6, 0)     
-  when(opcode === "b0110011".U){
+  printf(p"Instruction: ${Hexadecimal(io.in.inst)}\n")
+    printf(p"has opcode: : ${Binary(opcode)}\n")
+  when(opcode === "b0110011".U || opcode === "b0111011".U){
     val rd = io.in.inst(11, 7)       
     val funct3 = io.in.inst(14, 12)  
     val rs1 = io.in.inst(19, 15)     
@@ -27,9 +29,24 @@ class Decoder extends Module with HasInstrType {
     // Decode R-type instruction
     io.out.info.src1_raddr := rs1
     io.out.info.src2_raddr := rs2
-    // io.out.info.op := decodeFuOpType(funct7, funct3) // Use a decoding function
+    io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))  
+    // io.out.info.op := "b00110".U
+    // io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))  
+    printf(p"has optype: : ${Binary(io.out.info.op)}\n")
+
+    // io.out.info.op := 00111.U
     io.out.info.reg_wen := true.B  // unneccesary ?  
+    io.out.info.valid := true.B
     io.out.info.reg_waddr := rd
+  }
+  .otherwise{
+    io.out.info.src1_raddr := DontCare
+    io.out.info.src2_raddr := DontCare
+    io.out.info.op := DontCare // Use a decoding function
+    io.out.info.reg_wen := DontCare  // unneccesary ?  
+    io.out.info.reg_waddr := DontCare
+    io.out.info.valid := true.B
+
   }
 
 }

@@ -59,7 +59,7 @@ object RV64IInstr extends HasInstrType {
   def SUBW  = BitPat("b0100000_?????_?????_000_?????_0111011")
 
   val table = Array(
-    ADDIW  -> List(InstrI, FuType.alu, ALUOpType.addw), // why not ALUOpType.addi ? 
+    ADDIW  -> List(InstrI, FuType.alu, ALUOpType.addw), 
     SLLIW  -> List(InstrI, FuType.alu, ALUOpType.sllw),
     SRLIW  -> List(InstrI, FuType.alu, ALUOpType.srlw),
     SRAIW  -> List(InstrI, FuType.alu, ALUOpType.sraw),

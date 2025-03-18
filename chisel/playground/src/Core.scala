@@ -15,29 +15,36 @@ class Core extends Module {
     val debug     = new DEBUG()
   })
 
-  val fetchUnit      = Module(new FetchUnit()).io
-  val decodeStage    = Module(new DecodeStage()).io
-  val decodeUnit     = Module(new DecodeUnit()).io
-  val regfile        = Module(new ARegFile()).io
-  val executeStage   = Module(new ExecuteStage()).io
-  val executeUnit    = Module(new ExecuteUnit()).io
-  val memoryStage    = Module(new MemoryStage()).io
-  val memoryUnit     = Module(new MemoryUnit()).io
-  val writeBackStage = Module(new WriteBackStage()).io
-  val writeBackUnit  = Module(new WriteBackUnit()).io
+  val fetchUnit      = Module(new FetchUnit())
+  val decodeStage    = Module(new DecodeStage())
+  val decodeUnit     = Module(new DecodeUnit())
+  val regfile        = Module(new ARegFile())
+  val executeStage   = Module(new ExecuteStage())
+  val executeUnit    = Module(new ExecuteUnit())
+  val memoryStage    = Module(new MemoryStage())
+  val memoryUnit     = Module(new MemoryUnit())
+  val writeBackStage = Module(new WriteBackStage())
+  val writeBackUnit  = Module(new WriteBackUnit())
 
   // 取指单元
-  fetchUnit.instSram <> io.instSram
-  fetchUnit.decodeStage <> decodeStage.fetchUnit
+  fetchUnit.io.instSram <> io.instSram
+  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
   //
-  decodeUnit.regfile <> regfile
-  decodeUnit.executeStage <> executeStage.decodeUnit
+  decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
+  decodeUnit.io.regfile <> regfile.io.read
+  decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
-  executeUnit.dataSram <> io.dataSram
-  executeUnit.memoryStage <> memoryStage.executeUnit
+  executeUnit.io.executeStage <> executeStage.io.executeUnit
+  executeUnit.io.dataSram <> io.dataSram
+  executeUnit.io.memoryStage <> memoryStage.io.executeUnit
 
 
-  memoryUnit.writeBackStage <> writeBackStage.memoryUnit
+  memoryUnit.io.memoryStage <> memoryStage.io.memoryUnit
+  memoryUnit.io.writeBackStage <> writeBackStage.io.memoryUnit
+
+  writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
+  writeBackUnit.io.regfile <> regfile.io.write
+  writeBackUnit.io.debug <> io.debug
 
 
 

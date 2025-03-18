@@ -25,8 +25,8 @@ class MemoryStage extends Module {
 
   val data = RegInit(0.U.asTypeOf(new ExeMemData()))
   data := io.executeUnit.data
-  data.info.reg_wen := false.B // ?
   io.memoryUnit.data := data
+  // where is DataMem ? 
   // only for R-type
 
 }
