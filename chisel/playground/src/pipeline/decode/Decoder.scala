@@ -19,7 +19,10 @@ class Decoder extends Module with HasInstrType {
   val opcode = io.in.inst(6, 0)     
   printf(p"Instruction: ${Hexadecimal(io.in.inst)}\n")
     printf(p"has opcode: : ${Binary(opcode)}\n")
-  when(opcode === "b0110011".U || opcode === "b0111011".U){
+  val inst = io.in.inst
+  val instrType :: fuType :: fuOpType :: Nil = 
+      ListLookup(inst,Instructions.DecodeDefault,Instructions.DecodeTable)
+  when(instrType === InstrR){
     val rd = io.in.inst(11, 7)       
     val funct3 = io.in.inst(14, 12)  
     val rs1 = io.in.inst(19, 15)     
