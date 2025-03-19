@@ -16,40 +16,78 @@ class Decoder extends Module with HasInstrType {
       val info = new Info()
     })
   })
-  val opcode = io.in.inst(6, 0)     
-  printf(p"Instruction: ${Hexadecimal(io.in.inst)}\n")
-    printf(p"has opcode: : ${Binary(opcode)}\n")
   val inst = io.in.inst
   val instrType :: fuType :: fuOpType :: Nil = 
-      ListLookup(inst,Instructions.DecodeDefault,Instructions.DecodeTable)
-  when(instrType === InstrR){
-    val rd = io.in.inst(11, 7)       
-    val funct3 = io.in.inst(14, 12)  
-    val rs1 = io.in.inst(19, 15)     
-    val rs2 = io.in.inst(24, 20)     
-    val funct7 = io.in.inst(31, 25)  
+  ListLookup(inst,Instructions.DecodeDefault,Instructions.DecodeTable)
 
-    // Decode R-type instruction
+  io.out.info := DontCare
+  io.out.info.valid := false.B
+
+  def setInfo(
+    regWAddr: UInt,
+    src1RAddr: UInt,
+    src2RAddr: UInt,
+    op: UInt,
+    imm: UInt = 0.U,
+    regWEn: Bool = true.B,
+    src1REn: Bool = true.B,
+    src2REn: Bool = false.B,
+    valid: Bool = true.B
+  ): Unit = {
+    io.out.info.reg_waddr := regWAddr
+    io.out.info.src1_raddr := src1RAddr
+    io.out.info.src2_raddr := src2RAddr
+    io.out.info.op := op
+    io.out.info.imm := imm
+    io.out.info.reg_wen := regWEn
+    io.out.info.src1_ren := src1REn
+    io.out.info.src2_ren := src2REn
+    io.out.info.valid := valid
+  }
+
+  when(instrType === InstrR) {
+    val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
+    val op = Cat(inst(3), inst(30), inst(14, 12))
+    setInfo(rd, rs1, rs2, op,0.U,true.B,true.B,true.B,true.B)
+  }.elsewhen(instrType === InstrI) {
+    val (rd, rs1, imm12) = (inst(11, 7), inst(19, 15), inst(31, 20))
+    setInfo(rd, rs1, 0.U, 0.U, imm = imm12, src2REn = false.B)
+  }.otherwise {
+    setInfo(0.U, 0.U, 0.U, 0.U, regWEn = false.B, valid = false.B)
+  }
+  /*
+  io.out.info := DontCare
+  io.out.info.valid := false.B
+  when(instrType === InstrR){
+    val (rd,rs1,rs2) = (inst(11,7),inst(19,15),inst(24,20))
+    io.out.info.reg_waddr := rd
     io.out.info.src1_raddr := rs1
     io.out.info.src2_raddr := rs2
-    io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))  
-    // io.out.info.op := "b00110".U
-    // io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))  
-    printf(p"has optype: : ${Binary(io.out.info.op)}\n")
 
-    // io.out.info.op := 00111.U
-    io.out.info.reg_wen := true.B  // unneccesary ?  
+    io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))  
+    io.out.info.reg_wen := true.B  
     io.out.info.valid := true.B
+  }.elsewhen(instrType === InstrI){
+    val (rd,rs1,imm12)  =  (inst(11,7),inst(19,15),inst(31,20))
+    io.out.info.imm := imm12
+    io.out.info.src1_raddr := rs1
     io.out.info.reg_waddr := rd
-  }
-  .otherwise{
+
+    io.out.info.op := DontCare // Use a decoding function
+    io.out.info.src2_raddr := 0.U
+    io.out.info.src1_ren := true.B
+    io.out.info.src2_ren := false.B
+    io.out.info.reg_wen := true.B 
+    io.out.info.valid := true.B
+
+  }.otherwise{
     io.out.info.src1_raddr := DontCare
     io.out.info.src2_raddr := DontCare
     io.out.info.op := DontCare // Use a decoding function
-    io.out.info.reg_wen := DontCare  // unneccesary ?  
+    io.out.info.reg_wen := false.B  // unneccesary ?  
     io.out.info.reg_waddr := DontCare
-    io.out.info.valid := true.B
+    io.out.info.valid := false.B
 
   }
-
+    */
 }

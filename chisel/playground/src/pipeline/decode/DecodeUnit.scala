@@ -30,7 +30,7 @@ class DecodeUnit extends Module {
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info
   io.executeStage.data.src_info.src1_data := io.regfile.src1.rdata
-  io.executeStage.data.src_info.src2_data := io.regfile.src2.rdata
+  io.executeStage.data.src_info.src2_data := Mux(info.src2_ren,io.regfile.src2.rdata,Cat(Fill(52, info.imm(11)), info.imm(11, 0)))
   // why doesnt need op type ?
   
 

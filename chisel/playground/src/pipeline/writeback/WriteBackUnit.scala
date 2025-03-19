@@ -25,5 +25,6 @@ class WriteBackUnit extends Module {
   io.debug.pc := validData.pc // Track the program counter for debugging
   io.debug.rf_wdata := validData.rd_info.wdata
   io.debug.rf_wnum := validData.info.reg_waddr
-  io.debug.commit := validData.info.reg_wen&validData.info.valid // ?
+  //io.debug.commit := validData.info.reg_wen&validData.info.valid // ?
+  io.debug.commit := validData.info.valid // ?
 }

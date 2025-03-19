@@ -28,11 +28,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_OUT8(data_sram_wen,7,0);
         VL_OUT8(debug_commit,0,0);
         VL_OUT8(debug_rf_wnum,4,0);
-        CData/*0:0*/ top__DOT__core__DOT__core__DOT___writeBackUnit_io_regfile_wen;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
-        CData/*4:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT__io_out_info_op_0;
-        CData/*2:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT__unnamedblk1__DOT__instrType;
+        CData/*1:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT___GEN_1;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT____VdfgRegularize_hb9908eda_0_4;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT____VdfgRegularize_hb9908eda_0_5;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT____VdfgRegularize_hb9908eda_0_6;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__unnamedblk1__DOT___GEN_0;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op;
@@ -44,10 +45,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr;
+        CData/*0:0*/ __VdfgRegularize_hd87f99a1_8_0;
         CData/*0:0*/ __VstlFirstIteration;
         CData/*0:0*/ __VicoFirstIteration;
         CData/*0:0*/ __Vtrigprevexpr___TOP__clock__0;
         CData/*0:0*/ __VactContinue;
+        SData/*9:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__Decoder__DOT___GEN;
         VL_OUT(inst_sram_addr,31,0);
         VL_OUT(inst_sram_wdata,31,0);
         VL_IN(inst_sram_rdata,31,0);
@@ -77,11 +80,11 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_11;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_12;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_13;
+    };
+    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_14;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_15;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_16;
-    };
-    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_17;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_18;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_19;
