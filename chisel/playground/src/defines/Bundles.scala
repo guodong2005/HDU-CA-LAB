@@ -22,15 +22,16 @@ class RdInfo extends Bundle {
 }
 
 class Info extends Bundle {
+  val instr       = UInt(REG_ADDR_WID.W)
   val valid      = Bool()
   val src1_raddr = UInt(REG_ADDR_WID.W)
   val src2_raddr = UInt(REG_ADDR_WID.W)
   val op         = FuOpType()
   val reg_wen    = Bool()
   val reg_waddr  = UInt(REG_ADDR_WID.W)
-  val imm = UInt(12.W)
-  val src1_ren = Bool()
-  val src2_ren = Bool()
+  val imm        = UInt(12.W)
+  val src1_ren   = Bool()
+  val src2_ren   = Bool()
 }
 
 class SrcReadSignal extends Bundle {

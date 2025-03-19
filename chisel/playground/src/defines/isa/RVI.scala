@@ -32,9 +32,9 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def LUI   = BitPat("b????????????????????_?????_0110111")
 
   val table = Array(
-    ADDI  -> List(InstrI, FuType.alu, ALUOpType.add), // why not ALUOpType.addi ? 
+    ADDI -> List(InstrI, FuType.alu, ALUOpType.add), // why not ALUOpType.addi ?
     // only R-type for lab1
-    ADD -> List(InstrR, FuType.alu, ALUOpType.add),
+    ADD   -> List(InstrR, FuType.alu, ALUOpType.add),
     SLL   -> List(InstrR, FuType.alu, ALUOpType.sll),
     SLT   -> List(InstrR, FuType.alu, ALUOpType.slt),
     SLTU  -> List(InstrR, FuType.alu, ALUOpType.sltu),
@@ -43,7 +43,9 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     OR    -> List(InstrR, FuType.alu, ALUOpType.or),
     AND   -> List(InstrR, FuType.alu, ALUOpType.and),
     SUB   -> List(InstrR, FuType.alu, ALUOpType.sub),
-    SRA   -> List(InstrR, FuType.alu, ALUOpType.sra)
+    SRA   -> List(InstrR, FuType.alu, ALUOpType.sra),
+    AUIPC -> List(InstrU, FuType.alu, ALUOpType.add),
+    LUI   -> List(InstrU, FuType.alu, ALUOpType.add)
   )
 }
 
@@ -59,15 +61,15 @@ object RV64IInstr extends HasInstrType {
   def SUBW  = BitPat("b0100000_?????_?????_000_?????_0111011")
 
   val table = Array(
-    ADDIW  -> List(InstrI, FuType.alu, ALUOpType.addw), 
-    SLLIW  -> List(InstrI, FuType.alu, ALUOpType.sllw),
-    SRLIW  -> List(InstrI, FuType.alu, ALUOpType.srlw),
-    SRAIW  -> List(InstrI, FuType.alu, ALUOpType.sraw),
-    SLLW   -> List(InstrR, FuType.alu, ALUOpType.sllw),
-    SRLW   -> List(InstrR, FuType.alu, ALUOpType.srlw),
-    SRAW   -> List(InstrR, FuType.alu, ALUOpType.sraw),
-    ADDW   -> List(InstrR, FuType.alu, ALUOpType.addw),
-    SUBW   -> List(InstrR, FuType.alu, ALUOpType.subw)
+    ADDIW -> List(InstrI, FuType.alu, ALUOpType.addw),
+    SLLIW -> List(InstrI, FuType.alu, ALUOpType.sllw),
+    SRLIW -> List(InstrI, FuType.alu, ALUOpType.srlw),
+    SRAIW -> List(InstrI, FuType.alu, ALUOpType.sraw),
+    SLLW  -> List(InstrR, FuType.alu, ALUOpType.sllw),
+    SRLW  -> List(InstrR, FuType.alu, ALUOpType.srlw),
+    SRAW  -> List(InstrR, FuType.alu, ALUOpType.sraw),
+    ADDW  -> List(InstrR, FuType.alu, ALUOpType.addw),
+    SUBW  -> List(InstrR, FuType.alu, ALUOpType.subw)
   )
 }
 
