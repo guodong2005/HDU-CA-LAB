@@ -30,23 +30,30 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
 
   def AUIPC = BitPat("b????????????????????_?????_0010111")
   def LUI   = BitPat("b????????????????????_?????_0110111")
-
   val table = Array(
-    ADDI -> List(InstrI, FuType.alu, ALUOpType.add), // why not ALUOpType.addi ?
-    // only R-type for lab1
-    ADD   -> List(InstrR, FuType.alu, ALUOpType.add),
-    SLL   -> List(InstrR, FuType.alu, ALUOpType.sll),
-    SLT   -> List(InstrR, FuType.alu, ALUOpType.slt),
-    SLTU  -> List(InstrR, FuType.alu, ALUOpType.sltu),
-    XOR   -> List(InstrR, FuType.alu, ALUOpType.xor),
-    SRL   -> List(InstrR, FuType.alu, ALUOpType.srl),
-    OR    -> List(InstrR, FuType.alu, ALUOpType.or),
-    AND   -> List(InstrR, FuType.alu, ALUOpType.and),
-    SUB   -> List(InstrR, FuType.alu, ALUOpType.sub),
-    SRA   -> List(InstrR, FuType.alu, ALUOpType.sra),
-    AUIPC -> List(InstrU, FuType.alu, ALUOpType.add),
-    LUI   -> List(InstrU, FuType.alu, ALUOpType.add)
+    ADDI  -> List(InstrI, FuType.alu, ALUOpType.add),  // Add Immediate
+    ADD   -> List(InstrR, FuType.alu, ALUOpType.add),  // Add
+    SLLI  -> List(InstrI, FuType.alu, ALUOpType.sll),  // Shift Left Logical Immediate
+    SLL   -> List(InstrR, FuType.alu, ALUOpType.sll),  // Shift Left Logical
+    SLTI  -> List(InstrI, FuType.alu, ALUOpType.slt),  // Set Less Than Immediate
+    SLT   -> List(InstrR, FuType.alu, ALUOpType.slt),  // Set Less Than
+    SLTIU -> List(InstrI, FuType.alu, ALUOpType.sltu), // Set Less Than Immediate Unsigned
+    SLTU  -> List(InstrR, FuType.alu, ALUOpType.sltu), // Set Less Than Unsigned
+    XORI  -> List(InstrI, FuType.alu, ALUOpType.xor),  // XOR Immediate
+    XOR   -> List(InstrR, FuType.alu, ALUOpType.xor),  // XOR
+    SRLI  -> List(InstrI, FuType.alu, ALUOpType.srl),  // Shift Right Logical Immediate
+    SRL   -> List(InstrR, FuType.alu, ALUOpType.srl),  // Shift Right Logical
+    SRAI  -> List(InstrI, FuType.alu, ALUOpType.sra),  // Shift Right Arithmetic Immediate
+    SRA   -> List(InstrR, FuType.alu, ALUOpType.sra),  // Shift Right Arithmetic
+    ORI   -> List(InstrI, FuType.alu, ALUOpType.or),   // OR Immediate
+    OR    -> List(InstrR, FuType.alu, ALUOpType.or),   // OR
+    ANDI  -> List(InstrI, FuType.alu, ALUOpType.and),  // AND Immediate
+    AND   -> List(InstrR, FuType.alu, ALUOpType.and),  // AND
+    SUB   -> List(InstrR, FuType.alu, ALUOpType.sub),  // Subtract
+    AUIPC -> List(InstrU, FuType.alu, ALUOpType.add),  // Add Upper Immediate to PC
+    LUI   -> List(InstrU, FuType.alu, ALUOpType.add)   // Load Upper Immediate
   )
+
 }
 
 object RV64IInstr extends HasInstrType {

@@ -29,7 +29,9 @@ class ARegFile extends Module {
   })
 
   // 定义32个 64 位寄存器
-  val regs = RegInit(VecInit((0 until AREG_NUM).map(_.U(XLEN.W))))
+  val regs = RegInit(VecInit(Seq.fill(AREG_NUM)(0.U(XLEN.W))))
+    // val regs = RegInit(VecInit((0 until AREG_NUM).map(_.U(XLEN.W)))) // for lab1
+
   /*
 for(i:  0 -> 32)
   regs[i] = i
