@@ -982,7 +982,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                    ? ((|io_src_info_src2_data)
                                         ? io_src_info_src1_data - io_src_info_src1_data
                                           / io_src_info_src2_data * io_src_info_src2_data
-                                        : io_src_info_src2_data)
+                                        : io_src_info_src1_data)
                                    : _GEN_8
                                        ? {{32{_mulResult_T_2[31]}}, _mulResult_T_2}
                                        : _GEN_9
