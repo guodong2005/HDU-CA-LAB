@@ -880,7 +880,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
     VL_MUL_W(4, __Vtemp_5, __Vtemp_3, __Vtemp_4);
     bufp->fullWData(oldp+50,(__Vtemp_5),128);
     bufp->fullQData(oldp+54,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divtmp),33);
-    bufp->fullIData(oldp+56,(VL_MODDIVS_III(32, (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data), (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))),32);
+    bufp->fullIData(oldp+56,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divtmp_2),32);
     bufp->fullCData(oldp+57,(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state),2);
     bufp->fullQData(oldp+58,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc),64);
     bufp->fullBit(oldp+60,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid));

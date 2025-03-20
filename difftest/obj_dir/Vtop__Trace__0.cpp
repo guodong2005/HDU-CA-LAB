@@ -541,7 +541,7 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
         VL_MUL_W(4, __Vtemp_5, __Vtemp_3, __Vtemp_4);
         bufp->chgWData(oldp+49,(__Vtemp_5),128);
         bufp->chgQData(oldp+53,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divtmp),33);
-        bufp->chgIData(oldp+55,(VL_MODDIVS_III(32, (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data), (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))),32);
+        bufp->chgIData(oldp+55,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divtmp_2),32);
         bufp->chgCData(oldp+56,(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state),2);
         bufp->chgQData(oldp+57,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc),64);
         bufp->chgBit(oldp+59,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid));
