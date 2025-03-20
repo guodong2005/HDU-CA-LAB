@@ -105,7 +105,7 @@ class Mdu extends Module {
       // Result handling with Mux
       val remResult = Mux(iszero === 1.U, src1, divtmp(31, 0)) // Select between src1 (if zero) or divtmp
       io.result := SignedExtend(remResult,XLEN) // Extend the result to XLEN
-      printf(p"-1: ${Binary(-(1<<63).S)}, iszero: ${(iszero)}\n")
+      printf(p"-1: ${Binary(-(1<<63).U)}, iszero: ${(iszero)}\n")
       printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
 
       // Debugging can still be added, but it's optional now
