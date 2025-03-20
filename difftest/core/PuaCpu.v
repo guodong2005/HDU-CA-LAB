@@ -826,9 +826,9 @@ module Alu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   wire [62:0]  shiftResult =
     {31'h0, io_src_info_src1_data[31:0]} << io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:43:{45,53,77}
   wire [31:0]  logicalShiftResult =
-    io_src_info_src1_data[31:0] >> io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:48:{52,60,84}
+    io_src_info_src1_data[31:0] >> io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:49:{52,60,84}
   wire [31:0]  _arithmeticShiftResult_T_3 =
-    $signed($signed(io_src_info_src1_data[31:0]) >>> io_src_info_src2_data[4:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:53:{55,70,94}
+    $signed($signed(io_src_info_src1_data[31:0]) >>> io_src_info_src2_data[4:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:54:{55,70,94}
   assign io_result =
     io_info_op == 5'h0
       ? io_src_info_src1_data + io_src_info_src2_data
@@ -859,14 +859,15 @@ module Alu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                                   ? {{32{_subResult_T_2[31]}},
                                                      _subResult_T_2}
                                                   : io_info_op == 5'h11
-                                                      ? {shiftResult[62], shiftResult}
+                                                      ? {{32{shiftResult[31]}},
+                                                         shiftResult[31:0]}
                                                       : io_info_op == 5'h15
                                                           ? {{32{logicalShiftResult[31]}},
                                                              logicalShiftResult}
                                                           : io_info_op == 5'h1D
                                                               ? {{32{_arithmeticShiftResult_T_3[31]}},
                                                                  _arithmeticShiftResult_T_3}
-                                                              : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:8:7, :15:13, :17:22, :19:{33,58}, :20:{33,58}, :21:{33,58}, :22:{33,58}, :23:{33,58}, :24:{33,66}, :25:{34,60}, :26:{33,58}, :27:{33,58,82}, :28:{33,66,90}, :32:51, :34:15, :38:51, :39:15, :43:53, :44:15, :48:60, :49:15, :53:{70,102}, :55:15
+                                                              : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:8:7, :15:13, :17:22, :19:{33,58}, :20:{33,58}, :21:{33,58}, :22:{33,58}, :23:{33,58}, :24:{33,66}, :25:{34,60}, :26:{33,58}, :27:{33,58,82}, :28:{33,66,90}, :32:51, :34:15, :38:51, :39:15, :43:53, :44:{15,21,26,42,60}, :49:60, :50:15, :54:{70,102}, :56:15
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
