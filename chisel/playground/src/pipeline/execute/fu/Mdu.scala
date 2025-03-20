@@ -69,9 +69,13 @@ class Mdu extends Module {
       io.result := SignedExtend(divResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remw) {
+      val src1 = io.src_info.src1_data(31, 0).asSInt // 32-bit source 1
+      val src2 = io.src_info.src2_data(31, 0).asSInt // 32-bit source 2
 
-      val divtmp    = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)(31,0)
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt(31,0), (divtmp.asUInt)(31,0))
+      val quotient = src1 / src2
+      val rem = src1 - quotient * src2
+
+      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt(31,0), (rem.asUInt)(31,0))
     //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt,XLEN) // Use SignedExtend to extend to XLEN
   printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, src2: ${Hexadecimal(io.src_info.src2_data)},iszero : ${iszero}\n")
