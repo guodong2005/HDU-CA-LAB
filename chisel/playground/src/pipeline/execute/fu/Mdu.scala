@@ -89,7 +89,6 @@ class Mdu extends Module {
       val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt(31, 0), (rem.asUInt)(31, 0))
       //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
-      printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, src2: ${Hexadecimal(io.src_info.src2_data)},iszero : ${iszero}\n")
     }
     is(MDUOpType.remuw) {
       // Extracting the relevant bits for the remainder operation
@@ -103,8 +102,9 @@ class Mdu extends Module {
       }
 
       // Result handling with Mux
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt, SignedExtend(divtmp(31, 0), XLEN)) // Select between src1 (if zero) or divtmp
-      io.result := remResult // Extend the result to XLEN
+      val remResult = Mux(iszero === 1.U, src1, divtmp(31, 0)) // Select between src1 (if zero) or divtmp
+      io.result := SignedExtend(remResult) // Extend the result to XLEN
+      printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, src2: ${Hexadecimal(io.src_info.src2_data)},iszero : ${iszero}\n")
 
       // Debugging can still be added, but it's optional now
       // printf(p"src1 : ${Decimal(src1)}, src2: ${Decimal(src2)}\n")
