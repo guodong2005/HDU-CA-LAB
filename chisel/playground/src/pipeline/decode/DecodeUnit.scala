@@ -12,7 +12,6 @@ class DecodeUnit extends Module with HasInstrType{
     val regfile     = new Src12Read()
     // 输出
     val executeStage = Output(new DecodeUnitExecuteUnit())
-    val imm = UInt()
   })
 
   val decoder = Module(new Decoder())
