@@ -15,7 +15,6 @@ class Mdu extends Module {
 
   io.result := 0.U
   val iszero = Mux(io.src_info.src2_data === 0.U, 1.U, 0.U)
-  val neg1_32 = (-1).S(32.W)
   val neg1_64 = (-1).S(64.W)
   switch(io.info.op) {
     // Multiplication Operations
@@ -59,7 +58,7 @@ class Mdu extends Module {
     }
     is(MDUOpType.divw) {
       val divtmp                = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
-      val divResult             = Mux(iszero === 1.U, neg1_32, divtmp.asSInt)(31,0)
+      val divResult             = Mux(iszero === 1.U, neg1_64, divtmp.asSInt)(31,0)
       val overflow              = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data === SignedExtend(1.U, 32)
       // printf(p"result : ${divResult.asSInt}\n") // comment this line will get a wrong answer ??
       // printf(p"result width : ${divResult.getWidth}\n") // comment this line will get a wrong answer ??
