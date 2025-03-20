@@ -119,6 +119,8 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___addResult_T_2 = 0;
     IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___subResult_T_2;
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___subResult_T_2 = 0;
+    IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___arithmeticShiftResult_T_3;
+    top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___arithmeticShiftResult_T_3 = 0;
     // Body
     vlSelfRef.inst_sram_en = (1U & (~ (IData)(vlSelfRef.reset)));
     vlSelfRef.inst_sram_addr = ((IData)(4U) + (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc));
@@ -134,10 +136,13 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___subResult_T_2 
         = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
            - (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data));
+    vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__shiftResult 
+        = (0x7fffffffffffffffULL & ((QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data)) 
+                                    << (0x1fU & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))));
     vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__logicalShiftResult 
         = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
            >> (0x1fU & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__arithmeticShiftResult 
+    top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___arithmeticShiftResult_T_3 
         = VL_SHIFTRS_III(32,32,5, (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data), 
                          (0x1fU & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)));
     top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_43 
@@ -367,21 +372,12 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                                       ? 
                                                      (((QData)((IData)(
-                                                                       (- (IData)(
-                                                                                (1U 
-                                                                                & (IData)(
-                                                                                (0xffffffffULL 
-                                                                                & (((QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data)) 
-                                                                                << 
-                                                                                (0x1fU 
-                                                                                & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))) 
-                                                                                >> 0x1fU)))))))) 
-                                                       << 0x20U) 
-                                                      | (QData)((IData)(
-                                                                        ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
-                                                                         << 
-                                                                         (0x1fU 
-                                                                          & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))))))
+                                                                       (1U 
+                                                                        & (IData)(
+                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__shiftResult 
+                                                                                >> 0x3eU))))) 
+                                                       << 0x3fU) 
+                                                      | vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__shiftResult)
                                                       : 
                                                      ((0x15U 
                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
@@ -398,10 +394,10 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                         ? 
                                                        (((QData)((IData)(
                                                                          (- (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__arithmeticShiftResult 
+                                                                                (top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___arithmeticShiftResult_T_3 
                                                                                 >> 0x1fU))))) 
                                                          << 0x20U) 
-                                                        | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__arithmeticShiftResult)))
+                                                        | (QData)((IData)(top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT___arithmeticShiftResult_T_3)))
                                                         : 0ULL)))))))))))))));
     top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1 
         = ((0x1fc00U & ((IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
@@ -811,8 +807,8 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_waddr = VL_RAND_RESET_I(5);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data = VL_RAND_RESET_Q(64);
+    vlSelf->top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__shiftResult = VL_RAND_RESET_Q(63);
     vlSelf->top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__logicalShiftResult = VL_RAND_RESET_I(32);
-    vlSelf->top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__arithmeticShiftResult = VL_RAND_RESET_I(32);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);
