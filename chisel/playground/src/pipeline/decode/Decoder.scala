@@ -20,8 +20,7 @@ class Decoder extends Module with HasInstrType {
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
 
-
-  io.out.info       := DontCare
+  io.out.info := DontCare
 
   io.out.info.valid := false.B
 
@@ -46,26 +45,24 @@ class Decoder extends Module with HasInstrType {
     io.out.info.valid      := valid
   }
 
+  val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
   val op = LookupTree(
     instrType,
     Seq(
-      InstrR -> Cat(inst(3), inst(30), inst(14, 12)), 
+      InstrR -> Cat(inst(3), inst(30), inst(14, 12)),
       InstrI -> Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)),
       InstrU -> ALUOpType.add
-    ) 
+    )
   )
+
   when(instrType === InstrR) {
-    val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
     setInfo(inst, rd, rs1, rs2, op, true.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrI) {
-    val (rd, rs1, imm12) = (inst(11, 7), inst(19, 15), inst(31, 20))
-    setInfo(inst, rd, rs1, 0.U, op,true.B, true.B, false.B, true.B)
+    setInfo(inst, rd, rs1, 0.U, op, true.B, true.B, false.B, true.B)
   }.elsewhen(instrType === InstrU) {
-    val (rd, imm20) = (inst(11, 7), inst(31, 12))
-    setInfo(inst, rd, 0.U, 0.U, ALUOpType.add,  true.B, false.B, false.B, true.B)
-
+    setInfo(inst, rd, 0.U, 0.U, ALUOpType.add, true.B, false.B, false.B, true.B)
   }.otherwise {
-    setInfo(inst, 0.U, 0.U, 0.U, 0.U,  false.B, false.B, false.B, false.B)
+    setInfo(inst, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
   }
   /*
   io.out.info := DontCare
