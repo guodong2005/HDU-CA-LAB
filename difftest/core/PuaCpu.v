@@ -980,11 +980,8 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                     : io_src_info_src1_data)
                                : _GEN_7
                                    ? ((|io_src_info_src2_data)
-                                        ? {32'h0, io_src_info_src1_data[31:0]}
-                                          - {32'h0,
-                                             io_src_info_src1_data[31:0]
-                                               / io_src_info_src2_data[31:0]}
-                                          * {32'h0, io_src_info_src2_data[31:0]}
+                                        ? io_src_info_src1_data - io_src_info_src1_data
+                                          / io_src_info_src2_data * io_src_info_src2_data
                                         : io_src_info_src2_data)
                                    : _GEN_8
                                        ? {{32{_mulResult_T_2[31]}}, _mulResult_T_2}
@@ -1005,7 +1002,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                                                divtmp_2}
                                                             : io_src_info_src1_data)
                                                        : 64'h0)
-      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:42, :19:22, :22:{17,42}, :25:51, :26:{17,27}, :29:51, :30:{17,27}, :33:43, :34:{17,27}, :39:{25,104}, :40:{51,60,85}, :41:{17,23}, :44:{23,88}, :45:17, :48:{17,23,100}, :51:41, :52:39, :54:27, :55:{22,33}, :56:{17,23}, :61:{53,84}, :62:17, :66:{38,78}, :67:{57,64,83,108}, :68:{17,23}, :73:{26,59}, :74:17, :83:26, :85:17, :94:27, :95:24, :96:12, :100:22, :101:13
+      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:42, :19:22, :22:{17,42}, :25:51, :26:{17,27}, :29:51, :30:{17,27}, :33:43, :34:{17,27}, :39:{25,104}, :40:{51,60,85}, :41:{17,23}, :44:{23,88}, :45:17, :48:{17,23,100}, :54:27, :55:{22,33}, :56:{17,23}, :61:{53,84}, :62:17, :66:{38,78}, :67:{57,64,83,108}, :68:{17,23}, :73:{26,59}, :74:17, :83:26, :85:17, :94:27, :95:24, :96:12, :100:22, :101:13
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
