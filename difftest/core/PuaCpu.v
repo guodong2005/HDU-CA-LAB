@@ -934,24 +934,22 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   wire [32:0]  divResult = iszero ? 33'h1FFFFFFFF : divtmp;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :59:56, :60:26
   wire         _GEN_10 = io_info_op == 5'hD;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22
   wire [31:0]  divResult_1 =
-    iszero ? 32'hFFFFFFFF : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :69:{42,50,73}, :70:26
+    iszero ? 32'hFFFFFFFF : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :68:{42,50,73}, :69:26
   wire         _GEN_11 = io_info_op == 5'hE;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13
       automatic logic _GEN_12 =
         (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4 & ~_GEN_5 & ~_GEN_6
         & ~_GEN_7 & ~_GEN_8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22
-      if ((`PRINTF_COND_) & _GEN_12 & _GEN_9 & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22, :64:13, :65:13
-        $fwrite(32'h80000002, "iszero === 1. U %d, and iszero : %d\n", iszero, 1'h1);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :39:51, :64:13
-        $fwrite(32'h80000002, "%d\n", divtmp);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:59:56, :64:13, :65:13
-      end
-      if ((`PRINTF_COND_) & _GEN_12 & ~_GEN_9 & ~_GEN_10 & _GEN_11 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22, :64:13, :74:13
+      if ((`PRINTF_COND_) & _GEN_12 & _GEN_9 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22, :64:13
+        $fwrite(32'h80000002, "%d\n", divtmp);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:59:56, :64:13
+      if ((`PRINTF_COND_) & _GEN_12 & ~_GEN_9 & ~_GEN_10 & _GEN_11 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:22, :64:13, :73:13
         $fwrite(32'h80000002, "src1: %x, src2 :%x", io_src_info_src1_data,
-                io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13, :74:13
+                io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13, :73:13
     end // always @(posedge)
   `endif // not def SYNTHESIS
   wire [31:0]  divtmp_2 =
-    $signed(io_src_info_src1_data[31:0]) % $signed(io_src_info_src2_data[31:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:75:{42,57,80}
+    $signed(io_src_info_src1_data[31:0]) % $signed(io_src_info_src2_data[31:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:74:{42,57,80}
   assign io_result =
     (|io_info_op)
       ? (_GEN_0
@@ -997,7 +995,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                                                io_src_info_src1_data[31:0]
                                                                  % io_src_info_src2_data[31:0]})
                                                        : 64'h0)
-      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:49, :18:22, :21:{17,42}, :24:51, :25:{17,27}, :28:51, :29:{17,27}, :32:43, :33:{17,27}, :38:{23,99}, :39:{51,60,85}, :40:{17,23}, :43:{23,85}, :44:17, :47:{17,23,98}, :50:{17,23,83}, :55:{53,84}, :56:17, :60:26, :63:{51,60,85}, :66:{17,23,87}, :70:26, :71:{17,43}, :75:57, :76:26, :77:17, :80:{26,86,94,117}, :81:17
+      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:49, :18:22, :21:{17,42}, :24:51, :25:{17,27}, :28:51, :29:{17,27}, :32:43, :33:{17,27}, :38:{23,99}, :39:{51,60,85}, :40:{17,23}, :43:{23,85}, :44:17, :47:{17,23,98}, :50:{17,23,83}, :55:{53,84}, :56:17, :60:26, :63:{51,60,85}, :65:{17,23,87}, :69:26, :70:{17,43}, :74:57, :75:26, :76:17, :79:{26,86,94,117}, :80:17
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
