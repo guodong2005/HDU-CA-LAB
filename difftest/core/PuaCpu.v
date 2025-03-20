@@ -944,7 +944,8 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:77:9
       if ((`PRINTF_COND_) & (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4
           & ~_GEN_5 & ~_GEN_6 & ~_GEN_7 & ~_GEN_8 & ~_GEN_9 & ~_GEN_10 & _GEN_11 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:19:22, :77:9
-        $fwrite(32'h80000002, "divtmp: %d, width: %x\n", io_result_0[31], io_result_0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:19:22, :22:17, :77:{9,32}
+        $fwrite(32'h80000002, "divtmp: %d, width: %x,iszero : %d\n", io_result_0[31],
+                io_result_0, ~(|io_src_info_src2_data));	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:42, :19:22, :22:17, :77:{9,32}
     end // always @(posedge)
   `endif // not def SYNTHESIS
   wire [31:0]  divtmp_3 =
