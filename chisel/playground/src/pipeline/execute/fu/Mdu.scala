@@ -92,7 +92,7 @@ class Mdu extends Module {
 
   // Debugging can still be added, but it's optional now
   // printf(p"src1 : ${Decimal(src1)}, src2: ${Decimal(src2)}\n")
-  printf(p"divtmp: ${(remResult(31))}, width: ${divtmp.getWidth}\n")
+  printf(p"divtmp: ${(io.result(31))}, width: ${io.result.getWidth}\n")
 } 
   }
 }
