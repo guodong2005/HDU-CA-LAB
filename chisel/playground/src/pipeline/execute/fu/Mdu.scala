@@ -15,6 +15,7 @@ class Mdu extends Module {
 
   io.result := 0.U
   val iszero  = Mux(io.src_info.src2_data === 0.U, 1.U, 0.U)
+  val iszero32  = Mux(io.src_info.src2_data(31,0) === 0.U, 1.U, 0.U)
   val neg1_64 = (-1).S(64.W)
   switch(io.info.op) {
     // Multiplication Operations
@@ -69,7 +70,7 @@ class Mdu extends Module {
     }
     is(MDUOpType.divw) {
       val divtmp    = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
-      val divResult = Mux(iszero === 1.U, neg1_64, divtmp.asSInt)(31, 0)
+      val divResult = Mux(iszero32 === 1.U, neg1_64, divtmp.asSInt)(31, 0)
       // val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data === SignedExtend(1.U, 32)
       val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data.asSInt === -(1<<31).S
       printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
@@ -78,7 +79,7 @@ class Mdu extends Module {
     }
     is(MDUOpType.divuw) {
       val divtmp    = (io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asSInt
-      val divResult = Mux(iszero === 1.U, neg1_64, divtmp)(31, 0)
+      val divResult = Mux(iszero32 === 1.U, neg1_64, divtmp)(31, 0)
       io.result := SignedExtend(divResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remw) {
@@ -88,7 +89,7 @@ class Mdu extends Module {
       val quotient = src1 / src2
       val rem      = src1 - quotient * src2
 
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt(31, 0), (rem.asUInt)(31, 0))
+      val remResult = Mux(iszero32 === 1.U, io.src_info.src1_data.asUInt(31, 0), (rem.asUInt)(31, 0))
       //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
@@ -100,12 +101,12 @@ class Mdu extends Module {
       val rem      = (src1 - quotient * src2)(31,0)
       // Calculate the remainder, ensuring proper usage
       val divtmp = WireDefault(0.U(32.W)) // Explicitly define divtmp as a 32-bit wire
-      when(iszero === 0.U) { // Handle divide-by-zero scenario
+      when(iszero32 === 0.U) { // Handle divide-by-zero scenario
         divtmp := src1 % src2 // Perform unsigned modulus operation
       }
 
       // Result handling with Mux
-      val remResult = Mux(iszero === 1.U, src1, rem) // Select between src1 (if zero) or divtmp
+      val remResult = Mux(iszero32 === 1.U, src1, rem) // Select between src1 (if zero) or divtmp
       io.result := SignedExtend(remResult,XLEN) // Extend the result to XLEN
 
       // Debugging can still be added, but it's optional now
