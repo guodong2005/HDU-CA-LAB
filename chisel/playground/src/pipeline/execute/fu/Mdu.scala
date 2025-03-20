@@ -87,7 +87,7 @@ class Mdu extends Module {
   }
 
   // Result handling with Mux
-  val remResult = Mux(iszero === 1.U, src1, SignedExtend(divtmp(31,0),XLEN)) // Select between src1 (if zero) or divtmp
+  val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt, SignedExtend(divtmp(31,0),XLEN)) // Select between src1 (if zero) or divtmp
   io.result := remResult       // Extend the result to XLEN
 
   // Debugging can still be added, but it's optional now
