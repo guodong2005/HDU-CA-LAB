@@ -46,15 +46,15 @@ class Decoder extends Module with HasInstrType {
   }
 
   val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
+  val funct3         = inst(14, 12)
   val op = LookupTree(
     instrType,
     Seq(
-      InstrR -> Cat(inst(3), inst(30), inst(14, 12)),
+      InstrR -> Mux(fuType === FuType.alu, Cat(inst(3), inst(30), inst(14, 12)), Cat(inst(3), funct3)),
       InstrI -> Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)),
       InstrU -> ALUOpType.add
     )
   )
-
   when(instrType === InstrR) {
     setInfo(inst, rd, rs1, rs2, op, true.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrI) {
@@ -64,6 +64,9 @@ class Decoder extends Module with HasInstrType {
   }.otherwise {
     setInfo(inst, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
   }
+  io.out.info.fusel := fuType
+
+  // setInfo(inst, regWAddr, src1RAddr, src2RAddr, op, regWEn, src1REn, src2REn, valid)
   /*
   io.out.info := DontCare
   io.out.info.valid := false.B
