@@ -74,7 +74,7 @@ class Mdu extends Module {
       val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt(31,0), (divtmp.asUInt)(31,0))
     //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt,XLEN) // Use SignedExtend to extend to XLEN
-  printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, width: ${Hexadecimal(io.result)},iszero : ${iszero}\n")
+  printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, src2: ${Hexadecimal(io.src_info.src2_data)},iszero : ${iszero}\n")
     }
    is(MDUOpType.remuw) {
   // Extracting the relevant bits for the remainder operation
