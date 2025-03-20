@@ -71,10 +71,10 @@ class Mdu extends Module {
     is(MDUOpType.remw) {
 
       val divtmp    = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)(31,0)
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt, SignedExtend(divtmp.asUInt(31,0),XLEN))
+      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asUInt, SignedExtend(divtmp.asUInt,XLEN))
     //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
-  printf(p"divtmp: ${(io.result(31))}, width: ${Hexadecimal(io.result)}\n")
+  printf(p"divtmp: ${(io.result(31))}, width: ${Hexadecimal(io.result)},iszero : ${iszero}\n")
     }
    is(MDUOpType.remuw) {
   // Extracting the relevant bits for the remainder operation
