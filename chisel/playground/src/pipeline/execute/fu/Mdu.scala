@@ -76,6 +76,7 @@ class Mdu extends Module {
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remuw) {
+      printf(p"src1 : ${Decimal( io.src_info.src2_data(31, 0))},src2: ${Decimal(io.src_info.src2_data(31, 0))}\n") // comment this line will get a wrong answer ??
       val divtmp    = (io.src_info.src1_data(31, 0).asUInt % io.src_info.src2_data(31, 0).asUInt)(31,0)
       val remResult = Mux(iszero === 1.U, io.src_info.src1_data, divtmp)(31,0)
       printf(p"${divtmp(31)},width: ${divtmp.getWidth}\n") // comment this line will get a wrong answer ??
