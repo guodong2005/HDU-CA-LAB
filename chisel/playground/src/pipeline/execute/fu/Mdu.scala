@@ -63,7 +63,7 @@ class Mdu extends Module {
       // printf(p"divResult: ${Hexadecimal(divResult)}, divtmp :${Hexadecimal(divtmp)}")
       val overflow              = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,32)
       printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
-      io.result := Mux(overflow === 1.U,SignedExtend(1.U,XLEN),SignedExtend(divResult.asUInt,XLEN))
+      io.result := Mux(overflow === 1.U,SignedExtend(1.U,XLEN),SignedExtend(divResult.asUInt,XLEN))10110110100111000010011110001000
        */
       val divtmp                = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
       val divResult             = Mux(iszero === 1.U, (-1).S, divtmp.asSInt)
@@ -79,6 +79,8 @@ class Mdu extends Module {
     }
     is(MDUOpType.remw) {
       printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2 :${Hexadecimal(io.src_info.src2_data)}")
+      printf(p"iszero: ${Hexadecimal(iszero)}, src2 :${Hexadecimal(iszero === 1.U)}\n")
+
       val divtmp    = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)
       val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asSInt, divtmp)
       printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
