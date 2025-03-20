@@ -62,7 +62,7 @@ class Mdu extends Module {
       val divResult             = Mux(iszero === 1.U, neg1_32, divtmp.asSInt)
       val overflow              = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data === SignedExtend(1.U, 32)
       printf(p"result : ${divResult.asSInt}\n") // comment this line will get a wrong answer ??
-      printf(p"result width : ${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
+      printf(p"result width : ${divResult.getWidth}\n") // comment this line will get a wrong answer ??
       // dontTouch(WireInit(divtmp))
       io.result := Mux(overflow === 1.U, SignedExtend(1.U, XLEN), SignedExtend(divResult.asUInt, XLEN))
 
