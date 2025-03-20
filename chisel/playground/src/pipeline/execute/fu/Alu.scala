@@ -29,8 +29,9 @@ class Alu extends Module {
 
   // Word-Type Operations (32-bit operations with sign-extension)
   is(ALUOpType.addw) { 
-    val addResult = (io.src_info.src1_data(31, 0) + io.src_info.src2_data(31, 0)).asSInt
-    io.result := Cat(Fill(32, addResult(31)), addResult(31, 0)) // Sign-extend result to 64 bits
+    val addResult = (io.src_info.src1_data(31, 0) + io.src_info.src2_data(31, 0)).asUInt
+    // io.result := Cat(Fill(32, addResult(31)), addResult(31, 0)) // Sign-extend result to 64 bits
+    io.result := SignedExtend(addResult,XLEN) // Sign-extend result to 64 bits
   }
 
   is(ALUOpType.subw) { 
