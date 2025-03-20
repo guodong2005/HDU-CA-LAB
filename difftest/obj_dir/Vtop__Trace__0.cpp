@@ -541,9 +541,9 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
         VL_MUL_W(4, __Vtemp_5, __Vtemp_3, __Vtemp_4);
         bufp->chgWData(oldp+49,(__Vtemp_5),128);
         bufp->chgQData(oldp+53,(((0ULL == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)
-                                  ? 0x1ffffffffULL : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4)),33);
+                                  ? 0x1ffffffffULL : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT___GEN_10)),33);
         bufp->chgIData(oldp+55,(((0ULL == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)
-                                  ? 0xffffffffU : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_5)),32);
+                                  ? 0xffffffffU : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4)),32);
         bufp->chgIData(oldp+56,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__unnamedblk1__DOT__unnamedblk2__DOT__divtmp_3),32);
         bufp->chgCData(oldp+57,(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state),2);
         bufp->chgQData(oldp+58,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc),64);
