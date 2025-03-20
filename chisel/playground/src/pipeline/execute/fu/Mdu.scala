@@ -13,7 +13,7 @@ class Mdu extends Module {
   })
 
   io.result := 0.U
-
+  val iszero = Mux(io.src_info.src2_data.asUInt === 0.U, 1.U,0.U)
   switch(io.info.op) {
     // Multiplication Operations
     is(MDUOpType.mul) { 
@@ -34,16 +34,18 @@ class Mdu extends Module {
 
     // Division and Remainder Operations
     is(MDUOpType.div) { 
-      io.result := (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt).asUInt // Signed Division
+      val result = Mux(iszero === 1.U,SignedExtend(1.U,XLEN),(io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt)) // Signed Division
+      val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,XLEN)
+      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN),result)
     }
     is(MDUOpType.divu) { 
-      io.result := io.src_info.src1_data / io.src_info.src2_data // Unsigned Division
+      val result = Mux(iszero === 1.U,SignedExtend(1.U,XLEN),(io.src_info.src1_data / io.src_info.src2_data)) // Unsigned Division
     }
     is(MDUOpType.rem) { 
-      io.result := (io.src_info.src1_data.asSInt % io.src_info.src2_data.asSInt).asUInt // Signed Remainder
+      io.result := Mux(iszero === 1.U,io.src_info.src1_data.asSInt,(io.src_info.src1_data.asSInt % io.src_info.src2_data.asSInt).asUInt) // Signed Remainder
     }
     is(MDUOpType.remu) { 
-      io.result := io.src_info.src1_data % io.src_info.src2_data // Unsigned Remainder
+      io.result := Mux(iszero === 1.U,io.src_info.src2_data,io.src_info.src1_data % io.src_info.src2_data) // Unsigned Remainder
     }
 
     // Word-Type Operations (32-bit, sign-extended to 64-bit)
@@ -52,19 +54,20 @@ class Mdu extends Module {
       io.result := SignedExtend(mulResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.divw) {
-      val divResult = (io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt).asUInt
-      io.result := SignedExtend(divResult, XLEN) // Use SignedExtend to extend to XLEN
+      val divResult = Mux(iszero === 1.U,1.U,(io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt).asUInt)
+      val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,32)
+      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN),SignedExtend(divResult,XLEN))
     }
     is(MDUOpType.divuw) {
-      val divResult = (io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asUInt
+      val divResult = Mux(iszero === 1.U,1.U,(io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asUInt)
       io.result := SignedExtend(divResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remw) {
-      val remResult = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt).asUInt
+      val remResult = Mux(iszero === 1.U,io.src_info.src1_data,(io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt).asUInt)
       io.result := SignedExtend(remResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remuw) {
-      val remResult = (io.src_info.src1_data(31, 0) % io.src_info.src2_data(31, 0)).asUInt
+      val remResult = Mux(iszero === 1.U,io.src_info.src1_data,(io.src_info.src1_data(31, 0) % io.src_info.src2_data(31, 0)).asUInt)
       io.result := SignedExtend(remResult, XLEN) // Use SignedExtend to extend to XLEN
     }
   }
