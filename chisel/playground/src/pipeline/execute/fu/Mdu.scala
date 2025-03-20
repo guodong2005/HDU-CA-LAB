@@ -82,7 +82,7 @@ class Mdu extends Module {
       printf(p"iszero: ${Hexadecimal(iszero)}, src2 :${Hexadecimal(iszero === 1.U)}\n")
 
       val divtmp    = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)(31,0)
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asSInt, divtmp.asSInt)
+      val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asSInt, divtmp.asSInt)(31,0)
       printf(p"${remResult.asSInt(31)},width: ${remResult.getWidth}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
