@@ -59,10 +59,10 @@ class Mdu extends Module {
       val divtmp = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
       val divResult = Mux(iszero === 1.U,(-1).S,divtmp) // right 
       // val divResult = Mux(iszero === 1.U,(-1).S,io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt) // wrong , why ??
-      printf(p"divResult: ${Hexadecimal(divResult)}, divtmp :${Hexadecimal(divtmp)}")
+      // printf(p"divResult: ${Hexadecimal(divResult)}, divtmp :${Hexadecimal(divtmp)}")
       val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,32)
-      printf(p"iszero === 1. U ${iszero === 1.U}, and iszero : ${(-1).S}\n")
-      printf(p"${divtmp.asSInt}\n")
+      // printf(p"iszero === 1. U ${iszero === 1.U}, and iszero : ${(-1).S}\n")
+      // printf(p"${divtmp.asSInt}\n")
       io.result := Mux(overflow === 1.U,SignedExtend(1.U,XLEN),SignedExtend(divResult.asUInt,XLEN))
     }
     is(MDUOpType.divuw) {
