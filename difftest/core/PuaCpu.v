@@ -932,21 +932,26 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     $signed({io_src_info_src1_data[31], io_src_info_src1_data[31:0]})
     / $signed({io_src_info_src2_data[31], io_src_info_src2_data[31:0]});	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:61:{56,71,94}
   wire [32:0]  divResult = iszero ? 33'h1FFFFFFFF : divtmp;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:42, :61:71, :62:38
+  wire         _GEN_10 = io_info_op == 5'hD;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22
+  wire [31:0]  divResult_1 =
+    iszero ? 32'hFFFFFFFF : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:42, :71:{45,53,76}, :72:26
+  wire         _GEN_11 = io_info_op == 5'hE;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22
+  wire [31:0]  _divtmp_T_11 =
+    $signed(io_src_info_src1_data[31:0]) % $signed(io_src_info_src2_data[31:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:77:{45,60,83}
+  wire [31:0]  _remResult_T_3 = iszero ? io_src_info_src1_data[31:0] : _divtmp_T_11;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:10:14, :17:42, :77:60, :78:26
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13
-      if ((`PRINTF_COND_) & (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4
-          & ~_GEN_5 & ~_GEN_6 & ~_GEN_7 & ~_GEN_8 & _GEN_9 & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22, :64:13, :65:13
+      automatic logic _GEN_12 =
+        (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4 & ~_GEN_5 & ~_GEN_6
+        & ~_GEN_7 & ~_GEN_8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22
+      if ((`PRINTF_COND_) & _GEN_12 & _GEN_9 & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22, :64:13, :65:13
         $fwrite(32'h80000002, "result : %d\n", divResult);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:62:38, :64:13
         $fwrite(32'h80000002, "result width : %d\n", divtmp);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:61:71, :64:13, :65:13
       end
+      if ((`PRINTF_COND_) & _GEN_12 & ~_GEN_9 & ~_GEN_10 & _GEN_11 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:20:22, :64:13, :79:12
+        $fwrite(32'h80000002, "%d,width: 32\n", _divtmp_T_11[31]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:64:13, :77:60, :78:26, :79:12
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  wire [31:0]  divResult_1 =
-    iszero ? 32'hFFFFFFFF : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:42, :71:{45,53,76}, :72:26
-  wire [31:0]  _remResult_T_3 =
-    iszero
-      ? io_src_info_src1_data[31:0]
-      : $signed(io_src_info_src1_data[31:0]) % $signed(io_src_info_src2_data[31:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:10:14, :17:42, :77:{45,60,83}, :78:26
   wire [31:0]  _remResult_T_8 =
     iszero
       ? io_src_info_src1_data[31:0]
@@ -983,9 +988,9 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                               & io_src_info_src1_data == 64'hFFFFFFFF
                                                 ? 64'hFFFFFFFFFFFFFFFF
                                                 : {{31{divResult[32]}}, divResult})
-                                           : io_info_op == 5'hD
+                                           : _GEN_10
                                                ? {{32{divResult_1[31]}}, divResult_1}
-                                               : io_info_op == 5'hE
+                                               : _GEN_11
                                                    ? {{32{_remResult_T_3[31]}},
                                                       _remResult_T_3}
                                                    : io_info_op == 5'hF
