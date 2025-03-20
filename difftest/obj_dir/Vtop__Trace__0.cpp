@@ -543,10 +543,7 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
         __Vtemp_4[3U] = 0U;
         VL_MUL_W(4, __Vtemp_5, __Vtemp_3, __Vtemp_4);
         bufp->chgWData(oldp+48,(__Vtemp_5),128);
-        bufp->chgBit(oldp+52,(((0xffffffffffffffffULL 
-                                == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data) 
-                               & (0xffffffff80000000ULL 
-                                  == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data))));
+        bufp->chgBit(oldp+52,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__overflow));
         __Vtemp_7[0U] = (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data);
         __Vtemp_7[1U] = (IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data 
                                  >> 0x20U));
