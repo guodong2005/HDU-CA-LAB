@@ -38,6 +38,7 @@ class Mdu extends Module {
     is(MDUOpType.div) {
       val result   = Mux(iszero === 1.U, SignedExtend(1.U, XLEN).asSInt, (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt)) // Signed Division
       val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, XLEN)
+      printf(p"iszero: ${(iszero)}, overflow: ${(overflow)}\n")
       io.result := Mux(overflow === true.B, SignedExtend(1.U, XLEN).asSInt, result).asUInt
     }
     is(MDUOpType.divu) {
@@ -104,7 +105,6 @@ class Mdu extends Module {
       // Result handling with Mux
       val remResult = Mux(iszero === 1.U, src1, divtmp(31, 0)) // Select between src1 (if zero) or divtmp
       io.result := SignedExtend(remResult,XLEN) // Extend the result to XLEN
-      printf(p"divtmp: ${Hexadecimal(io.src_info.src1_data.asUInt)}, src2: ${Hexadecimal(io.src_info.src2_data)},iszero : ${iszero}\n")
 
       // Debugging can still be added, but it's optional now
       // printf(p"src1 : ${Decimal(src1)}, src2: ${Decimal(src2)}\n")
