@@ -72,6 +72,7 @@ class Mdu extends Module {
       val divResult = Mux(iszero === 1.U, neg1_64, divtmp.asSInt)(31, 0)
       // val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data === SignedExtend(1.U, 32)
       val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data.asSInt === -(1<<31).S
+      printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
       io.result := Mux(overflow === true.B, SignedExtend(1.U, XLEN), SignedExtend(divResult.asUInt, XLEN))
 
     }
@@ -107,7 +108,6 @@ class Mdu extends Module {
       val remResult = Mux(iszero === 1.U, src1, rem) // Select between src1 (if zero) or divtmp
       io.result := SignedExtend(remResult,XLEN) // Extend the result to XLEN
       printf(p"-1: ${Binary((-1.S(64.W)).asUInt)}, iszero: ${(iszero)}\n")
-      printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
 
       // Debugging can still be added, but it's optional now
       // printf(p"src1 : ${Decimal(src1)}, src2: ${Decimal(src2)}\n")
