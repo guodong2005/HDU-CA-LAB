@@ -75,12 +75,24 @@ class Mdu extends Module {
     //  printf(p"res width: ${remResult.getWidth},sign bit : ${remResult(31)}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
-    is(MDUOpType.remuw) {
-      printf(p"src1 : ${Decimal( io.src_info.src2_data(31, 0))},src2: ${Decimal(io.src_info.src2_data(31, 0))}\n") // comment this line will get a wrong answer ??
-      val divtmp    = (io.src_info.src1_data(31, 0).asUInt % io.src_info.src2_data(31, 0).asUInt)(31,0)
-      val remResult = Mux(iszero === 1.U, io.src_info.src1_data, divtmp)(31,0)
-      printf(p"${divtmp(31)},width: ${divtmp.getWidth}\n") // comment this line will get a wrong answer ??
-      io.result := SignedExtend(remResult, XLEN) // Use SignedExtend to extend to XLEN
-    }
+   is(MDUOpType.remuw) {
+  // Extracting the relevant bits for the remainder operation
+  val src1 = io.src_info.src1_data(31, 0).asUInt // 32-bit source 1
+  val src2 = io.src_info.src2_data(31, 0).asUInt // 32-bit source 2
+
+  // Calculate the remainder, ensuring proper usage
+  val divtmp = WireDefault(0.U(32.W)) // Explicitly define divtmp as a 32-bit wire
+  when(iszero === 0.U) {              // Handle divide-by-zero scenario
+    divtmp := src1 % src2             // Perform unsigned modulus operation
+  }
+
+  // Result handling with Mux
+  val remResult = Mux(iszero === 1.U, src1, divtmp) // Select between src1 (if zero) or divtmp
+  io.result := SignedExtend(remResult, XLEN)       // Extend the result to XLEN
+
+  // Debugging can still be added, but it's optional now
+  // printf(p"src1 : ${Decimal(src1)}, src2: ${Decimal(src2)}\n")
+  // printf(p"divtmp: ${Decimal(divtmp)}, width: ${divtmp.getWidth}\n")
+} 
   }
 }
