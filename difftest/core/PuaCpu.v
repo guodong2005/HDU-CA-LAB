@@ -953,6 +953,10 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS
+  wire [31:0]  _remResult_T_8 =
+    iszero
+      ? io_src_info_src1_data[31:0]
+      : io_src_info_src1_data[31:0] % io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:10:14, :17:42, :89:{26,88,96,119}
   assign io_result =
     (|io_info_op)
       ? (_GEN_0
@@ -991,13 +995,10 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                                    ? {{32{_remResult_T_3[31]}},
                                                       _remResult_T_3}
                                                    : io_info_op == 5'hF
-                                                       ? (iszero
-                                                            ? io_src_info_src1_data
-                                                            : {32'h0,
-                                                               io_src_info_src1_data[31:0]
-                                                                 % io_src_info_src2_data[31:0]})
+                                                       ? {{32{_remResult_T_8[31]}},
+                                                          _remResult_T_8}
                                                        : 64'h0)
-      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:42, :18:22, :21:{17,42}, :24:51, :25:{17,27}, :28:51, :29:{17,27}, :32:43, :33:{17,27}, :38:{25,104}, :39:{51,60,85}, :40:{17,23}, :43:{23,88}, :44:17, :47:{17,23,100}, :50:{17,23,85}, :55:{53,84}, :56:17, :69:38, :70:{64,73,98}, :72:{17,23,90}, :77:26, :78:{17,43}, :84:{26,87}, :86:17, :89:{26,88,96,119}, :90:17
+      : io_src_info_src1_data * io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:42, :18:22, :21:{17,42}, :24:51, :25:{17,27}, :28:51, :29:{17,27}, :32:43, :33:{17,27}, :38:{25,104}, :39:{51,60,85}, :40:{17,23}, :43:{23,88}, :44:17, :47:{17,23,100}, :50:{17,23,85}, :55:{53,84}, :56:17, :69:38, :70:{64,73,98}, :72:{17,23,90}, :77:26, :78:{17,43}, :84:{26,87}, :86:17, :89:{26,135}, :90:17
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
