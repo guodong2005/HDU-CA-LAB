@@ -29,12 +29,12 @@ class Alu extends Module {
 
     // Word-Type Operations (32-bit operations with sign-extension)
     is(ALUOpType.addw) {
-      val addResult = (io.src_info.src1_data(31, 0) + io.src_info.src2_data(31, 0)).asSInt
+      val addResult = (io.src_info.src1_data(31, 0) + io.src_info.src2_data(31, 0)).asUInt
       io.result := SignedExtend(addResult, XLEN) // Sign-extend result to XLEN
     }
 
     is(ALUOpType.subw) {
-      val subResult = (io.src_info.src1_data(31, 0) - io.src_info.src2_data(31, 0)).asSInt
+      val subResult = (io.src_info.src1_data(31, 0) - io.src_info.src2_data(31, 0)).asUInt
       io.result := SignedExtend(subResult, XLEN) // Sign-extend result to XLEN
     }
 
@@ -49,7 +49,7 @@ class Alu extends Module {
     }
 
     is(ALUOpType.sraw) {
-      val arithmeticShiftResult = (io.src_info.src1_data(31, 0).asSInt >> io.src_info.src2_data(4, 0)).asSInt
+      val arithmeticShiftResult = (io.src_info.src1_data(31, 0).asSInt >> io.src_info.src2_data(4, 0)).asUInt
       io.result := SignedExtend(arithmeticShiftResult, XLEN) // Sign-extend result to XLEN
     }
 
