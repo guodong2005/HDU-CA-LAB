@@ -921,7 +921,8 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   wire [64:0]  _GEN_5 = {io_src_info_src1_data[63], io_src_info_src1_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:25:51, :39:104
   wire [64:0]  _GEN_6 = {io_src_info_src2_data[63], io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:25:51, :39:104
   wire [64:0]  _result_T_6 = $signed(_GEN_5) / $signed(_GEN_6);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:39:104
-  wire         overflow = (&io_src_info_src2_data) & (&io_src_info_src1_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:39:128, :40:{51,63,88}
+  wire         overflow =
+    (&io_src_info_src2_data) & io_src_info_src1_data == 64'hFFFFFFFF80000000;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:39:128, :40:{51,63,95}
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:41:13
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:41:13
       if ((`PRINTF_COND_) & (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & _GEN_4
