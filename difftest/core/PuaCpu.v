@@ -955,7 +955,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       if ((`PRINTF_COND_) & (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4
           & ~_GEN_7 & ~_GEN_8 & ~_GEN_9 & ~_GEN_10 & ~_GEN_11 & ~_GEN_12 & ~_GEN_13
           & _GEN_14 & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:19:22, :109:13, :110:13
-        $fwrite(32'h80000002, "-1: %b, iszero: %d\n", 32'h80000000, iszero);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:43, :109:{13,42}
+        $fwrite(32'h80000002, "-1: %b, iszero: %d\n", 64'hFFFFFFFFFFFFFFFF, iszero);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:43, :72:26, :109:13
         $fwrite(32'h80000002, "src1: %x, src2: %x\n", io_src_info_src1_data,
                 io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:109:13, :110:13
       end
