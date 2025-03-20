@@ -47,26 +47,25 @@ class Mdu extends Module {
     }
 
     // Word-Type Operations (32-bit, sign-extended to 64-bit)
-    
     is(MDUOpType.mulw) {
-      val mulResult = (io.src_info.src1_data(31, 0) * io.src_info.src2_data(31, 0)).asSInt
-      io.result := Cat(Fill(32, mulResult(31)), mulResult(31, 0)) // Sign-extend to 64 bits
+      val mulResult = (io.src_info.src1_data(31, 0) * io.src_info.src2_data(31, 0)).asUInt
+      io.result := SignedExtend(mulResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.divw) {
-      val divResult = (io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt).asSInt
-      io.result := Cat(Fill(32, divResult(31)), divResult(31, 0)) // Sign-extend to 64 bits
+      val divResult = (io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt).asUInt
+      io.result := SignedExtend(divResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.divuw) {
       val divResult = (io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asUInt
-      io.result := Cat(Fill(32, divResult(31)), divResult(31, 0)) // Zero-extend to 64 bits
+      io.result := SignedExtend(divResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remw) {
-      val remResult = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt).asSInt
-      io.result := Cat(Fill(32, remResult(31)), remResult(31, 0)) // Sign-extend to 64 bits
+      val remResult = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt).asUInt
+      io.result := SignedExtend(remResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remuw) {
       val remResult = (io.src_info.src1_data(31, 0) % io.src_info.src2_data(31, 0)).asUInt
-      io.result := Cat(Fill(32, remResult(31)), remResult(31, 0)) // Zero-extend to 64 bits
+      io.result := SignedExtend(remResult, XLEN) // Use SignedExtend to extend to XLEN
     }
   }
 }

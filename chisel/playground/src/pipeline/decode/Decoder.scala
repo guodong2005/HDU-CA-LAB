@@ -48,6 +48,7 @@ class Decoder extends Module with HasInstrType {
     io.out.info.valid      := valid
   }
 
+  
   when(instrType === InstrR) {
     val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
     val op             = Cat(inst(3), inst(30), inst(14, 12))
