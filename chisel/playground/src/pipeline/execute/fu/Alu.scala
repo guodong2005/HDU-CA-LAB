@@ -35,8 +35,8 @@ class Alu extends Module {
   }
 
   is(ALUOpType.subw) { 
-    val subResult = (io.src_info.src1_data(31, 0) - io.src_info.src2_data(31, 0)).asSInt
-    io.result := Cat(Fill(32, subResult(31)), subResult(31, 0)) // Sign-extend result to 64 bits
+    val subResult = (io.src_info.src1_data(31, 0) - io.src_info.src2_data(31, 0)).asUInt
+    io.result := SignedExtend(subResult,XLEN) // Sign-extend result to 64 bits
   }
 
   is(ALUOpType.sllw) { 
