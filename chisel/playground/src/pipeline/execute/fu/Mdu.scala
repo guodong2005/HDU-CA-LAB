@@ -37,10 +37,10 @@ class Mdu extends Module {
     // Division and Remainder Operations
     is(MDUOpType.div) {
       val result   = Mux(iszero === 1.U, SignedExtend(1.U, XLEN).asSInt, (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt)) // Signed Division
-      val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, XLEN)
+      val overflow = io.src_info.src2_data.asSInt === neg1_64 && io.src_info.src1_data === SignedExtend(1.U, XLEN)
       printf(p"iszero: ${(iszero)}, overflow: ${(overflow)}\n")
       printf(p"iszero: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
-      io.result := Mux(overflow === true.B, SignedExtend(1.U, XLEN).asSInt, result).asUInt
+      io.result := Mux(overflow === true.B, io.src_info.src1_data, result).asUInt
     }
     is(MDUOpType.divu) {
       val result = Mux(iszero === 1.U, SignedExtend(1.U, XLEN), (io.src_info.src1_data / io.src_info.src2_data)) // Unsigned Division
