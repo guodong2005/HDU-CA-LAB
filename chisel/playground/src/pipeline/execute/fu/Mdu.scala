@@ -51,7 +51,7 @@ class Mdu extends Module {
 
     // Word-Type Operations (32-bit, sign-extended to 64-bit)
     is(MDUOpType.mulw) {
-      val mulResult = (io.src_info.src1_data(31, 0) * io.src_info.src2_data(31, 0)).asUInt
+      val mulResult = (io.src_info.src1_data(31, 0) * io.src_info.src2_data(31, 0))(31,0).asUInt
       io.result := SignedExtend(mulResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.divw) {
