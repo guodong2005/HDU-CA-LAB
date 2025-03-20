@@ -31,7 +31,6 @@ class Decoder extends Module with HasInstrType {
     src1RAddr: UInt,
     src2RAddr: UInt,
     op:        UInt,
-    imm:       UInt = 0.U,
     regWEn:    Bool = true.B,
     src1REn:   Bool = true.B,
     src2REn:   Bool = false.B,
@@ -41,7 +40,6 @@ class Decoder extends Module with HasInstrType {
     io.out.info.src1_raddr := src1RAddr
     io.out.info.src2_raddr := src2RAddr
     io.out.info.op         := op
-    io.out.info.imm        := imm
     io.out.info.reg_wen    := regWEn
     io.out.info.src1_ren   := src1REn
     io.out.info.src2_ren   := src2REn
@@ -58,16 +56,16 @@ class Decoder extends Module with HasInstrType {
   )
   when(instrType === InstrR) {
     val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
-    setInfo(inst, rd, rs1, rs2, op, 0.U, true.B, true.B, true.B, true.B)
+    setInfo(inst, rd, rs1, rs2, op, true.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrI) {
     val (rd, rs1, imm12) = (inst(11, 7), inst(19, 15), inst(31, 20))
-    setInfo(inst, rd, rs1, 0.U, op, imm12, true.B, true.B, false.B, true.B)
+    setInfo(inst, rd, rs1, 0.U, op,true.B, true.B, false.B, true.B)
   }.elsewhen(instrType === InstrU) {
     val (rd, imm20) = (inst(11, 7), inst(31, 12))
-    setInfo(inst, rd, 0.U, 0.U, ALUOpType.add, imm20, true.B, false.B, false.B, true.B)
+    setInfo(inst, rd, 0.U, 0.U, ALUOpType.add,  true.B, false.B, false.B, true.B)
 
   }.otherwise {
-    setInfo(inst, 0.U, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
+    setInfo(inst, 0.U, 0.U, 0.U, 0.U,  false.B, false.B, false.B, false.B)
   }
   /*
   io.out.info := DontCare
