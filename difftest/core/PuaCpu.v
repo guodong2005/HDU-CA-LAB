@@ -951,7 +951,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
         $fwrite(32'h80000002, "src1: %x, src2 :%x", io_src_info_src1_data,
                 io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:71:13, :81:13
         $fwrite(32'h80000002, "iszero: %x, src2 :%x\n", iszero, iszero);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:42, :71:13, :82:13
-        $fwrite(32'h80000002, "%d\n", remResult[31]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:71:13, :85:26, :86:{13,34}
+        $fwrite(32'h80000002, "%d,width: 64\n", remResult[31]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:71:13, :85:26, :86:{13,34}
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS
