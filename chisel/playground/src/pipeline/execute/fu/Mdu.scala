@@ -71,6 +71,7 @@ class Mdu extends Module {
       io.result := SignedExtend(divResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remw) {
+      printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2 :${Hexadecimal(io.src_info.src2_data)}")
       val divtmp = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)
       val remResult = Mux(iszero === 1.U,io.src_info.src1_data.asSInt,divtmp)
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
