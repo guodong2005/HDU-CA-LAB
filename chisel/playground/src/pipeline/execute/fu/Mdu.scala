@@ -15,6 +15,8 @@ class Mdu extends Module {
 
   io.result := 0.U
   val iszero = Mux(io.src_info.src2_data === 0.U, 1.U, 0.U)
+  val neg1_32 = (-1).S(32.W)
+  val neg1_64 = (-1).S(64.W)
   switch(io.info.op) {
     // Multiplication Operations
     is(MDUOpType.mul) {
@@ -66,7 +68,7 @@ class Mdu extends Module {
       io.result := Mux(overflow === 1.U,SignedExtend(1.U,XLEN),SignedExtend(divResult.asUInt,XLEN))10110110100111000010011110001000
        */
       val divtmp                = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
-      val divResult             = Mux(iszero === 1.U, (-1).S, divtmp.asSInt)
+      val divResult             = Mux(iszero === 1.U, neg1_32, divtmp.asSInt)
       val overflow              = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, 32)
       // printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
       // dontTouch(WireInit(divtmp))
@@ -82,7 +84,7 @@ class Mdu extends Module {
 
       val divtmp    = (io.src_info.src1_data(31, 0).asSInt % io.src_info.src2_data(31, 0).asSInt)(31,0)
       val remResult = Mux(iszero === 1.U, io.src_info.src1_data.asSInt, divtmp.asSInt)(31,0)
-      printf(p"${divtmp(31)},width: ${remResult.getWidth}\n") // comment this line will get a wrong answer ??
+     printf(p"${divtmp(31)},width: ${remResult.getWidth}\n") // comment this line will get a wrong answer ??
       io.result := SignedExtend(remResult.asUInt, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.remuw) {
