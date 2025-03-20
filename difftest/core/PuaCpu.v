@@ -938,7 +938,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
         $fwrite(32'h80000002, "src1: %x, src2 :%x , res : %d\n",
                 io_src_info_src1_data[31:0], io_src_info_src2_data[31:0],
                 $signed(_GEN_10) / $signed(_GEN_11));	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:59:{13,57,115,177}
-        $fwrite(32'h80000002, "iszero === 1. U %d, and iszero : %d\n", iszero, iszero);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :59:13, :63:13
+        $fwrite(32'h80000002, "iszero === 1. U %d, and iszero : %d\n", iszero, 1'h1);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:49, :39:51, :59:13, :63:13
         $fwrite(32'h80000002, "%d\n", $signed(_GEN_10) / $signed(_GEN_11));	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:59:{13,177}, :60:56, :64:13
       end
     end // always @(posedge)
