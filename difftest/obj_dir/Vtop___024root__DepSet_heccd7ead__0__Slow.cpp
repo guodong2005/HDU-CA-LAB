@@ -664,6 +664,9 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren 
         = ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
            | (4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)));
+    vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen 
+        = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren) 
+           | (6U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)));
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_triggers__stl(Vtop___024root* vlSelf);
@@ -763,6 +766,7 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     vlSelf->debug_rf_wnum = VL_RAND_RESET_I(5);
     vlSelf->debug_rf_wdata = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT___executeUnit_io_memoryStage_data_rd_info_wdata = VL_RAND_RESET_Q(64);
+    vlSelf->top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state = VL_RAND_RESET_I(2);
     vlSelf->top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__fetchUnit__DOT___io_instSram_addr_T = VL_RAND_RESET_I(32);

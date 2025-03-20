@@ -29,150 +29,98 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
         bufp->chgQData(oldp+3,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst),64);
         bufp->chgBit(oldp+5,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
         bufp->chgQData(oldp+6,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc),64);
-        bufp->chgCData(oldp+8,((0x1fU & ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                          ? (IData)(
+        bufp->chgCData(oldp+8,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                 ? (0x1fU & (IData)(
                                                     (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                     >> 0xfU))
-                                          : ((4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                              ? (IData)(
-                                                        (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                         >> 0xfU))
-                                              : 0U)))),5);
+                                                     >> 0xfU)))
+                                 : 0U)),5);
         bufp->chgQData(oldp+9,((((QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                  (((IData)(0x3fU) 
                                                    + 
                                                    (0x7ffU 
                                                     & VL_SHIFTL_III(11,11,32, 
-                                                                    (0x1fU 
-                                                                     & ((5U 
-                                                                         == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                         ? (IData)(
+                                                                    ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                      ? 
+                                                                     (0x1fU 
+                                                                      & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                         : 
-                                                                        ((4U 
-                                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                          ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                          : 0U))), 6U))) 
+                                                                                >> 0xfU)))
+                                                                      : 0U), 6U))) 
                                                   >> 5U)])) 
                                  << ((0U == (0x1fU 
                                              & VL_SHIFTL_III(11,11,32, 
-                                                             (0x1fU 
-                                                              & ((5U 
-                                                                  == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                  ? (IData)(
-                                                                            (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                             >> 0xfU))
-                                                                  : 
-                                                                 ((4U 
-                                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                   ? (IData)(
-                                                                             (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                              >> 0xfU))
-                                                                   : 0U))), 6U)))
+                                                             ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                               ? 
+                                                              (0x1fU 
+                                                               & (IData)(
+                                                                         (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                          >> 0xfU)))
+                                                               : 0U), 6U)))
                                       ? 0x20U : ((IData)(0x40U) 
                                                  - 
                                                  (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  (0x1fU 
-                                                                   & ((5U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                       ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                       : 
-                                                                      ((4U 
-                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                        ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                        : 0U))), 6U))))) 
+                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                    ? 
+                                                                   (0x1fU 
+                                                                    & (IData)(
+                                                                              (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                               >> 0xfU)))
+                                                                    : 0U), 6U))))) 
                                 | (((0U == (0x1fU & 
                                             VL_SHIFTL_III(11,11,32, 
-                                                          (0x1fU 
-                                                           & ((5U 
-                                                               == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                               ? (IData)(
-                                                                         (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                          >> 0xfU))
-                                                               : 
-                                                              ((4U 
-                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                ? (IData)(
-                                                                          (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                           >> 0xfU))
-                                                                : 0U))), 6U)))
+                                                          ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                            ? 
+                                                           (0x1fU 
+                                                            & (IData)(
+                                                                      (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                       >> 0xfU)))
+                                                            : 0U), 6U)))
                                      ? 0ULL : ((QData)((IData)(
                                                                vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                                (((IData)(0x1fU) 
                                                                  + 
                                                                  (0x7ffU 
                                                                   & VL_SHIFTL_III(11,11,32, 
+                                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                                 ? 
                                                                                 (0x1fU 
-                                                                                & ((5U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
+                                                                                & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 
-                                                                                ((4U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 0U))), 6U))) 
+                                                                                >> 0xfU)))
+                                                                                 : 0U), 6U))) 
                                                                 >> 5U)])) 
                                                << ((IData)(0x20U) 
                                                    - 
                                                    (0x1fU 
                                                     & VL_SHIFTL_III(11,11,32, 
-                                                                    (0x1fU 
-                                                                     & ((5U 
-                                                                         == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                         ? (IData)(
+                                                                    ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                      ? 
+                                                                     (0x1fU 
+                                                                      & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                         : 
-                                                                        ((4U 
-                                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                          ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                          : 0U))), 6U))))) 
+                                                                                >> 0xfU)))
+                                                                      : 0U), 6U))))) 
                                    | ((QData)((IData)(
                                                       vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                       (0x3fU 
                                                        & (VL_SHIFTL_III(11,11,32, 
-                                                                        (0x1fU 
-                                                                         & ((5U 
-                                                                             == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                             ? (IData)(
+                                                                        ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                          ? 
+                                                                         (0x1fU 
+                                                                          & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                             : 
-                                                                            ((4U 
-                                                                              == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                              ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                              : 0U))), 6U) 
+                                                                                >> 0xfU)))
+                                                                          : 0U), 6U) 
                                                           >> 5U))])) 
                                       >> (0x1fU & VL_SHIFTL_III(11,11,32, 
-                                                                (0x1fU 
-                                                                 & ((5U 
-                                                                     == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                     ? (IData)(
-                                                                               (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                     : 
-                                                                    ((4U 
-                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                      ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                      : 0U))), 6U)))))),64);
+                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                  ? 
+                                                                 (0x1fU 
+                                                                  & (IData)(
+                                                                            (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                             >> 0xfU)))
+                                                                  : 0U), 6U)))))),64);
         bufp->chgCData(oldp+11,(((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
                                   ? (0x1fU & (IData)(
                                                      (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
@@ -310,22 +258,12 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                                                   >> 0xcU)))))
                                                  : 0U))
                                   : 0U)),5);
-        bufp->chgBit(oldp+15,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren) 
-                               | (6U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)))));
-        bufp->chgCData(oldp+16,((0x1fU & ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                           ? (IData)(
+        bufp->chgBit(oldp+15,(vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen));
+        bufp->chgCData(oldp+16,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen)
+                                  ? (0x1fU & (IData)(
                                                      (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                      >> 7U))
-                                           : ((4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                               ? (IData)(
-                                                         (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                          >> 7U))
-                                               : ((6U 
-                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                   ? (IData)(
-                                                             (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                              >> 7U))
-                                                   : 0U))))),5);
+                                                      >> 7U)))
+                                  : 0U)),5);
         bufp->chgQData(oldp+17,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
                                   ? (((QData)((IData)(
                                                       vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
@@ -333,67 +271,43 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                                         + 
                                                         (0x7ffU 
                                                          & VL_SHIFTL_III(11,11,32, 
-                                                                         (0x1fU 
-                                                                          & ((5U 
-                                                                              == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                              ? (IData)(
+                                                                         ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                           ? 
+                                                                          (0x1fU 
+                                                                           & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                              : 
-                                                                             ((4U 
-                                                                               == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                               ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                               : 0U))), 6U))) 
+                                                                                >> 0xfU)))
+                                                                           : 0U), 6U))) 
                                                        >> 5U)])) 
                                       << ((0U == (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  (0x1fU 
-                                                                   & ((5U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                       ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                       : 
-                                                                      ((4U 
-                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                        ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                        : 0U))), 6U)))
+                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                    ? 
+                                                                   (0x1fU 
+                                                                    & (IData)(
+                                                                              (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                               >> 0xfU)))
+                                                                    : 0U), 6U)))
                                            ? 0x20U : 
                                           ((IData)(0x40U) 
                                            - (0x1fU 
                                               & VL_SHIFTL_III(11,11,32, 
-                                                              (0x1fU 
-                                                               & ((5U 
-                                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                   ? (IData)(
-                                                                             (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                              >> 0xfU))
-                                                                   : 
-                                                                  ((4U 
-                                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                    ? (IData)(
-                                                                              (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                               >> 0xfU))
-                                                                    : 0U))), 6U))))) 
+                                                              ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                ? 
+                                                               (0x1fU 
+                                                                & (IData)(
+                                                                          (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                           >> 0xfU)))
+                                                                : 0U), 6U))))) 
                                      | (((0U == (0x1fU 
                                                  & VL_SHIFTL_III(11,11,32, 
-                                                                 (0x1fU 
-                                                                  & ((5U 
-                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                      ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                      : 
-                                                                     ((4U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                       ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                       : 0U))), 6U)))
+                                                                 ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                   ? 
+                                                                  (0x1fU 
+                                                                   & (IData)(
+                                                                             (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                              >> 0xfU)))
+                                                                   : 0U), 6U)))
                                           ? 0ULL : 
                                          ((QData)((IData)(
                                                           vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
@@ -401,69 +315,45 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                                             + 
                                                             (0x7ffU 
                                                              & VL_SHIFTL_III(11,11,32, 
-                                                                             (0x1fU 
-                                                                              & ((5U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
+                                                                             ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                               ? 
+                                                                              (0x1fU 
+                                                                               & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 
-                                                                                ((4U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 0U))), 6U))) 
+                                                                                >> 0xfU)))
+                                                                               : 0U), 6U))) 
                                                            >> 5U)])) 
                                           << ((IData)(0x20U) 
                                               - (0x1fU 
                                                  & VL_SHIFTL_III(11,11,32, 
-                                                                 (0x1fU 
-                                                                  & ((5U 
-                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                      ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                      : 
-                                                                     ((4U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                       ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                       : 0U))), 6U))))) 
+                                                                 ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                   ? 
+                                                                  (0x1fU 
+                                                                   & (IData)(
+                                                                             (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                              >> 0xfU)))
+                                                                   : 0U), 6U))))) 
                                         | ((QData)((IData)(
                                                            vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                            (0x3fU 
                                                             & (VL_SHIFTL_III(11,11,32, 
-                                                                             (0x1fU 
-                                                                              & ((5U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
+                                                                             ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                               ? 
+                                                                              (0x1fU 
+                                                                               & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 
-                                                                                ((4U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                                 ? (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                                 : 0U))), 6U) 
+                                                                                >> 0xfU)))
+                                                                               : 0U), 6U) 
                                                                >> 5U))])) 
                                            >> (0x1fU 
                                                & VL_SHIFTL_III(11,11,32, 
-                                                               (0x1fU 
-                                                                & ((5U 
-                                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                    ? (IData)(
-                                                                              (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                               >> 0xfU))
-                                                                    : 
-                                                                   ((4U 
-                                                                     == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
-                                                                     ? (IData)(
-                                                                               (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
-                                                                                >> 0xfU))
-                                                                     : 0U))), 6U)))))
+                                                               ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren)
+                                                                 ? 
+                                                                (0x1fU 
+                                                                 & (IData)(
+                                                                           (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
+                                                                            >> 0xfU)))
+                                                                 : 0U), 6U)))))
                                   : ((0x37U == (0x7fU 
                                                 & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst)))
                                       ? 0ULL : vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc))),64);
