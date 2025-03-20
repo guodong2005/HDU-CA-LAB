@@ -43,7 +43,7 @@ class Mdu extends Module {
       io.result := result
     }
     is(MDUOpType.rem) { 
-      io.result := Mux(iszero === 1.U,io.src_info.src1_data.asSInt,(io.src_info.src1_data.asSInt % io.src_info.src2_data.asSInt).asUInt) // Signed Remainder
+      io.result := Mux(iszero === 1.U,io.src_info.src1_data.asUInt,(io.src_info.src1_data.asSInt % io.src_info.src2_data.asSInt).asUInt) // Signed Remainder
     }
     is(MDUOpType.remu) { 
       io.result := Mux(iszero === 1.U,io.src_info.src2_data,io.src_info.src1_data % io.src_info.src2_data) // Unsigned Remainder
