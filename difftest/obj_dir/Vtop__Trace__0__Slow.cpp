@@ -874,7 +874,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
     VL_MUL_W(4, __Vtemp_5, __Vtemp_3, __Vtemp_4);
     bufp->fullWData(oldp+50,(__Vtemp_5),128);
     bufp->fullQData(oldp+54,(((0ULL == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)
-                               ? 1ULL : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4)),33);
+                               ? 0x1ffffffffULL : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4)),33);
     bufp->fullIData(oldp+56,(((0ULL == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)
                                ? 0xffffffffU : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_5)),32);
     bufp->fullCData(oldp+57,(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state),2);

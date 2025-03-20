@@ -997,16 +997,15 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                                                     : 
                                                    (((QData)((IData)(
                                                                      (0x7fffffffU 
-                                                                      & (- (IData)(
-                                                                                ((0ULL 
-                                                                                != vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data) 
-                                                                                & (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4 
-                                                                                >> 0x20U)))))))) 
+                                                                      & (- (IData)((IData)(
+                                                                                ((vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4 
+                                                                                >> 0x20U) 
+                                                                                | (0ULL 
+                                                                                == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))))))) 
                                                      << 0x21U) 
                                                     | ((0ULL 
                                                         == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)
-                                                        ? 1ULL
+                                                        ? 0x1ffffffffULL
                                                         : vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_4)))
                                                 : (
                                                    (0xdU 
