@@ -48,15 +48,19 @@ class Decoder extends Module with HasInstrType {
     io.out.info.valid      := valid
   }
 
-  
+  val op = LookupTree(
+    instrType,
+    Seq(
+      InstrR -> Cat(inst(3), inst(30), inst(14, 12)), 
+      InstrI -> Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)),
+      InstrU -> ALUOpType.add
+    ) 
+  )
   when(instrType === InstrR) {
     val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
-    val op             = Cat(inst(3), inst(30), inst(14, 12))
     setInfo(inst, rd, rs1, rs2, op, 0.U, true.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrI) {
     val (rd, rs1, imm12) = (inst(11, 7), inst(19, 15), inst(31, 20))
-    val bit30 = Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U);
-    val op    = Cat(inst(3), bit30, inst(14, 12))
     setInfo(inst, rd, rs1, 0.U, op, imm12, true.B, true.B, false.B, true.B)
   }.elsewhen(instrType === InstrU) {
     val (rd, imm20) = (inst(11, 7), inst(31, 12))
