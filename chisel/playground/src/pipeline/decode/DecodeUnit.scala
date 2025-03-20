@@ -35,12 +35,11 @@ class DecodeUnit extends Module with HasInstrType{
   ) // has a warning, I will ignore it for now  3/19/2025
    */
   // val imm = io.imm
-  val imm := LookupTree(
+  val imm = LookupTree(
     instrType,
     Seq(
-      InstrI -> Cat(Fill(52,inst(31)),inst(31, 20)),
-      InstrU -> Cat(Fill(32,inst(31)),inst(31, 12),Fill(12,0.U))
-
+      InstrI -> SignedExtend(inst(31, 20), XLEN),
+      InstrU -> SignedExtend(Cat(inst(31, 12),0.U(12.W)),XLEN)
     ) 
   )
 
