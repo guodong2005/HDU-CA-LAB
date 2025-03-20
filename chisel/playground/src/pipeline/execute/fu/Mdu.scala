@@ -95,7 +95,8 @@ class Mdu extends Module {
       // Extracting the relevant bits for the remainder operation
       val src1 = io.src_info.src1_data(31, 0).asUInt // 32-bit source 1
       val src2 = io.src_info.src2_data(31, 0).asUInt // 32-bit source 2
-
+      val quotient = src1 / src2
+      val rem      = (src1 - quotient * src2)(31,0)
       // Calculate the remainder, ensuring proper usage
       val divtmp = WireDefault(0.U(32.W)) // Explicitly define divtmp as a 32-bit wire
       when(iszero === 0.U) { // Handle divide-by-zero scenario
@@ -103,7 +104,7 @@ class Mdu extends Module {
       }
 
       // Result handling with Mux
-      val remResult = Mux(iszero === 1.U, src1, divtmp(31, 0)) // Select between src1 (if zero) or divtmp
+      val remResult = Mux(iszero === 1.U, src1, rem) // Select between src1 (if zero) or divtmp
       io.result := SignedExtend(remResult,XLEN) // Extend the result to XLEN
       printf(p"-1: ${Binary((-(1<<63).S).asUInt)}, iszero: ${(iszero)}\n")
       printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
