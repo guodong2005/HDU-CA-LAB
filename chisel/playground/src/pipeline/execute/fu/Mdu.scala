@@ -67,8 +67,8 @@ class Mdu extends Module {
       */
       val divtmp = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
       val divResult = Mux(iszero === 1.U, (-1).S, divtmp.asSInt)
-      val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, 32)
-      printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
+      val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, 32);
+      // printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
       io.result := Mux(overflow === 1.U, SignedExtend(1.U, XLEN), SignedExtend(divResult.asUInt, XLEN))
 
     }
