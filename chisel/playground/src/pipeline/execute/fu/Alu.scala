@@ -47,6 +47,7 @@ class Alu extends Module {
   is(ALUOpType.srlw) { 
     val logicalShiftResult = (io.src_info.src1_data(31, 0) >> io.src_info.src2_data(4, 0)).asUInt // same as above
     io.result := Cat(Fill(32, logicalShiftResult(31)), logicalShiftResult(31, 0)) // Zero-extend to 64 bits
+    io.result := SignedExtend(logicalShiftResult,XLEN) // Sign-extend result to 64 bits
   }
 
   is(ALUOpType.sraw) { 
