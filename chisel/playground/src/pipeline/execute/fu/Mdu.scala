@@ -73,7 +73,7 @@ class Mdu extends Module {
       val divResult = Mux(iszero32 === 1.U, neg1_64, divtmp.asSInt)(31, 0)
       // val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data === SignedExtend(1.U, 32)
       val overflow  = io.src_info.src2_data.asSInt === neg1_64.asSInt && io.src_info.src1_data.asSInt === -(1<<31).S
-      printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
+      // printf(p"src1: ${Hexadecimal(io.src_info.src1_data)}, src2: ${Hexadecimal(io.src_info.src2_data)}\n")
       io.result := Mux(overflow === true.B, SignedExtend(1.U, XLEN), SignedExtend(divResult.asUInt, XLEN))
 
     }
