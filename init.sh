@@ -36,7 +36,7 @@ function init() {
   if [ $5 ] ; then
     addenv $5 $3
   fi
-}
+m}
 
 case $1 in
   difftest)

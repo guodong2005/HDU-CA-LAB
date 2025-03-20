@@ -25,6 +25,7 @@ class DecodeUnit extends Module with HasInstrType{
   val inst = decoder.io.out.info.instr
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
+  /*
   io.imm := MuxCase(
     0.U,
     Array(
@@ -32,7 +33,16 @@ class DecodeUnit extends Module with HasInstrType{
       (instrType === InstrU) -> Cat(Fill(32,inst(31)),inst(31, 12),Fill(12,0.U))
     )
   ) // has a warning, I will ignore it for now  3/19/2025
-  val imm = io.imm
+   */
+  // val imm = io.imm
+  val imm := LookupTree(
+    instrType,
+    Seq(
+      InstrI -> Cat(Fill(52,inst(31)),inst(31, 20)),
+      InstrU -> Cat(Fill(32,inst(31)),inst(31, 12),Fill(12,0.U))
+
+    ) 
+  )
 
   info       := decoder.io.out.info
   info.valid := io.decodeStage.data.valid

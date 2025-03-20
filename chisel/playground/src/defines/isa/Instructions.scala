@@ -18,11 +18,29 @@ trait HasInstrType {
 object FuType {
   def num     = 1
   def alu     = 0.U // arithmetic logic unit
+  def mdu     = 1.U // multiplication division unit
   def apply() = UInt(log2Up(num).W)
 }
 
 object FuOpType {
   def apply() = UInt(5.W)
+}
+
+object MDUOpType {
+  def mul    = "b0000".U // Multiply
+  def mulh   = "b0001".U // Multiply High
+  def mulhsu = "b0010".U // Multiply High Signed-Unsigned
+  def mulhu  = "b0011".U // Multiply High Unsigned
+  def div    = "b0100".U // Divide
+  def divu   = "b0101".U // Unsigned Divide
+  def rem    = "b0110".U // Remainder
+  def remu   = "b0111".U // Unsigned Remainder
+  def mulw   = "b1000".U // Multiply Word
+  def divw   = "b1100".U // Divide Word
+  def divuw  = "b1101".U // Unsigned Divide Word
+  def remw   = "b1110".U // Remainder Word
+  def remuw  = "b1111".U // Unsigned Remainder Word
+
 }
 
 // ALU

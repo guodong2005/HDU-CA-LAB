@@ -28,6 +28,15 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def SUB  = BitPat("b0100000_?????_?????_000_?????_0110011")
   def SRA  = BitPat("b0100000_?????_?????_101_?????_0110011")
 
+  def MUL    = BitPat("b0000001_?????_?????_000_?????_0110011") // Multiply
+  def MULH   = BitPat("b0000001_?????_?????_001_?????_0110011") // Multiply High
+  def MULHSU = BitPat("b0000001_?????_?????_010_?????_0110011") // Multiply High Signed-Unsigned
+  def MULHU  = BitPat("b0000001_?????_?????_011_?????_0110011") // Multiply High Unsigned
+  def DIV    = BitPat("b0000001_?????_?????_100_?????_0110011") // Divide
+  def DIVU   = BitPat("b0000001_?????_?????_101_?????_0110011") // Unsigned Divide
+  def REM    = BitPat("b0000001_?????_?????_110_?????_0110011") // Remainder
+  def REMU   = BitPat("b0000001_?????_?????_111_?????_0110011") // Unsigned Remainder
+
   def AUIPC = BitPat("b????????????????????_?????_0010111")
   def LUI   = BitPat("b????????????????????_?????_0110111")
   val table = Array(
@@ -50,13 +59,24 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     ANDI  -> List(InstrI, FuType.alu, ALUOpType.and),  // AND Immediate
     AND   -> List(InstrR, FuType.alu, ALUOpType.and),  // AND
     SUB   -> List(InstrR, FuType.alu, ALUOpType.sub),  // Subtract
-    AUIPC -> List(InstrU, FuType.alu, ALUOpType.add),  // Add Upper Immediate to PC
-    LUI   -> List(InstrU, FuType.alu, ALUOpType.add)   // Load Upper Immediate
+
+    MUL    -> List(InstrR, FuType.mdu, MDUOpType.mul),    // Multiply
+    MULH   -> List(InstrR, FuType.mdu, MDUOpType.mulh),   // Multiply High
+    MULHSU -> List(InstrR, FuType.mdu, MDUOpType.mulhsu), // Multiply High Signed-Unsigned
+    MULHU  -> List(InstrR, FuType.mdu, MDUOpType.mulhu),  // Multiply High Unsigned
+    DIV    -> List(InstrR, FuType.mdu, MDUOpType.div),    // Divide
+    DIVU   -> List(InstrR, FuType.mdu, MDUOpType.divu),   // Unsigned Divide
+    REM    -> List(InstrR, FuType.mdu, MDUOpType.rem),    // Remainder
+    REMU   -> List(InstrR, FuType.mdu, MDUOpType.remu),
+    // Unsigned Remainder
+    AUIPC -> List(InstrU, FuType.alu, ALUOpType.add), // Add Upper Immediate to PC
+    LUI   -> List(InstrU, FuType.alu, ALUOpType.add)  // Load Upper Immediate
   )
 
 }
 
 object RV64IInstr extends HasInstrType {
+  // Existing word-type instructions
   def ADDIW = BitPat("b???????_?????_?????_000_?????_0011011")
   def SLLIW = BitPat("b0000000_?????_?????_001_?????_0011011")
   def SRLIW = BitPat("b0000000_?????_?????_101_?????_0011011")
@@ -67,7 +87,15 @@ object RV64IInstr extends HasInstrType {
   def ADDW  = BitPat("b0000000_?????_?????_000_?????_0111011")
   def SUBW  = BitPat("b0100000_?????_?????_000_?????_0111011")
 
+  // New word-type M-extension instructions
+  def MULW  = BitPat("b0000001_?????_?????_000_?????_0111011") // Multiply Word
+  def DIVW  = BitPat("b0000001_?????_?????_100_?????_0111011") // Divide Word
+  def DIVUW = BitPat("b0000001_?????_?????_101_?????_0111011") // Unsigned Divide Word
+  def REMW  = BitPat("b0000001_?????_?????_110_?????_0111011") // Remainder Word
+  def REMUW = BitPat("b0000001_?????_?????_111_?????_0111011") // Unsigned Remainder Word
+
   val table = Array(
+    // Existing entries
     ADDIW -> List(InstrI, FuType.alu, ALUOpType.addw),
     SLLIW -> List(InstrI, FuType.alu, ALUOpType.sllw),
     SRLIW -> List(InstrI, FuType.alu, ALUOpType.srlw),
@@ -76,9 +104,17 @@ object RV64IInstr extends HasInstrType {
     SRLW  -> List(InstrR, FuType.alu, ALUOpType.srlw),
     SRAW  -> List(InstrR, FuType.alu, ALUOpType.sraw),
     ADDW  -> List(InstrR, FuType.alu, ALUOpType.addw),
-    SUBW  -> List(InstrR, FuType.alu, ALUOpType.subw)
+    SUBW  -> List(InstrR, FuType.alu, ALUOpType.subw),
+
+    // Updated word-type M-extension entries
+    MULW  -> List(InstrR, FuType.mdu, MDUOpType.mulw),    // Multiply Word
+    DIVW  -> List(InstrR, FuType.mdu, MDUOpType.divw),    // Divide Word
+    DIVUW -> List(InstrR, FuType.mdu, MDUOpType.divuw),   // Unsigned Divide Word
+    REMW  -> List(InstrR, FuType.mdu, MDUOpType.remw),    // Remainder Word
+    REMUW -> List(InstrR, FuType.mdu, MDUOpType.remuw)    // Unsigned Remainder Word
   )
 }
+
 
 object RVIInstr extends CoreParameter {
   val table = RV32I_ALUInstr.table ++
