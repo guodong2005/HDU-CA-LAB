@@ -51,7 +51,7 @@ class Mdu extends Module {
       val quotient = src1 / src2
       val rem      = src1 - quotient * src2
 
-      io.result := Mux(iszero === 1.U, io.src_info.src1_data.asSInt, rem.asSInt) // Signed Remainder
+      io.result := Mux(iszero === 1.U, io.src_info.src1_data, rem(63,0)) // Signed Remainder
     }
     is(MDUOpType.remu) {
       val src1 = io.src_info.src1_data.asUInt // 32-bit source 1
@@ -59,7 +59,7 @@ class Mdu extends Module {
 
       val quotient = src1 / src2
       val rem      = src1 - quotient * src2
-      io.result := Mux(iszero === 1.U, io.src_info.src1_data, rem) // Unsigned Remainder
+      io.result := Mux(iszero === 1.U, io.src_info.src1_data, rem(63,0)) // Unsigned Remainder
     }
 
     // Word-Type Operations (32-bit, sign-extended to 64-bit)
