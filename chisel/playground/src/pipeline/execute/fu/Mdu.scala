@@ -56,13 +56,20 @@ class Mdu extends Module {
       io.result := SignedExtend(mulResult, XLEN) // Use SignedExtend to extend to XLEN
     }
     is(MDUOpType.divw) {
+      /*
       val divtmp = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
       val divResult = Mux(iszero === 1.U,(-1).S,divtmp) // right 
       // val divResult = Mux(iszero === 1.U,(-1).S,io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt) // wrong , why ??
       // printf(p"divResult: ${Hexadecimal(divResult)}, divtmp :${Hexadecimal(divtmp)}")
       val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,32)
-      printf(p"${divtmp.asSInt}\n")
+      printf(p"${divtmp.asSInt}\n") // comment this line will get a wrong answer ??
       io.result := Mux(overflow === 1.U,SignedExtend(1.U,XLEN),SignedExtend(divResult.asUInt,XLEN))
+      */
+      val divtmp = io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt
+val divResult = Mux(iszero === 1.U, (-1).S, divtmp)
+val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U, 32)
+io.result := Mux(overflow === 1.U, SignedExtend(1.U, XLEN), SignedExtend(divResult.asUInt, XLEN))
+
     }
     is(MDUOpType.divuw) {
       val divtmp = (io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asSInt
