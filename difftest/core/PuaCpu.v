@@ -945,7 +945,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       if ((`PRINTF_COND_) & (|io_info_op) & ~_GEN_0 & ~_GEN_2 & ~_GEN_3 & ~_GEN_4
           & ~_GEN_5 & ~_GEN_6 & ~_GEN_7 & ~_GEN_8 & ~_GEN_9 & ~_GEN_10 & ~_GEN_11
           & _GEN_12 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:19:22, :81:13
-        $fwrite(32'h80000002, "%d,width: 64\n", divtmp_3[31]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:79:60, :81:{13,24}
+        $fwrite(32'h80000002, "%d,width: 32\n", divtmp_3[31]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:79:60, :81:{13,24}
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_result =
