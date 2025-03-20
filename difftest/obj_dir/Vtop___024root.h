@@ -29,6 +29,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_OUT8(debug_commit,0,0);
         VL_OUT8(debug_rf_wnum,4,0);
         CData/*0:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_fusel;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren;
@@ -39,6 +40,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_waddr;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr;
@@ -54,13 +56,15 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_IN(inst_sram_rdata,31,0);
         VL_OUT(data_sram_addr,31,0);
         IData/*31:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT___io_instSram_addr_T;
-        IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__Alu__DOT__logicalShiftResult;
+        IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__alu__DOT__logicalShiftResult;
+        VlWide<4>/*127:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT___GEN_0;
+        IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divResult_1;
+        IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__remResult_1;
         IData/*31:0*/ __VactIterCount;
         VL_OUT64(data_sram_wdata,63,0);
         VL_IN64(data_sram_rdata,63,0);
         VL_OUT64(debug_pc,63,0);
         VL_OUT64(debug_rf_wdata,63,0);
-        QData/*63:0*/ top__DOT__core__DOT__core__DOT___executeUnit_io_memoryStage_data_rd_info_wdata;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc;
@@ -76,12 +80,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_9;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_10;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_11;
+    };
+    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_12;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_13;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_14;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_15;
-    };
-    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_16;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_17;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_18;
@@ -102,6 +106,8 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data;
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT___mdu_io_result;
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT___alu_io_result;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
