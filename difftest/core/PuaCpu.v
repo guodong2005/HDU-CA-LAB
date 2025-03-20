@@ -928,7 +928,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
           & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:19:22, :41:13, :42:13
         $fwrite(32'h80000002, "iszero: %d, overflow: %d\n", ~(|io_src_info_src2_data),
                 overflow);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:17:43, :40:60, :41:13
-        $fwrite(32'h80000002, "iszero: %x, src2: %d\n", io_src_info_src1_data,
+        $fwrite(32'h80000002, "iszero: %x, src2: %x\n", io_src_info_src1_data,
                 io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:41:13, :42:13
       end
     end // always @(posedge)
