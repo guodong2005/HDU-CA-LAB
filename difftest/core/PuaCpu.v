@@ -911,7 +911,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       : $signed({io_src_info_src1_data[31], io_src_info_src1_data[31:0]})
         / $signed({io_src_info_src2_data[31], io_src_info_src2_data[31:0]});	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:16:49, :58:{26,68,83,106}
   wire [31:0]  divResult_1 =
-    iszero ? 32'h1 : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:16:49, :63:{26,68,76,99}
+    iszero ? 32'h1 : io_src_info_src1_data[31:0] / io_src_info_src2_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:16:49, :63:{26,73,81,104}
   wire [31:0]  _remResult_T_6 =
     $signed(io_src_info_src1_data[31:0]) % $signed(io_src_info_src2_data[31:0]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:67:{93,108,131}
   assign io_result =
