@@ -36,7 +36,7 @@ class Mdu extends Module {
     is(MDUOpType.div) { 
       val result = Mux(iszero === 1.U,SignedExtend(1.U,XLEN).asSInt,(io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt)) // Signed Division
       val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,XLEN)
-      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN).asSInt,result)
+      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN).asSInt,result).asSInt
     }
     is(MDUOpType.divu) { 
       val result = Mux(iszero === 1.U,SignedExtend(1.U,XLEN),(io.src_info.src1_data / io.src_info.src2_data)) // Unsigned Division
@@ -57,7 +57,7 @@ class Mdu extends Module {
     is(MDUOpType.divw) {
       val divResult = Mux(iszero === 1.U,1.U,(io.src_info.src1_data(31, 0).asSInt / io.src_info.src2_data(31, 0).asSInt).asUInt)
       val overflow = io.src_info.src2_data.asSInt === -1.S && io.src_info.src1_data === SignedExtend(1.U,32)
-      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN),SignedExtend(divResult,XLEN))
+      io.result := Mux(overflow === true.B,SignedExtend(1.U,XLEN),SignedExtend(divResult,XLEN)).asSInt
     }
     is(MDUOpType.divuw) {
       val divResult = Mux(iszero === 1.U,1.U,(io.src_info.src1_data(31, 0) / io.src_info.src2_data(31, 0)).asUInt)
