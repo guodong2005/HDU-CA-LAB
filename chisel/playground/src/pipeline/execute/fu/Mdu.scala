@@ -14,7 +14,7 @@ class Mdu extends Module {
   })
 
   io.result := 0.U
-  val iszero = Mux(io.src_info.src2_data.asUInt === 0.U, 1.U,0.U)
+  val iszero = Mux(io.src_info.src2_data === 0.U, 1.U,0.U)
   switch(io.info.op) {
     // Multiplication Operations
     is(MDUOpType.mul) { 
