@@ -45,4 +45,9 @@ class MemoryUnit extends Module {
     SignedExtend(finalMemData, XLEN)
   )
   io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, extendedData, io.memoryStage.data.rd_info.wdata)
+
+  io.dataSram.en    := DontCare
+  io.dataSram.addr  := DontCare
+  io.dataSram.wdata := DontCare
+  io.dataSram.wen   := DontCare
 }
