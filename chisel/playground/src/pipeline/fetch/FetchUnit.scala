@@ -31,7 +31,7 @@ class FetchUnit extends Module {
 
   io.instSram.en    := !reset.asBool
   io.instSram.wen   := 0.U
-  io.instSram.wdata := 0.U
+  io.instSram.wdata := 0.U 
 
   io.decodeStage.data.valid := state === receive
   io.decodeStage.data.pc    := pc

@@ -12,56 +12,64 @@ class Lsu extends Module {
     val result   = Output(UInt(XLEN.W))
     val dataSram = new DataSram()
   })
-
-
+  /*
   io.dataSram.en    := false.B
   io.dataSram.addr  := DontCare
   io.dataSram.wdata := DontCare
   io.dataSram.wen   := 0.U
-  io.result := 0.U
+  io.result         := 0.U
+   */
+  /*
+dataSram is a 64-bit ram so datasram.wen has 8 bit to represent the 8 bits' write signals.
+generate tmp_datasram for me , for example, if the instruction is lb:
 
+tmp_datasram_wen := LSUOpType.lb[1:0] <<datasram.addr[2:0]
+
+tmp_datasram_wen := LSUOpType.sh[1:0] <<datasram.addr[2:0] ... like this
+
+in some case like the datasram.addr[0] = 1 and the command type is double word might incurs that we write 8 bytes which is not in the same sram unit, you can ignore it
+
+TODO: add unaligned exception
+   */
+  io.dataSram.addr := io.src_info.src1_data + io.info.imm
+  val tmpwen = io.info.op(1,0) << io.dataSram.addr(2,0)
+  // io.dataSram.wen := tmpwen && 
+  io.dataSram.wen := tmpwen & Fill(8,io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+
+  /*
   switch(io.info.op) {
-  // Other 64-bit operations remain unchanged
-  is(ALUOpType.add) { io.result := io.src_info.src1_data + io.src_info.src2_data }    // ADD
-  is(ALUOpType.sub) { io.result := io.src_info.src1_data - io.src_info.src2_data }    // SUB
-  is(ALUOpType.and) { io.result := io.src_info.src1_data & io.src_info.src2_data }    // AND
-  is(ALUOpType.or)  { io.result := io.src_info.src1_data | io.src_info.src2_data }    // OR
-  is(ALUOpType.xor) { io.result := io.src_info.src1_data ^ io.src_info.src2_data }    // XOR
-  is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt).asUInt } // SLT (signed)
-  is(ALUOpType.sltu) { io.result := (io.src_info.src1_data < io.src_info.src2_data) }  // SLTU (unsigned)
-  is(ALUOpType.sll) { io.result := io.src_info.src1_data << io.src_info.src2_data(5, 0) } // SLL
-  is(ALUOpType.srl) { io.result := io.src_info.src1_data >> io.src_info.src2_data(5, 0) } // SRL (logical right shift)
-  is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(5, 0)).asUInt } // SRA (arithmetic right shift)
-
-  // Word-Type Operations (32-bit operations with sign-extension)
-  is(ALUOpType.addw) { 
-    val addResult = (io.src_info.src1_data(31, 0) + io.src_info.src2_data(31, 0)).asUInt
-    // io.result := Cat(Fill(32, addResult(31)), addResult(31, 0)) // Sign-extend result to 64 bits
-    io.result := SignedExtend(addResult,XLEN) // Sign-extend result to 64 bits
+    // LSU Operations
+    is(LSUOpType.lb) {
+      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 8), XLEN) // Load Byte (signed)
+    }
+    is(LSUOpType.lbu) {
+      io.result := ZeroExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 8), XLEN) // Load Byte Unsigned
+    }
+    is(LSUOpType.lh) {
+      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 16), XLEN) // Load Halfword (signed)
+    }
+    is(LSUOpType.lhu) {
+      io.result := ZeroExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 16), XLEN) // Load Halfword Unsigned
+    }
+    is(LSUOpType.lw) {
+      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 32), XLEN) // Load Word (signed)
+    }
+    is(LSUOpType.ld) {
+      io.result := Memory.read(io.src_info.src1_data + io.src_info.src2_data, XLEN) // Load Doubleword (for RV64, no sign extension needed)
+    }
+    is(LSUOpType.sb) {
+      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(7, 0), 8) // Store Byte
+    }
+    is(LSUOpType.sh) {
+      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(15, 0), 16) // Store Halfword
+    }
+    is(LSUOpType.sw) {
+      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(31, 0), 32) // Store Word
+    }
+    is(LSUOpType.sd) {
+      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data, XLEN) // Store Doubleword (for RV64)
+    }
   }
-
-  is(ALUOpType.subw) { 
-    val subResult = (io.src_info.src1_data(31, 0) - io.src_info.src2_data(31, 0)).asUInt
-    io.result := SignedExtend(subResult,XLEN) // Sign-extend result to 64 bits
-  }
-
-  is(ALUOpType.sllw) { 
-    val shiftResult = (io.src_info.src1_data(31, 0) << io.src_info.src2_data(4, 0))(31,0).asUInt // 32-bit so it is 4-0
-    // io.result := Cat(Fill(32, shiftResult(31)), shiftResult(31, 0)) // Sign-extend to 64 bits
-    io.result := SignedExtend(shiftResult,XLEN) // Sign-extend result to 64 bits
-  }
-
-  is(ALUOpType.srlw) { 
-    val logicalShiftResult = (io.src_info.src1_data(31, 0) >> io.src_info.src2_data(4, 0)).asUInt // same as above
-    io.result := SignedExtend(logicalShiftResult,XLEN) // Sign-extend result to 64 bits
-  }
-
-  is(ALUOpType.sraw) { 
-    val arithmeticShiftResult = (io.src_info.src1_data(31, 0).asSInt >> io.src_info.src2_data(4, 0)).asUInt
-    // io.result := Cat(Fill(32, arithmeticShiftResult(31)), arithmeticShiftResult(31, 0)) // Sign-extend to 64 bits
-    io.result := SignedExtend(arithmeticShiftResult,XLEN) // Sign-extend result to 64 bits
-  }
-
-}
+*/
 
 }
