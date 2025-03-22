@@ -6,7 +6,7 @@ import cpu.defines._
 import cpu.defines.Const._
 import cpu.CpuConfig
 
-class Fu extends Module {
+class Fu extends Module with HasInstrType{
   val io = IO(new Bundle {
     val data = new Bundle {
       val pc       = Input(UInt(XLEN.W))
@@ -20,6 +20,7 @@ class Fu extends Module {
 
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())
+  val lsu = Module(new Lsu())
 
   io.dataSram.en    := false.B
   io.dataSram.addr  := DontCare
@@ -32,5 +33,17 @@ class Fu extends Module {
   mdu.io.info := io.data.info
   mdu.io.src_info := io.data.src_info
 
+  lsu.io.dataSram <> io.dataSram // same as := ?
+  lsu.io.info := io.data.info
+  lsu.io.src_info := io.data.src_info
+
+  val result = LookupTree(
+    io.data.info.fusel,
+    Seq(
+      FuType.alu -> alu.io.result,
+      FuType.mdu -> mdu.io.result,
+      FuType.lsu -> lsu.io.result
+    )
+  ) 
   io.data.rd_info.wdata := Mux(io.data.info.fusel === 0.U,alu.io.result,mdu.io.result)
 }

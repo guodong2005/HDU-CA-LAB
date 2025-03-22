@@ -39,6 +39,19 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
 
   def AUIPC = BitPat("b????????????????????_?????_0010111")
   def LUI   = BitPat("b????????????????????_?????_0110111")
+
+  // Load Instructions
+  def LB  = BitPat("b0000000_?????_?????_000_?????_0000011") // Load Byte
+  def LBU = BitPat("b0000000_?????_?????_100_?????_0000011") // Load Byte Unsigned
+  def LH  = BitPat("b0000000_?????_?????_001_?????_0000011") // Load Halfword
+  def LHU = BitPat("b0000000_?????_?????_101_?????_0000011") // Load Halfword Unsigned
+  def LW  = BitPat("b0000000_?????_?????_010_?????_0000011") // Load Word
+
+// Store Instructions
+  def SB = BitPat("b0000000_?????_?????_000_?????_0100011") // Store Byte
+  def SH = BitPat("b0000000_?????_?????_001_?????_0100011") // Store Halfword
+  def SW = BitPat("b0000000_?????_?????_010_?????_0100011") // Store Word
+
   val table = Array(
     ADDI  -> List(InstrI, FuType.alu, ALUOpType.add),  // Add Immediate
     ADD   -> List(InstrR, FuType.alu, ALUOpType.add),  // Add
@@ -68,6 +81,19 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     DIVU   -> List(InstrR, FuType.mdu, MDUOpType.divu),   // Unsigned Divide
     REM    -> List(InstrR, FuType.mdu, MDUOpType.rem),    // Remainder
     REMU   -> List(InstrR, FuType.mdu, MDUOpType.remu),
+
+    // Load Instructions
+    LB  -> List(InstrI, FuType.lsu, LSUOpType.lb),  // Load Byte
+    LBU -> List(InstrI, FuType.lsu, LSUOpType.lbu), // Load Byte Unsigned
+    LH  -> List(InstrI, FuType.lsu, LSUOpType.lh),  // Load Halfword
+    LHU -> List(InstrI, FuType.lsu, LSUOpType.lhu), // Load Halfword Unsigned
+    LW  -> List(InstrI, FuType.lsu, LSUOpType.lw),  // Load Word
+
+// Store Instructions
+    SB -> List(InstrS, FuType.lsu, LSUOpType.sb), // Store Byte
+    SH -> List(InstrS, FuType.lsu, LSUOpType.sh), // Store Halfword
+    SW -> List(InstrS, FuType.lsu, LSUOpType.sw), // Store Word
+
     // Unsigned Remainder
     AUIPC -> List(InstrU, FuType.alu, ALUOpType.add), // Add Upper Immediate to PC
     LUI   -> List(InstrU, FuType.alu, ALUOpType.add)  // Load Upper Immediate
@@ -94,6 +120,8 @@ object RV64IInstr extends HasInstrType {
   def REMW  = BitPat("b0000001_?????_?????_110_?????_0111011") // Remainder Word
   def REMUW = BitPat("b0000001_?????_?????_111_?????_0111011") // Unsigned Remainder Word
 
+  def LD = BitPat("b0000000_?????_?????_011_?????_0000011") // Load Doubleword (RV64)
+  def SD = BitPat("b0000000_?????_?????_011_?????_0100011") // Store Doubleword (RV64)
   val table = Array(
     // Existing entries
     ADDIW -> List(InstrI, FuType.alu, ALUOpType.addw),
@@ -107,14 +135,16 @@ object RV64IInstr extends HasInstrType {
     SUBW  -> List(InstrR, FuType.alu, ALUOpType.subw),
 
     // Updated word-type M-extension entries
-    MULW  -> List(InstrR, FuType.mdu, MDUOpType.mulw),    // Multiply Word
-    DIVW  -> List(InstrR, FuType.mdu, MDUOpType.divw),    // Divide Word
-    DIVUW -> List(InstrR, FuType.mdu, MDUOpType.divuw),   // Unsigned Divide Word
-    REMW  -> List(InstrR, FuType.mdu, MDUOpType.remw),    // Remainder Word
-    REMUW -> List(InstrR, FuType.mdu, MDUOpType.remuw)    // Unsigned Remainder Word
+    MULW  -> List(InstrR, FuType.mdu, MDUOpType.mulw),  // Multiply Word
+    DIVW  -> List(InstrR, FuType.mdu, MDUOpType.divw),  // Divide Word
+    DIVUW -> List(InstrR, FuType.mdu, MDUOpType.divuw), // Unsigned Divide Word
+    REMW  -> List(InstrR, FuType.mdu, MDUOpType.remw),  // Remainder Word
+    REMUW -> List(InstrR, FuType.mdu, MDUOpType.remuw), // Unsigned Remainder Word
+
+      LD -> List (InstrI, FuType.lsu, LSUOpType.ld), // Load Doubleword (RV64)
+    SD   -> List(InstrS, FuType.lsu, LSUOpType.sd)   // Store Doubleword (RV64)
   )
 }
-
 
 object RVIInstr extends CoreParameter {
   val table = RV32I_ALUInstr.table ++

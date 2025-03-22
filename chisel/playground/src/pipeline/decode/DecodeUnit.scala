@@ -5,7 +5,7 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
-class DecodeUnit extends Module with HasInstrType{
+class DecodeUnit extends Module with HasInstrType {
   val io = IO(new Bundle {
     // 输入
     val decodeStage = Flipped(new FetchUnitDecodeUnit())
@@ -29,8 +29,11 @@ class DecodeUnit extends Module with HasInstrType{
     instrType,
     Seq(
       InstrI -> SignedExtend(inst(31, 20), XLEN),
-      InstrU -> SignedExtend(Cat(inst(31, 12),0.U(12.W)),XLEN)
-    ) 
+      InstrS -> SignedExtend(Cat(inst(31, 25), inst(11, 7)), XLEN),
+      InstrB -> SignedExtend(Cat(inst(31), inst(7), inst(30, 25), inst(11, 8), 0.U(1.W)), XLEN),
+      InstrU -> SignedExtend(Cat(inst(31, 12), 0.U(12.W)), XLEN),
+      InstrJ -> SignedExtend(Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), 0.U(1.W)), XLEN)
+    )
   )
 
   info       := decoder.io.out.info

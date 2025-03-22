@@ -19,6 +19,7 @@ object FuType {
   def num     = 1
   def alu     = 0.U // arithmetic logic unit
   def mdu     = 1.U // multiplication division unit
+  def lsu     = 2.U // multiplication division unit
   def apply() = UInt(log2Up(num).W)
 }
 
@@ -41,6 +42,11 @@ object MDUOpType {
   def remw   = "b1110".U // Remainder Word
   def remuw  = "b1111".U // Unsigned Remainder Word
 
+  // below is recommended in tutorial. but I forget it so I dont use these...
+  def isDiv(op:     UInt) = op(2)
+  def isDivSign(op: UInt) = isDiv(op) && !op(0)
+  def isWordOp(op:  UInt) = op(3)
+
 }
 
 // ALU
@@ -61,6 +67,23 @@ object ALUOpType {
   def srlw = "b10101".U
   def sraw = "b11101".U
 
-  def isWordOp(func: UInt) = func(4) // TODO: ?
+  def isWordOp(func: UInt) = func(4)
 
+}
+
+object LSUOpType {
+  def lb  = "b0000".U
+  def lbu = "b0100".U
+  def lh  = "b0001".U
+  def lhu = "b0101".U
+  def lw  = "b0010".U
+  def ld  = "b0011".U
+
+  def sb = "b1000".U
+  def sh = "b1001".U
+  def sw = "b1010".U
+  def sd = "b1011".U
+
+  def isStore(func: UInt): Bool = func(3)
+  def isLoad(func:  UInt): Bool = !isStore(func)
 }

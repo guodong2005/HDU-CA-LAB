@@ -32,7 +32,7 @@ class Info extends Bundle {
   val imm        = UInt(12.W)
   val src1_ren   = Bool()
   val src2_ren   = Bool()
-  val fusel      = Bool()
+  val fusel      = UInt(2.W)
 }
 
 class SrcReadSignal extends Bundle {
