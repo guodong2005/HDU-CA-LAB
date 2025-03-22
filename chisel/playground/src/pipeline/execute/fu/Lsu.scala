@@ -13,6 +13,11 @@ class Lsu extends Module {
     val dataSram = new DataSram()
   })
 
+
+  io.dataSram.en    := false.B
+  io.dataSram.addr  := DontCare
+  io.dataSram.wdata := DontCare
+  io.dataSram.wen   := 0.U
   io.result := 0.U
 
   switch(io.info.op) {
