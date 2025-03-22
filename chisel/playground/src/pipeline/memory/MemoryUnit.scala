@@ -6,6 +6,7 @@ import chisel3.util.experimental.BoringUtils
 import cpu.defines._
 import cpu.defines.Const._
 import cpu.CpuConfig
+import upickle.default
 
 class MemoryUnit extends Module {
   val io = IO(new Bundle {
@@ -32,6 +33,7 @@ class MemoryUnit extends Module {
     is(48.U) { memData := io.dataSram.rdata(55, 48).asUInt }
     is(56.U) { memData := io.dataSram.rdata(63, 56).asUInt }
   }
+  memData := DontCare
 
 // Use memData in your Mux logic
   val finalMemData = Mux(
@@ -45,6 +47,7 @@ class MemoryUnit extends Module {
     SignedExtend(finalMemData, XLEN)
   )
   io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, extendedData, io.memoryStage.data.rd_info.wdata)
+  io.writeBackStage.data.rd_info.addr3 := DontCare
 
   io.dataSram.en    := DontCare
   io.dataSram.addr  := DontCare

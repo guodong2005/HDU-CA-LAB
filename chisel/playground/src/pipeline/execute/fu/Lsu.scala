@@ -16,7 +16,6 @@ class Lsu extends Module {
   /*
   io.dataSram.en    := false.B
   io.dataSram.addr  := DontCare
-  io.dataSram.wdata := DontCare
   io.dataSram.wen   := 0.U
    */
   /*
@@ -39,6 +38,7 @@ TODO: add unaligned exception
   io.result       := 0.U // data sram takes 2 period so now we cannot have the read result
   io.addr3        := io.dataSram.addr(2, 0)
 
+  io.dataSram.wdata := DontCare
   /*
   switch(io.info.op) {
     // LSU Operations
