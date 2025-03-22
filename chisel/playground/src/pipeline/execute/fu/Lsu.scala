@@ -10,6 +10,7 @@ class Lsu extends Module {
     val info     = Input(new Info())
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
+    val addr3    = Output(UInt(3.W))
     val dataSram = new DataSram()
   })
   /*
@@ -17,7 +18,6 @@ class Lsu extends Module {
   io.dataSram.addr  := DontCare
   io.dataSram.wdata := DontCare
   io.dataSram.wen   := 0.U
-  io.result         := 0.U
    */
   /*
 dataSram is a 64-bit ram so datasram.wen has 8 bit to represent the 8 bits' write signals.
@@ -31,10 +31,13 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  io.dataSram.addr := io.src_info.src1_data + io.info.imm
-  val tmpwen = io.info.op(1,0) << io.dataSram.addr(2,0)
-  // io.dataSram.wen := tmpwen && 
-  io.dataSram.wen := tmpwen & Fill(8,io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+  io.dataSram.addr := io.src_info.src1_data + io.info.imm 
+  val tmpwen = io.info.op(1, 0) << io.dataSram.addr(2, 0)
+  // io.dataSram.wen := tmpwen &&
+  io.dataSram.en  := !reset.asBool
+  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+  io.result       := 0.U // data sram takes 2 period so now we cannot have the read result
+  io.addr3        := io.dataSram.add3(2, 0)
 
   /*
   switch(io.info.op) {
@@ -70,6 +73,6 @@ TODO: add unaligned exception
       Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data, XLEN) // Store Doubleword (for RV64)
     }
   }
-*/
+   */
 
 }

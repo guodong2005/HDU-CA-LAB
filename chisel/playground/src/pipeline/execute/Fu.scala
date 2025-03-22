@@ -45,5 +45,6 @@ class Fu extends Module with HasInstrType{
       FuType.lsu -> lsu.io.result
     )
   ) 
-  io.data.rd_info.wdata := Mux(io.data.info.fusel === 0.U,alu.io.result,mdu.io.result)
+  io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu,alu.io.result,mdu.io.result) // lsu doesnt matter
+  io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu,lsu.io.addr3,0.U)
 }
