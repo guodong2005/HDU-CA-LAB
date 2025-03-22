@@ -1344,6 +1344,7 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr = VL_RAND_RESET_I(5);
+    vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel = VL_RAND_RESET_I(2);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
