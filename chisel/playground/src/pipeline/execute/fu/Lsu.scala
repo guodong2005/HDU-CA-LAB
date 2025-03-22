@@ -10,7 +10,7 @@ class Lsu extends Module {
     val info     = Input(new Info())
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
-    val dataSram = new DataSram()
+    val dataSram = Flipped(new DataSram())
   })
 
 

@@ -33,7 +33,7 @@ class Fu extends Module with HasInstrType{
   mdu.io.info := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.dataSram <> io.dataSram // same as := ?
+  lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
   lsu.io.info := io.data.info
   lsu.io.src_info := io.data.src_info
 
