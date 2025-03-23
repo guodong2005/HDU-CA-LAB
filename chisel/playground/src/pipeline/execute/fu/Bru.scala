@@ -18,7 +18,8 @@ class Bru extends Module {
   // Extract and rename inputs for clarity
   val info = io.info
   val pc   = io.pc
-  val imm  = io.src_info.src2_data.asSInt // Treat imm as SInt since it may be signed
+  // val imm  = io.src_info.src2_data.asSInt // Treat imm as SInt since it may be signed
+  val imm = info.imm
 
   // Default output assignments
   io.result := DontCare
