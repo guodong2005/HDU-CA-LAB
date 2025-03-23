@@ -18,8 +18,8 @@ class MemoryUnit extends Module {
   val info = io.memoryStage.data.info
   io.writeBackStage.data.pc   := io.memoryStage.data.pc
   io.writeBackStage.data.info := io.memoryStage.data.info
-  // val memAddr = dataSram.addr  I guess this wont work
-  val memAddr = io.memoryStage.data.rd_info.addr3.asUInt * 8.U
+   val memAddr = dataSram.addr // I guess this wont work
+  // val memAddr = io.memoryStage.data.rd_info.addr3.asUInt * 8.U
   val memData = Wire(UInt(8.W)) // Define memData as a 8-bit wide wire for flexibility
 
 // Generate LookUpTree to assign memData based on memAddr
