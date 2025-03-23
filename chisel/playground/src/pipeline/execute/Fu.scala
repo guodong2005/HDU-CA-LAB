@@ -6,7 +6,7 @@ import cpu.defines._
 import cpu.defines.Const._
 import cpu.CpuConfig
 
-class Fu extends Module with HasInstrType{
+class Fu extends Module with HasInstrType {
   val io = IO(new Bundle {
     val data = new Bundle {
       val pc       = Input(UInt(XLEN.W))
@@ -18,9 +18,9 @@ class Fu extends Module with HasInstrType{
     val dataSram = new DataSram()
   })
 
-  io.dataSram.en    := false.B
-  io.dataSram.addr  := DontCare
-  io.dataSram.wen   := 0.U
+  io.dataSram.en   := false.B
+  io.dataSram.addr := DontCare
+  io.dataSram.wen  := 0.U
 
   val alu = Module(new Alu())
 
@@ -35,10 +35,10 @@ class Fu extends Module with HasInstrType{
   alu.io.info     := io.data.info
   alu.io.src_info := io.data.src_info
 
-  mdu.io.info := io.data.info
+  mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.info := io.data.info
+  lsu.io.info     := io.data.info
   lsu.io.src_info := io.data.src_info
   // lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
   val result = LookupTree(
@@ -48,9 +48,9 @@ class Fu extends Module with HasInstrType{
       FuType.mdu -> mdu.io.result,
       FuType.lsu -> lsu.io.result
     )
-  ) 
-printf(p"info.fusel: ${io.data.info.fusel}, lsu.io.result: ${lsu.io.result}\n")
+  )
+  printf(p"info.fusel: ${io.data.info.fusel}, lsu.io.result: ${lsu.io.result}\n")
 
-  io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu,alu.io.result,mdu.io.result) // lsu doesnt matter
-  io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu,lsu.io.addr3,0.U)
+  io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu, alu.io.result, lsu.io.result) // lsu doesnt matter
+  io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu, lsu.io.addr3, 0.U)
 }
