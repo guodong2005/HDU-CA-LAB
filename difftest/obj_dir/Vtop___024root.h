@@ -29,10 +29,10 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_OUT8(debug_commit,0,0);
         VL_OUT8(debug_rf_wnum,4,0);
         CData/*0:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_reg_wen;
+        CData/*1:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_fusel;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
         CData/*2:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType;
-        CData/*1:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuType;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuOpType;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64;
