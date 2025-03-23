@@ -30,7 +30,7 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  val tmpwen = io.info.op(1, 0) << io.dataSram.addr(2, 0)
+  val tmpwen = ZeroExtend(((io.info.op(1, 0).asUInt) << (io.dataSram.addr(2, 0).asUInt)),8)
   // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
   io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
