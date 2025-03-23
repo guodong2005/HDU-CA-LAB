@@ -21,6 +21,7 @@ class ExecuteUnit extends Module {
   fu.data.src_info := io.executeStage.data.src_info
 
   io.dataSram <> fu.dataSram
+  io.dataSram.en := true.B
 
   io.memoryStage.data.pc       := fu.data.pc
   io.memoryStage.data.info     := fu.data.info
