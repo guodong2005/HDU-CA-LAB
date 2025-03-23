@@ -11,7 +11,7 @@ class Lsu extends Module {
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
     val addr3    = Output(UInt(3.W))
-    // val dataSram = new DataSram()
+    val dataSram = new DataSram()
   })
   /*
   io.dataSram.en    := false.B
@@ -30,16 +30,15 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  // io.dataSram.addr := io.src_info.src1_data + io.info.imm 
-  // val tmpwen = io.info.op(1, 0) << io.dataSram.addr(2, 0)
+  io.dataSram.addr := io.src_info.src1_data + io.info.imm 
+  val tmpwen = io.info.op(1, 0) << io.dataSram.addr(2, 0)
   // io.dataSram.wen := tmpwen &&
-  // io.dataSram.en  := !reset.asBool
-  // io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+  io.dataSram.en  := !reset.asBool
+  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
   io.result       := 0.U // data sram takes 2 period so now we cannot have the read result
-  // io.addr3        := io.dataSram.addr(2, 0)
-  io.addr3        := 1.U
+  io.addr3        := io.dataSram.addr(2, 0)
 
-  // io.dataSram.wdata := DontCare
+  io.dataSram.wdata := DontCare
   /*
   switch(io.info.op) {
     // LSU Operations
