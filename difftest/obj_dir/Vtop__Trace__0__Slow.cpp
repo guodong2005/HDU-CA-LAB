@@ -935,35 +935,47 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                          << 8U) | (QData)((IData)(
                                                                   (0xffU 
                                                                    & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))))
-                                     : 0ULL) | (((1U 
+                                     : 0ULL) | (((4U 
                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                  ? 
-                                                 (((- (QData)((IData)(
-                                                                      (1U 
-                                                                       & (IData)(
-                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
-                                                                                >> 0xfU)))))) 
-                                                   << 0x10U) 
-                                                  | (QData)((IData)(
-                                                                    (0xffffU 
-                                                                     & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))))
+                                                  ? (QData)((IData)(
+                                                                    (0xffU 
+                                                                     & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))))
                                                   : 0ULL) 
-                                                | (((2U 
+                                                | (((1U 
                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
                                                      ? 
-                                                    (((QData)((IData)(
-                                                                      (- (IData)(
+                                                    (((- (QData)((IData)(
+                                                                         (1U 
+                                                                          & (IData)(
+                                                                                (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
+                                                                                >> 0xfU)))))) 
+                                                      << 0x10U) 
+                                                     | (QData)((IData)(
+                                                                       (0xffffU 
+                                                                        & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))))
+                                                     : 0ULL) 
+                                                   | (((5U 
+                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                        ? (QData)((IData)(
+                                                                          (0xffffU 
+                                                                           & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))))
+                                                        : 0ULL) 
+                                                      | (((2U 
+                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                           ? 
+                                                          (((QData)((IData)(
+                                                                            (- (IData)(
                                                                                 (1U 
                                                                                 & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
                                                                                 >> 0x1fU))))))) 
-                                                      << 0x20U) 
-                                                     | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
-                                                     : 0ULL) 
-                                                   | ((3U 
-                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                       ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
-                                                       : 0ULL))))
+                                                            << 0x20U) 
+                                                           | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
+                                                           : 0ULL) 
+                                                         | ((3U 
+                                                             == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                             ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                                             : 0ULL))))))
                                 : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata)),64);
     bufp->fullQData(oldp+174,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData),64);
     bufp->fullQData(oldp+176,((((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
@@ -975,8 +987,15 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                      << 8U) | (QData)((IData)(
                                                               (0xffU 
                                                                & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))))
-                                 : 0ULL) | (((1U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                              ? (((- (QData)((IData)(
+                                 : 0ULL) | (((4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                              ? (QData)((IData)(
+                                                                (0xffU 
+                                                                 & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))))
+                                              : 0ULL) 
+                                            | (((1U 
+                                                 == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                 ? 
+                                                (((- (QData)((IData)(
                                                                      (1U 
                                                                       & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
@@ -985,21 +1004,27 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                  | (QData)((IData)(
                                                                    (0xffffU 
                                                                     & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))))
-                                              : 0ULL) 
-                                            | (((2U 
-                                                 == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                 ? 
-                                                (((QData)((IData)(
-                                                                  (- (IData)(
-                                                                             (1U 
-                                                                              & (IData)(
+                                                 : 0ULL) 
+                                               | (((5U 
+                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                    ? (QData)((IData)(
+                                                                      (0xffffU 
+                                                                       & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))))
+                                                    : 0ULL) 
+                                                  | (((2U 
+                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                       ? 
+                                                      (((QData)((IData)(
+                                                                        (- (IData)(
+                                                                                (1U 
+                                                                                & (IData)(
                                                                                 (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
                                                                                 >> 0x1fU))))))) 
-                                                  << 0x20U) 
-                                                 | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
-                                                 : 0ULL) 
-                                               | ((3U 
-                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                   ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
-                                                   : 0ULL))))),64);
+                                                        << 0x20U) 
+                                                       | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
+                                                       : 0ULL) 
+                                                     | ((3U 
+                                                         == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                         ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                                         : 0ULL))))))),64);
 }

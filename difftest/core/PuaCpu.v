@@ -1326,19 +1326,21 @@ module MemoryUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
     | (io_memoryStage_data_rd_info_addr3 == 3'h6
          ? {48'h0, io_dataSram_rdata[63:48]}
          : 64'h0)
-    | ((&io_memoryStage_data_rd_info_addr3) ? {56'h0, io_dataSram_rdata[63:56]} : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:22:58, :29:43, :30:43, :31:43, :32:43, :33:43, :34:43, :35:43, :63:21, src/main/scala/chisel3/util/Mux.scala:30:73
+    | ((&io_memoryStage_data_rd_info_addr3) ? {56'h0, io_dataSram_rdata[63:56]} : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:22:58, :29:43, :30:43, :31:43, :32:43, :33:43, :34:43, :35:43, :65:21, src/main/scala/chisel3/util/Mux.scala:30:73
   wire [63:0] finalMemData =
     (io_memoryStage_data_info_op == 5'h0 ? {{56{memData[7]}}, memData[7:0]} : 64'h0)
+    | (io_memoryStage_data_info_op == 5'h4 ? {56'h0, memData[7:0]} : 64'h0)
     | (io_memoryStage_data_info_op == 5'h1 ? {{48{memData[15]}}, memData[15:0]} : 64'h0)
+    | (io_memoryStage_data_info_op == 5'h5 ? {48'h0, memData[15:0]} : 64'h0)
     | (io_memoryStage_data_info_op == 5'h2 ? {{32{memData[31]}}, memData[31:0]} : 64'h0)
-    | (io_memoryStage_data_info_op == 5'h3 ? memData : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:51:43, :52:43, :53:43, :63:21, src/main/scala/chisel3/util/Mux.scala:30:73
+    | (io_memoryStage_data_info_op == 5'h3 ? memData : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:51:43, :53:43, :55:43, :65:21, src/main/scala/chisel3/util/Mux.scala:30:73
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9
-      if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :57:9
+      if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :59:9
         $fwrite(32'h80000002, "addr3: %x, rdata: %x,memData : %x\n", 32'h0,
                 io_dataSram_rdata, memData);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:44, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, src/main/scala/chisel3/util/Mux.scala:30:73
         $fwrite(32'h80000002, "finalMemData: %x,info.op : %d\n", finalMemData,
-                io_memoryStage_data_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :57:9, src/main/scala/chisel3/util/Mux.scala:30:73
+                io_memoryStage_data_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :59:9, src/main/scala/chisel3/util/Mux.scala:30:73
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS
@@ -1349,7 +1351,7 @@ module MemoryUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
   assign io_writeBackStage_data_rd_info_wdata =
     io_memoryStage_data_info_fusel == 2'h2
       ? finalMemData
-      : io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7, :58:{46,58}, src/main/scala/chisel3/util/Mux.scala:30:73
+      : io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7, :60:{46,58}, src/main/scala/chisel3/util/Mux.scala:30:73
 endmodule
 
 module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
