@@ -1081,12 +1081,30 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                                       : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:43, :20:22, :23:{17,42}, :26:51, :27:{17,27}, :30:51, :31:{17,27}, :34:43, :35:{17,27}, :40:{25,104,128}, :41:{51,63,95}, :42:{17,23}, :45:{23,88}, :46:17, :52:27, :53:{27,38}, :55:{17,23}, :61:27, :62:{27,38}, :63:{17,23}, :68:{53,84}, :69:17, :73:{26,68}, :75:{45,52,71,103}, :77:{17,23}, :82:{26,61}, :83:17, :92:26, :94:17, :109:26, :110:17
 endmodule
 
+module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7
+  input         io_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  input  [4:0]  io_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  input  [1:0]  io_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  input  [63:0] io_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  output [31:0] io_dataSram_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+);
+
+  wire [8:0] tmpwen = {7'h0, io_info_op[1:0]} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:34:{26,33,52}
+  assign io_dataSram_addr = io_src_info_src1_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:{20,45}
+  assign io_dataSram_wen =
+    tmpwen[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:87:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :34:33, :37:{29,35,71,87}
+endmodule
+
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
+  input         io_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   input  [4:0]  io_data_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   input  [1:0]  io_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   input  [63:0] io_data_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
                 io_data_src_info_src2_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
-  output [63:0] io_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  output [63:0] io_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  output [31:0] io_dataSram_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
 );
 
   wire [63:0] _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:22:19
@@ -1103,8 +1121,16 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
     .io_src_info_src2_data (io_data_src_info_src2_data),
     .io_result             (_mdu_io_result)
   );
+  Lsu lsu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:23:19
+    .io_info_valid         (io_data_info_valid),
+    .io_info_op            (io_data_info_op),
+    .io_info_fusel         (io_data_info_fusel),
+    .io_src_info_src1_data (io_data_src_info_src1_data),
+    .io_dataSram_addr      (io_dataSram_addr),
+    .io_dataSram_wen       (io_dataSram_wen)
+  );
   assign io_data_rd_info_wdata =
-    io_data_info_fusel == 2'h0 ? _alu_io_result : _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :21:19, :22:19, :48:{31,51}
+    io_data_info_fusel == 2'h0 ? _alu_io_result : _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :21:19, :22:19, :50:{31,51}
 endmodule
 
 module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
@@ -1121,15 +1147,20 @@ module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
                 io_memoryStage_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   output [4:0]  io_memoryStage_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   output [1:0]  io_memoryStage_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
-  output [63:0] io_memoryStage_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output [63:0] io_memoryStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output [31:0] io_dataSram_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
 );
 
   Fu Fu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:17:18
+    .io_data_info_valid         (io_executeStage_data_info_valid),
     .io_data_info_op            (io_executeStage_data_info_op),
     .io_data_info_fusel         (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data (io_executeStage_data_src_info_src1_data),
     .io_data_src_info_src2_data (io_executeStage_data_src_info_src2_data),
-    .io_data_rd_info_wdata      (io_memoryStage_data_rd_info_wdata)
+    .io_data_rd_info_wdata      (io_memoryStage_data_rd_info_wdata),
+    .io_dataSram_addr           (io_dataSram_addr),
+    .io_dataSram_wen            (io_dataSram_wen)
   );
   assign io_memoryStage_data_pc = io_executeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
   assign io_memoryStage_data_info_valid = io_executeStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
@@ -1332,6 +1363,8 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:10
   output        io_instSram_en,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [31:0] io_instSram_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   input  [31:0] io_instSram_rdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
+  output [31:0] io_dataSram_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
+  output [7:0]  io_dataSram_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [63:0] io_debug_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output        io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
@@ -1500,7 +1533,9 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:10
     .io_memoryStage_data_info_fusel
       (_executeUnit_io_memoryStage_data_info_fusel),
     .io_memoryStage_data_rd_info_wdata
-      (_executeUnit_io_memoryStage_data_rd_info_wdata)
+      (_executeUnit_io_memoryStage_data_rd_info_wdata),
+    .io_dataSram_addr                        (io_dataSram_addr),
+    .io_dataSram_wen                         (io_dataSram_wen)
   );
   MemoryStage memoryStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
     .clock                              (clock),
@@ -1606,6 +1641,8 @@ module PuaCpu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scal
     .io_instSram_en    (io_inst_sram_en),
     .io_instSram_addr  (io_inst_sram_addr),
     .io_instSram_rdata (io_inst_sram_rdata),
+    .io_dataSram_addr  (io_data_sram_addr),
+    .io_dataSram_wen   (io_data_sram_wen),
     .io_debug_pc       (io_debug_pc),
     .io_debug_commit   (io_debug_commit),
     .io_debug_rf_wnum  (io_debug_rf_wnum),
@@ -1613,9 +1650,7 @@ module PuaCpu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scal
   );
   assign io_inst_sram_wdata = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
   assign io_inst_sram_wen = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
-  assign io_data_sram_en = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
-  assign io_data_sram_addr = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
+  assign io_data_sram_en = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
   assign io_data_sram_wdata = 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
-  assign io_data_sram_wen = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :14:20
 endmodule
 
