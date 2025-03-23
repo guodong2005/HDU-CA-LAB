@@ -38,6 +38,7 @@ class DecodeUnit extends Module with HasInstrType {
 
   info       := decoder.io.out.info
   info.valid := io.decodeStage.data.valid
+  info.imm   := imm
 
   io.regfile.src1.raddr := decoder.io.out.info.src1_raddr
   io.regfile.src2.raddr := decoder.io.out.info.src2_raddr
