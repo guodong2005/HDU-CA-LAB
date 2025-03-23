@@ -30,13 +30,22 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  io.dataSram.addr := io.src_info.src1_data + io.info.imm 
   val tmpwen = io.info.op(1, 0) << io.dataSram.addr(2, 0)
   // io.dataSram.wen := tmpwen &&
-  io.dataSram.en  := !reset.asBool
-  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
-  io.result       := 0.U // data sram takes 2 period so now we cannot have the read result
-  io.addr3        := io.dataSram.addr(2, 0)
+  io.dataSram.en   := !reset.asBool
+  io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+  io.dataSram.addr := io.src_info.src1_data + io.info.imm
+  io.dataSram.wdata := LookupTree(
+    io.info.op,
+    Seq(
+      LSUOpType.sb -> Fill(8, io.src_info.src2_data(7, 0)),  // Store Byte: replicate the lowest byte 8 times
+      LSUOpType.sh -> Fill(4, io.src_info.src2_data(15, 0)), // Store Halfword: replicate the lowest 2 bytes 4 times
+      LSUOpType.sw -> Fill(2, io.src_info.src2_data(31, 0)), // Store Word: replicate the lowest 4 bytes 2 times
+      LSUOpType.sd -> io.src_info.src2_data                  // Store Doubleword: directly use src2_data for 8 bytes
+    )
+  )
+  io.result := 0.U // data sram takes 2 period so now we cannot have the read result
+  io.addr3  := io.dataSram.addr(2, 0)
 
   io.dataSram.wdata := DontCare
   /*
