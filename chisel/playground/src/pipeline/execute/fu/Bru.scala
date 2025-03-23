@@ -12,7 +12,7 @@ class Bru extends Module {
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
     val branch   = Output(Bool())
-    val target   = Output(UInt(XLEN.W))
+    val target   = Output(SInt(XLEN.W))
   })
   val info = io.info
   val pc   = io.pc
