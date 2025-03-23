@@ -13,10 +13,12 @@ class Bru extends Module {
     val result   = Output(UInt(XLEN.W))
     val branch   = Output(Bool())
     val target   = Output(UInt(XLEN.W))
-    val dataSram = new DataSram()
   })
   val info = io.info
   val pc   = io.pc
+  io.result := DontCare
+  io.target:= 0.U
+  io.branch := 0.U
   switch(info.op) {
   // JAL (Jump and Link)
   is(BRUOpType.jal) {
