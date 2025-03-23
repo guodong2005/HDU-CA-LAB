@@ -1087,9 +1087,8 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:36:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:36:9
       if ((`PRINTF_COND_) & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:36:9
-        $fwrite(32'h80000002,
-                "tmpwen: Binary{tmpwen.(8.W)}, io.info.op: %d, io.src_info.src2_data: Hexadecimal{io.src_info.src2_data}\n",
-                io_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:36:9
+        $fwrite(32'h80000002, "tmpwen: %b, io.info.op: %d, io.src_info.src2_data: %x\n",
+                _tmpwen_T_2[7:0], io_info_op, io_src_info_src2_data);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:34:54, :36:9
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :34:74
