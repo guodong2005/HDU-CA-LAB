@@ -31,7 +31,9 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 TODO: add unaligned exception
    */
   io.dataSram.addr := io.src_info.src1_data + io.info.imm
-  val bits = Fill(PopCount(io.info.op(1, 0)).litValue.toInt, 1.U)
+  val count = PopCount(io.info.op(1, 0))
+  val bits = (1.U << count) - 1.U // Create a dynamic number of bits (all 1s)
+
   val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)),8)
   // printf("tmpwen : ${tmpwen}.io.info.op,io.src_info.src2_data\n")
   printf(p"tmpwen: ${Binary(ZeroExtend(tmpwen,8))}, io.info.op: ${io.info.op}, io.src_info.src2_data: ${Hexadecimal(io.src_info.src2_data)}\n")
