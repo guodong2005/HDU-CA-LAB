@@ -16,7 +16,7 @@ trait HasInstrType {
 }
 
 object FuType {
-  def num     = 1
+  def num     = 3
   def alu     = 0.U // arithmetic logic unit
   def mdu     = 1.U // multiplication division unit
   def lsu     = 2.U // multiplication division unit
