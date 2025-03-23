@@ -24,8 +24,8 @@ class Fu extends Module with HasInstrType{
 
   val alu = Module(new Alu())
 
-  val mdu = Module(new Mdu())
   val lsu = Module(new Lsu())
+  val mdu = Module(new Mdu())
 
   io.dataSram.en    := false.B
   io.dataSram.addr  := DontCare
