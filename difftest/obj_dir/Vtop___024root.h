@@ -43,9 +43,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_waddr;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid;
+        CData/*4:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel;
+        CData/*2:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3;
+        CData/*7:0*/ top__DOT__core__DOT__core__DOT__memoryUnit__DOT____VdfgRegularize_h56152d37_0_0;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr;
@@ -77,11 +80,11 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_3;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_4;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_5;
+    };
+    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_6;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_7;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_8;
-    };
-    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_9;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_10;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_11;
