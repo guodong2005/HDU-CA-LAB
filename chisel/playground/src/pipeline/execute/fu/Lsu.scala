@@ -35,7 +35,6 @@ TODO: add unaligned exception
   val bits = (1.U << count) - 1.U // Create a dynamic number of bits (all 1s)
 
   val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)),8)
-  // printf("tmpwen : ${tmpwen}.io.info.op,io.src_info.src2_data\n")
  
   // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
@@ -49,7 +48,6 @@ TODO: add unaligned exception
       LSUOpType.sd -> io.src_info.src2_data                  // Store Doubleword: directly use src2_data for 8 bytes
     )
   )
-  printf(p"wdata: ${Hexadecimal(io.dataSram.wdata)}\n")
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result
   io.addr3  := io.dataSram.addr(2, 0)
 
