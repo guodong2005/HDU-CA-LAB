@@ -1339,7 +1339,8 @@ module MemoryUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
       if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :57:9
         $fwrite(32'h80000002, "addr3: %x, rdata: %x,memData : %x\n", 32'h0,
                 io_dataSram_rdata, memData);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:44, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, src/main/scala/chisel3/util/Mux.scala:30:73
-        $fwrite(32'h80000002, "finalMemData: %x\n", finalMemData);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :57:9, src/main/scala/chisel3/util/Mux.scala:30:73
+        $fwrite(32'h80000002, "finalMemData: %x,info.op : %d\n", finalMemData,
+                io_memoryStage_data_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:38:9, :57:9, src/main/scala/chisel3/util/Mux.scala:30:73
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS

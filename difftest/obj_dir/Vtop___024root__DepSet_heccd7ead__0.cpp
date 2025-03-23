@@ -149,7 +149,7 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     __Vdly__top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
     if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
-        VL_FWRITEF_NX(0x80000002U,"addr3: 00000000, rdata: %x,memData : %x\nfinalMemData: %x\n",0,
+        VL_FWRITEF_NX(0x80000002U,"addr3: 00000000, rdata: %x,memData : %x\nfinalMemData: %x,info.op : %2#\n",0,
                       64,vlSelfRef.data_sram_rdata,
                       64,vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData,
                       64,((QData)((IData)(((0xffffU 
@@ -168,7 +168,7 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                                                : 0U)))) 
                           | ((3U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
                               ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
-                              : 0ULL)));
+                              : 0ULL)),5,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op));
     }
     if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
         VL_FWRITEF_NX(0x80000002U,"wdata: %x\n",0,64,
