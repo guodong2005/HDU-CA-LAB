@@ -67,7 +67,7 @@ class Decoder extends Module with HasInstrType {
     setInfo(inst, rd, 0.U, 0.U, ALUOpType.add, true.B, false.B, false.B, true.B)
   }.elsewhen(instrType === InstrS){
     //                     src2     writeback src1en src2en   valid
-    setInfo(inst, rd, rs1, rs2, op, false.B, true.B, true.B, true.B)
+    setInfo(inst, rd, rs1, rs2, op, false.B, true.B, false.B, true.B)
   }.elsewhen(instrType === InstrB){
     //                     src2     writeback src1en src2en   valid
     setInfo(inst, 0.U, rs1, rs2, op, false.B, true.B, true.B, true.B)
