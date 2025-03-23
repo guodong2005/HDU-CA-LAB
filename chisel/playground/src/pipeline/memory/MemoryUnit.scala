@@ -52,6 +52,7 @@ class MemoryUnit extends Module {
     cut & memData,
     0.U
   )
+ printf(p"cut: ${Hexadecimal(cut)}, finalMemData: ${Hexadecimal(finalMemData)}\n")
   val extendedData = Mux(
     info.op(2) === 1.U,
     ZeroExtend(finalMemData, XLEN),
