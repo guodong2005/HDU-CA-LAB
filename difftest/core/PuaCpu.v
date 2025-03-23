@@ -421,17 +421,19 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                 io_in_inst, instrType, fuType, fuOpType);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:23:9, src/main/scala/chisel3/util/Lookup.scala:34:39
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  wire        io_out_info_src2_ren_0 = instrType == 3'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:60:18, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_59 = instrType == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:62:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_60 = instrType == 3'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:65:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_61 = instrType == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:67:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_62 = io_out_info_src2_ren_0 | _GEN_59;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:40:28, :60:{18,30}, :62:{24,36}, :65:36
-  wire        _GEN_63 = _GEN_62 | ~(_GEN_60 | ~_GEN_61);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:40:28, :60:30, :62:36, :65:{24,36}, :67:{24,35}
+  wire        _GEN_59 = instrType == 3'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:60:18, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_60 = instrType == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:62:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_61 = instrType == 3'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:65:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_62 = instrType == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:67:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_63 = _GEN_59 | _GEN_60;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:40:28, :60:{18,30}, :62:{24,36}, :65:36
+  wire        _GEN_64 = _GEN_63 | ~(_GEN_61 | ~_GEN_62);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:40:28, :60:30, :62:36, :65:{24,36}, :67:{24,35}
+  wire        _GEN_65 = _GEN_60 | _GEN_61;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:41:28, :62:{24,36}, :65:{24,36}, :67:35
   assign io_out_info_instr = io_in_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7
-  assign io_out_info_src1_raddr = _GEN_63 ? io_in_inst[19:15] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :49:42, :60:30, :62:36, :65:36, src/main/scala/chisel3/util/Lookup.scala:34:39
-  assign io_out_info_src2_raddr = io_out_info_src2_ren_0 ? io_in_inst[24:20] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :41:28, :49:56, :60:{18,30}, :62:36, src/main/scala/chisel3/util/Lookup.scala:34:39
+  assign io_out_info_src1_raddr = _GEN_64 ? io_in_inst[19:15] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :49:42, :60:30, :62:36, :65:36, src/main/scala/chisel3/util/Lookup.scala:34:39
+  assign io_out_info_src2_raddr =
+    _GEN_59 | ~(_GEN_65 | ~_GEN_62) ? io_in_inst[24:20] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :41:28, :49:56, :60:{18,30}, :62:36, :65:36, :67:{24,35}, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_op =
-    _GEN_63
+    _GEN_64
       ? (instrType == 3'h5
            ? {fuType == 2'h0 ? {io_in_inst[3], io_in_inst[30]} : {1'h0, io_in_inst[3]},
               io_in_inst[14:12]}
@@ -443,11 +445,11 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                 io_in_inst[14:12]}
              : 5'h0)
       : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :42:28, :50:28, :54:{20,28,47,52,61}, :55:{20,28,51,66,90,109,122}, :60:30, :62:36, :65:36, src/main/scala/chisel3/util/Lookup.scala:34:39, src/main/scala/chisel3/util/Mux.scala:30:73
-  assign io_out_info_reg_wen = _GEN_62 | _GEN_60;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :43:28, :60:30, :62:36, :65:{24,36}
+  assign io_out_info_reg_wen = _GEN_63 | _GEN_61;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :43:28, :60:30, :62:36, :65:{24,36}
   assign io_out_info_reg_waddr =
-    io_out_info_src2_ren_0 | _GEN_59 | _GEN_60 | _GEN_61 ? io_in_inst[11:7] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :49:29, :60:{18,30}, :62:{24,36}, :65:{24,36}, :67:{24,35}, src/main/scala/chisel3/util/Lookup.scala:34:39
-  assign io_out_info_src1_ren = _GEN_62 | ~_GEN_60 & _GEN_61;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :44:28, :60:30, :62:36, :65:{24,36}, :67:{24,35}
-  assign io_out_info_src2_ren = io_out_info_src2_ren_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :60:18
+    _GEN_59 | _GEN_60 | _GEN_61 | _GEN_62 ? io_in_inst[11:7] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :49:29, :60:{18,30}, :62:{24,36}, :65:{24,36}, :67:{24,35}, src/main/scala/chisel3/util/Lookup.scala:34:39
+  assign io_out_info_src1_ren = _GEN_63 | ~_GEN_61 & _GEN_62;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :44:28, :60:30, :62:36, :65:{24,36}, :67:{24,35}
+  assign io_out_info_src2_ren = _GEN_59 | ~_GEN_65 & _GEN_62;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :41:28, :45:28, :60:{18,30}, :62:36, :65:36, :67:{24,35}
   assign io_out_info_fusel = fuType;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, src/main/scala/chisel3/util/Lookup.scala:34:39
 endmodule
 
@@ -1091,11 +1093,11 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
 );
 
-  wire [8:0] tmpwen = {7'h0, io_info_op[1:0]} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:34:{26,33,52}
-  assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :34:52
-  assign io_dataSram_addr = io_src_info_src1_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:{20,45}
+  wire [8:0] tmpwen = {7'h0, io_info_op[1:0]} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:33:{26,33,52}
+  assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:52
+  assign io_dataSram_addr = io_src_info_src1_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :37:{20,45}
   assign io_dataSram_wen =
-    tmpwen[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:87:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :34:33, :37:{29,35,71,87}
+    tmpwen[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:87:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:33, :36:{30,36,72,88}
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7

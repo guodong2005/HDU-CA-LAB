@@ -133,7 +133,6 @@ VL_ATTR_COLD void Vtop___024root__trace_init_sub__TOP__0(Vtop___024root* vlSelf,
     tracep->declBus(c+23,0,"instrType",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 2,0);
     tracep->declBus(c+18,0,"fuType",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 1,0);
     tracep->declBus(c+26,0,"fuOpType",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 4,0);
-    tracep->declBit(c+25,0,"io_out_info_src2_ren_0",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1);
     tracep->popPrefix();
     tracep->popPrefix();
     tracep->pushPrefix("executeStage", VerilatedTracePrefixType::SCOPE_MODULE);
@@ -428,7 +427,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
     bufp->fullQData(oldp+4,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst),64);
     bufp->fullBit(oldp+6,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
     bufp->fullQData(oldp+7,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc),64);
-    bufp->fullCData(oldp+9,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+    bufp->fullCData(oldp+9,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                               ? (0x1fU & (IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                                   >> 0xfU)))
                               : 0U)),5);
@@ -437,7 +436,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                  + 
                                                  (0x7ffU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -447,7 +446,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                 >> 5U)])) 
                                << ((0U == (0x1fU & 
                                            VL_SHIFTL_III(11,11,32, 
-                                                         ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                         ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                            ? 
                                                           (0x1fU 
                                                            & (IData)(
@@ -457,7 +456,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                     ? 0x20U : ((IData)(0x40U) 
                                                - (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -465,7 +464,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                                >> 0xfU)))
                                                                     : 0U), 6U))))) 
                               | (((0U == (0x1fU & VL_SHIFTL_III(11,11,32, 
-                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                   ? 
                                                                  (0x1fU 
                                                                   & (IData)(
@@ -478,7 +477,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                + 
                                                                (0x7ffU 
                                                                 & VL_SHIFTL_III(11,11,32, 
-                                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                                  ? 
                                                                                 (0x1fU 
                                                                                 & (IData)(
@@ -490,7 +489,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                  - 
                                                  (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                  ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -501,7 +500,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                     vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                     (0x3fU 
                                                      & (VL_SHIFTL_III(11,11,32, 
-                                                                      ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                      ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                         ? 
                                                                        (0x1fU 
                                                                         & (IData)(
@@ -510,14 +509,16 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                         : 0U), 6U) 
                                                         >> 5U))])) 
                                     >> (0x1fU & VL_SHIFTL_III(11,11,32, 
-                                                              ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                              ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                 ? 
                                                                (0x1fU 
                                                                 & (IData)(
                                                                           (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                                                            >> 0xfU)))
                                                                 : 0U), 6U)))))),64);
-    bufp->fullCData(oldp+12,(((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+    bufp->fullCData(oldp+12,(((1U & ((~ ((2U != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                         | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                     | (5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                ? (0x1fU & (IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                                    >> 0x14U)))
                                : 0U)),5);
@@ -526,8 +527,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                  + 
                                                  (0x7ffU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((5U 
-                                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                  ((1U 
+                                                                    & ((~ 
+                                                                        ((2U 
+                                                                          != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                         | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                       | (5U 
+                                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -537,8 +543,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                 >> 5U)])) 
                                << ((0U == (0x1fU & 
                                            VL_SHIFTL_III(11,11,32, 
-                                                         ((5U 
-                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                         ((1U 
+                                                           & ((~ 
+                                                               ((2U 
+                                                                 != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                              | (5U 
+                                                                 == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                            ? 
                                                           (0x1fU 
                                                            & (IData)(
@@ -548,8 +559,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                     ? 0x20U : ((IData)(0x40U) 
                                                - (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((5U 
-                                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                  ((1U 
+                                                                    & ((~ 
+                                                                        ((2U 
+                                                                          != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                         | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                       | (5U 
+                                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -557,8 +573,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                                >> 0x14U)))
                                                                     : 0U), 6U))))) 
                               | (((0U == (0x1fU & VL_SHIFTL_III(11,11,32, 
-                                                                ((5U 
-                                                                  == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                ((1U 
+                                                                  & ((~ 
+                                                                      ((2U 
+                                                                        != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                       | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                     | (5U 
+                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                   ? 
                                                                  (0x1fU 
                                                                   & (IData)(
@@ -571,8 +592,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                + 
                                                                (0x7ffU 
                                                                 & VL_SHIFTL_III(11,11,32, 
-                                                                                ((5U 
-                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                                ((1U 
+                                                                                & ((~ 
+                                                                                ((2U 
+                                                                                != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                                | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                                | (5U 
+                                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                                  ? 
                                                                                 (0x1fU 
                                                                                 & (IData)(
@@ -584,8 +610,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                  - 
                                                  (0x1fU 
                                                   & VL_SHIFTL_III(11,11,32, 
-                                                                  ((5U 
-                                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                  ((1U 
+                                                                    & ((~ 
+                                                                        ((2U 
+                                                                          != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                         | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                       | (5U 
+                                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                     ? 
                                                                    (0x1fU 
                                                                     & (IData)(
@@ -596,8 +627,13 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                     vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                     (0x3fU 
                                                      & (VL_SHIFTL_III(11,11,32, 
-                                                                      ((5U 
-                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                                      ((1U 
+                                                                        & ((~ 
+                                                                            ((2U 
+                                                                              != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                             | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                           | (5U 
+                                                                              == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                         ? 
                                                                        (0x1fU 
                                                                         & (IData)(
@@ -606,15 +642,20 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                         : 0U), 6U) 
                                                         >> 5U))])) 
                                     >> (0x1fU & VL_SHIFTL_III(11,11,32, 
-                                                              ((5U 
-                                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
+                                                              ((1U 
+                                                                & ((~ 
+                                                                    ((2U 
+                                                                      != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                                                                     | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65))) 
+                                                                   | (5U 
+                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                                                 ? 
                                                                (0x1fU 
                                                                 & (IData)(
                                                                           (vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                                                            >> 0x14U)))
                                                                 : 0U), 6U)))))),64);
-    bufp->fullCData(oldp+15,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+    bufp->fullCData(oldp+15,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                ? (((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
                                     ? ((((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuType))
                                           ? ((2U & 
@@ -666,7 +707,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                    >> 7U)))
                                : 0U)),5);
     bufp->fullCData(oldp+18,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuType),2);
-    bufp->fullQData(oldp+19,((((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_62) 
+    bufp->fullQData(oldp+19,((((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63) 
                                | ((6U != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
                                   & (2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))
                                ? (((QData)((IData)(
@@ -675,7 +716,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                      + 
                                                      (0x7ffU 
                                                       & VL_SHIFTL_III(11,11,32, 
-                                                                      ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                      ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                         ? 
                                                                        (0x1fU 
                                                                         & (IData)(
@@ -685,7 +726,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                     >> 5U)])) 
                                    << ((0U == (0x1fU 
                                                & VL_SHIFTL_III(11,11,32, 
-                                                               ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                               ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                  ? 
                                                                 (0x1fU 
                                                                  & (IData)(
@@ -696,7 +737,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                    - 
                                                    (0x1fU 
                                                     & VL_SHIFTL_III(11,11,32, 
-                                                                    ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                    ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                       ? 
                                                                      (0x1fU 
                                                                       & (IData)(
@@ -705,7 +746,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                       : 0U), 6U))))) 
                                   | (((0U == (0x1fU 
                                               & VL_SHIFTL_III(11,11,32, 
-                                                              ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                              ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                 ? 
                                                                (0x1fU 
                                                                 & (IData)(
@@ -718,7 +759,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                                    + 
                                                                    (0x7ffU 
                                                                     & VL_SHIFTL_III(11,11,32, 
-                                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                                ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                                  ? 
                                                                                 (0x1fU 
                                                                                 & (IData)(
@@ -731,7 +772,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                   - 
                                                   (0x1fU 
                                                    & VL_SHIFTL_III(11,11,32, 
-                                                                   ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                   ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                      ? 
                                                                     (0x1fU 
                                                                      & (IData)(
@@ -742,7 +783,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[
                                                         (0x3fU 
                                                          & (VL_SHIFTL_III(11,11,32, 
-                                                                          ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                                          ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                                             ? 
                                                                            (0x1fU 
                                                                             & (IData)(
@@ -752,7 +793,7 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                                             >> 5U))])) 
                                         >> (0x1fU & 
                                             VL_SHIFTL_III(11,11,32, 
-                                                          ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63)
+                                                          ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_64)
                                                             ? 
                                                            (0x1fU 
                                                             & (IData)(
@@ -764,10 +805,12 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
                                    ? 0ULL : vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc))),64);
     bufp->fullQData(oldp+21,(vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_src_info_src2_data),64);
     bufp->fullCData(oldp+23,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType),3);
-    bufp->fullBit(oldp+24,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_62) 
+    bufp->fullBit(oldp+24,(((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63) 
                             | ((6U != (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
                                & (2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))));
-    bufp->fullBit(oldp+25,((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))));
+    bufp->fullBit(oldp+25,(((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
+                            | ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65)) 
+                               & (2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))))));
     bufp->fullCData(oldp+26,(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuOpType),5);
     bufp->fullQData(oldp+27,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc),64);
     bufp->fullBit(oldp+29,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid));
