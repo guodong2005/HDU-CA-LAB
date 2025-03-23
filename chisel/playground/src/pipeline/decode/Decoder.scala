@@ -19,6 +19,9 @@ class Decoder extends Module with HasInstrType {
   val inst = io.in.inst
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
+  // printf("current inst: ${inst},instryType : ${instrtype}, futype : fu optype \n")
+  printf("current inst: %s, instrType: %s, fuType: %s, fuOpType: %s\n", 
+  inst, instrType, fuType, fuOpType)
 
   io.out.info := DontCare
 
