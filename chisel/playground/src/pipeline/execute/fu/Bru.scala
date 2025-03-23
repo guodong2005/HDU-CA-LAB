@@ -19,6 +19,8 @@ class Bru extends Module {
   io.result := DontCare
   io.target:= 0.U
   io.branch := 0.U
+  printf(p"instr: ${Hexadecimal(info.instr)}, imm: ${Hexadecimal(info.imm)}\n")
+
   switch(info.op) {
   // JAL (Jump and Link)
   is(BRUOpType.jal) {
