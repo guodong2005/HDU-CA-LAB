@@ -192,10 +192,14 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                                                   << 0x20U) 
                                                  | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
                                               : 0ULL) 
-                                            | ((3U 
-                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
-                                                : 0ULL)))))),
+                                            | (((6U 
+                                                 == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                 ? (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                 : 0ULL) 
+                                               | ((3U 
+                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                   ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                                   : 0ULL))))))),
                       5,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op));
     }
     if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
@@ -617,10 +621,14 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                                                       << 0x20U) 
                                                      | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)))
                                                      : 0ULL) 
-                                                   | ((3U 
-                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
-                                                       ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
-                                                       : 0ULL))))))
+                                                   | (((6U 
+                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                        ? (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                        : 0ULL) 
+                                                      | ((3U 
+                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                          ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                                          : 0ULL)))))))
                 : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata);
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc 
             = vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc;
