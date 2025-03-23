@@ -51,6 +51,7 @@ class Fu extends Module with HasInstrType {
   )
   printf(p"info.fusel: ${io.data.info.fusel}, lsu.io.result: ${lsu.io.result}\n")
 
-  io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu, alu.io.result, mdu.io.result) // lsu doesnt matter
+  // io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu, alu.io.result, mdu.io.result) // lsu doesnt matter
+  io.data.rd_info.wdata := lsu.io.result // lsu doesnt matter
   io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu, lsu.io.addr3, 0.U)
 }
