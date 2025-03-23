@@ -38,6 +38,7 @@ class Core extends Module {
 
   executeUnit.io.dataSram.wen <> io.dataSram.wen
   executeUnit.io.dataSram.addr <> io.dataSram.addr
+  executeUnit.io.dataSram.wdata <> io.dataSram.wdata
   executeUnit.io.dataSram.en <> io.dataSram.en
   memoryUnit.io.dataSram.rdata <> io.dataSram.rdata
 
