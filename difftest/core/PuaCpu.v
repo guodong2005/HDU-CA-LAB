@@ -1086,9 +1086,8 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
 );
 
-  wire [10:0] _tmpwen_T_1 =
-    {7'h0, (4'h1 << {1'h0, io_info_op[0]} + {1'h0, io_info_op[1]}) - 4'h1}
-    << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:33:45, :34:{23,34}, :35:{19,29}, :37:{33,53}
+  wire [22:0] _tmpwen_T_1 =
+    {7'h0, (16'h1 << (4'h1 << io_info_op[1:0])) - 16'h1} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:34:{19,33}, :35:{19,29}, :37:{33,53}
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:39:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:39:9
       if ((`PRINTF_COND_) & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:39:9
