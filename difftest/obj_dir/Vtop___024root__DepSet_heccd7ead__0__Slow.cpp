@@ -859,11 +859,11 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                                                  ? 0xfU
                                                                                  : 
                                                                                 ((0x183U 
-                                                                                == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1)
+                                                                                == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN))
                                                                                  ? 3U
                                                                                  : 
                                                                                 ((0x1a3U 
-                                                                                == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1)
+                                                                                == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN))
                                                                                  ? 0xbU
                                                                                  : 0U)))))))))))))))))))))))))))))))))))))))))));
     vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__fuType 
@@ -914,9 +914,9 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                 ? 1U
                                                 : (
                                                    ((0x183U 
-                                                     == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1) 
+                                                     == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN)) 
                                                     | (0x1a3U 
-                                                       == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1)) 
+                                                       == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN))) 
                                                    << 1U))))));
     vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType 
         = ((0x13U == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN))
@@ -1012,11 +1012,11 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                                      ? 5U
                                                                      : 
                                                                     ((0x183U 
-                                                                      == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1)
+                                                                      == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN))
                                                                       ? 4U
                                                                       : 
                                                                      ((0x1a3U 
-                                                                       == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1) 
+                                                                       == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN)) 
                                                                       << 1U)))))))))))))))))))))))));
     vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_src_info_src2_data 
         = ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))

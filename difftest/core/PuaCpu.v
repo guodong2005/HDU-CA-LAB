@@ -239,8 +239,8 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
   wire        _GEN_50 = _GEN_1 == 17'h6BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_51 = _GEN_1 == 17'h73B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_52 = _GEN_1 == 17'h7BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_53 = _GEN_1 == 17'h183;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_54 = _GEN_1 == 17'h1A3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_53 = _GEN == 10'h183;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_54 = _GEN == 10'h1A3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_55 = _GEN_48 | _GEN_49 | _GEN_50 | _GEN_51 | _GEN_52;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire        _GEN_56 = _GEN_37 | _GEN_38;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire        _GEN_57 = _GEN_34 | _GEN_35 | _GEN_36;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
@@ -558,10 +558,10 @@ module DecodeUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
                                                                                             | _GEN_0 == 17'h73B
                                                                                             | _GEN_0 == 17'h7BB
                                                                                               ? 3'h5
-                                                                                              : _GEN_0 == 17'h183
+                                                                                              : _GEN == 10'h183
                                                                                                   ? 3'h4
                                                                                                   : {1'h0,
-                                                                                                     _GEN_0 == 17'h1A3,
+                                                                                                     _GEN == 10'h1A3,
                                                                                                      1'h0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:17:23, :22:48, src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   Decoder decoder (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:17:23
     .clock                  (clock),
