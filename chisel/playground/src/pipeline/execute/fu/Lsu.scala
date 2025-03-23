@@ -50,6 +50,7 @@ TODO: add unaligned exception
       LSUOpType.sd -> io.src_info.src2_data                  // Store Doubleword: directly use src2_data for 8 bytes
     )
   )
+  printf(p"wdata: ${Hexadecimal(io.dataSram.wdata)}\n")
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result
   io.addr3  := io.dataSram.addr(2, 0)
 
