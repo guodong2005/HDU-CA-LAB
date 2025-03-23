@@ -25,17 +25,17 @@ class MemoryUnit extends Module {
   val memData = LookupTree(
   memAddr,
   Seq(
-    0.U  -> io.dataSram.rdata(7, 0).asUInt,
-    8.U  -> io.dataSram.rdata(15, 8).asUInt,
-    16.U -> io.dataSram.rdata(23, 16).asUInt,
-    24.U -> io.dataSram.rdata(31, 24).asUInt,
-    32.U -> io.dataSram.rdata(39, 32).asUInt,
-    40.U -> io.dataSram.rdata(47, 40).asUInt,
-    48.U -> io.dataSram.rdata(55, 48).asUInt,
+    0.U  -> io.dataSram.rdata(63, 0).asUInt,
+    8.U  -> io.dataSram.rdata(63, 8).asUInt,
+    16.U -> io.dataSram.rdata(63, 16).asUInt,
+    24.U -> io.dataSram.rdata(63, 24).asUInt,
+    32.U -> io.dataSram.rdata(63, 32).asUInt,
+    40.U -> io.dataSram.rdata(63, 40).asUInt,
+    48.U -> io.dataSram.rdata(63, 48).asUInt,
     56.U -> io.dataSram.rdata(63, 56).asUInt
   )
 )
- printf(p"addr: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memaddr : ${Hexadecimal(memAddr)}\n")
+ printf(p"addr3: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memaddr : ${Hexadecimal(memAddr)}\n")
 
 
 
