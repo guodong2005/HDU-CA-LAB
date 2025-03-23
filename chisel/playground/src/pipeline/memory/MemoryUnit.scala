@@ -35,7 +35,6 @@ class MemoryUnit extends Module {
       56.U -> ZeroExtend(io.dataSram.rdata(63, 56), XLEN)
     )
   )
-  printf(p"addr3: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memData : ${Hexadecimal(memData)}\n")
 
 // opcode(1,0)
 // 00 byte 1
