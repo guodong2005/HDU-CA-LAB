@@ -52,6 +52,7 @@ class Decoder extends Module with HasInstrType {
       InstrR -> Mux(fuType === FuType.alu, Cat(inst(3), inst(30), inst(14, 12)), Cat(inst(3), funct3)),
       InstrI -> Mux(fuType === FuType.lsu,Cat(inst(5),funct3),Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12))),
       //  these part's readability is very bad. 
+      InstrS -> Cat(inst(5),funct3),
       InstrU -> ALUOpType.add
     )
   )
