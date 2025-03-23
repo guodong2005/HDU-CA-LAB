@@ -19,7 +19,7 @@ class Bru extends Module {
   val info = io.info
   val pc   = io.pc
   // val imm  = io.src_info.src2_data.asSInt // Treat imm as SInt since it may be signed
-  val imm = info.imm
+  val imm = info.imm.asSInt
 
   // Default output assignments
   io.result := DontCare
