@@ -48,10 +48,10 @@ class MemoryUnit extends Module {
   val finalMemData = LookupTree(
     info.op,
     Seq(
-      LSUOpType.sb -> memData(7, 0).asUInt,  // Store Byte: lowest 8 bits
-      LSUOpType.sh -> memData(15, 0).asUInt, // Store Halfword: lowest 16 bits
-      LSUOpType.sw -> memData(31, 0).asUInt, // Store Word: lowest 32 bits
-      LSUOpType.sd -> memData                // Store Doubleword: full 64 bits
+      LSUOpType.lb -> memData(7, 0).asUInt,  // Store Byte: lowest 8 bits
+      LSUOpType.lh -> memData(15, 0).asUInt, // Store Halfword: lowest 16 bits
+      LSUOpType.lw -> memData(31, 0).asUInt, // Store Word: lowest 32 bits
+      LSUOpType.ld -> memData                // Store Doubleword: full 64 bits
     )
   )
   printf(p"finalMemData: ${Hexadecimal(finalMemData)}\n")
