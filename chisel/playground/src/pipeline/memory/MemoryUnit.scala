@@ -20,20 +20,22 @@ class MemoryUnit extends Module {
   io.writeBackStage.data.info := io.memoryStage.data.info
   //  val memAddr = io.dataSram.addr // I guess this wont work
   val memAddr = io.memoryStage.data.rd_info.addr3.asUInt * 8.U
-  val memData = Wire(UInt(8.W)) // Define memData as a 8-bit wide wire for flexibility
 
 // Generate LookUpTree to assign memData based on memAddr
-  switch(memAddr) {
-    is(0.U) { memData := io.dataSram.rdata(7, 0).asUInt }
-    is(8.U) { memData := io.dataSram.rdata(15, 8).asUInt }
-    is(16.U) { memData := io.dataSram.rdata(23, 16).asUInt }
-    is(24.U) { memData := io.dataSram.rdata(31, 24).asUInt }
-    is(32.U) { memData := io.dataSram.rdata(39, 32).asUInt }
-    is(40.U) { memData := io.dataSram.rdata(47, 40).asUInt }
-    is(48.U) { memData := io.dataSram.rdata(55, 48).asUInt }
-    is(56.U) { memData := io.dataSram.rdata(63, 56).asUInt }
-  }
-  memData := DontCare
+  val memData = LookupTree(
+  memAddr,
+  Seq(
+    0.U  -> io.dataSram.rdata(7, 0).asUInt,
+    8.U  -> io.dataSram.rdata(15, 8).asUInt,
+    16.U -> io.dataSram.rdata(23, 16).asUInt,
+    24.U -> io.dataSram.rdata(31, 24).asUInt,
+    32.U -> io.dataSram.rdata(39, 32).asUInt,
+    40.U -> io.dataSram.rdata(47, 40).asUInt,
+    48.U -> io.dataSram.rdata(55, 48).asUInt,
+    56.U -> io.dataSram.rdata(63, 56).asUInt
+  )
+)
+
 
 // Use memData in your Mux logic
   val finalMemData = Mux(
@@ -51,5 +53,6 @@ class MemoryUnit extends Module {
 
   io.dataSram.en    := DontCare
   io.dataSram.addr  := DontCare
+  io.dataSram.wdata := DontCare
   io.dataSram.wen   := DontCare
 }
