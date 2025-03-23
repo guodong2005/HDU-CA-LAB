@@ -36,8 +36,7 @@ TODO: add unaligned exception
 
   val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)),8)
   // printf("tmpwen : ${tmpwen}.io.info.op,io.src_info.src2_data\n")
-  printf(p"tmpwen: ${Binary(ZeroExtend(tmpwen,8))}, io.info.op: ${io.info.op}, io.src_info.src2_data: ${Hexadecimal(io.src_info.src2_data)},addr: ${Hexadecimal(io.dataSram.addr)}\n")
-
+ 
   // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
   io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))

@@ -35,6 +35,8 @@ class MemoryUnit extends Module {
     56.U -> io.dataSram.rdata(63, 56).asUInt
   )
 )
+ printf(p"addr: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memaddr : ${Hexadecimal(memAddr)}\n")
+
 
 
 // Use memData in your Mux logic
