@@ -37,12 +37,19 @@ class MemoryUnit extends Module {
 )
  printf(p"addr3: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memData : ${Hexadecimal(memData)}\n")
 
+  val cut = ((1.U << info.op(1,0)) << 3.U) - 1.U // times 8
 
-
+// opcode(1,0)
+// 00 byte 1
+// 01 half word 2
+// 10 word 4 
+// 11 double-word 8
+// one byte = 8 bits
 // Use memData in your Mux logic
+
   val finalMemData = Mux(
     info.fusel === FuType.lsu,
-    memData,
+    memData(cut.litValue.toInt, 0),
     0.U
   )
   val extendedData = Mux(
