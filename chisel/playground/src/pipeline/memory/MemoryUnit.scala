@@ -23,36 +23,38 @@ class MemoryUnit extends Module {
 
 // Generate LookUpTree to assign memData based on memAddr
   val memData = LookupTree(
-  memAddr,
-  Seq(
-    0.U  -> io.dataSram.rdata(63, 0).asUInt,
-    8.U  -> io.dataSram.rdata(63, 8).asUInt,
-    16.U -> io.dataSram.rdata(63, 16).asUInt,
-    24.U -> io.dataSram.rdata(63, 24).asUInt,
-    32.U -> io.dataSram.rdata(63, 32).asUInt,
-    40.U -> io.dataSram.rdata(63, 40).asUInt,
-    48.U -> io.dataSram.rdata(63, 48).asUInt,
-    56.U -> io.dataSram.rdata(63, 56).asUInt
+    memAddr,
+    Seq(
+      0.U  -> ZeroExtend(io.dataSram.rdata(63, 0), XLEN),
+      8.U  -> ZeroExtend(io.dataSram.rdata(63, 8), XLEN),
+      16.U -> ZeroExtend(io.dataSram.rdata(63, 16), XLEN),
+      24.U -> ZeroExtend(io.dataSram.rdata(63, 24), XLEN),
+      32.U -> ZeroExtend(io.dataSram.rdata(63, 32), XLEN),
+      40.U -> ZeroExtend(io.dataSram.rdata(63, 40), XLEN),
+      48.U -> ZeroExtend(io.dataSram.rdata(63, 48), XLEN),
+      56.U -> ZeroExtend(io.dataSram.rdata(63, 56), XLEN)
+    )
   )
-)
- printf(p"addr3: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memData : ${Hexadecimal(memData)}\n")
-
-  val cut = (((1.U << info.op(1,0)) << 3.U) - 1.U) // times 8
+  printf(p"addr3: ${Hexadecimal(io.dataSram.addr)}, rdata: ${Hexadecimal(io.dataSram.rdata)},memData : ${Hexadecimal(memData)}\n")
 
 // opcode(1,0)
 // 00 byte 1
 // 01 half word 2
-// 10 word 4 
+// 10 word 4
 // 11 double-word 8
 // one byte = 8 bits
 // Use memData in your Mux logic
 
-  val finalMemData = Mux(
-    info.fusel === FuType.lsu,
-    cut & memData,
-    0.U
+  val finalMemData = LookupTree(
+    info.op,
+    Seq(
+      LSUOpType.sb -> memData(7, 0).asUInt,  // Store Byte: lowest 8 bits
+      LSUOpType.sh -> memData(15, 0).asUInt, // Store Halfword: lowest 16 bits
+      LSUOpType.sw -> memData(31, 0).asUInt, // Store Word: lowest 32 bits
+      LSUOpType.sd -> memData                // Store Doubleword: full 64 bits
+    )
   )
- printf(p"cut: ${Hexadecimal(cut)}, finalMemData: ${Hexadecimal(finalMemData)}\n")
+  printf(p"finalMemData: ${Hexadecimal(finalMemData)}\n")
   val extendedData = Mux(
     info.op(2) === 1.U,
     ZeroExtend(finalMemData, XLEN),
