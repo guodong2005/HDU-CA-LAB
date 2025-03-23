@@ -118,6 +118,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*32:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__divtmp;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata;
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata;
         VlUnpacked<CData/*0:0*/, 2> __Vm_traceActivity;

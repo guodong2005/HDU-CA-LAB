@@ -222,6 +222,36 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                                      ? vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data
                                                      : 0ULL))));
+    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData 
+        = (((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+             ? vlSelfRef.data_sram_rdata : 0ULL) | 
+           (((1U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+              ? VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 8U)
+              : 0ULL) | (((2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                           ? VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x10U)
+                           : 0ULL) | (((3U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                                        ? VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x18U)
+                                        : 0ULL) | (
+                                                   ((4U 
+                                                     == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                                                     ? 
+                                                    VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x20U)
+                                                     : 0ULL) 
+                                                   | (((5U 
+                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                                                        ? 
+                                                       VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x28U)
+                                                        : 0ULL) 
+                                                      | (((6U 
+                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                                                           ? 
+                                                          VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x30U)
+                                                           : 0ULL) 
+                                                         | ((7U 
+                                                             == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
+                                                             ? 
+                                                            VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x38U)
+                                                             : 0ULL))))))));
     vlSelfRef.data_sram_wen = (0xffU & ((((0xffffU 
                                            & ((IData)(1U) 
                                               << (0xfU 
@@ -1490,6 +1520,7 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel = VL_RAND_RESET_I(2);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3 = VL_RAND_RESET_I(3);
+    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);

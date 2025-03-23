@@ -539,73 +539,44 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
     bufp->chgQData(oldp+167,(vlSelfRef.debug_rf_wdata),64);
     bufp->chgQData(oldp+169,((QData)((IData)(vlSelfRef.inst_sram_rdata))),64);
     bufp->chgQData(oldp+171,(((2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel))
-                               ? (QData)((IData)((0x7fU 
-                                                  & (((((((((IData)(
-                                                                    ((0U 
-                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                      ? 
-                                                                     (0xffffffffffffffULL 
-                                                                      & vlSelfRef.data_sram_rdata)
-                                                                      : 0ULL)) 
-                                                            | (IData)(
-                                                                      ((1U 
-                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                        ? 
-                                                                       (vlSelfRef.data_sram_rdata 
-                                                                        >> 8U)
-                                                                        : 0ULL))) 
-                                                           | (IData)(
-                                                                     ((2U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                       ? 
-                                                                      (vlSelfRef.data_sram_rdata 
-                                                                       >> 0x10U)
-                                                                       : 0ULL))) 
-                                                          | (IData)(
-                                                                    ((3U 
-                                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                      ? 
-                                                                     (vlSelfRef.data_sram_rdata 
-                                                                      >> 0x18U)
-                                                                      : 0ULL))) 
-                                                         | ((4U 
-                                                             == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                             ? (IData)(
-                                                                       (vlSelfRef.data_sram_rdata 
-                                                                        >> 0x20U))
-                                                             : 0U)) 
-                                                        | ((5U 
-                                                            == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                            ? 
-                                                           (0xffffffU 
-                                                            & (IData)(
-                                                                      (vlSelfRef.data_sram_rdata 
-                                                                       >> 0x28U)))
-                                                            : 0U)) 
-                                                       | ((6U 
-                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                           ? 
-                                                          (0xffffU 
-                                                           & (IData)(
-                                                                     (vlSelfRef.data_sram_rdata 
-                                                                      >> 0x30U)))
-                                                           : 0U)) 
-                                                      | ((7U 
-                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                          ? 
-                                                         (0xffU 
-                                                          & (IData)(
-                                                                    (vlSelfRef.data_sram_rdata 
-                                                                     >> 0x38U)))
-                                                          : 0U)) 
-                                                     & ((0x78U 
-                                                         & (((IData)(1U) 
-                                                             << 
-                                                             (3U 
-                                                              & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))) 
-                                                            << 3U)) 
-                                                        - (IData)(1U))))))
-                               : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata)),64);
+                               ? ((QData)((IData)((
+                                                   (0xffffU 
+                                                    & (((8U 
+                                                         == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                         ? 
+                                                        (0xffU 
+                                                         & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                         : 0U) 
+                                                       | ((9U 
+                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                           ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                           : 0U))) 
+                                                   | ((0xaU 
+                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                       ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                       : 0U)))) 
+                                  | ((0xbU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                      ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                      : 0ULL)) : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata)),64);
+    bufp->chgQData(oldp+173,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData),64);
+    bufp->chgQData(oldp+175,(((QData)((IData)(((0xffffU 
+                                                & (((8U 
+                                                     == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                     ? 
+                                                    (0xffU 
+                                                     & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                     : 0U) 
+                                                   | ((9U 
+                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                       ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                       : 0U))) 
+                                               | ((0xaU 
+                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                   ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                   : 0U)))) 
+                              | ((0xbU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                  ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                  : 0ULL))),64);
 }
 
 void Vtop___024root__trace_cleanup(void* voidSelf, VerilatedFst* /*unused*/) {

@@ -289,6 +289,8 @@ VL_ATTR_COLD void Vtop___024root__trace_init_sub__TOP__0(Vtop___024root* vlSelf,
     tracep->declBus(c+69,0,"io_writeBackStage_data_info_reg_waddr",-1, VerilatedTraceSigDirection::OUTPUT, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 4,0);
     tracep->declQuad(c+172,0,"io_writeBackStage_data_rd_info_wdata",-1, VerilatedTraceSigDirection::OUTPUT, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 63,0);
     tracep->declQuad(c+162,0,"io_dataSram_rdata",-1, VerilatedTraceSigDirection::INPUT, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 63,0);
+    tracep->declQuad(c+174,0,"memData",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 63,0);
+    tracep->declQuad(c+176,0,"finalMemData",-1, VerilatedTraceSigDirection::NONE, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1, 63,0);
     tracep->popPrefix();
     tracep->pushPrefix("regfile", VerilatedTracePrefixType::SCOPE_MODULE);
     tracep->declBit(c+146,0,"clock",-1, VerilatedTraceSigDirection::INPUT, VerilatedTraceSigKind::WIRE, VerilatedTraceSigType::LOGIC, false,-1);
@@ -924,71 +926,42 @@ VL_ATTR_COLD void Vtop___024root__trace_full_0_sub_0(Vtop___024root* vlSelf, Ver
     bufp->fullQData(oldp+168,(vlSelfRef.debug_rf_wdata),64);
     bufp->fullQData(oldp+170,((QData)((IData)(vlSelfRef.inst_sram_rdata))),64);
     bufp->fullQData(oldp+172,(((2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel))
-                                ? (QData)((IData)((0x7fU 
-                                                   & (((((((((IData)(
-                                                                     ((0U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                       ? 
-                                                                      (0xffffffffffffffULL 
-                                                                       & vlSelfRef.data_sram_rdata)
-                                                                       : 0ULL)) 
-                                                             | (IData)(
-                                                                       ((1U 
-                                                                         == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                         ? 
-                                                                        (vlSelfRef.data_sram_rdata 
-                                                                         >> 8U)
-                                                                         : 0ULL))) 
-                                                            | (IData)(
-                                                                      ((2U 
-                                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                        ? 
-                                                                       (vlSelfRef.data_sram_rdata 
-                                                                        >> 0x10U)
-                                                                        : 0ULL))) 
-                                                           | (IData)(
-                                                                     ((3U 
-                                                                       == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                                       ? 
-                                                                      (vlSelfRef.data_sram_rdata 
-                                                                       >> 0x18U)
-                                                                       : 0ULL))) 
-                                                          | ((4U 
-                                                              == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                              ? (IData)(
-                                                                        (vlSelfRef.data_sram_rdata 
-                                                                         >> 0x20U))
-                                                              : 0U)) 
-                                                         | ((5U 
-                                                             == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                             ? 
-                                                            (0xffffffU 
-                                                             & (IData)(
-                                                                       (vlSelfRef.data_sram_rdata 
-                                                                        >> 0x28U)))
-                                                             : 0U)) 
-                                                        | ((6U 
-                                                            == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                            ? 
-                                                           (0xffffU 
-                                                            & (IData)(
-                                                                      (vlSelfRef.data_sram_rdata 
-                                                                       >> 0x30U)))
-                                                            : 0U)) 
-                                                       | ((7U 
-                                                           == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                           ? 
-                                                          (0xffU 
-                                                           & (IData)(
-                                                                     (vlSelfRef.data_sram_rdata 
-                                                                      >> 0x38U)))
-                                                           : 0U)) 
-                                                      & ((0x78U 
-                                                          & (((IData)(1U) 
-                                                              << 
-                                                              (3U 
-                                                               & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))) 
-                                                             << 3U)) 
-                                                         - (IData)(1U))))))
-                                : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata)),64);
+                                ? ((QData)((IData)(
+                                                   ((0xffffU 
+                                                     & (((8U 
+                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                          ? 
+                                                         (0xffU 
+                                                          & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                          : 0U) 
+                                                        | ((9U 
+                                                            == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                            ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                            : 0U))) 
+                                                    | ((0xaU 
+                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                        ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                        : 0U)))) 
+                                   | ((0xbU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                       ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                       : 0ULL)) : vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata)),64);
+    bufp->fullQData(oldp+174,(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData),64);
+    bufp->fullQData(oldp+176,(((QData)((IData)(((0xffffU 
+                                                 & (((8U 
+                                                      == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                      ? 
+                                                     (0xffU 
+                                                      & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData))
+                                                      : 0U) 
+                                                    | ((9U 
+                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                        ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                        : 0U))) 
+                                                | ((0xaU 
+                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                                    ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData)
+                                                    : 0U)))) 
+                               | ((0xbU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op))
+                                   ? vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData
+                                   : 0ULL))),64);
 }
