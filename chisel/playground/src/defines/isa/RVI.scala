@@ -89,6 +89,7 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     LH  -> List(InstrI, FuType.lsu, LSUOpType.lh),  // Load Halfword
     LHU -> List(InstrI, FuType.lsu, LSUOpType.lhu), // Load Halfword Unsigned
     LW  -> List(InstrI, FuType.lsu, LSUOpType.lw),  // Load Word
+    LWU  -> List(InstrI, FuType.lsu, LSUOpType.lwu),  // Load Word I dont think this is a 32-bit instr but gpt says so!
 
 // Store Instructions
     SB -> List(InstrS, FuType.lsu, LSUOpType.sb), // Store Byte
