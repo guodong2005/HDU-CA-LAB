@@ -11,7 +11,7 @@ class FetchUnit extends Module {
     val decodeStage = new FetchUnitDecodeUnit()
     val instSram    = new InstSram()
     val branch = Input(Bool())
-    val target = Input(SInt(XLEN.W))
+    val target = Input(UInt(XLEN.W))
   })
 
   val boot :: send :: receive :: Nil = Enum(3)
