@@ -20,9 +20,9 @@ class Fu extends Module with HasInstrType{
 
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())
-  val lsu = Module(new Lsu())
+  // val lsu = Module(new Lsu())
 
-  io.dataSram.en    := false.B
+  io.dataSram.en    := true.B
   io.dataSram.addr  := DontCare
   io.dataSram.wdata := DontCare
   io.dataSram.wen   := 0.U
@@ -33,18 +33,18 @@ class Fu extends Module with HasInstrType{
   mdu.io.info := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
-  lsu.io.info := io.data.info
-  lsu.io.src_info := io.data.src_info
+  // lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
+  // lsu.io.info := io.data.info
+  // lsu.io.src_info := io.data.src_info
 
   val result = LookupTree(
     io.data.info.fusel,
     Seq(
       FuType.alu -> alu.io.result,
       FuType.mdu -> mdu.io.result,
-      FuType.lsu -> lsu.io.result
+      // FuType.lsu -> lsu.io.result
     )
   ) 
   io.data.rd_info.wdata := Mux(io.data.info.fusel === FuType.alu,alu.io.result,mdu.io.result) // lsu doesnt matter
-  io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu,lsu.io.addr3,0.U)
+  // io.data.rd_info.addr3 := Mux(io.data.info.fusel === FuType.lsu,lsu.io.addr3,0.U)
 }
