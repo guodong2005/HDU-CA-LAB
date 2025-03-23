@@ -30,6 +30,7 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
+  io.dataSram.addr := io.src_info.src1_data + io.info.imm
   val tmpwen = ZeroExtend(((io.info.op(1, 0).asUInt) << (io.dataSram.addr(2, 0).asUInt)),8)
   // printf("tmpwen : ${tmpwen}.io.info.op,io.src_info.src2_data\n")
   printf(p"tmpwen: ${tmpwen}, io.info.op: ${io.info.op}, io.src_info.src2_data: ${io.src_info.src2_data}\n")
@@ -37,7 +38,6 @@ TODO: add unaligned exception
   // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
   io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
-  io.dataSram.addr := io.src_info.src1_data + io.info.imm
   io.dataSram.wdata := LookupTree(
     io.info.op,
     Seq(
