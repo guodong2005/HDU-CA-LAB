@@ -256,14 +256,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
            & (0xffffffff80000000ULL == vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data));
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_8 
         = VL_DIV_QQQ(64, vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data, vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data);
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN 
-        = (0xffffffffffffffULL & (((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                    ? vlSelfRef.data_sram_rdata
-                                    : 0ULL) | ((1U 
-                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                                ? (vlSelfRef.data_sram_rdata 
-                                                   >> 8U)
-                                                : 0ULL)));
     vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[0U] 
         = (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__regs_0);
     vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT___GEN[1U] 
@@ -432,11 +424,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
         = ((0x380U & ((IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                >> 0xcU)) << 7U)) | 
            (0x7fU & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst)));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_0 
-        = (0xffffffffffffULL & (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN 
-                                | ((2U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                    ? (vlSelfRef.data_sram_rdata 
-                                       >> 0x10U) : 0ULL)));
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__alu__DOT___addResult_T_2 
         = (vlSelfRef.data_sram_addr + (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data));
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__alu__DOT___subResult_T_2 
@@ -483,11 +470,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
         = ((0x1fc00U & ((IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                  >> 0x19U)) << 0xaU)) 
            | (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_1 
-        = (0xffffffffffULL & (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_0 
-                              | ((3U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                                  ? (vlSelfRef.data_sram_rdata 
-                                     >> 0x18U) : 0ULL)));
     if ((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data))) {
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__remResult_1 
             = vlSelfRef.data_sram_addr;
@@ -522,11 +504,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
               | ((0x6bbU == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1) 
                  | ((0x73bU == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1) 
                     | (0x7bbU == top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_1)))));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_2 
-        = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_1) 
-           | ((4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-               ? (IData)((vlSelfRef.data_sram_rdata 
-                          >> 0x20U)) : 0U));
     __Vtemp_25[0U] = (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data);
     __Vtemp_25[1U] = (IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data 
                               >> 0x20U));
@@ -1110,11 +1087,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                                      ((0x1a3U 
                                                                        == (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN)) 
                                                                       << 1U)))))))))))))))))))))))));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_3 
-        = (0xffffffU & (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_2 
-                        | ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                            ? (IData)((vlSelfRef.data_sram_rdata 
-                                       >> 0x28U)) : 0U)));
     vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___op_T_29 
         = (((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType))
              ? ((((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_fusel))
@@ -1147,11 +1119,6 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_63 
         = ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
            | (4U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)));
-    vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_4 
-        = (0xffffU & (vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_3 
-                      | ((6U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
-                          ? (IData)((vlSelfRef.data_sram_rdata 
-                                     >> 0x30U)) : 0U)));
     vlSelfRef.top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_src_info_src2_data 
         = (((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
             | ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_65)) 
@@ -1517,17 +1484,12 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     vlSelf->top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT__remResult_1 = VL_RAND_RESET_I(32);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
+    vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op = VL_RAND_RESET_I(5);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr = VL_RAND_RESET_I(5);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel = VL_RAND_RESET_I(2);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_wdata = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3 = VL_RAND_RESET_I(3);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN = VL_RAND_RESET_Q(56);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_0 = VL_RAND_RESET_Q(48);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_1 = VL_RAND_RESET_Q(40);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_2 = VL_RAND_RESET_I(32);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_3 = VL_RAND_RESET_I(24);
-    vlSelf->top__DOT__core__DOT__core__DOT__memoryUnit__DOT___GEN_4 = VL_RAND_RESET_I(16);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);
