@@ -49,8 +49,4 @@ class MemoryUnit extends Module {
   io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, extendedData, io.memoryStage.data.rd_info.wdata)
   io.writeBackStage.data.rd_info.addr3 := DontCare
 
-  io.dataSram.en    := DontCare
-  io.dataSram.addr  := DontCare
-  io.dataSram.wdata := DontCare
-  io.dataSram.wen   := DontCare
 }
