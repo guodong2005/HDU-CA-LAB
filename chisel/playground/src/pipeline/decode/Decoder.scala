@@ -50,8 +50,10 @@ class Decoder extends Module with HasInstrType {
     instrType,
     Seq(
       InstrR -> Mux(fuType === FuType.alu, Cat(inst(3), inst(30), inst(14, 12)), Cat(inst(3), funct3)),
-      InstrI -> Mux(fuType === FuType.lsu,Cat(inst(5),funct3),Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12))),
+      InstrI -> Mux(fuType === FuType.bru, BRUOpType.jalr,Mux(fuType === FuType.lsu,Cat(inst(5),funct3),Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)))),
       //  these part's readability is very bad. 
+      InstrB -> Cat(0.U,funct3),
+      InstrJ -> Cat(1.U,funct3),
       InstrS -> Cat(inst(5),funct3),
       InstrU -> ALUOpType.add
     )
@@ -66,45 +68,15 @@ class Decoder extends Module with HasInstrType {
   }.elsewhen(instrType === InstrS){
     //                     src2     writeback src1en src2en   valid
     setInfo(inst, rd, rs1, rs2, op, false.B, true.B, true.B, true.B)
+  }.elsewhen(instrType === InstrB){
+    //                     src2     writeback src1en src2en   valid
+    setInfo(inst, 0.U, rs1, rs2, op, false.B, true.B, true.B, true.B)
+
+  }.elsewhen(instrType === InstrJ){
+    //                     src2     writeback src1en src2en   valid
+    setInfo(inst, rd, 0.U, 0.U, op, true.B, false.B, false.B, true.B)
   }.otherwise {
     setInfo(inst, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
   }
   io.out.info.fusel := fuType
-
-  // setInfo(inst, regWAddr, src1RAddr, src2RAddr, op, regWEn, src1REn, src2REn, valid)
-  /*
-  io.out.info := DontCare
-  io.out.info.valid := false.B
-  when(instrType === InstrR){
-    val (rd,rs1,rs2) = (inst(11,7),inst(19,15),inst(24,20))
-    io.out.info.reg_waddr := rd
-    io.out.info.src1_raddr := rs1
-    io.out.info.src2_raddr := rs2
-
-    io.out.info.op := Cat(io.in.inst(3), io.in.inst(30), io.in.inst(14, 12))
-    io.out.info.reg_wen := true.B
-    io.out.info.valid := true.B
-  }.elsewhen(instrType === InstrI){
-    val (rd,rs1,imm12)  =  (inst(11,7),inst(19,15),inst(31,20))
-    io.out.info.imm := imm12
-    io.out.info.src1_raddr := rs1
-    io.out.info.reg_waddr := rd
-
-    io.out.info.op := DontCare // Use a decoding function
-    io.out.info.src2_raddr := 0.U
-    io.out.info.src1_ren := true.B
-    io.out.info.src2_ren := false.B
-    io.out.info.reg_wen := true.B
-    io.out.info.valid := true.B
-
-  }.otherwise{
-    io.out.info.src1_raddr := DontCare
-    io.out.info.src2_raddr := DontCare
-    io.out.info.op := DontCare // Use a decoding function
-    io.out.info.reg_wen := false.B  // unneccesary ?
-    io.out.info.reg_waddr := DontCare
-    io.out.info.valid := false.B
-
-  }
-   */
 }

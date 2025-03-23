@@ -13,11 +13,7 @@ class Lsu extends Module {
     val addr3    = Output(UInt(3.W))
     val dataSram = new DataSram()
   })
-  /*
-  io.dataSram.en    := false.B
-  io.dataSram.addr  := DontCare
-  io.dataSram.wen   := 0.U
-   */
+
   /*
 dataSram is a 64-bit ram so datasram.wen has 8 bit to represent the 8 bits' write signals.
 generate tmp_datasram for me , for example, if the instruction is lb:
@@ -36,7 +32,6 @@ TODO: add unaligned exception
 
   val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)),8)
  
-  // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
   io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
   io.dataSram.wdata := LookupTree(
@@ -50,41 +45,4 @@ TODO: add unaligned exception
   )
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result
   io.addr3  := io.dataSram.addr(2, 0)
-
-  /*
-  switch(io.info.op) {
-    // LSU Operations
-    is(LSUOpType.lb) {
-      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 8), XLEN) // Load Byte (signed)
-    }
-    is(LSUOpType.lbu) {
-      io.result := ZeroExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 8), XLEN) // Load Byte Unsigned
-    }
-    is(LSUOpType.lh) {
-      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 16), XLEN) // Load Halfword (signed)
-    }
-    is(LSUOpType.lhu) {
-      io.result := ZeroExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 16), XLEN) // Load Halfword Unsigned
-    }
-    is(LSUOpType.lw) {
-      io.result := SignedExtend(Memory.read(io.src_info.src1_data + io.src_info.src2_data, 32), XLEN) // Load Word (signed)
-    }
-    is(LSUOpType.ld) {
-      io.result := Memory.read(io.src_info.src1_data + io.src_info.src2_data, XLEN) // Load Doubleword (for RV64, no sign extension needed)
-    }
-    is(LSUOpType.sb) {
-      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(7, 0), 8) // Store Byte
-    }
-    is(LSUOpType.sh) {
-      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(15, 0), 16) // Store Halfword
-    }
-    is(LSUOpType.sw) {
-      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data(31, 0), 32) // Store Word
-    }
-    is(LSUOpType.sd) {
-      Memory.write(io.src_info.src1_data + io.src_info.src2_data, io.src_info.src3_data, XLEN) // Store Doubleword (for RV64)
-    }
-  }
-   */
-
 }

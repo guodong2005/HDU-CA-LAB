@@ -12,6 +12,8 @@ class ExecuteUnit extends Module {
     val executeStage = Input(new DecodeUnitExecuteUnit())
     val memoryStage  = Output(new ExecuteUnitMemoryUnit())
     val dataSram     = new DataSram()
+    val branch       = Output(Bool())
+    val target       = Output(UInt(XLEN.W))
   })
 
   val fu = Module(new Fu()).io
@@ -20,9 +22,11 @@ class ExecuteUnit extends Module {
   fu.data.info     := io.executeStage.data.info
   fu.data.src_info := io.executeStage.data.src_info
 
-  io.dataSram <> fu.dataSram
+  io.dataSram    <> fu.dataSram
   io.dataSram.en := true.B
 
+  io.branch                    := fu.data.branch
+  io.target                    := fu.data.target
   io.memoryStage.data.pc       := fu.data.pc
   io.memoryStage.data.info     := fu.data.info
   io.memoryStage.data.src_info := fu.data.src_info
