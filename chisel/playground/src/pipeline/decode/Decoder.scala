@@ -19,8 +19,6 @@ class Decoder extends Module with HasInstrType {
   val inst = io.in.inst
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
-  // printf("current inst: ${inst},instryType : ${instrtype}, futype : fu optype \n")
-  printf(p"current inst: 0x${Hexadecimal(inst)}, instrType: $instrType, fuType: $fuType, fuOpType: $fuOpType\n")
   io.out.info := DontCare
 
   io.out.info.valid := false.B
