@@ -47,7 +47,6 @@ TODO: add unaligned exception
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result
   io.addr3  := io.dataSram.addr(2, 0)
 
-  io.dataSram.wdata := DontCare
   /*
   switch(io.info.op) {
     // LSU Operations
