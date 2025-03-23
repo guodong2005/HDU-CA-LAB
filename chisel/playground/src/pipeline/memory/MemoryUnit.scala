@@ -57,7 +57,6 @@ class MemoryUnit extends Module {
       LSUOpType.ld -> SignedExtend(memData, XLEN)         // Store Doubleword: full 64 bits
     )
   )
-  printf(p"finalMemData: ${Hexadecimal(finalMemData)},info.op : ${info.op}\n")
   io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, finalMemData, io.memoryStage.data.rd_info.wdata)
   io.writeBackStage.data.rd_info.addr3 := DontCare
 
