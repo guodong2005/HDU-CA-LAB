@@ -35,12 +35,16 @@ class Core extends Module {
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
   executeUnit.io.executeStage <> executeStage.io.executeUnit
-  executeUnit.io.dataSram <> io.dataSram
+
+  executeUnit.io.dataSram.wen <> io.dataSram.wen
+  executeUnit.io.dataSram.addr <> io.dataSram.addr
+  executeUnit.io.dataSram.en <> io.dataSram.en
+  memoryUnit.io.dataSram.rdata <> io.dataSram.rdata
+
   executeUnit.io.memoryStage <> memoryStage.io.executeUnit
 
 
   memoryUnit.io.memoryStage <> memoryStage.io.memoryUnit
-  memoryUnit.io.dataSram <> io.dataSram
   memoryUnit.io.writeBackStage <> writeBackStage.io.memoryUnit
 
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
