@@ -119,6 +119,10 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     __Vdly__top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
     if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
+        VL_FWRITEF_NX(0x80000002U,"info.fusel: %1#, lsu.io.result:                    0\n",0,
+                      2,vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel);
+    }
+    if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
         VL_FWRITEF_NX(0x80000002U,"current inst: 0x%x, instrType: %1#, fuType: %1#, fuOpType: %2#\n",0,
                       64,vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst,
                       3,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType),

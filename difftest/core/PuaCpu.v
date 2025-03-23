@@ -1082,6 +1082,8 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
+  input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
+                reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
   input  [4:0]  io_data_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   input  [1:0]  io_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   input  [63:0] io_data_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
@@ -1091,6 +1093,13 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
 
   wire [63:0] _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:22:19
   wire [63:0] _alu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:21:19
+  `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:47:7
+    always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:47:7
+      if ((`PRINTF_COND_) & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:47:7
+        $fwrite(32'h80000002, "info.fusel: %d, lsu.io.result: %d\n", io_data_info_fusel,
+                64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :10:14, :23:19, :47:7, src/main/scala/chisel3/util/Mux.scala:30:73
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   Alu alu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:21:19
     .io_info_op            (io_data_info_op),
     .io_src_info_src1_data (io_data_src_info_src1_data),
@@ -1104,10 +1113,12 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
     .io_result             (_mdu_io_result)
   );
   assign io_data_rd_info_wdata =
-    io_data_info_fusel == 2'h0 ? _alu_io_result : _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :21:19, :22:19, :48:{31,51}
+    io_data_info_fusel == 2'h0 ? _alu_io_result : _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :21:19, :22:19, :49:{31,51}
 endmodule
 
 module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
+  input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
+                reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
   input  [63:0] io_executeStage_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   input         io_executeStage_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   input  [4:0]  io_executeStage_data_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
@@ -1125,6 +1136,8 @@ module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
 );
 
   Fu Fu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:17:18
+    .clock                      (clock),
+    .reset                      (reset),
     .io_data_info_op            (io_executeStage_data_info_op),
     .io_data_info_fusel         (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data (io_executeStage_data_src_info_src1_data),
@@ -1476,6 +1489,8 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:10
       (_executeStage_io_executeUnit_data_src_info_src2_data)
   );
   ExecuteUnit executeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .clock                                   (clock),
+    .reset                                   (reset),
     .io_executeStage_data_pc                 (_executeStage_io_executeUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
     .io_executeStage_data_info_valid
       (_executeStage_io_executeUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
