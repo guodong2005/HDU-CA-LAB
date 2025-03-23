@@ -77,6 +77,7 @@ object LSUOpType {
   def lh  = "b0001".U
   def lhu = "b0101".U
   def lw  = "b0010".U
+  def lwu  = "b0110".U
   def ld  = "b0011".U
 
   def sb = "b1000".U
