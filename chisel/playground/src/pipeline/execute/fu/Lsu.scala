@@ -33,7 +33,7 @@ TODO: add unaligned exception
   io.dataSram.addr := io.src_info.src1_data + io.info.imm
   val tmpwen = ZeroExtend(((io.info.op(1, 0).asUInt) << (io.dataSram.addr(2, 0).asUInt)),8)
   // printf("tmpwen : ${tmpwen}.io.info.op,io.src_info.src2_data\n")
-  printf(p"tmpwen: $Binary{tmpwen.(8.W)}, io.info.op: ${io.info.op}, io.src_info.src2_data: $Hexadecimal{io.src_info.src2_data}\n")
+  printf(p"tmpwen: ${Binary(ZeroExtend(tmpwen,8))}, io.info.op: ${io.info.op}, io.src_info.src2_data: ${Hexadecimal(io.src_info.src2_data)}\n")
 
   // io.dataSram.wen := tmpwen &&
   io.dataSram.en   := !reset.asBool
