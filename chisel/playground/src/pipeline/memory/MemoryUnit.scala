@@ -48,19 +48,14 @@ class MemoryUnit extends Module {
   val finalMemData = LookupTree(
     info.op,
     Seq(
-      LSUOpType.lb -> memData(7, 0),  // Store Byte: lowest 8 bits
-      LSUOpType.lh -> memData(15, 0), // Store Halfword: lowest 16 bits
-      LSUOpType.lw -> memData(31, 0), // Store Word: lowest 32 bits
-      LSUOpType.ld -> memData                // Store Doubleword: full 64 bits
+      LSUOpType.lb -> SignedExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
+      LSUOpType.lh -> SignedExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
+      LSUOpType.lw -> SignedExtend(memData(31, 0), XLEN), // Store Word: lowest 32 bits
+      LSUOpType.ld -> SignedExtend(memData, XLEN)         // Store Doubleword: full 64 bits
     )
   )
   printf(p"finalMemData: ${Hexadecimal(finalMemData)},info.op : ${info.op}\n")
-  val extendedData = Mux(
-    info.op(2) === 1.U,
-    ZeroExtend(finalMemData, XLEN),
-    SignedExtend(finalMemData, XLEN)
-  )
-  io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, extendedData, io.memoryStage.data.rd_info.wdata)
+  io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, finalMemData, io.memoryStage.data.rd_info.wdata)
   io.writeBackStage.data.rd_info.addr3 := DontCare
 
   io.dataSram.en    := DontCare
