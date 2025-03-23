@@ -19,62 +19,60 @@ class Bru extends Module {
   io.result := DontCare
   io.target:= 0.U
   io.branch := 0.U
-  val imm = io.src_info.src2_data
-  // printf(p"instr: ${Hexadecimal(info.instr)}, imm: ${Hexadecimal(info.imm)}\n")
   switch(info.op) {
   // JAL (Jump and Link)
   is(BRUOpType.jal) {
     io.branch := info.valid && (info.fusel === FuType.bru)
-    io.target := pc + imm // Target address = PC + immediate offset
+    io.target := pc + info.imm // Target address = PC + immediate offset
     io.result := pc + 4.U      // Return address (PC + 4)
   }
 
   // JALR (Jump and Link Register)
   is(BRUOpType.jalr) {
     io.branch := info.valid && (info.fusel === FuType.bru)
-    io.target := (io.src_info.src1_data + imm) & (~1.U(XLEN.W)) // Target with alignment
+    io.target := (io.src_info.src1_data + info.imm) & (~1.U(XLEN.W)) // Target with alignment
     io.result := pc + 4.U                                           // Return address (PC + 4)
   }
 
   // BEQ (Branch if Equal)
   is(BRUOpType.beq) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data === io.src_info.src2_data)
-    io.target := pc + imm // Target address for branch
+    io.target := pc + info.imm // Target address for branch
     io.result := 0.U           // No return address needed
   }
 
   // BNE (Branch if Not Equal)
   is(BRUOpType.bne) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data =/= io.src_info.src2_data)
-    io.target := pc + imm
+    io.target := pc + info.imm
     io.result := 0.U
   }
 
   // BLT (Branch if Less Than)
   is(BRUOpType.blt) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt)
-    io.target := pc + imm
+    io.target := pc + info.imm
     io.result := 0.U
   }
 
   // BGE (Branch if Greater Than or Equal)
   is(BRUOpType.bge) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data.asSInt >= io.src_info.src2_data.asSInt)
-    io.target := pc + imm
+    io.target := pc + info.imm
     io.result := 0.U
   }
 
   // BLTU (Branch if Less Than Unsigned)
   is(BRUOpType.bltu) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data < io.src_info.src2_data)
-    io.target := pc + imm
+    io.target := pc + info.imm
     io.result := 0.U
   }
 
   // BGEU (Branch if Greater Than or Equal Unsigned)
   is(BRUOpType.bgeu) {
     io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data >= io.src_info.src2_data)
-    io.target := pc + imm
+    io.target := pc + info.imm
     io.result := 0.U
   }
 }

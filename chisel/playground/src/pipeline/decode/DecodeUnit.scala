@@ -35,8 +35,6 @@ class DecodeUnit extends Module with HasInstrType {
       InstrJ -> SignedExtend(Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), 0.U(1.W)), XLEN)
     )
   )
-  printf(p"inDecode Unit : instr: ${Hexadecimal(info.instr)}, imm: ${Hexadecimal(imm)}\n")
-
 
   info       := decoder.io.out.info
   info.valid := io.decodeStage.data.valid
