@@ -144,8 +144,8 @@ object RV64IInstr extends HasInstrType {
     REMUW -> List(InstrR, FuType.mdu, MDUOpType.remuw), // Unsigned Remainder Word
 
     LD -> List(InstrI, FuType.lsu, LSUOpType.ld), // Load Doubleword (RV64)
-    SD -> List(InstrS, FuType.lsu, LSUOpType.sd)  // Store Doubleword (RV64)
-    LWU  -> List(InstrI, FuType.lsu, LSUOpType.lwu),  // Load Word I dont think this is a 32-bit instr but gpt says so!
+    SD -> List(InstrS, FuType.lsu, LSUOpType.sd),  // Store Doubleword (RV64)
+    LWU  -> List(InstrI, FuType.lsu, LSUOpType.lwu)  // Load Word I dont think this is a 32-bit instr but gpt says so!
   )
 }
 
