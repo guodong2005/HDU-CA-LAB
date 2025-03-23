@@ -54,7 +54,7 @@ class MemoryUnit extends Module {
       LSUOpType.ld -> memData                // Store Doubleword: full 64 bits
     )
   )
-  printf(p"finalMemData: ${Hexadecimal(finalMemData)}\n")
+  printf(p"finalMemData: ${Hexadecimal(finalMemData)},info.op : ${info.op}\n")
   val extendedData = Mux(
     info.op(2) === 1.U,
     ZeroExtend(finalMemData, XLEN),
