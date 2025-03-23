@@ -18,7 +18,12 @@ class Fu extends Module with HasInstrType{
     val dataSram = new DataSram()
   })
 
+  io.dataSram.en    := false.B
+  io.dataSram.addr  := DontCare
+  io.dataSram.wen   := 0.U
+
   val alu = Module(new Alu())
+
   val mdu = Module(new Mdu())
   val lsu = Module(new Lsu())
 
@@ -35,7 +40,7 @@ class Fu extends Module with HasInstrType{
 
   lsu.io.info := io.data.info
   lsu.io.src_info := io.data.src_info
-  lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
+  // lsu.io.dataSram <> io.dataSram // same as := ? not, but I should have a deeper understanding !
   val result = LookupTree(
     io.data.info.fusel,
     Seq(
