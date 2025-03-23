@@ -26,7 +26,7 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  io.dataSram.addr := io.src_info.src1_data + io.info.imm
+  io.dataSram.addr := io.src_info.src1_data + io.src_info.src2_data
   val count = 1.U << (io.info.op(1, 0))
   val bits = (1.U << count) - 1.U // Create a dynamic number of bits (all 1s)
 
