@@ -215,14 +215,14 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
   wire        _GEN_26 = _GEN_1 == 17'h6B3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_27 = _GEN_1 == 17'h733;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_28 = _GEN_1 == 17'h7B3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_29 = _GEN_1 == 17'h3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_30 = _GEN_1 == 17'h203;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_31 = _GEN_1 == 17'h83;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_32 = _GEN_1 == 17'h283;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_33 = _GEN_1 == 17'h103;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_34 = _GEN_1 == 17'h23;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_35 = _GEN_1 == 17'hA3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_36 = _GEN_1 == 17'h123;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_29 = _GEN == 10'h3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_30 = _GEN == 10'h203;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_31 = _GEN == 10'h83;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_32 = _GEN == 10'h283;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_33 = _GEN == 10'h103;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_34 = _GEN == 10'h23;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_35 = _GEN == 10'hA3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_36 = _GEN == 10'h123;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_37 = io_in_inst[6:0] == 7'h17;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_38 = io_in_inst[6:0] == 7'h37;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_39 = _GEN == 10'h1B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
@@ -529,15 +529,15 @@ module DecodeUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
                                                                         | _GEN_0 == 17'h733
                                                                         | _GEN_0 == 17'h7B3
                                                                           ? 3'h5
-                                                                          : _GEN_0 == 17'h3
-                                                                            | _GEN_0 == 17'h203
-                                                                            | _GEN_0 == 17'h83
-                                                                            | _GEN_0 == 17'h283
-                                                                            | _GEN_0 == 17'h103
+                                                                          : _GEN == 10'h3
+                                                                            | _GEN == 10'h203
+                                                                            | _GEN == 10'h83
+                                                                            | _GEN == 10'h283
+                                                                            | _GEN == 10'h103
                                                                               ? 3'h4
-                                                                              : _GEN_0 == 17'h23
-                                                                                | _GEN_0 == 17'hA3
-                                                                                | _GEN_0 == 17'h123
+                                                                              : _GEN == 10'h23
+                                                                                | _GEN == 10'hA3
+                                                                                | _GEN == 10'h123
                                                                                   ? 3'h2
                                                                                   : _decoder_io_out_info_instr[6:0] == 7'h17
                                                                                     | _decoder_io_out_info_instr[6:0] == 7'h37
