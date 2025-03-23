@@ -54,13 +54,12 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_wen;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr;
-        CData/*0:0*/ __VdfgRegularize_hd87f99a1_1_1;
-        CData/*0:0*/ __VdfgRegularize_hd87f99a1_1_3;
+        CData/*0:0*/ __VdfgRegularize_hd87f99a1_1_2;
+        CData/*0:0*/ __VdfgRegularize_hd87f99a1_1_4;
         CData/*0:0*/ __VstlFirstIteration;
         CData/*0:0*/ __VicoFirstIteration;
         CData/*0:0*/ __Vtrigprevexpr___TOP__clock__0;
         CData/*0:0*/ __VactContinue;
-        SData/*11:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_imm;
         VL_OUT(inst_sram_addr,31,0);
         VL_OUT(inst_sram_wdata,31,0);
         VL_IN(inst_sram_rdata,31,0);
@@ -75,14 +74,14 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_IN64(data_sram_rdata,63,0);
         VL_OUT64(debug_pc,63,0);
         VL_OUT64(debug_rf_wdata,63,0);
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_src_info_src2_data;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc;
-        QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__imm;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_0;
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_1;
     };
     struct {
-        QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_1;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_2;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_3;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_4;
@@ -127,6 +126,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__memoryUnit__DOT__memData;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata;
+        QData/*63:0*/ __VdfgRegularize_hd87f99a1_1_0;
         VlUnpacked<CData/*0:0*/, 2> __Vm_traceActivity;
     };
     VlTriggerVec<1> __VstlTriggered;
