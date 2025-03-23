@@ -37,6 +37,7 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_74;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_75;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_76;
+        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN_77;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT____VdfgRegularize_hb9908eda_0_9;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__unnamedblk1__DOT___GEN_0;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid;
@@ -79,9 +80,9 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__imm;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_0;
-        QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_1;
     };
     struct {
+        QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_1;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_2;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_3;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_4;
