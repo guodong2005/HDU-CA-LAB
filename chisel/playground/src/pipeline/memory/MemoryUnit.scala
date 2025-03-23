@@ -49,7 +49,9 @@ class MemoryUnit extends Module {
     info.op,
     Seq(
       LSUOpType.lb -> SignedExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
+      LSUOpType.lbu -> ZeroExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
       LSUOpType.lh -> SignedExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
+      LSUOpType.lhu -> ZeroExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
       LSUOpType.lw -> SignedExtend(memData(31, 0), XLEN), // Store Word: lowest 32 bits
       LSUOpType.ld -> SignedExtend(memData, XLEN)         // Store Doubleword: full 64 bits
     )
