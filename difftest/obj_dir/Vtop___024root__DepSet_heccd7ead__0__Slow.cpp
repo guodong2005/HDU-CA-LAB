@@ -30,7 +30,6 @@ VL_ATTR_COLD void Vtop___024root___eval_initial__TOP(Vtop___024root* vlSelf) {
     vlSelfRef.inst_sram_wdata = 0U;
     vlSelfRef.inst_sram_wen = 0U;
     vlSelfRef.data_sram_en = 1U;
-    vlSelfRef.data_sram_wdata = 0ULL;
 }
 
 VL_ATTR_COLD void Vtop___024root___eval_final(Vtop___024root* vlSelf) {
@@ -161,6 +160,68 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     vlSelfRef.debug_pc = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
     vlSelfRef.debug_rf_wnum = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr;
     vlSelfRef.debug_rf_wdata = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata;
+    vlSelfRef.data_sram_wdata = (((8U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                   ? (((QData)((IData)(
+                                                       (0xffU 
+                                                        & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                       << 0x38U) | 
+                                      (((QData)((IData)(
+                                                        (0xffU 
+                                                         & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                        << 0x30U) | 
+                                       (((QData)((IData)(
+                                                         (0xffU 
+                                                          & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                         << 0x28U) 
+                                        | (((QData)((IData)(
+                                                            (0xffU 
+                                                             & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                            << 0x20U) 
+                                           | (((QData)((IData)(
+                                                               (0xffU 
+                                                                & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                               << 0x18U) 
+                                              | (((QData)((IData)(
+                                                                  (0xffU 
+                                                                   & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                                  << 0x10U) 
+                                                 | (((QData)((IData)(
+                                                                     (0xffU 
+                                                                      & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                                     << 8U) 
+                                                    | (QData)((IData)(
+                                                                      (0xffU 
+                                                                       & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))))))))))
+                                   : 0ULL) | (((9U 
+                                                == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                                ? (
+                                                   ((QData)((IData)(
+                                                                    (0xffffU 
+                                                                     & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                                    << 0x30U) 
+                                                   | (((QData)((IData)(
+                                                                       (0xffffU 
+                                                                        & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                                       << 0x20U) 
+                                                      | (((QData)((IData)(
+                                                                          (0xffffU 
+                                                                           & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))) 
+                                                          << 0x10U) 
+                                                         | (QData)((IData)(
+                                                                           (0xffffU 
+                                                                            & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))))))
+                                                : 0ULL) 
+                                              | (((0xaU 
+                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                                   ? 
+                                                  (((QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)) 
+                                                    << 0x20U) 
+                                                   | (QData)((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data)))
+                                                   : 0ULL) 
+                                                 | ((0xbU 
+                                                     == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                                     ? vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data
+                                                     : 0ULL))));
     vlSelfRef.top__DOT__core__DOT__core__DOT__memoryUnit__DOT____VdfgRegularize_h56152d37_0_0 
         = (0xffU & (((0U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3))
                       ? (IData)(vlSelfRef.data_sram_rdata)
