@@ -34,10 +34,7 @@ class MemoryStage extends Module {
   when(io.controlSignal.executeUnitSignal.do_flush === true.B) {
     data := 0.U.asTypeOf(new ExeMemData()) // Reset data if flush signal is high
   }
-  // Output the data to the next stage
   data               := io.executeUnit.data
   io.memoryUnit.data := data
-  // where is DataMem ?
-  // only for R-type
 
 }
