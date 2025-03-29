@@ -61,7 +61,7 @@ class Core extends Module {
   controlUnit.io.decodeInfo    := decodeUnit.io.executeStage.data.info
   controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info
   controlUnit.io.memoryInfo    := memoryUnit.io.writeBackStage.data.info
-  controlUnit.io.writeBackInfo := writeBackUnit.io.info
+  controlUnit.io.writeBackInfo := writeBackStage.io.writeBackUnit.data.info
 
   decodeStage.io.controlSignal    := controlUnit.io.signals
   executeStage.io.controlSignal   := controlUnit.io.signals
