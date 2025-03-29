@@ -13,13 +13,13 @@ class IfIdData extends Bundle {
 }
 
 class FetchUnitDecodeUnit extends Bundle {
-  val data = Output(new IfIdData())
+  val data = new IfIdData()
 }
 
 class DecodeStage extends Module {
   val io = IO(new Bundle {
-    val fetchUnit  = Flipped(new FetchUnitDecodeUnit())
-    val decodeUnit = new FetchUnitDecodeUnit()
+    val fetchUnit  = Input(new FetchUnitDecodeUnit())
+    val decodeUnit = Output(new FetchUnitDecodeUnit())
   })
 
   val data = RegInit(0.U.asTypeOf(new IfIdData()))
