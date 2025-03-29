@@ -18,7 +18,7 @@ class DecodeUnit extends Module with HasInstrType {
   decoder.io.in.inst := io.decodeStage.data.inst
 
   val pc     = io.decodeStage.data.pc
-  val info   = Wire(new Info())
+  val info   = new Info()
   val is_lui = decoder.io.out.info.instr(6, 0) === "b0110111".U
 
   val inst = decoder.io.out.info.instr

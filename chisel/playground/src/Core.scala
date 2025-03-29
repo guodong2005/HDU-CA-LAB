@@ -27,36 +27,33 @@ class Core extends Module {
   val writeBackUnit  = Module(new WriteBackUnit())
 
   // 取指单元
-  fetchUnit.io.instSram <> io.instSram
+  fetchUnit.io.instSram    <> io.instSram
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
   //
-  decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
-  decodeUnit.io.regfile <> regfile.io.read
+  decodeUnit.io.decodeStage  <> decodeStage.io.decodeUnit
+  decodeUnit.io.regfile      <> regfile.io.read
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
   executeUnit.io.executeStage <> executeStage.io.executeUnit
 
-  executeUnit.io.dataSram.wen <> io.dataSram.wen
-  executeUnit.io.dataSram.addr <> io.dataSram.addr
+  executeUnit.io.dataSram.wen   <> io.dataSram.wen
+  executeUnit.io.dataSram.addr  <> io.dataSram.addr
   executeUnit.io.dataSram.wdata <> io.dataSram.wdata
-  executeUnit.io.dataSram.en <> io.dataSram.en
+  executeUnit.io.dataSram.en    <> io.dataSram.en
   executeUnit.io.dataSram.rdata := DontCare
 
   memoryUnit.io.dataSram.rdata <> io.dataSram.rdata
 
   executeUnit.io.memoryStage <> memoryStage.io.executeUnit
 
-
-  memoryUnit.io.memoryStage <> memoryStage.io.memoryUnit
+  memoryUnit.io.memoryStage    <> memoryStage.io.memoryUnit
   memoryUnit.io.writeBackStage <> writeBackStage.io.memoryUnit
 
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
-  writeBackUnit.io.regfile <> regfile.io.write
-  writeBackUnit.io.debug <> io.debug
-
-
+  writeBackUnit.io.regfile        <> regfile.io.write
+  writeBackUnit.io.debug          <> io.debug
 
 }
