@@ -23,8 +23,8 @@ class WriteBackStage extends Module {
   })
 
   val data = RegInit(0.U.asTypeOf(new MemWbData()))
-  when(io.controlSignal.memoryUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new MemWbData()) // Reset data if flush signal is high
+  when(io.controlSignal.memoryUnitSignal.allow_to_go === false.B) {
+    data := data
   }.otherwise {
     data := io.memoryUnit.data // Update data if units are allowed to proceed
   }

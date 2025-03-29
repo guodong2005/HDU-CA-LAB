@@ -25,17 +25,13 @@ class MemoryStage extends Module {
   })
 
   val data = RegInit(0.U.asTypeOf(new ExeMemData()))
-  when(
-    io.controlSignal.executeUnitSignal.allow_to_go === false.B &&  // Execute unit stall
-      io.controlSignal.memoryUnitSignal.allow_to_go === false.B) { // Memory unit stall
+  when(io.controlSignal.executeUnitSignal.allow_to_go === false.B) { // Memory unit stall
     data := data // Retain the previous data
   }.otherwise {
     data := io.executeUnit.data // Update data if units are allowed to proceed
   }
   // flush logic:
-  val stalledge = io.controlSignal.executeUnitSignal.allow_to_go === false.B &&
-    io.controlSignal.memoryUnitSignal.allow_to_go === true.B
-  when(io.controlSignal.executeUnitSignal.do_flush === true.B || stalledge) {
+  when(io.controlSignal.executeUnitSignal.do_flush === true.B) {
     data := 0.U.asTypeOf(new ExeMemData()) // Reset data if flush signal is high
   }
   // Output the data to the next stage

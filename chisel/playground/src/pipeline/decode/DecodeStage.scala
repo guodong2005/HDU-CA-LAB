@@ -25,18 +25,13 @@ class DecodeStage extends Module {
   })
 
   val data = RegInit(0.U.asTypeOf(new IfIdData()))
-  when(
-    io.controlSignal.fetchUnitSignal.allow_to_go === false.B &&
-      io.controlSignal.decodeUnitSignal.allow_to_go === false.B) {
-    // conclusion : fetchUnitstall -> decodeUnitstall
+  when(io.controlSignal.fetchUnitSignal.allow_to_go === false.B) {
     data := data // Retain the previous data
   }.otherwise {
     data := io.fetchUnit.data // Update data if units are allowed to proceed
   }
   // flush logic:
-  val stalledge = io.controlSignal.fetchUnitSignal.allow_to_go === false.B &&
-    io.controlSignal.decodeUnitSignal.allow_to_go === true.B
-  when(io.controlSignal.fetchUnitSignal.do_flush === true.B || stalledge) {
+  when(io.controlSignal.fetchUnitSignal.do_flush === true.B) {
     data := 0.U.asTypeOf(new IfIdData()) // Reset data if flush signal is high
   }
 
