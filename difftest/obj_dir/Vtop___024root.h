@@ -32,8 +32,6 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         CData/*1:0*/ top__DOT__core__DOT__core__DOT___decodeUnit_io_executeStage_data_info_fusel;
         CData/*1:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
-        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__unnamedblk1__DOT___GEN;
-        CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__unnamedblk1__DOT___GEN_0;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_raddr;
         CData/*4:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src2_raddr;
         CData/*0:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT___decoder_io_out_info_src1_ren;
@@ -80,10 +78,10 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         VL_OUT64(data_sram_wdata,63,0);
         VL_IN64(data_sram_rdata,63,0);
         VL_OUT64(debug_pc,63,0);
-    };
-    struct {
         VL_OUT64(debug_rf_wdata,63,0);
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc;
+    };
+    struct {
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__decodeUnit__DOT__imm;

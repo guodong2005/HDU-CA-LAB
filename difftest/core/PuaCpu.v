@@ -120,7 +120,6 @@ module DecodeStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
   input  [63:0] io_fetchUnit_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
   input         io_controlSignal_fetchUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
                 io_controlSignal_fetchUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
-                io_controlSignal_decodeUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
   output [63:0] io_decodeUnit_data_inst,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
   output        io_decodeUnit_data_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
   output [63:0] io_decodeUnit_data_pc	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
@@ -136,23 +135,19 @@ module DecodeStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
       data_pc <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:19:7
-      automatic logic _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:29:62
-      automatic logic _GEN_0 =
-        io_controlSignal_fetchUnitSignal_do_flush
-        | ~io_controlSignal_fetchUnitSignal_allow_to_go
-        & io_controlSignal_decodeUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:29:50, :37:76, :39:61
-      _GEN =
-        ~io_controlSignal_fetchUnitSignal_allow_to_go
-        & ~io_controlSignal_decodeUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:29:{50,62}, :30:53
-      if (_GEN_0) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:39:61
+      if (io_controlSignal_fetchUnitSignal_do_flush) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
         data_inst <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
         data_pc <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
       end
-      else if (~_GEN) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:29:62
+      else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
         data_inst <= io_fetchUnit_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21
         data_pc <= io_fetchUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21
       end
-      data_valid <= ~_GEN_0 & (_GEN ? data_valid : io_fetchUnit_data_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21, :29:62, :30:66, :32:10, :34:10, :39:{61,75}, :40:10
+      data_valid <=
+        ~io_controlSignal_fetchUnitSignal_do_flush
+        & (io_controlSignal_fetchUnitSignal_allow_to_go
+             ? io_fetchUnit_data_valid
+             : data_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21, :28:66, :29:10, :31:10, :34:62, :35:10
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:19:7
@@ -1732,21 +1727,18 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:10
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
   );
   DecodeStage decodeStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:19:30
-    .clock                                         (clock),
-    .reset                                         (reset),
-    .io_fetchUnit_data_inst                        (_fetchUnit_io_decodeStage_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
-    .io_fetchUnit_data_valid                       (_fetchUnit_io_decodeStage_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
-    .io_fetchUnit_data_pc                          (_fetchUnit_io_decodeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
+    .clock                                        (clock),
+    .reset                                        (reset),
+    .io_fetchUnit_data_inst                       (_fetchUnit_io_decodeStage_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
+    .io_fetchUnit_data_valid                      (_fetchUnit_io_decodeStage_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
+    .io_fetchUnit_data_pc                         (_fetchUnit_io_decodeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:18:30
     .io_controlSignal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_controlSignal_fetchUnitSignal_do_flush
       (_controlUnit_io_signals_fetchUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_controlSignal_decodeUnitSignal_allow_to_go
-      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_decodeUnit_data_inst                       (_decodeStage_io_decodeUnit_data_inst),
-    .io_decodeUnit_data_valid
-      (_decodeStage_io_decodeUnit_data_valid),
-    .io_decodeUnit_data_pc                         (_decodeStage_io_decodeUnit_data_pc)
+    .io_decodeUnit_data_inst                      (_decodeStage_io_decodeUnit_data_inst),
+    .io_decodeUnit_data_valid                     (_decodeStage_io_decodeUnit_data_valid),
+    .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
   DecodeUnit decodeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:20:30
     .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:19:30
