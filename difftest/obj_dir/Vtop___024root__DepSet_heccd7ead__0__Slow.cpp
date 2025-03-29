@@ -1465,8 +1465,8 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                     ? vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT____VdfgRegularize_h773b8ade_0_3
                                                     : 0ULL)))))))))
             : ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc) 
-               + ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT___pipeline_stall_T) 
-                  << 2U)));
+               + (4U & ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT___pipeline_stall_T)) 
+                        << 2U))));
     vlSelfRef.inst_sram_addr = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT___io_instSram_addr_T_5;
 }
 

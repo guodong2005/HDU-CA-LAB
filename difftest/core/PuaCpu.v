@@ -69,7 +69,7 @@ module FetchUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   wire [31:0] _io_instSram_addr_T_5 =
     io_branch
       ? io_target[31:0]
-      : pc[31:0] + {29'h0, ~io_signal_fetchUnitSignal_allow_to_go, 2'h0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:7, :10:14, :31:21, :33:{26,49,54}
+      : pc[31:0] + {29'h0, io_signal_fetchUnitSignal_allow_to_go, 2'h0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:7, :10:14, :31:21, :33:{26,49}
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:7
       state <= 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:7, :19:47
