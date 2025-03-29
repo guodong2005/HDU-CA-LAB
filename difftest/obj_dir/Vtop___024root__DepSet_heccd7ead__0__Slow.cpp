@@ -1567,7 +1567,6 @@ VL_ATTR_COLD void Vtop___024root___ctor_var_reset(Vtop___024root* vlSelf) {
     VL_RAND_RESET_W(2048, vlSelf->top__DOT__core__DOT__core__DOT__regfile__DOT___GEN);
     vlSelf->top__DOT__core__DOT__core__DOT__regfile__DOT__unnamedblk1__DOT___GEN_0 = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc = VL_RAND_RESET_Q(64);
-    vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_instr = VL_RAND_RESET_Q(64);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid = VL_RAND_RESET_I(1);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op = VL_RAND_RESET_I(5);
     vlSelf->top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_wen = VL_RAND_RESET_I(1);
