@@ -31,5 +31,5 @@ class WriteBackUnit extends Module {
   io.debug.rf_wdata := validData.rd_info.wdata
   io.debug.rf_wnum  := validData.info.reg_waddr
   // io.debug.commit := validData.info.reg_wen&validData.info.valid // ?
-  io.debug.commit := validData.info.valid // ?
+  io.debug.commit := true.B
 }

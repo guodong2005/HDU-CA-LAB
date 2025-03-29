@@ -37,6 +37,7 @@ class ExecuteStage extends Module {
   // flush logic:
   val stalledge = io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
     io.controlSignal.executeUnitSignal.allow_to_go === true.B
+
   when(io.controlSignal.decodeUnitSignal.do_flush === true.B || stalledge) {
     data := 0.U.asTypeOf(new IdExeData()) // Reset data if flush signal is high
   }
