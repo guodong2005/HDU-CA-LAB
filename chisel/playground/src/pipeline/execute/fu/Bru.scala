@@ -27,7 +27,6 @@ class Bru extends Module {
   io.branch := false.B
 
   // Debugging with printf
-  printf(p"instr: ${Hexadecimal(info.instr)}, imm: ${Hexadecimal(imm)}\n")
 
   // Instruction handling
   switch(info.op) {
