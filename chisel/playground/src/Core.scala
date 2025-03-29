@@ -25,6 +25,7 @@ class Core extends Module {
   val memoryUnit     = Module(new MemoryUnit())
   val writeBackStage = Module(new WriteBackStage())
   val writeBackUnit  = Module(new WriteBackUnit())
+  val controlUnit    = Module(new ControlUnit())
 
   // 取指单元
   fetchUnit.io.instSram    <> io.instSram
@@ -56,4 +57,8 @@ class Core extends Module {
   writeBackUnit.io.regfile        <> regfile.io.write
   writeBackUnit.io.debug          <> io.debug
 
+  controlUnit.io.decodeInfo    := decodeUnit.io.executeStage.data.info
+  controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info
+  controlUnit.io.memoryInfo    := memoryUnit.io.writeBackStage.data.info
+  controlUnit.io.writeBackInfo := writeBackUnit.io.info
 }
