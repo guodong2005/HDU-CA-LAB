@@ -18,13 +18,28 @@ class DecodeUnitExecuteUnit extends Bundle {
 
 class ExecuteStage extends Module {
   val io = IO(new Bundle {
-    val decodeUnit  = Input(new DecodeUnitExecuteUnit())
-    val executeUnit = Output(new DecodeUnitExecuteUnit())
+    val decodeUnit    = Input(new DecodeUnitExecuteUnit())
+    val controlSignal = Input(new Signals())
+    val executeUnit   = Output(new DecodeUnitExecuteUnit())
   })
 
+  // Register to hold data
   val data = RegInit(0.U.asTypeOf(new IdExeData()))
-  data := io.decodeUnit.data;
 
-  io.executeUnit.data := data;
-  // imitate
+  // Stall logic: Keep the previous data if both units' allow_to_go signals are 0
+  when(
+    io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
+      io.controlSignal.executeUnitSignal.allow_to_go === false.B) {
+    data := data // Retain the previous data
+  }.otherwise {
+    data := io.decodeUnit.data // Update data if units are allowed to proceed
+  }
+  // flush logic:
+  val stalledge = io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
+    io.controlSignal.executeUnitSignal.allow_to_go === true.B
+  when(io.controlSignal.decodeUnitSignal.do_flush === true.B || stalledge) {
+    data := 0.U.asTypeOf(new IdExeData()) // Reset data if flush signal is high
+  }
+  // Output the data to the next stage
+  io.executeUnit.data := data
 }

@@ -31,8 +31,9 @@ class Core extends Module {
   fetchUnit.io.instSram    <> io.instSram
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
-  fetchUnit.io.branch := executeUnit.io.branch
-  fetchUnit.io.target := executeUnit.io.target
+  controlUnit.io.branch := executeUnit.io.branch
+  fetchUnit.io.branch   := executeUnit.io.branch
+  fetchUnit.io.target   := executeUnit.io.target
   //
   decodeUnit.io.decodeStage  <> decodeStage.io.decodeUnit
   decodeUnit.io.regfile      <> regfile.io.read
@@ -61,4 +62,10 @@ class Core extends Module {
   controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info
   controlUnit.io.memoryInfo    := memoryUnit.io.writeBackStage.data.info
   controlUnit.io.writeBackInfo := writeBackUnit.io.info
+
+  decodeStage.io.controlSignal    := controlUnit.io.signals
+  executeStage.io.controlSignal   := controlUnit.io.signals
+  memoryStage.io.controlSignal    := controlUnit.io.signals
+  writeBackStage.io.controlSignal := controlUnit.io.signals
+  fetchUnit.io.signal             := controlUnit.io.signals
 }

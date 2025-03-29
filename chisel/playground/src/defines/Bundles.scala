@@ -35,6 +35,23 @@ class Info extends Bundle {
   val src2_ren   = Bool()
   val fusel      = UInt(2.W)
 }
+object Info {
+  def default: Info = {
+    val info = Wire(new Info())
+    info.instr      := 0x00000013.U
+    info.valid      := false.B
+    info.src1_raddr := 0.U
+    info.src2_raddr := 0.U
+    info.op         := 0.U // Assuming a default method exists for `FuOpType`
+    info.reg_wen    := false.B
+    info.reg_waddr  := 0.U
+    info.imm        := 0.U
+    info.src1_ren   := false.B
+    info.src2_ren   := false.B
+    info.fusel      := 0.U
+    info
+  }
+}
 
 class SrcReadSignal extends Bundle {
   val ren   = Bool()
@@ -51,10 +68,10 @@ class InstSram extends Bundle {
 
 class DataSram extends Bundle {
   val en    = Output(Bool())
-  val addr  = Output(UInt(SRAM_ADDR_WID.W)) // address to write
+  val addr  = Output(UInt(SRAM_ADDR_WID.W))      // address to write
   val wdata = Output(UInt(DATA_SRAM_DATA_WID.W)) // write data
-  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W)) // write en
-  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W)) // read data
+  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W))  // write en
+  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W))  // read data
 }
 
 class DEBUG extends Bundle {
