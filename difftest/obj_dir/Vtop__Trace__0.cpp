@@ -264,7 +264,7 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                               | ((3U 
                                                   == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel))
                                                   ? 
-                                                 ((0xfU 
+                                                 ((8U 
                                                    == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                                    ? 
                                                   (4ULL 
@@ -278,7 +278,7 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                                     : 0ULL))
                                                   : 0ULL)))),64);
         bufp->chgCData(oldp+54,((7U & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data))),3);
-        bufp->chgQData(oldp+55,(((0xfU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+        bufp->chgQData(oldp+55,(((8U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                   ? vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT____VdfgRegularize_h773b8ade_0_3
                                   : ((0xaU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                       ? (0xfffffffffffffffeULL 
@@ -306,7 +306,7 @@ void Vtop___024root__trace_chg_0_sub_0(Vtop___024root* vlSelf, VerilatedFst::Buf
                                                      : 0ULL))))))))),64);
         bufp->chgQData(oldp+57,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT___alu_io_result),64);
         bufp->chgIData(oldp+59,(vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__alu__DOT__logicalShiftResult),32);
-        bufp->chgQData(oldp+60,(((0xfU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+        bufp->chgQData(oldp+60,(((8U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                   ? (4ULL + vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc)
                                   : ((0xaU == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
                                       ? (4ULL + vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc)

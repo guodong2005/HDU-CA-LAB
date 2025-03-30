@@ -413,7 +413,7 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                                                                                                       : _GEN_36
                                                                                                           ? 5'hA
                                                                                                           : _GEN_37
-                                                                                                              ? 5'hF
+                                                                                                              ? 5'h8
                                                                                                               : _GEN_38
                                                                                                                   ? 5'hA
                                                                                                                   : _GEN_39
@@ -1225,7 +1225,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [63:0] io_target	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
 );
 
-  wire        _GEN = io_info_op == 5'hF;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN = io_info_op == 5'h8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
   wire [63:0] _GEN_0 = {{52{io_info_imm[11]}}, io_info_imm};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:38:31
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
