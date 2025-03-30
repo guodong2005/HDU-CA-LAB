@@ -50,11 +50,15 @@ class Decoder extends Module with HasInstrType {
     instrType,
     Seq(
       InstrR -> Mux(fuType === FuType.alu, Cat(inst(3), inst(30), inst(14, 12)), Cat(inst(3), funct3)),
-      InstrI -> Mux(fuType === FuType.bru, BRUOpType.jalr,Mux(fuType === FuType.lsu,Cat(inst(5),funct3),Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)))),
-      //  these part's readability is very bad. 
-      InstrB -> Cat(0.U,funct3),
-      InstrJ -> Cat(1.U,funct3),
-      InstrS -> Cat(inst(5),funct3),
+      InstrI -> Mux(
+        fuType === FuType.bru,
+        BRUOpType.jalr,
+        Mux(fuType === FuType.lsu, Cat(inst(5), funct3), Cat(inst(3), Mux((fuOpType === ALUOpType.sra) || (fuOpType === ALUOpType.sraw), 1.U, 0.U), inst(14, 12)))
+      ),
+      //  these part's readability is very bad.
+      InstrB -> Cat(0.U, funct3),
+      InstrJ -> Mux(fuOpType === BRUOpType.jal, "b1000".U, Cat(1.U, funct3)),
+      InstrS -> Cat(inst(5), funct3),
       InstrU -> ALUOpType.add
     )
   )
@@ -65,14 +69,14 @@ class Decoder extends Module with HasInstrType {
     setInfo(inst, rd, rs1, 0.U, op, true.B, true.B, false.B, true.B)
   }.elsewhen(instrType === InstrU) {
     setInfo(inst, rd, 0.U, 0.U, ALUOpType.add, true.B, false.B, false.B, true.B)
-  }.elsewhen(instrType === InstrS){
+  }.elsewhen(instrType === InstrS) {
     //                     src2     writeback src1en src2en   valid
     setInfo(inst, rd, rs1, rs2, op, false.B, true.B, true.B, true.B)
-  }.elsewhen(instrType === InstrB){
+  }.elsewhen(instrType === InstrB) {
     //                     src2     writeback src1en src2en   valid
     setInfo(inst, 0.U, rs1, rs2, op, false.B, true.B, true.B, true.B)
 
-  }.elsewhen(instrType === InstrJ){
+  }.elsewhen(instrType === InstrJ) {
     //                     src2     writeback src1en src2en   valid
     setInfo(inst, rd, 0.U, 0.U, op, true.B, false.B, false.B, true.B)
   }.otherwise {
