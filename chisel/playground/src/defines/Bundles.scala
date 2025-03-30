@@ -42,11 +42,11 @@ object Info {
     info.valid      := true.B
     info.src1_raddr := 0.U
     info.src2_raddr := 0.U
-    info.op         := 0.U // Assuming a default method exists for `FuOpType`
-    info.reg_wen    := false.B
+    info.op         := ALUOpType.add
+    info.reg_wen    := true.B
     info.reg_waddr  := 0.U
     info.imm        := 0.U
-    info.src1_ren   := false.B
+    info.src1_ren   := true.B
     info.src2_ren   := false.B
     info.fusel      := 0.U
     info
