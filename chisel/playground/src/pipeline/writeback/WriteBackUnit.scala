@@ -27,11 +27,9 @@ class WriteBackUnit extends Module {
   io.info.reg_waddr := io.regfile.waddr
   io.info.reg_wen   := io.regfile.wdata
   // Debugging output
-  io.debug.pc       := validData.pc // Track the program counter for debugging
+  io.debug.pc       := validData.pc         // Track the program counter for debugging
   io.debug.rf_wdata := validData.rd_info.wdata
   io.debug.rf_wnum  := validData.info.reg_waddr
-  // io.debug.commit := validData.info.reg_wen&validData.info.valid // ?
-  io.debug.commit := validData.info.valid // ?
-  // printf(p"PC: 0x${Hexadecimal(io.debug.pc)}, commit: 0x${Hexadecimal(io.debug.commit)}, Hexadecimal rf_wdata: 0x${Hexadecimal(io.debug.rf_wdata)}, Hexadecimal rf_wnum: 0x${Hexadecimal(io.debug.rf_wnum)}\n");
-  // io.debug.commit := validData.d // ?
+  io.debug.commit   := validData.info.valid // ?
+  printf(p"PC: 0x${Hexadecimal(io.debug.pc)}, commit: 0x${Hexadecimal(io.debug.commit)}, Hexadecimal rf_wdata: 0x${Hexadecimal(io.debug.rf_wdata)}, Hexadecimal rf_wnum: 0x${Hexadecimal(io.debug.rf_wnum)}\n");
 }
