@@ -169,7 +169,7 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     __Vdly__top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
     if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
-        VL_FWRITEF_NX(0x80000002U,"bru %x\nits op: %x\n",0,
+        VL_FWRITEF_NX(0x80000002U,"bru %x\nits op: %b\n",0,
                       64,vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_instr,
                       5,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op));
     }

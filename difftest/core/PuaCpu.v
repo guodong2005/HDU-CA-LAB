@@ -1231,7 +1231,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
       if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:9
         $fwrite(32'h80000002, "bru %x\n", io_info_instr);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
-        $fwrite(32'h80000002, "its op: %x\n", io_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:9
+        $fwrite(32'h80000002, "its op: %b\n", io_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:9
       end
       if ((`PRINTF_COND_) & _GEN & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :34:19, :40:13
         $fwrite(32'h80000002, "jal triggered\n");	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :40:13
