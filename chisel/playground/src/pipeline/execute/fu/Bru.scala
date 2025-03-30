@@ -34,14 +34,15 @@ class Bru extends Module {
     is(BRUOpType.jal) {
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt // Signed addition for target calculation
-      io.result := pc + 4.U                // Return address (PC + 4)
+      io.result := pc + 4.U                 // Return address (PC + 4)
+      printf("jal triggered");
     }
 
     // JALR (Jump and Link Register)
     is(BRUOpType.jalr) {
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := ((io.src_info.src1_data.asSInt + imm) & (~1.S)).asUInt // Signed addition and alignment
-      io.result := pc + 4.U                                             // Return address (PC + 4)
+      io.result := pc + 4.U                                               // Return address (PC + 4)
     }
 
     // BEQ (Branch if Equal)
