@@ -36,7 +36,7 @@ class Bru extends Module {
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt // Signed addition for target calculation
       io.result := pc + 4.U                 // Return address (PC + 4)
-      printf("jal triggered");
+      printf("jal triggered\n");
     }
 
     // JALR (Jump and Link Register)
