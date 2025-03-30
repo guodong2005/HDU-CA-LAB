@@ -653,8 +653,8 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                     : vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__imm);
         }
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid 
-            = ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN)) 
-               & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
+            = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN) 
+               | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_wen 
             = ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN)) 
                & ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
