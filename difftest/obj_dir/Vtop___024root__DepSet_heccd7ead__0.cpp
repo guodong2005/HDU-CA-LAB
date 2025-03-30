@@ -168,17 +168,21 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
     __Vdly__top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
+    if (VL_UNLIKELY(((1U & (~ (IData)(vlSelfRef.reset)))))) {
+        VL_FWRITEF_NX(0x80000002U,"PC: 0x%x, commit: 0x%x, Hexadecimal rf_wdata: 0x%x, Hexadecimal rf_wnum: 0x%x\n",0,
+                      64,vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc,
+                      1,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid),
+                      64,vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata,
+                      5,(IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr));
+    }
     __Vdly__top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid 
-        = ((1U & (~ (IData)(vlSelfRef.reset))) && (
-                                                   (~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT___controlUnit_io_signals_fetchUnitSignal_do_flush)) 
-                                                   & ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT__pipeline_stall)
+        = ((1U & (~ (IData)(vlSelfRef.reset))) && ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT___controlUnit_io_signals_fetchUnitSignal_do_flush) 
+                                                   | ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT__pipeline_stall)
                                                        ? (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid)
                                                        : 
                                                       (2U 
                                                        == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state)))));
     if (vlSelfRef.reset) {
-        vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc = 0ULL;
-        vlSelfRef.debug_pc = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3 = 0U;
         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__regs_0 = 0ULL;
         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__regs_1 = 0ULL;
@@ -213,9 +217,6 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__regs_30 = 0ULL;
         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__regs_31 = 0ULL;
     } else {
-        vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc 
-            = vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc;
-        vlSelfRef.debug_pc = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_rd_info_addr3 
             = (7U & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data));
         vlSelfRef.top__DOT__core__DOT__core__DOT__regfile__DOT__unnamedblk1__DOT___GEN_0 
@@ -388,12 +389,14 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_valid 
         = ((1U & (~ (IData)(vlSelfRef.reset))) && (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid));
     if (vlSelfRef.reset) {
-        vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc = 0ULL;
+        vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc = 0ULL;
+        vlSelfRef.debug_pc = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr = 0U;
         vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata = 0ULL;
     } else {
-        vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc 
-            = vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc;
+        vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc 
+            = vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc;
+        vlSelfRef.debug_pc = vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_pc;
         vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_info_reg_waddr 
             = vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr;
         vlSelfRef.top__DOT__core__DOT__core__DOT__writeBackStage__DOT__data_rd_info_wdata 
@@ -485,6 +488,7 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_valid 
         = ((1U & (~ (IData)(vlSelfRef.reset))) && (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid));
     if (vlSelfRef.reset) {
+        vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc = 0ULL;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr = 0U;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel = 0U;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_op = 0U;
@@ -503,6 +507,8 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
         __Vdly__top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state = 0U;
         vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc = 0x7ffffffcULL;
     } else {
+        vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_pc 
+            = vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_reg_waddr 
             = vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_waddr;
         vlSelfRef.top__DOT__core__DOT__core__DOT__memoryStage__DOT__data_info_fusel 
@@ -647,8 +653,8 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                     : vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__imm);
         }
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid 
-            = ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN)) 
-               & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
+            = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN) 
+               | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid));
         vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_reg_wen 
             = ((~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__unnamedblk1__DOT___GEN)) 
                & ((5U == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT__instrType)) 
@@ -657,7 +663,7 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
                         & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT____VdfgRegularize_hb9908eda_0_9)))));
         if (vlSelfRef.top__DOT__core__DOT__core__DOT___controlUnit_io_signals_fetchUnitSignal_do_flush) {
             vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc = 0ULL;
-            vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst = 0ULL;
+            vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst = 0x13ULL;
         } else if ((1U & (~ (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT__pipeline_stall)))) {
             vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_pc 
                 = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__pc;
