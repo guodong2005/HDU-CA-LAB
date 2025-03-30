@@ -34,7 +34,6 @@ class Info extends Bundle {
   val src1_ren   = Bool()
   val src2_ren   = Bool()
   val fusel      = UInt(2.W)
-  val pc         = UInt(XLEN.W) // Add this line for the missing pc field
 }
 object Info {
   def default: Info = {
@@ -47,10 +46,9 @@ object Info {
     info.reg_wen    := false.B
     info.reg_waddr  := 0.U
     info.imm        := 0.U
-    info.src1_ren   := true.B
+    info.src1_ren   := false.B
     info.src2_ren   := false.B
     info.fusel      := 0.U
-    info.pc         := 0.U // Add this line to initialize the pc field
     info
   }
 }
