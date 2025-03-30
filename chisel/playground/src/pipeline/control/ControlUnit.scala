@@ -40,9 +40,6 @@ class ControlUnit extends Module {
       (io.decodeInfo.src2_ren && io.decodeInfo.src2_raddr === io.writeBackInfo.reg_waddr))
 
   val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
-  when(exe_conflict) {
-    printf("execonflict\n")
-  }
 
   // Generate control signals using modular assignment
   io.signals.fetchUnitSignal.allow_to_go   := (!pipeline_stall)
