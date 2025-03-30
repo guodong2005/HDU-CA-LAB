@@ -1225,24 +1225,26 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [63:0] io_target	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
 );
 
-  wire        _GEN = io_info_op == 5'h8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire [63:0] _GEN_0 = {{52{io_info_imm[11]}}, io_info_imm};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:37:31
+  wire        _GEN = io_info_op == 5'h8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire [63:0] _GEN_0 = {{52{io_info_imm[11]}}, io_info_imm};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:38:31
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
-      if ((`PRINTF_COND_) & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
+      if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:9
         $fwrite(32'h80000002, "bru %x\n", io_info_instr);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9
-      if ((`PRINTF_COND_) & _GEN & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:19, :39:13
-        $fwrite(32'h80000002, "jal triggered\n");	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :39:13
+        $fwrite(32'h80000002, "its op: %x\n", io_info_op);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :33:9
+      end
+      if ((`PRINTF_COND_) & _GEN & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :34:19, :40:13
+        $fwrite(32'h80000002, "jal triggered\n");	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:32:9, :40:13
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  wire        _GEN_1 = io_info_op == 5'hA;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_2 = io_info_op == 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_3 = io_info_op == 5'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_4 = io_info_op == 5'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_5 = io_info_op == 5'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_6 = io_info_op == 5'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  wire        _GEN_7 = io_info_op == 5'h7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:33:19
-  assign io_result = _GEN ? io_pc + 64'h4 : _GEN_1 ? io_pc + 64'h4 : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :26:13, :33:19, :38:{17,23}, :46:{17,23}
+  wire        _GEN_1 = io_info_op == 5'hA;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_2 = io_info_op == 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_3 = io_info_op == 5'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_4 = io_info_op == 5'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_5 = io_info_op == 5'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_6 = io_info_op == 5'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  wire        _GEN_7 = io_info_op == 5'h7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:34:19
+  assign io_result = _GEN ? io_pc + 64'h4 : _GEN_1 ? io_pc + 64'h4 : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :26:13, :34:19, :39:{17,23}, :47:{17,23}
   assign io_branch =
     _GEN
       ? io_info_valid & (&io_info_fusel)
@@ -1264,7 +1266,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                               ? io_info_valid & (&io_info_fusel)
                                 & io_src_info_src1_data < io_src_info_src2_data
                               : _GEN_7 & io_info_valid & (&io_info_fusel)
-                                & io_src_info_src1_data >= io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :27:13, :33:19, :36:{17,31,46}, :44:{17,31,46}, :51:{17,46,62,88}, :58:{17,46,62,88}, :65:{17,46,62,95}, :72:{17,46,62,95}, :79:{17,46,62,88}, :86:{17,46,88}
+                                & io_src_info_src1_data >= io_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :27:13, :34:19, :37:{17,31,46}, :45:{17,31,46}, :52:{17,46,62,88}, :59:{17,46,62,88}, :66:{17,46,62,95}, :73:{17,46,62,95}, :80:{17,46,62,88}, :87:{17,46,88}
   assign io_target =
     _GEN
       ? io_pc + _GEN_0
@@ -1278,7 +1280,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                       ? io_pc + _GEN_0
                       : _GEN_5
                           ? io_pc + _GEN_0
-                          : _GEN_6 ? io_pc + _GEN_0 : _GEN_7 ? io_pc + _GEN_0 : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :26:13, :33:19, :37:{17,31}, :45:{17,51,58}, :52:{17,31}, :59:{17,31}, :66:{17,31}, :73:{17,31}, :80:{17,31}, :87:{17,31}
+                          : _GEN_6 ? io_pc + _GEN_0 : _GEN_7 ? io_pc + _GEN_0 : 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :26:13, :34:19, :38:{17,31}, :46:{17,51,58}, :53:{17,31}, :60:{17,31}, :67:{17,31}, :74:{17,31}, :81:{17,31}, :88:{17,31}
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
