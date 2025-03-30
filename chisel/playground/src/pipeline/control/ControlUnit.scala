@@ -48,7 +48,7 @@ class ControlUnit extends Module {
   io.signals.memoryUnitSignal.allow_to_go  := true.B
 
   io.signals.fetchUnitSignal.do_flush := io.branch
-  when(io.signals.fetchUnitSignal.allow_to_go =/= io.signals.fetchUnitSignal.do_flush) {
+  when(io.signals.fetchUnitSignal.allow_to_go === false.B && io.signals.fetchUnitSignal.do_flush === true.B) {
     printf(p"whaaaaaaaaaaaaaaaat\n");
   }
   io.signals.decodeUnitSignal.do_flush  := io.branch
