@@ -98,7 +98,7 @@ object BRUOpType {
   def bltu = "b0110".U
   def bgeu = "b0111".U
 
-  def jal  = "b1000".U
+  def jal  = "b1111".U
   def jalr = "b1010".U
 
   def isBranch(func: UInt) = !func(3)
