@@ -1650,9 +1650,9 @@ module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
         $fwrite(32'h80000002, "execonflict\n");	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:44:11
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  assign io_signals_fetchUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :42:53, :48:47
+  assign io_signals_fetchUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :42:53, :48:48
   assign io_signals_fetchUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7
-  assign io_signals_decodeUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :42:53, :48:47
+  assign io_signals_decodeUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :42:53, :48:48
   assign io_signals_decodeUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7
 endmodule
 
