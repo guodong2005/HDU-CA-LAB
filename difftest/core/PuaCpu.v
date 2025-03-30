@@ -1644,7 +1644,7 @@ module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
        | io_decodeInfo_src2_ren & io_decodeInfo_src2_raddr == io_writeBackInfo_reg_waddr);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:30:{97,101}, :31:{30,58,88}, :32:{31,59}, :34:{94,98}, :35:{30,58,87}, :36:{31,59}, :38:{102,106}, :39:{30,58,90}, :40:{31,59}, :42:53
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:52:11
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:52:11
-      if ((`PRINTF_COND_) & ~pipeline_stall != io_branch & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:42:53, :45:48, :51:47, :52:11
+      if ((`PRINTF_COND_) & pipeline_stall & io_branch & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:42:53, :52:11
         $fwrite(32'h80000002, "whaaaaaaaaaaaaaaaat\n");	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:52:11
     end // always @(posedge)
   `endif // not def SYNTHESIS
