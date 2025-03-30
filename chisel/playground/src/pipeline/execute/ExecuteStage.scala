@@ -39,8 +39,8 @@ class ExecuteStage extends Module {
     io.controlSignal.executeUnitSignal.allow_to_go === true.B
 
   when(io.controlSignal.decodeUnitSignal.do_flush === true.B || stalledge) {
-    data      := 0.U.asTypeOf(new IdExeData()) // Reset data if flush signal is high
-    data.info := Info.default
+    data := 0.U.asTypeOf(new IdExeData()) // Reset data if flush signal is high
+    // data.info := Info.default
   }
   // Output the data to the next stage
   io.executeUnit.data := data
