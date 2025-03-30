@@ -29,6 +29,7 @@ class Bru extends Module {
   // Debugging with printf
 
   // Instruction handling
+  printf("bru triggered");
   switch(info.op) {
     // JAL (Jump and Link)
     is(BRUOpType.jal) {
