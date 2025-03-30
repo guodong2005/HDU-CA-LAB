@@ -32,7 +32,7 @@ class DecodeStage extends Module {
   }
   // flush logic:
   when(io.controlSignal.fetchUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new IfIdData()) // Reset data if flush signal is high
+    data := Info.default // Reset data if flush signal is high
   }
 
   io.decodeUnit.data := data
