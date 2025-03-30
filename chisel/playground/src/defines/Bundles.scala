@@ -39,7 +39,7 @@ object Info {
   def default: Info = {
     val info = Wire(new Info())
     info.instr      := 0x00000013.U
-    info.valid      := true.B
+    info.valid      := false.B
     info.src1_raddr := 0.U
     info.src2_raddr := 0.U
     info.op         := 0.U // Assuming a default method exists for `FuOpType`
