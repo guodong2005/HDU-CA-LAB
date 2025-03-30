@@ -29,7 +29,7 @@ class Bru extends Module {
   // Debugging with printf
 
   // Instruction handling
-  printf("bru triggered\n");
+  printf(p"bru ${Hexadecimal(io.info.instr)}\n");
   switch(info.op) {
     // JAL (Jump and Link)
     is(BRUOpType.jal) {
