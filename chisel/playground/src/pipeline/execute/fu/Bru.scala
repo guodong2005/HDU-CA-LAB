@@ -29,15 +29,15 @@ class Bru extends Module {
   // Debugging with printf
 
   // Instruction handling
-  printf(p"bru ${Hexadecimal(io.info.instr)}\n");
-  printf(p"its op: ${Binary(io.info.op)}\n");
+  // printf(p"bru ${Hexadecimal(io.info.instr)}\n");
+  // printf(p"its op: ${Binary(io.info.op)}\n");
   switch(info.op) {
     // JAL (Jump and Link)
     is(BRUOpType.jal) {
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt // Signed addition for target calculation
       io.result := pc + 4.U                 // Return address (PC + 4)
-      printf("jal triggered\n");
+      // printf("jal triggered\n");
     }
 
     // JALR (Jump and Link Register)
