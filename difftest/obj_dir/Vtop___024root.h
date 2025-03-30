@@ -119,7 +119,6 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop___024root final : public VerilatedModule
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT__regs_31;
         VlWide<64>/*2047:0*/ top__DOT__core__DOT__core__DOT__regfile__DOT___GEN;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc;
-        QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_instr;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data;
         QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT___mdu_io_result;
