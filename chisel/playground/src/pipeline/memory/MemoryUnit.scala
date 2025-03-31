@@ -18,7 +18,6 @@ class MemoryUnit extends Module {
   val info = io.memoryStage.data.info
   io.writeBackStage.data.pc   := io.memoryStage.data.pc
   io.writeBackStage.data.info := io.memoryStage.data.info
-  //  val memAddr = io.dataSram.addr // I guess this wont work
   val memAddr = io.memoryStage.data.rd_info.addr3.asUInt * 8.U
 
 // Generate LookUpTree to assign memData based on memAddr
@@ -47,13 +46,13 @@ class MemoryUnit extends Module {
   val finalMemData = LookupTree(
     info.op,
     Seq(
-      LSUOpType.lb -> SignedExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
-      LSUOpType.lbu -> ZeroExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
-      LSUOpType.lh -> SignedExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
-      LSUOpType.lhu -> ZeroExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
-      LSUOpType.lw -> SignedExtend(memData(31, 0), XLEN), // Store Word: lowest 32 bits
-      LSUOpType.lwu -> ZeroExtend(memData(31, 0), XLEN), // Store Word: lowest 32 bits
-      LSUOpType.ld -> SignedExtend(memData, XLEN)         // Store Doubleword: full 64 bits
+      LSUOpType.lb  -> SignedExtend(memData(7, 0), XLEN),  // Store Byte: lowest 8 bits
+      LSUOpType.lbu -> ZeroExtend(memData(7, 0), XLEN),    // Store Byte: lowest 8 bits
+      LSUOpType.lh  -> SignedExtend(memData(15, 0), XLEN), // Store Halfword: lowest 16 bits
+      LSUOpType.lhu -> ZeroExtend(memData(15, 0), XLEN),   // Store Halfword: lowest 16 bits
+      LSUOpType.lw  -> SignedExtend(memData(31, 0), XLEN), // Store Word: lowest 32 bits
+      LSUOpType.lwu -> ZeroExtend(memData(31, 0), XLEN),   // Store Word: lowest 32 bits
+      LSUOpType.ld  -> SignedExtend(memData, XLEN)         // Store Doubleword: full 64 bits
     )
   )
   io.writeBackStage.data.rd_info.wdata := Mux(info.fusel === FuType.lsu, finalMemData, io.memoryStage.data.rd_info.wdata)

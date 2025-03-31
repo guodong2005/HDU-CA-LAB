@@ -26,14 +26,14 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  io.dataSram.addr := io.src_info.src1_data// + io.info.imm
+  io.dataSram.addr := io.src_info.src1_data // + io.info.imm
   val count = 1.U << (io.info.op(1, 0))
-  val bits = (1.U << count) - 1.U // Create a dynamic number of bits (all 1s)
+  val bits  = (1.U << count) - 1.U // Create a dynamic number of bits (all 1s)
 
-  val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)),8)
- 
-  io.dataSram.en   := !reset.asBool
-  io.dataSram.wen  := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
+  val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)), 8)
+
+  io.dataSram.en  := !reset.asBool
+  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
   io.dataSram.wdata := LookupTree(
     io.info.op,
     Seq(
@@ -44,5 +44,5 @@ TODO: add unaligned exception
     )
   )
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result
-  io.addr3  := io.dataSram.addr(2, 0)
+  io.addr3  := io.dataSram.addr(32, 30)
 }
