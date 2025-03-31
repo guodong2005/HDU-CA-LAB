@@ -135,7 +135,8 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         top->debug_commit) { // instr retire
       // cemu_rvcore.import_diff_test_info(top->debug_csr_mcycle,
       // top->debug_csr_minstret, top->debug_csr_mip, top->debug_csr_interrupt);
-      DEBUG_LOG("your cpu PC:0x%016llx\n", top->debug_pc);
+      DEBUG_LOG("commit detected, your cpu PC:0x%016llx\n", top->debug_pc);
+      DEBUG_LOG("has_delayslot %d\n", has_delayslot);
       if (has_delayslot) {
         if (!delayslot_cnt) {
           cemu_rvcore.step(0, 0, 0, 0);
@@ -162,6 +163,7 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         printf("mycpu    : PC = 0x%016lx, wb_rf_wnum = 0x%02x, wb_rf_wdata = "
                "0x%016lx\n",
                top->debug_pc, top->debug_rf_wnum, top->debug_rf_wdata);
+
         if (!should_delay) {
           running = false;
           if (dump_pc_history)
