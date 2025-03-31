@@ -35,23 +35,6 @@ class Info extends Bundle {
   val src2_ren   = Bool()
   val fusel      = UInt(2.W)
 }
-object Info {
-  def default: Info = {
-    val info = Wire(new Info())
-    info.instr      := 0x00000013.U
-    info.valid      := true.B
-    info.src1_raddr := 0.U
-    info.src2_raddr := 0.U
-    info.op         := ALUOpType.add
-    info.reg_wen    := true.B
-    info.reg_waddr  := 0.U
-    info.imm        := 0.U
-    info.src1_ren   := true.B
-    info.src2_ren   := false.B
-    info.fusel      := 0.U
-    info
-  }
-}
 
 class SrcReadSignal extends Bundle {
   val ren   = Bool()
