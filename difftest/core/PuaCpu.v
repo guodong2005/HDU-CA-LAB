@@ -1189,7 +1189,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
 
   wire [22:0] _tmpwen_T_1 =
     {7'h0, (16'h1 << (4'h1 << io_info_op[1:0])) - 16'h1} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:30:{19,33}, :31:{20,30}, :33:{33,53}
-  assign io_addr3 = io_src_info_src1_data[31:29];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :47:32
+  assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:53
   assign io_dataSram_addr = io_src_info_src1_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :29:20
   assign io_dataSram_wdata =
     (io_info_op == 5'h8 ? {2{{2{{2{io_src_info_src2_data[7:0]}}}}}} : 64'h0)
