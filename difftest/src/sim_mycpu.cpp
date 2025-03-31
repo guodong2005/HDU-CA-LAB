@@ -28,6 +28,7 @@ long sim_time = 1e8;
 long long total_cycle = 0;
 long long total_instr = 0;
 #define DEBUG_LOG printf
+#define DEBUG_LOG
 
 VerilatedFstC fst;
 
