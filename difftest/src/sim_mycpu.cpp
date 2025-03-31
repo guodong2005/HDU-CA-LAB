@@ -27,8 +27,6 @@ long sim_time = 1e8;
 
 long long total_cycle = 0;
 long long total_instr = 0;
-#define DEBUG_LOG printf
-#define DEBUG_LOG
 
 VerilatedFstC fst;
 
@@ -136,9 +134,6 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         top->debug_commit) { // instr retire
       // cemu_rvcore.import_diff_test_info(top->debug_csr_mcycle,
       // top->debug_csr_minstret, top->debug_csr_mip, top->debug_csr_interrupt);
-      DEBUG_LOG("commit detected, your cpu PC:0x%016llx\n", top->debug_pc);
-      DEBUG_LOG("has_delayslot %d\n", has_delayslot);
-      DEBUG_LOG("delayslot_cnt %d\n", delayslot_cnt);
       if (has_delayslot) {
         if (!delayslot_cnt) {
           cemu_rvcore.step(0, 0, 0, 0);
@@ -147,8 +142,6 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
       } else {
         cemu_rvcore.step(0, 0, 0, 0);
       }
-      DEBUG_LOG("we will run our cpu,now its PC:0x%016llx\n",
-                cemu_rvcore.debug_pc);
       last_commit = ticks;
       if (pc_cnt++ >= print_pc_cycle && print_pc) {
         printf("PC = 0x%016lx\n", cemu_rvcore.debug_pc);
@@ -167,7 +160,6 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         printf("mycpu    : PC = 0x%016lx, wb_rf_wnum = 0x%02x, wb_rf_wdata = "
                "0x%016lx\n",
                top->debug_pc, top->debug_rf_wnum, top->debug_rf_wdata);
-
         if (!should_delay) {
           running = false;
           if (dump_pc_history)
@@ -272,7 +264,6 @@ void make_cpu_trace(Vtop *top, nscscc_sram_ref &mmio_ref,
     }
     if (((top->clock && !dual_issue) || dual_issue) &&
         top->debug_commit) { // instr retire
-
       if (has_delayslot) {
         if (!delayslot_cnt) {
           cemu_rvcore.step(0, 0, 0, 0);
@@ -309,8 +300,7 @@ void make_cpu_trace(Vtop *top, nscscc_sram_ref &mmio_ref,
         if (delayslot_cnt > 0)
           delayslot_cnt--;
         if (cemu_rvcore.debug_is_branch && delayslot_flag) {
-          //   delayslot_cnt = 2;
-          delayslot_cnt = 0;
+          delayslot_cnt = 2;
           delayslot_flag = false;
         }
       }
