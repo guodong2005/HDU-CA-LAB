@@ -308,7 +308,8 @@ void make_cpu_trace(Vtop *top, nscscc_sram_ref &mmio_ref,
         if (delayslot_cnt > 0)
           delayslot_cnt--;
         if (cemu_rvcore.debug_is_branch && delayslot_flag) {
-          delayslot_cnt = 2;
+          //   delayslot_cnt = 2;
+          delayslot_cnt = 0;
           delayslot_flag = false;
         }
       }
