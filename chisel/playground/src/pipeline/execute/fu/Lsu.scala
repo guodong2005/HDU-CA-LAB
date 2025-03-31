@@ -26,8 +26,16 @@ in some case like the datasram.addr[0] = 1 and the command type is double word m
 
 TODO: add unaligned exception
    */
-  io.dataSram.addr := io.src_info.src1_data + io.info.imm
-  io.addr3         := io.src_info.src1_data(2, 0)
+
+  // io.dataSram.addr := io.src_info.src1_data + io.info.imm
+  io.dataSram.addr := LookupTree(
+    LSUOpType.isStore(io.info.op),
+    Seq(
+      true.B  -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt),
+      false.B -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)
+    )
+  )
+  io.addr3 := io.dataSram.addr(2, 0)
   val count = 1.U << (io.info.op(1, 0)) // 要写几个字节
   val bits  = (1.U << count) - 1.U      // 生成一个字节个数的全 1 串
 
