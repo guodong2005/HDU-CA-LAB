@@ -31,5 +31,5 @@ class WriteBackUnit extends Module {
   io.debug.rf_wdata := validData.rd_info.wdata
   io.debug.rf_wnum  := validData.info.reg_waddr
   io.debug.commit   := validData.info.valid // ?
-  printf(p"PC: 0x${Hexadecimal(io.debug.pc)}, commit: 0x${Hexadecimal(io.debug.commit)}, Hexadecimal rf_wdata: 0x${Hexadecimal(io.debug.rf_wdata)}, Hexadecimal rf_wnum: 0x${Hexadecimal(io.debug.rf_wnum)}\n");
+  // printf(p"PC: 0x${Hexadecimal(io.debug.pc)}, commit: 0x${Hexadecimal(io.debug.commit)}, Hexadecimal rf_wdata: 0x${Hexadecimal(io.debug.rf_wdata)}, Hexadecimal rf_wnum: 0x${Hexadecimal(io.debug.rf_wnum)}\n");
 }
