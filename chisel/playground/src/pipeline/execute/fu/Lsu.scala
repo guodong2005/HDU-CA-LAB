@@ -31,8 +31,8 @@ TODO: add unaligned exception
   io.dataSram.addr := LookupTree(
     LSUOpType.isStore(io.info.op),
     Seq(
-      true.B  -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt),
-      false.B -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)
+      true.B  -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0),
+      false.B -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
     )
   )
   io.addr3 := io.dataSram.addr(2, 0)
