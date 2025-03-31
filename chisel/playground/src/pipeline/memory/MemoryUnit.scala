@@ -18,7 +18,7 @@ class MemoryUnit extends Module {
   val info = io.memoryStage.data.info
   io.writeBackStage.data.pc   := io.memoryStage.data.pc
   io.writeBackStage.data.info := io.memoryStage.data.info
-  val memAddr = io.memoryStage.data.rd_info.addr3.asUInt * 8.U
+  val memAddr = Cat(io.memoryStage.data.rd_info.addr3, Fill(3, 0))
 
 // Generate LookUpTree to assign memData based on memAddr
   val memData = LookupTree(
