@@ -148,6 +148,8 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_6 = 0;
     QData/*63:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_8;
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__mdu__DOT____VdfgRegularize_hde4b9769_0_8 = 0;
+    IData/*31:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__lsu__DOT____VdfgRegularize_h932ecef8_0_1;
+    top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__lsu__DOT____VdfgRegularize_h932ecef8_0_1 = 0;
     CData/*0:0*/ top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT____VdfgRegularize_h773b8ade_0_2;
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT____VdfgRegularize_h773b8ade_0_2 = 0;
     CData/*0:0*/ __VdfgRegularize_hd87f99a1_1_2;
@@ -265,8 +267,11 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
                                                              ? 
                                                             VL_SHIFTR_QQI(64,64,32, vlSelfRef.data_sram_rdata, 0x38U)
                                                              : 0ULL))))))));
-    vlSelfRef.data_sram_addr = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
-                                + (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_imm));
+    top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__lsu__DOT____VdfgRegularize_h932ecef8_0_1 
+        = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
+           + (((- (IData)((1U & ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_imm) 
+                                 >> 0xbU)))) << 0xcU) 
+              | (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_imm)));
     top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__alu__DOT___addResult_T_2 
         = ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src1_data) 
            + (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data));
@@ -495,21 +500,10 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
         = ((0x380U & ((IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                >> 0xcU)) << 7U)) | 
            (0x7fU & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst)));
-    vlSelfRef.data_sram_wen = (0xffU & ((((0xffffU 
-                                           & ((IData)(1U) 
-                                              << (0xfU 
-                                                  & ((IData)(1U) 
-                                                     << 
-                                                     (3U 
-                                                      & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op)))))) 
-                                          - (IData)(1U)) 
-                                         << (7U & vlSelfRef.data_sram_addr)) 
-                                        & (- (IData)(
-                                                     ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid) 
-                                                      & ((2U 
-                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel)) 
-                                                         & ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op) 
-                                                            >> 3U)))))));
+    vlSelfRef.data_sram_addr = (((8U & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                  ? top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__lsu__DOT____VdfgRegularize_h932ecef8_0_1
+                                  : 0U) | ((8U & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op))
+                                            ? 0U : top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__lsu__DOT____VdfgRegularize_h932ecef8_0_1));
     vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT____VdfgRegularize_h773b8ade_0_3 
         = (vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_pc 
            + vlSelfRef.top__DOT__core__DOT__core__DOT__executeUnit__DOT__Fu__DOT__bru__DOT___GEN_0);
@@ -580,6 +574,21 @@ VL_ATTR_COLD void Vtop___024root___stl_sequent__TOP__0(Vtop___024root* vlSelf) {
         = ((0x1fc00U & ((IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_inst 
                                  >> 0x19U)) << 0xaU)) 
            | (IData)(top__DOT__core__DOT__core__DOT__decodeUnit__DOT__decoder__DOT___GEN));
+    vlSelfRef.data_sram_wen = (0xffU & ((((0xffffU 
+                                           & ((IData)(1U) 
+                                              << (0xfU 
+                                                  & ((IData)(1U) 
+                                                     << 
+                                                     (3U 
+                                                      & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op)))))) 
+                                          - (IData)(1U)) 
+                                         << (7U & vlSelfRef.data_sram_addr)) 
+                                        & (- (IData)(
+                                                     ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_valid) 
+                                                      & ((2U 
+                                                          == (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_fusel)) 
+                                                         & ((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_info_op) 
+                                                            >> 3U)))))));
     __Vtemp_25[0U] = (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data);
     __Vtemp_25[1U] = (IData)((vlSelfRef.top__DOT__core__DOT__core__DOT__executeStage__DOT__data_src_info_src2_data 
                               >> 0x20U));
