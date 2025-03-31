@@ -136,7 +136,6 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
       // cemu_rvcore.import_diff_test_info(top->debug_csr_mcycle,
       // top->debug_csr_minstret, top->debug_csr_mip, top->debug_csr_interrupt);
       DEBUG_LOG("commit detected, your cpu PC:0x%016llx\n", top->debug_pc);
-      DEBUG_LOG("our cpu PC:0x%016llx\n", cemu_rvcore.debug_pc);
       DEBUG_LOG("has_delayslot %d\n", has_delayslot);
       if (has_delayslot) {
         if (!delayslot_cnt) {
@@ -146,6 +145,8 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
       } else {
         cemu_rvcore.step(0, 0, 0, 0);
       }
+      DEBUG_LOG("we will run our cpu,now its PC:0x%016llx\n",
+                cemu_rvcore.debug_pc);
       last_commit = ticks;
       if (pc_cnt++ >= print_pc_cycle && print_pc) {
         printf("PC = 0x%016lx\n", cemu_rvcore.debug_pc);
