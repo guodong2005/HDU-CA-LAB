@@ -137,6 +137,7 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
       // top->debug_csr_minstret, top->debug_csr_mip, top->debug_csr_interrupt);
       DEBUG_LOG("commit detected, your cpu PC:0x%016llx\n", top->debug_pc);
       DEBUG_LOG("has_delayslot %d\n", has_delayslot);
+      DEBUG_LOG("delayslot_cnt %d\n", delayslot_cnt);
       if (has_delayslot) {
         if (!delayslot_cnt) {
           cemu_rvcore.step(0, 0, 0, 0);
