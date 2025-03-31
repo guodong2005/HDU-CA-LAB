@@ -168,11 +168,6 @@ VL_INLINE_OPT void Vtop___024root___nba_sequent__TOP__0(Vtop___024root* vlSelf) 
     // Body
     __Vdly__top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__fetchUnit__DOT__state;
-    if (VL_UNLIKELY(((1U & (((IData)(vlSelfRef.top__DOT__core__DOT__core__DOT__controlUnit__DOT__pipeline_stall) 
-                             & (IData)(vlSelfRef.top__DOT__core__DOT__core__DOT___controlUnit_io_signals_fetchUnitSignal_do_flush)) 
-                            & (~ (IData)(vlSelfRef.reset))))))) {
-        VL_FWRITEF_NX(0x80000002U,"whaaaaaaaaaaaaaaaat\n",0);
-    }
     __Vdly__top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid 
         = vlSelfRef.top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid;
     __Vdly__top__DOT__core__DOT__core__DOT__decodeStage__DOT__data_valid 
