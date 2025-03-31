@@ -1178,6 +1178,7 @@ endmodule
 module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7
   input         io_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
   input  [4:0]  io_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
+  input  [11:0] io_info_imm,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
   input  [1:0]  io_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
   input  [63:0] io_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
                 io_src_info_src2_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
@@ -1187,17 +1188,18 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [7:0]  io_dataSram_wen	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14
 );
 
+  wire [31:0] _io_dataSram_addr_T = io_src_info_src1_data[31:0] + {20'h0, io_info_imm};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:29:45, :34:33
   wire [22:0] _tmpwen_T_1 =
-    {7'h0, (16'h1 << (4'h1 << io_info_op[1:0])) - 16'h1} << io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:30:{19,33}, :31:{20,30}, :33:{33,53}
-  assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :47:37
-  assign io_dataSram_addr = io_src_info_src1_data[31:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :29:20
+    {7'h0, (16'h1 << (4'h1 << io_info_op[1:0])) - 16'h1} << _io_dataSram_addr_T[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:29:45, :31:{19,33}, :32:{20,30}, :34:{33,53}
+  assign io_addr3 = io_src_info_src1_data[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :30:44
+  assign io_dataSram_addr = _io_dataSram_addr_T;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :29:45
   assign io_dataSram_wdata =
     (io_info_op == 5'h8 ? {2{{2{{2{io_src_info_src2_data[7:0]}}}}}} : 64'h0)
     | (io_info_op == 5'h9 ? {2{{2{io_src_info_src2_data[15:0]}}}} : 64'h0)
     | (io_info_op == 5'hA ? {2{io_src_info_src2_data[31:0]}} : 64'h0)
-    | (io_info_op == 5'hB ? io_src_info_src2_data : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :40:{27,52}, :41:{27,52}, :42:{27,52}, src/main/scala/chisel3/util/Mux.scala:30:73
+    | (io_info_op == 5'hB ? io_src_info_src2_data : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :41:{27,52}, :42:{27,52}, :43:{27,52}, src/main/scala/chisel3/util/Mux.scala:30:73
   assign io_dataSram_wen =
-    _tmpwen_T_1[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:89:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :33:33, :36:{29,35,71,87}
+    _tmpwen_T_1[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:89:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :34:33, :37:{29,35,71,87}
 endmodule
 
 module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7
@@ -1296,6 +1298,7 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
   Lsu lsu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:25:19
     .io_info_valid         (io_data_info_valid),
     .io_info_op            (io_data_info_op),
+    .io_info_imm           (io_data_info_imm),
     .io_info_fusel         (io_data_info_fusel),
     .io_src_info_src1_data (io_data_src_info_src1_data),
     .io_src_info_src2_data (io_data_src_info_src2_data),
