@@ -80,6 +80,11 @@ def update_reg_status(reg_status):
         if reg_status[r] > 0:
             reg_status[r] -= 1  # 减少计数，向可用状态靠近
 
+def insert_nop(n=3):
+    for i in range(n):
+        # Explicitly generate a 32-bit no-op, e.g., addi x0,x0,0
+        f.write("\taddi x0,x0,0\n")
+        update_reg_status(reg_status)
 
 def test_reg_inst(insts=inst_reg):
     inst = random.choice(insts)
@@ -117,14 +122,10 @@ def test_lui_inst():
 
 def wait_gpr(index):
     while reg_status["x{}".format(index)] > 0:
-        f.write("\tnop\n")
+        f.write("\taddi x0,x0,0\n")
         update_reg_status(reg_status)
 
 
-def insert_nop(n=3):
-    for i in range(n):
-        f.write("\tnop\n")
-        update_reg_status(reg_status)
 
 
 def test_lb():
@@ -218,7 +219,9 @@ with open("./build/{}.s".format(file_name), "w") as f:
     for i in range(100):
         test_imm_inst()
         test_lui_inst()
-    instructions = [test_lb, test_lh, test_lw, test_ld]
+    # Build a list of instruction generators.
+    instructions = [test_lb, test_lh, test_lw, test_ld, test_store_load_cycle]
+    # instructions = [test_lb, test_lh, test_lw, test_ld ]
     for i in range(10000):
         test_reg_inst()
         random.choice([test_imm_inst, test_lui_inst, test_reg_inst])()
@@ -232,26 +235,15 @@ with open("./build/{}.s".format(file_name), "w") as f:
     f.write("\tli x10, 0\n")
     f.write("\tecall\n")
 
-# 将生成的R型指令测试样例汇编成bin文件
-os.system(
-    "riscv64-unknown-linux-gnu-as -o ./build/{}.o ./build/{}.s".format(
-        file_name, file_name
-    )
-)
-os.system(
-    "riscv64-unknown-linux-gnu-ld -T ../config/linker.ld -o ./build/{} ./build/{}.o".format(
-        file_name, file_name
-    )
-)
-os.system(
-    "riscv64-unknown-linux-gnu-objcopy -O binary ./build/{} ./build/{}.bin".format(
-        file_name, file_name
-    )
-)
-os.system(
-    "riscv64-unknown-linux-gnu-objdump -d -M no-aliases,numeric  ./build/{} > ./build/{}.asm".format(
-        file_name, file_name
-    )
-)
+# Assemble the generated assembly file into an object file, then link, copy to binary,
+# disassemble to an asm file, and finally move the build directory.
+
+
+os.system("riscv64-unknown-elf-as -march=rv64imafd -mno-relax -o ./build/{}.o ./build/{}.s".format(file_name, file_name))
+os.system("riscv64-unknown-elf-ld -T ../config/linker.ld -o ./build/{} ./build/{}.o".format(file_name, file_name))
+os.system("riscv64-unknown-elf-objcopy -O binary ./build/{} ./build/{}.bin".format(file_name, file_name))
+os.system("riscv64-unknown-elf-objdump -d -M no-aliases,numeric ./build/{} > ./build/{}.asm".format(file_name, file_name))
+
+
 os.system("rm -rf ../build")
 os.system("mv ./build ../")
