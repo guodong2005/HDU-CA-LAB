@@ -16,11 +16,10 @@ trait HasInstrType {
 }
 
 object FuType {
-  def num     = 4
+  def num     = 3
   def alu     = 0.U // arithmetic logic unit
   def mdu     = 1.U // multiplication division unit
   def lsu     = 2.U // multiplication division unit
-  def bru     = 3.U // branch unit
   def apply() = UInt(log2Up(num).W)
 }
 
@@ -78,7 +77,7 @@ object LSUOpType {
   def lh  = "b0001".U
   def lhu = "b0101".U
   def lw  = "b0010".U
-  def lwu = "b0110".U
+  def lwu  = "b0110".U
   def ld  = "b0011".U
 
   def sb = "b1000".U
@@ -88,19 +87,4 @@ object LSUOpType {
 
   def isStore(func: UInt): Bool = func(3)
   def isLoad(func:  UInt): Bool = !isStore(func)
-}
-
-object BRUOpType {
-  def beq  = "b0000".U
-  def bne  = "b0001".U
-  def blt  = "b0100".U
-  def bge  = "b0101".U
-  def bltu = "b0110".U
-  def bgeu = "b0111".U
-
-  def jal  = "b1000".U
-  def jalr = "b1010".U
-
-  def isBranch(func: UInt) = !func(3)
-  def isJump(func:   UInt) = !isBranch(func)
 }

@@ -51,10 +51,10 @@ class InstSram extends Bundle {
 
 class DataSram extends Bundle {
   val en    = Output(Bool())
-  val addr  = Output(UInt(SRAM_ADDR_WID.W))      // address to write
+  val addr  = Output(UInt(SRAM_ADDR_WID.W)) // address to write
   val wdata = Output(UInt(DATA_SRAM_DATA_WID.W)) // write data
-  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W))  // write en
-  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W))  // read data
+  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W)) // write en
+  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W)) // read data
 }
 
 class DEBUG extends Bundle {

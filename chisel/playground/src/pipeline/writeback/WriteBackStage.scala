@@ -18,22 +18,11 @@ class MemoryUnitWriteBackUnit extends Bundle {
 class WriteBackStage extends Module {
   val io = IO(new Bundle {
     val memoryUnit    = Input(new MemoryUnitWriteBackUnit())
-    val controlSignal = Input(new Signals())
     val writeBackUnit = Output(new MemoryUnitWriteBackUnit())
   })
 
   val data = RegInit(0.U.asTypeOf(new MemWbData()))
-  when(io.controlSignal.memoryUnitSignal.allow_to_go === false.B) {
-    data := data
-  }.otherwise {
-    data := io.memoryUnit.data // Update data if units are allowed to proceed
-  }
-  // flush logic:
-  when(io.controlSignal.memoryUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new MemWbData()) // Reset data if flush signal is high
-  }
-  // Output the data to the next stage
-
-  data                  := io.memoryUnit.data
+  
+  data := io.memoryUnit.data
   io.writeBackUnit.data := data
 }

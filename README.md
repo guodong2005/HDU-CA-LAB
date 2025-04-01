@@ -117,40 +117,7 @@ source ~/.bashrc
 echo $RVDIFF_HOME # 查看是否成功输出 difftest 文件夹的路径
 
 cd difftest
-git checkout env_test # 切换到 env_test 分支
-make envtest # 测试环境完整性
-```
-
-观察 chisel/build 目录下是否成功生成 GCD.sv 文件，若成功则说明 Chisel 环境配置成功
-
-观察命令行是否存在以下输出：
-
-```bash
-Error!
-reference: PC = 0x0000000080000010, wb_rf_wnum = 0x02, wb_rf_wdata = 0x0000000000000001
-mycpu    : PC = 0x0000000080000010, wb_rf_wnum = 0x02, wb_rf_wdata = 0x0000000000000000
-```
-
-若存在类似输出则说明差分测试环境配置成功
-
-## 🛸 开始实验
-
-```bash
-git checkout main # 切换到 main 分支，实验代码均在 main 分支下
-git pull # 拉取最新代码
-```
-
-建议使用 Vs Code 将 Chisel 目录作为工作目录，可以通过 `code <文件路径>` 命令使用 Vs Code 打开对应文件
-
-所有的 make 指令均在 difftest 目录下执行，如 `make verilog`，`make lab1`，`make trace_lab1` 等
-
-部分实验存在多个测例，此时 trace.fst 文件需手动生成，在 difftest 目录下使用以下命令手动生成 CPU 波形文件
-
-```bash
-make trace TESTBIN_DIR=<测例对应的bin文件的路径>
-
-# 如在 difftest 目录下输入以下命令可生成CPU运行 am-tests/add.bin 测例的波形
-make trace TESTBIN_DIR=./test/bin/am-tests/add.bin
+make verilog # 若在 chisel/build 目录下成功生成 verilog 文件，说明环境安装成功
 ```
 
 ## 📢 注意事项

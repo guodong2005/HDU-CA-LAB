@@ -19,22 +19,14 @@ class ExecuteUnitMemoryUnit extends Bundle {
 
 class MemoryStage extends Module {
   val io = IO(new Bundle {
-    val executeUnit   = Input(new ExecuteUnitMemoryUnit())
-    val controlSignal = Input(new Signals())
-    val memoryUnit    = Output(new ExecuteUnitMemoryUnit())
+    val executeUnit = Input(new ExecuteUnitMemoryUnit())
+    val memoryUnit  = Output(new ExecuteUnitMemoryUnit())
   })
 
   val data = RegInit(0.U.asTypeOf(new ExeMemData()))
-  when(io.controlSignal.executeUnitSignal.allow_to_go === false.B) { // Memory unit stall
-    data := data // Retain the previous data
-  }.otherwise {
-    data := io.executeUnit.data // Update data if units are allowed to proceed
-  }
-  // flush logic:
-  when(io.controlSignal.executeUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new ExeMemData()) // Reset data if flush signal is high
-  }
-  data               := io.executeUnit.data
+  data := io.executeUnit.data
   io.memoryUnit.data := data
+  // where is DataMem ? 
+  // only for R-type
 
 }
