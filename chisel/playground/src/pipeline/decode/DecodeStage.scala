@@ -13,18 +13,29 @@ class IfIdData extends Bundle {
 }
 
 class FetchUnitDecodeUnit extends Bundle {
-  val data = Output(new IfIdData())
+  val data = new IfIdData()
 }
 
 class DecodeStage extends Module {
   val io = IO(new Bundle {
-    val fetchUnit  = Flipped(new FetchUnitDecodeUnit())
-    val decodeUnit = new FetchUnitDecodeUnit()
+    val fetchUnit     = Input(new FetchUnitDecodeUnit())
+    val controlSignal = Input(new Signals())
+    val decodeUnit    = Output(new FetchUnitDecodeUnit())
+
   })
 
   val data = RegInit(0.U.asTypeOf(new IfIdData()))
-
-  data := io.fetchUnit.data
+  when(io.controlSignal.fetchUnitSignal.allow_to_go === false.B) {
+    data := data // Retain the previous data
+  }.otherwise {
+    data := io.fetchUnit.data // Update data if units are allowed to proceed
+  }
+  // flush logic:
+  when(io.controlSignal.fetchUnitSignal.do_flush === true.B) {
+    data := 0.U.asTypeOf(new IfIdData()) // Reset data if flush signal is high
+    // data.inst  := 0x00000013.U
+    // data.valid := true.B
+  }
 
   io.decodeUnit.data := data
 }
