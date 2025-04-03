@@ -236,30 +236,34 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
   wire        _GEN_42 = _GEN == 10'h2E3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_43 = _GEN == 10'h363;	// src/main/scala/chisel3/util/Lookup.scala:31:38
   wire        _GEN_44 = _GEN == 10'h3E3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_45 = io_in_inst[6:0] == 7'h17;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_46 = io_in_inst[6:0] == 7'h37;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_47 = _GEN == 10'h1B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_48 = _GEN_1 == 17'h9B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_49 = _GEN_1 == 17'h29B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_50 = _GEN_1 == 17'h829B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_51 = _GEN_1 == 17'hBB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_52 = _GEN_1 == 17'h2BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_53 = _GEN_1 == 17'h82BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_54 = _GEN_1 == 17'h3B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_55 = _GEN_1 == 17'h803B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_56 = _GEN_1 == 17'h43B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_57 = _GEN_1 == 17'h63B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_58 = _GEN_1 == 17'h6BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_59 = _GEN_1 == 17'h73B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_60 = _GEN_1 == 17'h7BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_61 = _GEN == 10'h183;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_62 = _GEN == 10'h1A3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_63 = _GEN == 10'h303;	// src/main/scala/chisel3/util/Lookup.scala:31:38
-  wire        _GEN_64 = _GEN_56 | _GEN_57 | _GEN_58 | _GEN_59 | _GEN_60;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
-  wire        _GEN_65 = _GEN_45 | _GEN_46;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
-  wire        _GEN_66 = _GEN_39 | _GEN_40 | _GEN_41 | _GEN_42 | _GEN_43 | _GEN_44;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
-  wire        _GEN_67 = _GEN_34 | _GEN_35 | _GEN_36;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
-  wire        _GEN_68 =
+  wire        _GEN_45 = _GEN == 10'hF3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_46 = _GEN == 10'h173;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_47 = _GEN == 10'h1F3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_48 = _GEN == 10'h2F3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_49 = _GEN == 10'h373;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_50 = _GEN == 10'h3F3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_51 = _GEN == 10'h1B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_52 = _GEN_1 == 17'h9B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_53 = _GEN_1 == 17'h29B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_54 = _GEN_1 == 17'h829B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_55 = _GEN_1 == 17'hBB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_56 = _GEN_1 == 17'h2BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_57 = _GEN_1 == 17'h82BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_58 = _GEN_1 == 17'h3B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_59 = _GEN_1 == 17'h803B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_60 = _GEN_1 == 17'h43B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_61 = _GEN_1 == 17'h63B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_62 = _GEN_1 == 17'h6BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_63 = _GEN_1 == 17'h73B;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_64 = _GEN_1 == 17'h7BB;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_65 = _GEN == 10'h183;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_66 = _GEN == 10'h1A3;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_67 = _GEN == 10'h303;	// src/main/scala/chisel3/util/Lookup.scala:31:38
+  wire        _GEN_68 = _GEN_60 | _GEN_61 | _GEN_62 | _GEN_63 | _GEN_64;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+  wire        _GEN_69 = io_in_inst[6:0] == 7'h17 | io_in_inst[6:0] == 7'h37;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+  wire        _GEN_70 = _GEN_39 | _GEN_40 | _GEN_41 | _GEN_42 | _GEN_43 | _GEN_44;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+  wire        _GEN_71 = _GEN_34 | _GEN_35 | _GEN_36;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+  wire        _GEN_72 =
     _GEN_21 | _GEN_22 | _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27 | _GEN_28;	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire [2:0]  instrType =
     _GEN_0
@@ -297,7 +301,7 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                                                                   : _GEN_18
                                                                       ? 3'h4
                                                                       : _GEN_19 | _GEN_20
-                                                                        | _GEN_68
+                                                                        | _GEN_72
                                                                           ? 3'h5
                                                                           : _GEN_29
                                                                             | _GEN_30
@@ -305,49 +309,60 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                                                                             | _GEN_32
                                                                             | _GEN_33
                                                                               ? 3'h4
-                                                                              : _GEN_67
+                                                                              : _GEN_71
                                                                                   ? 3'h2
                                                                                   : _GEN_37
                                                                                       ? 3'h7
                                                                                       : _GEN_38
                                                                                           ? 3'h4
-                                                                                          : _GEN_66
+                                                                                          : _GEN_70
                                                                                               ? 3'h1
-                                                                                              : _GEN_65
+                                                                                              : _GEN_69
                                                                                                   ? 3'h6
-                                                                                                  : _GEN_47
+                                                                                                  : _GEN_45
+                                                                                                    | _GEN_46
+                                                                                                    | _GEN_47
                                                                                                     | _GEN_48
                                                                                                     | _GEN_49
                                                                                                     | _GEN_50
+                                                                                                    | _GEN_51
+                                                                                                    | _GEN_52
+                                                                                                    | _GEN_53
+                                                                                                    | _GEN_54
                                                                                                       ? 3'h4
-                                                                                                      : _GEN_51
-                                                                                                        | _GEN_52
-                                                                                                        | _GEN_53
-                                                                                                        | _GEN_54
-                                                                                                        | _GEN_55
-                                                                                                        | _GEN_64
+                                                                                                      : _GEN_55
+                                                                                                        | _GEN_56
+                                                                                                        | _GEN_57
+                                                                                                        | _GEN_58
+                                                                                                        | _GEN_59
+                                                                                                        | _GEN_68
                                                                                                           ? 3'h5
-                                                                                                          : _GEN_61
+                                                                                                          : _GEN_65
                                                                                                               ? 3'h4
-                                                                                                              : _GEN_62
+                                                                                                              : _GEN_66
                                                                                                                   ? 3'h2
-                                                                                                                  : {_GEN_63,
+                                                                                                                  : {_GEN_67,
                                                                                                                      2'h0};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
-  wire [1:0]  fuType =
+  wire [2:0]  fuType =
     _GEN_0 | _GEN_2 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8 | _GEN_9 | _GEN_10
     | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16 | _GEN_17 | _GEN_18
     | _GEN_19 | _GEN_20
-      ? 2'h0
-      : _GEN_68
-          ? 2'h1
-          : _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_33 | _GEN_67
-              ? 2'h2
-              : _GEN_37 | _GEN_38 | _GEN_66
-                  ? 2'h3
-                  : _GEN_45 | _GEN_46 | _GEN_47 | _GEN_48 | _GEN_49 | _GEN_50 | _GEN_51
-                    | _GEN_52 | _GEN_53 | _GEN_54 | _GEN_55
-                      ? 2'h0
-                      : _GEN_64 ? 2'h1 : {_GEN_61 | _GEN_62 | _GEN_63, 1'h0};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+      ? 3'h0
+      : _GEN_72
+          ? 3'h1
+          : _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_33 | _GEN_71
+              ? 3'h2
+              : _GEN_37 | _GEN_38 | _GEN_70
+                  ? 3'h3
+                  : _GEN_69
+                      ? 3'h0
+                      : _GEN_45 | _GEN_46 | _GEN_47 | _GEN_48 | _GEN_49 | _GEN_50
+                          ? 3'h4
+                          : {1'h0,
+                             _GEN_51 | _GEN_52 | _GEN_53 | _GEN_54 | _GEN_55 | _GEN_56
+                             | _GEN_57 | _GEN_58 | _GEN_59
+                               ? 2'h0
+                               : _GEN_68 ? 2'h1 : {_GEN_65 | _GEN_66 | _GEN_67, 1'h0}};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire [4:0]  fuOpType =
     _GEN_0 | _GEN_2
       ? 5'h0
@@ -417,87 +432,99 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                                                                                                                                       ? 5'h6
                                                                                                                                       : _GEN_44
                                                                                                                                           ? 5'h7
-                                                                                                                                          : _GEN_65
+                                                                                                                                          : _GEN_69
                                                                                                                                               ? 5'h0
-                                                                                                                                              : _GEN_47
-                                                                                                                                                  ? 5'h10
-                                                                                                                                                  : _GEN_48
-                                                                                                                                                      ? 5'h11
-                                                                                                                                                      : _GEN_49
-                                                                                                                                                          ? 5'h15
-                                                                                                                                                          : _GEN_50
-                                                                                                                                                              ? 5'h1D
-                                                                                                                                                              : _GEN_51
-                                                                                                                                                                  ? 5'h11
-                                                                                                                                                                  : _GEN_52
-                                                                                                                                                                      ? 5'h15
-                                                                                                                                                                      : _GEN_53
-                                                                                                                                                                          ? 5'h1D
-                                                                                                                                                                          : _GEN_54
-                                                                                                                                                                              ? 5'h10
-                                                                                                                                                                              : _GEN_55
-                                                                                                                                                                                  ? 5'h18
-                                                                                                                                                                                  : {1'h0,
-                                                                                                                                                                                     _GEN_56
-                                                                                                                                                                                       ? 4'h8
-                                                                                                                                                                                       : _GEN_57
-                                                                                                                                                                                           ? 4'hC
-                                                                                                                                                                                           : _GEN_58
-                                                                                                                                                                                               ? 4'hD
-                                                                                                                                                                                               : _GEN_59
-                                                                                                                                                                                                   ? 4'hE
-                                                                                                                                                                                                   : _GEN_60
-                                                                                                                                                                                                       ? 4'hF
-                                                                                                                                                                                                       : _GEN_61
-                                                                                                                                                                                                           ? 4'h3
-                                                                                                                                                                                                           : _GEN_62
-                                                                                                                                                                                                               ? 4'hB
-                                                                                                                                                                                                               : {1'h0,
-                                                                                                                                                                                                                  _GEN_63
-                                                                                                                                                                                                                    ? 3'h6
-                                                                                                                                                                                                                    : 3'h0}};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+                                                                                                                                              : _GEN_45
+                                                                                                                                                  ? 5'h1
+                                                                                                                                                  : _GEN_46
+                                                                                                                                                      ? 5'h2
+                                                                                                                                                      : _GEN_47
+                                                                                                                                                          ? 5'h3
+                                                                                                                                                          : _GEN_48
+                                                                                                                                                              ? 5'h5
+                                                                                                                                                              : _GEN_49
+                                                                                                                                                                  ? 5'h6
+                                                                                                                                                                  : _GEN_50
+                                                                                                                                                                      ? 5'h7
+                                                                                                                                                                      : _GEN_51
+                                                                                                                                                                          ? 5'h10
+                                                                                                                                                                          : _GEN_52
+                                                                                                                                                                              ? 5'h11
+                                                                                                                                                                              : _GEN_53
+                                                                                                                                                                                  ? 5'h15
+                                                                                                                                                                                  : _GEN_54
+                                                                                                                                                                                      ? 5'h1D
+                                                                                                                                                                                      : _GEN_55
+                                                                                                                                                                                          ? 5'h11
+                                                                                                                                                                                          : _GEN_56
+                                                                                                                                                                                              ? 5'h15
+                                                                                                                                                                                              : _GEN_57
+                                                                                                                                                                                                  ? 5'h1D
+                                                                                                                                                                                                  : _GEN_58
+                                                                                                                                                                                                      ? 5'h10
+                                                                                                                                                                                                      : _GEN_59
+                                                                                                                                                                                                          ? 5'h18
+                                                                                                                                                                                                          : {1'h0,
+                                                                                                                                                                                                             _GEN_60
+                                                                                                                                                                                                               ? 4'h8
+                                                                                                                                                                                                               : _GEN_61
+                                                                                                                                                                                                                   ? 4'hC
+                                                                                                                                                                                                                   : _GEN_62
+                                                                                                                                                                                                                       ? 4'hD
+                                                                                                                                                                                                                       : _GEN_63
+                                                                                                                                                                                                                           ? 4'hE
+                                                                                                                                                                                                                           : _GEN_64
+                                                                                                                                                                                                                               ? 4'hF
+                                                                                                                                                                                                                               : _GEN_65
+                                                                                                                                                                                                                                   ? 4'h3
+                                                                                                                                                                                                                                   : _GEN_66
+                                                                                                                                                                                                                                       ? 4'hB
+                                                                                                                                                                                                                                       : {1'h0,
+                                                                                                                                                                                                                                          _GEN_67
+                                                                                                                                                                                                                                            ? 3'h6
+                                                                                                                                                                                                                                            : 3'h0}};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire [4:0]  _op_T_39 =
     (instrType == 3'h5
-       ? {fuType == 2'h0 ? {io_in_inst[3], io_in_inst[30]} : {1'h0, io_in_inst[3]},
+       ? {fuType == 3'h0 ? {io_in_inst[3], io_in_inst[30]} : {1'h0, io_in_inst[3]},
           io_in_inst[14:12]}
        : 5'h0)
     | (instrType == 3'h4
-         ? ((&fuType)
+         ? (fuType == 3'h3
               ? 5'hA
-              : {fuType == 2'h2
+              : {fuType == 3'h2
                    ? {1'h0, io_in_inst[5]}
                    : {io_in_inst[3], fuOpType == 5'hD | fuOpType == 5'h1D},
                  io_in_inst[14:12]})
          : 5'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:48:28, :52:{20,28,47,52,61}, :53:20, :54:16, :56:{12,20,44,61,85,104,117}, src/main/scala/chisel3/util/Lookup.scala:34:39, src/main/scala/chisel3/util/Mux.scala:30:73
-  wire        _GEN_69 = instrType == 3'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:65:18, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_70 = instrType == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:67:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_71 = instrType == 3'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:70:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_72 = instrType == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:72:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_73 = instrType == 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:75:24, src/main/scala/chisel3/util/Lookup.scala:34:39
-  wire        _GEN_74 = _GEN_72 | _GEN_73;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:38:28, :72:{24,36}, :75:{24,36}, :79:36
-  wire        _GEN_75 = _GEN_69 | _GEN_70;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:38:28, :65:{18,30}, :67:{24,36}, :70:36
-  wire        _GEN_76 = _GEN_70 | _GEN_71;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:39:28, :67:{24,36}, :70:{24,36}, :72:36
-  wire        _GEN_77 = _GEN_72 | _GEN_73;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:42:28, :72:{24,36}, :75:{24,36}
+  wire        _GEN_73 = instrType == 3'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:65:18, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_74 = instrType == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:67:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_75 = instrType == 3'h6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:70:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_76 = instrType == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:72:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_77 = instrType == 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:75:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+  wire        _GEN_78 = _GEN_76 | _GEN_77;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:38:28, :72:{24,36}, :75:{24,36}, :79:36
+  wire        _GEN_79 = _GEN_73 | _GEN_74;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:38:28, :65:{18,30}, :67:{24,36}, :70:36
+  wire        _GEN_80 = _GEN_74 | _GEN_75;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:39:28, :67:{24,36}, :70:{24,36}, :72:36
+  wire        _GEN_81 = _GEN_76 | _GEN_77;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:42:28, :72:{24,36}, :75:{24,36}
   assign io_out_info_instr = io_in_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7
   assign io_out_info_src1_raddr =
-    _GEN_75 | ~(_GEN_71 | ~_GEN_74) ? io_in_inst[19:15] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :47:42, :65:30, :67:36, :70:{24,36}, :72:36, :75:36, :79:36, src/main/scala/chisel3/util/Lookup.scala:34:39
+    _GEN_79 | ~(_GEN_75 | ~_GEN_78) ? io_in_inst[19:15] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :47:42, :65:30, :67:36, :70:{24,36}, :72:36, :75:36, :79:36, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_src2_raddr =
-    _GEN_69 | ~(_GEN_76 | ~_GEN_74) ? io_in_inst[24:20] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :39:28, :47:56, :65:{18,30}, :67:36, :70:36, :72:36, :75:36, :79:36, src/main/scala/chisel3/util/Lookup.scala:34:39
+    _GEN_73 | ~(_GEN_80 | ~_GEN_78) ? io_in_inst[24:20] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :39:28, :47:56, :65:{18,30}, :67:36, :70:36, :72:36, :75:36, :79:36, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_op =
-    _GEN_75 | ~(_GEN_71 | ~(_GEN_72 | _GEN_73 | (&instrType)))
+    _GEN_79 | ~(_GEN_75 | ~(_GEN_76 | _GEN_77 | (&instrType)))
       ? {_op_T_39[4],
          _op_T_39[3:0] | (instrType == 3'h1 ? {1'h0, io_in_inst[14:12]} : 4'h0)
            | ((&instrType) ? (fuOpType == 5'h8 ? 4'h8 : {1'h1, io_in_inst[14:12]}) : 4'h0)
            | (instrType == 3'h2 ? {io_in_inst[5], io_in_inst[14:12]} : 4'h0)}
       : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :40:28, :48:28, :56:44, :59:20, :60:{20,30,63}, :61:20, :65:30, :67:36, :70:{24,36}, :72:{24,36}, :75:{24,36}, :79:{24,36}, src/main/scala/chisel3/util/Lookup.scala:34:39, src/main/scala/chisel3/util/Mux.scala:30:73
-  assign io_out_info_reg_wen = _GEN_69 | _GEN_76 | ~_GEN_74 & (&instrType);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :39:28, :41:28, :65:{18,30}, :67:36, :70:36, :72:36, :75:36, :79:{24,36}, src/main/scala/chisel3/util/Lookup.scala:34:39
+  assign io_out_info_reg_wen = _GEN_73 | _GEN_80 | ~_GEN_78 & (&instrType);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :39:28, :41:28, :65:{18,30}, :67:36, :70:36, :72:36, :75:36, :79:{24,36}, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_reg_waddr =
-    _GEN_69 | _GEN_70 | _GEN_71 | _GEN_72 | ~(_GEN_73 | ~(&instrType))
+    _GEN_73 | _GEN_74 | _GEN_75 | _GEN_76 | ~(_GEN_77 | ~(&instrType))
       ? io_in_inst[11:7]
       : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :37:28, :47:29, :65:{18,30}, :67:{24,36}, :70:{24,36}, :72:{24,36}, :75:{24,36}, :79:{24,36}, src/main/scala/chisel3/util/Lookup.scala:34:39
-  assign io_out_info_src1_ren = _GEN_75 | ~_GEN_71 & _GEN_77;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :42:28, :65:30, :67:36, :70:{24,36}, :72:36, :75:36
-  assign io_out_info_src2_ren = _GEN_69 | ~_GEN_76 & _GEN_77;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :42:28, :43:28, :65:{18,30}, :67:36, :70:36, :72:36, :75:36
-  assign io_out_info_fusel = fuType;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, src/main/scala/chisel3/util/Lookup.scala:34:39
+  assign io_out_info_src1_ren = _GEN_79 | ~_GEN_75 & _GEN_81;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :38:28, :42:28, :65:30, :67:36, :70:{24,36}, :72:36, :75:36
+  assign io_out_info_src2_ren = _GEN_73 | ~_GEN_80 & _GEN_81;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :42:28, :43:28, :65:{18,30}, :67:36, :70:36, :72:36, :75:36
+  assign io_out_info_fusel = fuType[1:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :85:21, src/main/scala/chisel3/util/Lookup.scala:34:39
 endmodule
 
 module DecodeUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:8:7
@@ -607,7 +634,13 @@ module DecodeUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
                                                                                               : _decoder_io_out_info_instr[6:0] == 7'h17
                                                                                                 | _decoder_io_out_info_instr[6:0] == 7'h37
                                                                                                   ? 3'h6
-                                                                                                  : _GEN == 10'h1B
+                                                                                                  : _GEN == 10'hF3
+                                                                                                    | _GEN == 10'h173
+                                                                                                    | _GEN == 10'h1F3
+                                                                                                    | _GEN == 10'h2F3
+                                                                                                    | _GEN == 10'h373
+                                                                                                    | _GEN == 10'h3F3
+                                                                                                    | _GEN == 10'h1B
                                                                                                     | _GEN_0 == 17'h9B
                                                                                                     | _GEN_0 == 17'h29B
                                                                                                     | _GEN_0 == 17'h829B
@@ -1183,7 +1216,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
        : 32'h0)
     | (io_info_op[3]
          ? 32'h0
-         : io_src_info_src1_data[31:0] + {{20{io_info_imm[11]}}, io_info_imm});	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:89:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14, :34:48, :35:48, src/main/scala/chisel3/util/Mux.scala:30:73
+         : io_src_info_src1_data[31:0] + {{20{io_info_imm[11]}}, io_info_imm});	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:90:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:9:14, :34:48, :35:48, src/main/scala/chisel3/util/Mux.scala:30:73
   wire [22:0] _tmpwen_T_1 =
     {7'h0, (16'h1 << (4'h1 << io_info_op[1:0])) - 16'h1} << _io_dataSram_addr_T_23[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:38:31, :39:{19,33}, :40:{20,30}, :42:33, src/main/scala/chisel3/util/Mux.scala:30:73
   assign io_addr3 = _io_dataSram_addr_T_23[2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :38:31, src/main/scala/chisel3/util/Mux.scala:30:73
@@ -1194,7 +1227,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     | (io_info_op == 5'hA ? {2{io_src_info_src2_data[31:0]}} : 64'h0)
     | (io_info_op == 5'hB ? io_src_info_src2_data : 64'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :49:{27,52}, :50:{27,52}, :51:{27,52}, src/main/scala/chisel3/util/Mux.scala:30:73
   assign io_dataSram_wen =
-    _tmpwen_T_1[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:89:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :42:33, :45:{29,35,71,87}
+    _tmpwen_T_1[7:0] & {8{io_info_valid & io_info_fusel == 2'h2 & io_info_op[3]}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:17:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:90:39, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:8:7, :42:33, :45:{29,35,71,87}
 endmodule
 
 module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7
