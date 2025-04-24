@@ -24,10 +24,10 @@ class MemoryUnit extends Module {
   val memData = LookupTree(
     memAddr,
     Seq(
-      0.U -> ZeroExtend(io.dataSram.rdata(32, 0), XLEN),
-      1.U -> ZeroExtend(io.dataSram.rdata(32, 8), XLEN),
-      2.U -> ZeroExtend(io.dataSram.rdata(32, 16), XLEN),
-      3.U -> ZeroExtend(io.dataSram.rdata(32, 24), XLEN)
+      0.U -> ZeroExtend(io.dataSram.rdata(31, 0), XLEN),
+      1.U -> ZeroExtend(io.dataSram.rdata(31, 8), XLEN),
+      2.U -> ZeroExtend(io.dataSram.rdata(31, 16), XLEN),
+      3.U -> ZeroExtend(io.dataSram.rdata(31, 24), XLEN)
     )
   )
 
