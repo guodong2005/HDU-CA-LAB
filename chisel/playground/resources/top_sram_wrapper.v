@@ -1,10 +1,11 @@
 module top_sram_wrapper(
     input         clock,
     input         reset,
-    // interrupts
-    input         MEI, // to PLIC
-    input         MSI, // to CLINT
-    input         MTI, // to CLINT
+    // Interrupts
+    input         mei, // to PLIC
+    input         msi, // to CLINT
+    input         mti, // to CLINT
+    input         sei, // to PLIC
     // inst sram interface
     output        inst_sram_en,
     output [ 3:0] inst_sram_wen,
@@ -13,19 +14,15 @@ module top_sram_wrapper(
     input  [31:0] inst_sram_rdata,
     // data sram interface
     output        data_sram_en,
-    output [ 7:0] data_sram_wen,
+    output [ 3:0] data_sram_wen,
     output [31:0] data_sram_addr,
-    output [63:0] data_sram_wdata,
-    input  [63:0] data_sram_rdata,
+    output [31:0] data_sram_wdata,
+    input  [31:0] data_sram_rdata,
     // trace debug interface
     output        debug_commit,
-    output [63:0] debug_pc,
+    output [31:0] debug_pc,
     output [4:0 ] debug_rf_wnum,
-    output [63:0] debug_rf_wdata,
-    // sram
-    output [7:0]  debug_sram_wen,
-    output [31:0] debug_sram_waddr,
-    output [63:0] debug_sram_wdata
+    output [31:0] debug_rf_wdata
 
 );
 
