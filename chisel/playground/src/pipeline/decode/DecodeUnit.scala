@@ -28,11 +28,12 @@ class DecodeUnit extends Module with HasInstrType {
   val imm = LookupTree(
     instrType,
     Seq(
-      InstrI -> SignedExtend(inst(31, 20), XLEN),
-      InstrS -> SignedExtend(Cat(inst(31, 25), inst(11, 7)), XLEN),
-      InstrB -> SignedExtend(Cat(inst(31), inst(7), inst(30, 25), inst(11, 8), 0.U(1.W)), XLEN),
+      // inst24 代表 I 指令是否要符号拓展 0 -> s, 1 -> u
+      InstrI -> Mux(inst(24), ZeroExtend(inst(21, 10), XLEN), SignedExtend(inst(21, 10), XLEN)),
+      InstrS -> SignedExtend(inst(21, 10), XLEN),
+      InstrB -> SignedExtend(Cat(inst(25, 0), 0.U(2.W)), XLEN), // 没有压缩指令
       InstrU -> SignedExtend(Cat(inst(31, 12), 0.U(12.W)), XLEN),
-      InstrJ -> SignedExtend(Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), 0.U(1.W)), XLEN)
+      InstrJ -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN) // 没有压缩指令
     )
   )
 

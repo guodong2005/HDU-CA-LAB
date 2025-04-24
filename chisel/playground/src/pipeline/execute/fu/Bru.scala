@@ -15,11 +15,9 @@ class Bru extends Module {
     val target   = Output(UInt(XLEN.W))
   })
 
-  // Extract and rename inputs for clarity
   val info = io.info
   val pc   = io.pc
-  // val imm  = io.src_info.src2_data.asSInt // Treat imm as SInt since it may be signed
-  val imm = info.imm.asSInt
+  val imm  = info.imm.asSInt
 
   // Default output assignments
   io.result := DontCare
@@ -33,18 +31,22 @@ class Bru extends Module {
   // printf(p"its op: ${Binary(io.info.op)}\n");
   switch(info.op) {
     // JAL (Jump and Link)
-    is(BRUOpType.jal) {
+    is(BRUOpType.b) { // 不写回
       io.branch := info.valid && (info.fusel === FuType.bru)
-      io.target := (pc.asSInt + imm).asUInt // Signed addition for target calculation
-      io.result := pc + 4.U                 // Return address (PC + 4)
+      io.target := (pc.asSInt + imm).asUInt
       // printf("jal triggered\n");
+    }
+    is(BRUOpType.bl) {
+      io.branch := info.valid && (info.fusel === FuType.bru)
+      io.target := (pc.asSInt + imm).asUInt
+      io.result := pc + 4.U
     }
 
     // JALR (Jump and Link Register)
-    is(BRUOpType.jalr) {
+    is(BRUOpType.jirl) {
       io.branch := info.valid && (info.fusel === FuType.bru)
-      io.target := ((io.src_info.src1_data.asSInt + imm) & (~1.S)).asUInt // Signed addition and alignment
-      io.result := pc + 4.U                                               // Return address (PC + 4)
+      io.result := pc + 4.U // Return address (PC + 4)
+      io.target := io.src_info.src1_data + SignedExtend(Cat(imm, "b00".U), 32);
     }
 
     // BEQ (Branch if Equal)

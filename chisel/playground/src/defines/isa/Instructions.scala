@@ -53,23 +53,16 @@ object MDUOpType {
 
 // ALU
 object ALUOpType {
-  def add  = "b00000".U
-  def sub  = "b01000".U
-  def sll  = "b00001".U
-  def slt  = "b00010".U
-  def sltu = "b00011".U
-  def xor  = "b00100".U
-  def srl  = "b00101".U
-  def sra  = "b01101".U
-  def or   = "b00110".U
-  def and  = "b00111".U
-  def addw = "b10000".U
-  def subw = "b11000".U
-  def sllw = "b10001".U
-  def srlw = "b10101".U
-  def sraw = "b11101".U
-
-  def isWordOp(func: UInt) = func(4)
+  def add  = "b00000".U // Add Word
+  def sub  = "b00001".U // Subtract Word
+  def slt  = "b00010".U // Set Less Than Word
+  def sltu = "b00011".U // Set Less Than Unsigned
+  def xor  = "b00100".U // XOR
+  def srl  = "b00101".U // Shift Right Logical
+  def sra  = "b00110".U // Shift Right Arithmetic
+  def or   = "b00111".U // OR
+  def and  = "b01000".U // AND
+  def sll  = "b01001".U // Shift Left Logical Word
 
 }
 
@@ -99,8 +92,9 @@ object BRUOpType {
   def bltu = "b0110".U
   def bgeu = "b0111".U
 
-  def jal  = "b1000".U
-  def jalr = "b1010".U
+  def b    = "b1000".U
+  def bl   = "b1010".U
+  def jirl = "b1011".U
 
   def isBranch(func: UInt) = !func(3)
   def isJump(func:   UInt) = !isBranch(func)
