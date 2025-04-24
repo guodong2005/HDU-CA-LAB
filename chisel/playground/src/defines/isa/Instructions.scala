@@ -73,12 +73,10 @@ object LSUOpType {
   def lhu = "b0101".U
   def lw  = "b0010".U
   def lwu = "b0110".U
-  def ld  = "b0011".U
 
   def sb = "b1000".U
   def sh = "b1001".U
   def sw = "b1010".U
-  def sd = "b1011".U
 
   def isStore(func: UInt): Bool = func(3)
   def isLoad(func:  UInt): Bool = !isStore(func)
