@@ -14,15 +14,15 @@ module top(
     input  [31:0] inst_sram_rdata,
     // data sram interface
     output        data_sram_en,
-    output [ 7:0] data_sram_wen,
+    output [ 3:0] data_sram_wen,
     output [31:0] data_sram_addr,
-    output [63:0] data_sram_wdata,
-    input  [63:0] data_sram_rdata,
+    output [31:0] data_sram_wdata,
+    input  [31:0] data_sram_rdata,
     // trace debug interface
     output        debug_commit,
-    output [63:0] debug_pc,
+    output [31:0] debug_pc,
     output [4:0 ] debug_rf_wnum,
-    output [63:0] debug_rf_wdata
+    output [31:0] debug_rf_wdata
 );
 
 PuaCpu core(
