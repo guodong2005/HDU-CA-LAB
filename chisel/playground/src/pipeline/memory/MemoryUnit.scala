@@ -18,20 +18,16 @@ class MemoryUnit extends Module {
   val info = io.memoryStage.data.info
   io.writeBackStage.data.pc   := io.memoryStage.data.pc
   io.writeBackStage.data.info := io.memoryStage.data.info
-  val memAddr = Cat(io.memoryStage.data.rd_info.addr3, Fill(3, 0.U))
+  val memAddr = io.memoryStage.data.rd_info.addr3(2, 0)
 
 // Generate LookUpTree to assign memData based on memAddr
   val memData = LookupTree(
     memAddr,
     Seq(
-      0.U  -> ZeroExtend(io.dataSram.rdata(63, 0), XLEN),
-      8.U  -> ZeroExtend(io.dataSram.rdata(63, 8), XLEN),
-      16.U -> ZeroExtend(io.dataSram.rdata(63, 16), XLEN),
-      24.U -> ZeroExtend(io.dataSram.rdata(63, 24), XLEN),
-      32.U -> ZeroExtend(io.dataSram.rdata(63, 32), XLEN),
-      40.U -> ZeroExtend(io.dataSram.rdata(63, 40), XLEN),
-      48.U -> ZeroExtend(io.dataSram.rdata(63, 48), XLEN),
-      56.U -> ZeroExtend(io.dataSram.rdata(63, 56), XLEN)
+      0.U -> ZeroExtend(io.dataSram.rdata(32, 0), XLEN),
+      1.U -> ZeroExtend(io.dataSram.rdata(32, 8), XLEN),
+      2.U -> ZeroExtend(io.dataSram.rdata(32, 16), XLEN),
+      3.U -> ZeroExtend(io.dataSram.rdata(32, 24), XLEN)
     )
   )
 
