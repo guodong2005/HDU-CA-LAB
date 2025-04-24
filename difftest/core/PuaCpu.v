@@ -135,11 +135,7 @@ module DecodeStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
       data_pc <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:19:7
-      if (io_controlSignal_fetchUnitSignal_do_flush) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
-        data_inst <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
-        data_pc <= 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:{21,34}
-      end
-      else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
+      if (io_controlSignal_fetchUnitSignal_allow_to_go) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:20:14
         data_inst <= io_fetchUnit_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21
         data_pc <= io_fetchUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21
       end
@@ -147,7 +143,7 @@ module DecodeStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
         ~io_controlSignal_fetchUnitSignal_do_flush
         & (io_controlSignal_fetchUnitSignal_allow_to_go
              ? io_fetchUnit_data_valid
-             : data_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21, :28:66, :29:10, :31:10, :34:62, :35:10
+             : data_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:27:21, :28:66, :29:10, :31:10, :34:62, :36:16
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeStage.scala:19:7
