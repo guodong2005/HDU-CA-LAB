@@ -19,7 +19,7 @@ module top(
     output [31:0] data_sram_wdata,
     input  [31:0] data_sram_rdata,
     // trace debug interface
-    output        debug_commit,
+    output   [3:0]     debug_commit,
     output [31:0] debug_pc,
     output [4:0 ] debug_rf_wnum,
     output [31:0] debug_rf_wdata

@@ -19,7 +19,7 @@ class DecodeUnit extends Module with HasInstrType {
 
   val pc     = io.decodeStage.data.pc
   val info   = Wire(new Info())
-  val is_lui = decoder.io.out.info.instr(6, 0) === "b0110111".U
+  val is_lui = decoder.io.out.info.instr(31, 25) === "b0001110".U // is pccadd12ui
 
   val inst = decoder.io.out.info.instr
   val instrType :: fuType :: fuOpType :: Nil =
@@ -32,7 +32,7 @@ class DecodeUnit extends Module with HasInstrType {
       InstrI -> Mux(inst(24), ZeroExtend(inst(21, 10), XLEN), SignedExtend(inst(21, 10), XLEN)),
       InstrS -> SignedExtend(inst(21, 10), XLEN),
       InstrB -> SignedExtend(Cat(inst(25, 0), 0.U(2.W)), XLEN), // 没有压缩指令
-      InstrU -> SignedExtend(Cat(inst(31, 12), 0.U(12.W)), XLEN),
+      InstrU -> SignedExtend(Cat(inst(24, 5), 0.U(12.W)), XLEN),
       InstrJ -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN) // 没有压缩指令
     )
   )

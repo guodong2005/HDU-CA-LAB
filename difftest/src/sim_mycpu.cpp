@@ -6,6 +6,13 @@
 #include "rv_plic.hpp"
 #include "rv_systembus.hpp"
 #include "verilated_fst_c.h"
+
+#include "loongarch/la32r_common.hpp"
+#include "loongarch/la32r_core.hpp"
+#include "loongarch/la32r_csr.hpp"
+#include "loongarch/la32r_mmu.hpp"
+#include "loongarch/nscscc_confreg.hpp"
+
 #include <stdio.h>
 
 bool running = true;
@@ -67,6 +74,120 @@ void connect_wire(nscscc_sram_ptr &sram_ptr, Vtop *top) {
   sram_ptr.data_sram_wen = &(top->data_sram_wen);
   sram_ptr.data_sram_rdata = &(top->data_sram_rdata);
   sram_ptr.data_sram_wdata = &(top->data_sram_wdata);
+}
+void loongarch_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
+                        const char *riscv_test_path) {
+
+  // setup cemu {
+
+  // cemu {
+  memory_bus cemu_mmio;
+
+  // mmio : 把外设的空间映射到物理空间
+  mmio_mem cemu_func_mem(262144 * 4, "./test-set/test_bin/main.bin");
+  cemu_func_mem.set_allow_warp(true);
+  assert(cemu_mmio.add_dev(0x1c000000, 0x100000, &cemu_func_mem));
+  assert(cemu_mmio.add_dev(0x00000000, 0x10000000, &cemu_func_mem));
+
+  nscscc_confreg cemu_confreg(perf_once);
+  assert(cemu_mmio.add_dev(0x1faf0000, 0x10000, &cemu_confreg));
+
+  la32r_core<> cemu_la32r(0, cemu_mmio, true);
+  // cemu }
+  // cemu_rvcore.set_difftest_mode(true);
+  // setup cemu }
+
+  // setup rtl {
+  nscscc_sram mmio_sigs;
+  nscscc_sram_ref mmio_sigs_ref(mmio_sigs);
+  nscscc_sram_xbar mmio;
+
+  mmio_mem rtl_mem(128 * 1024 * 1024, riscv_test_path);
+  assert(mmio.add_dev(0x80000000, 0x80000000, &rtl_mem));
+  // setup rtl }
+
+  // connect Vcd for trace
+  if (trace_on) {
+    top->trace(&fst, 0);
+    fst.open("trace.fst");
+  }
+  uint64_t rst_ticks = 10;
+  uint64_t ticks = 0;
+  uint64_t last_commit = ticks;
+  uint64_t pc_cnt = print_pc_cycle;
+  int delayslot_cnt = 0;
+  bool delayslot_flag = true;
+  int delay = 1500;
+  while (!Verilated::gotFinish() && sim_time > 0 && running) {
+    if (rst_ticks > 0) {
+      top->reset = 1;
+      rst_ticks--;
+    } else
+      top->reset = 0;
+    top->clock = !top->clock;
+    if (top->clock && !top->reset)
+      mmio_sigs.update_input(mmio_ref);
+    top->eval();
+    if (top->clock && !top->reset) {
+      mmio.beat(mmio_sigs_ref);
+      mmio_sigs.update_output(mmio_ref);
+      top->eval();
+    }
+    //===性能计数器=====
+    if (!top->reset && top->clock)
+      total_cycle++;
+    if (((top->clock && !dual_issue) || dual_issue) && top->debug_commit)
+      total_instr++;
+    //==================
+    if (((top->clock && !dual_issue) || dual_issue) &&
+        top->debug_commit) { // instr retire
+      // cemu_rvcore.import_diff_test_info(top->debug_csr_mcycle,
+      // top->debug_csr_minstret, top->debug_csr_mip, top->debug_csr_interrupt);
+      cemu_la32r.step(1);
+      last_commit = ticks;
+      if (pc_cnt++ >= print_pc_cycle && print_pc) {
+        printf("PC = 0x%016lx\n", cemu_la32r.debug_wb_pc);
+        pc_cnt = 0;
+      }
+      if ((top->debug_pc != cemu_la32r.debug_wb_pc ||
+           cemu_la32r.debug_wb_wnum != 0 &&
+               (top->debug_rf_wnum != cemu_la32r.debug_wb_wnum ||
+                top->debug_rf_wdata != cemu_la32r.debug_wb_wdata)) &&
+          !delayslot_cnt) {
+        printf("\033[1;31mError!\033[0m\n");
+        printf("reference: PC = 0x%016lx, wb_rf_wnum = 0x%02lx, wb_rf_wdata = "
+               "0x%016lx\n",
+               cemu_la32r.debug_wb_pc, cemu_la32r.debug_wb_wnum,
+               cemu_la32r.debug_wb_wdata);
+        printf("mycpu    : PC = 0x%016lx, wb_rf_wnum = 0x%02x, wb_rf_wdata = "
+               "0x%016lx\n",
+               top->debug_pc, top->debug_rf_wnum, top->debug_rf_wdata);
+        if (!should_delay) {
+          running = false;
+          // if (dump_pc_history)
+          // cemu_rvcore.dump_pc_history();
+        } else if (dump_pc_history && delay-- == 10) {
+          // cemu_rvcore.dump_pc_history();
+        } else if (delay-- == 0)
+          running = false;
+      }
+    }
+    if (trace_on) {
+      fst.dump(ticks);
+      sim_time--;
+    }
+    ticks++;
+    if (ticks - last_commit >= commit_timeout) {
+      printf("\033[1;31mError!\033[0m\n");
+      printf("CPU stuck for %ld cycles!\n", commit_timeout / 2);
+      running = false;
+      if (dump_pc_history) {
+        // cemu_rvcore.dump_pc_history();
+      }
+    }
+  }
+
+  printf("total_ticks: %lu\n", ticks);
 }
 
 void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
@@ -331,11 +452,7 @@ int main(int argc, char **argv, char **env) {
   std::signal(SIGINT, [](int) { running = false; });
 
   char *file_load_path;
-  enum {
-    NOP,
-    RISCV_TEST,
-    CPU_TRACE,
-  } run_mode = RISCV_TEST;
+  enum { NOP, RISCV_TEST, CPU_TRACE, LOONGARCH_TEST } run_mode = LOONGARCH_TEST;
 
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-trace") == 0) {
@@ -388,7 +505,7 @@ int main(int argc, char **argv, char **env) {
   Vtop *top = new Vtop;
   nscscc_sram_ptr mmio_ptr;
 
-  connect_wire(mmio_ptr, top);
+  connect_wire(mmio_ptr, top); // 将 cpu 与外设连线
   assert(mmio_ptr.check());
 
   nscscc_sram_ref mmio_ref(mmio_ptr);
@@ -400,6 +517,8 @@ int main(int argc, char **argv, char **env) {
   case CPU_TRACE:
     make_cpu_trace(top, mmio_ref, file_load_path);
     break;
+  case LOONGARCH_TEST:
+    loongarch_test_run(top, mmio_ref, file_load_path);
   default:
     printf("Unknown running mode.\n");
     exit(-ENOENT);

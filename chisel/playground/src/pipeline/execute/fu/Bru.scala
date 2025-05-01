@@ -34,6 +34,7 @@ class Bru extends Module {
     is(BRUOpType.b) { // 不写回
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt
+      io.result := 0.U
       // printf("jal triggered\n");
     }
     is(BRUOpType.bl) {

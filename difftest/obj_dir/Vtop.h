@@ -38,17 +38,17 @@ class alignas(VL_CACHE_LINE_BYTES) Vtop VL_NOT_FINAL : public VerilatedModel {
     VL_OUT8(&inst_sram_en,0,0);
     VL_OUT8(&inst_sram_wen,3,0);
     VL_OUT8(&data_sram_en,0,0);
-    VL_OUT8(&data_sram_wen,7,0);
+    VL_OUT8(&data_sram_wen,3,0);
     VL_OUT8(&debug_commit,0,0);
     VL_OUT8(&debug_rf_wnum,4,0);
     VL_OUT(&inst_sram_addr,31,0);
     VL_OUT(&inst_sram_wdata,31,0);
     VL_IN(&inst_sram_rdata,31,0);
     VL_OUT(&data_sram_addr,31,0);
-    VL_OUT64(&data_sram_wdata,63,0);
-    VL_IN64(&data_sram_rdata,63,0);
-    VL_OUT64(&debug_pc,63,0);
-    VL_OUT64(&debug_rf_wdata,63,0);
+    VL_OUT(&data_sram_wdata,31,0);
+    VL_IN(&data_sram_rdata,31,0);
+    VL_OUT(&debug_pc,31,0);
+    VL_OUT(&debug_rf_wdata,31,0);
 
     // CELLS
     // Public to allow access to /* verilator public */ items.
