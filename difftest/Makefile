@@ -12,8 +12,7 @@ obj_dir/V$(TOP_NAME): src/* $(SRC_FILE)
 verilog:
 	$(MAKE) -C $(CHISEL_DIR) verilog
 	cp $(CHISEL_DIR)/build/PuaCpu.v $(SRC_DIR)
-	cp $(CHISEL_DIR)/build/PuaCpu.v /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new
-	mv /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new/PuaCpu.v /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new/puacpu.sv
+	cp $(CHISEL_DIR)/build/PuaCpu.v /home/guodong/cdp_ede_local/mycpu_env/soc_verify/soc_bram/run_vivado/project/loongson.srcs/sources_1/new/puacpu.sv
 
 trace: obj_dir/V$(TOP_NAME)
 	$(call git_commit, "trace") # DO NOT REMOVE THIS LINE!!!
