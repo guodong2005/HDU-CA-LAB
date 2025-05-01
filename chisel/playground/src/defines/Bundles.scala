@@ -59,7 +59,7 @@ class DataSram extends Bundle {
 
 class DEBUG extends Bundle {
   val pc       = Output(UInt(XLEN.W))
-  val commit   = Output(Bool())
+  val commit   = Output(UInt(4.W))
   val rf_wnum  = Output(UInt(REG_ADDR_WID.W))
   val rf_wdata = Output(UInt(XLEN.W))
 }
