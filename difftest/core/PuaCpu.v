@@ -1401,7 +1401,7 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
   output [4:0]  io_regfile_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [31:0] io_regfile_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
                 io_debug_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
-  output        io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [31:0] io_debug_rf_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
 );
@@ -1411,7 +1411,7 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
   assign io_regfile_waddr = io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_regfile_wdata = io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_debug_pc = io_writeBackStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
-  assign io_debug_commit = io_writeBackStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_debug_commit = {4{io_writeBackStage_data_info_valid}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7, :33:28
   assign io_debug_rf_wnum = io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_debug_rf_wdata = io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
 endmodule
@@ -1464,7 +1464,7 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:10
   output [3:0]  io_dataSram_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   input  [31:0] io_dataSram_rdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [31:0] io_debug_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
-  output        io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
+  output [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
   output [31:0] io_debug_rf_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:14
 );
@@ -1823,7 +1823,7 @@ module PuaCpu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scal
   output [3:0]  io_data_sram_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   input  [31:0] io_data_sram_rdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_debug_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
+  output [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_debug_rf_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
 );
