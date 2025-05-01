@@ -19,7 +19,7 @@ class DecodeUnit extends Module with HasInstrType {
 
   val pc     = io.decodeStage.data.pc
   val info   = Wire(new Info())
-  val is_lui = decoder.io.out.info.instr(31, 25) === "b0001110".U // is pccadd12ui
+  val is_lui = decoder.io.out.info.instr(31, 25) === "b0001010".U // is lu12i
   printf(p"islui ${Hexadecimal(is_lui)}\n");
 
   val inst = decoder.io.out.info.instr
