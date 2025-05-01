@@ -33,7 +33,7 @@ class DecodeUnit extends Module with HasInstrType {
       InstrS -> SignedExtend(inst(21, 10), XLEN),
       InstrB -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN), // 没有压缩指令
       InstrU -> SignedExtend(Cat(inst(24, 5), 0.U(12.W)), XLEN),
-      InstrJ -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN)  // 没有压缩指令
+      InstrJ -> SignedExtend(Cat(inst(25, 0), 0.U(2.W)), XLEN)   // 没有压缩指令
     )
   )
 

@@ -542,12 +542,12 @@ module DecodeUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
          ? {{20{_decoder_io_out_info_instr[21]}}, _decoder_io_out_info_instr[21:10]}
          : 32'h0)
     | (instrType == 3'h1
-         ? {{4{_decoder_io_out_info_instr[25]}}, _decoder_io_out_info_instr[25:0], 2'h0}
+         ? {{14{_decoder_io_out_info_instr[25]}}, _decoder_io_out_info_instr[25:10], 2'h0}
          : 32'h0)
     | (instrType == 3'h6 ? {_decoder_io_out_info_instr[24:5], 12'h0} : 32'h0)
     | ((&instrType)
          ? {{14{_decoder_io_out_info_instr[25]}}, _decoder_io_out_info_instr[25:10], 2'h0}
-         : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:17:23, :32:{20,25,46}, :34:{33,38}, :35:{33,38}, :36:38, src/main/scala/chisel3/util/Lookup.scala:34:39, src/main/scala/chisel3/util/Mux.scala:30:73
+         : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:17:23, :32:{20,25,46}, :34:{33,38}, :35:{33,38}, src/main/scala/chisel3/util/Lookup.scala:34:39, src/main/scala/chisel3/util/Mux.scala:30:73
   Decoder decoder (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/DecodeUnit.scala:17:23
     .io_in_inst             (io_decodeStage_data_inst),
     .io_out_info_instr      (_decoder_io_out_info_instr),
