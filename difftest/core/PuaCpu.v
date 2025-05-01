@@ -1461,7 +1461,7 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
 
   wire [3:0] io_debug_commit_0 =
     {4{io_writeBackStage_data_info_valid
-         & ~(io_writeBackStage_data_info_fusel == 3'h3
+         & ~(io_writeBackStage_data_info_fusel == 3'h2
              & io_writeBackStage_data_info_instr[24])}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:33:{28,53,56,72,87,103}
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:35:9
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:35:9
