@@ -1,4 +1,3 @@
-TOP_NAME := top
 SRC_DIR  := ./core
 SRC_FILE := $(shell find $(SRC_DIR) -name '*.svh') $(shell find $(SRC_DIR) -name '*.h') $(shell find $(SRC_DIR) -name '*.v') $(shell find $(SRC_DIR) -name '*.sv')
 CHISEL_DIR = ../chisel
@@ -13,6 +12,8 @@ obj_dir/V$(TOP_NAME): src/* $(SRC_FILE)
 verilog:
 	$(MAKE) -C $(CHISEL_DIR) verilog
 	cp $(CHISEL_DIR)/build/PuaCpu.v $(SRC_DIR)
+	cp $(CHISEL_DIR)/build/PuaCpu.v /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new
+	mv /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new/PuaCpu.v /home/guodong/cdp_ede_local/my/s/soc_b/ru/p/loongson.sr/s/new/puacpu.sv
 
 trace: obj_dir/V$(TOP_NAME)
 	$(call git_commit, "trace") # DO NOT REMOVE THIS LINE!!!
