@@ -31,7 +31,7 @@ class Bru extends Module {
 
   printf(p"its op: ${Binary(io.info.op)}\n");
   printf(p"its instr: ${Hexadecimal(io.info.instr)}\n");
-  printf(p"its imm: ${Hexadecimal(io.info.imm)}\n");
+  printf(p"its writeback: ${Hexadecimal(io.info.reg_wen)}\n");
   switch(info.op) {
     // JAL (Jump and Link)
     is(BRUOpType.b) { // 不写回
