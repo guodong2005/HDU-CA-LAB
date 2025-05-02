@@ -31,9 +31,9 @@ class DecodeUnit extends Module with HasInstrType {
       // inst24 代表 I 指令是否要符号拓展 0 -> s, 1 -> u
       InstrI -> Mux(inst(24), ZeroExtend(inst(21, 10), XLEN), SignedExtend(inst(21, 10), XLEN)),
       InstrS -> SignedExtend(inst(21, 10), XLEN),
-      InstrB -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN), // 没有压缩指令
+      InstrB -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN),                  // 没有压缩指令
       InstrU -> SignedExtend(Cat(inst(24, 5), 0.U(12.W)), XLEN),
-      InstrJ -> SignedExtend(Cat(inst(25, 0), 0.U(2.W)), XLEN)   // 没有压缩指令
+      InstrJ -> SignedExtend(Cat(Cat(inst(10, 0), inst(25, 10)), 0.U(2.W)), XLEN) // 没有压缩指令
     )
   )
 
