@@ -33,7 +33,7 @@ class WriteBackUnit extends Module {
 
   printf(p"writeBackUnit ${Hexadecimal(io.info.instr)}\n");
   printf(p"futype ${Hexadecimal(io.info.fusel)}\n");
-  printf(p"bit ${Hexadecimal(io.info.instr(24))}\n");
+  printf(p"wen ${Hexadecimal(io.info.reg_wen)}\n");
   printf(p"commit ${Hexadecimal(io.debug.commit)}\n");
   // io.debug.commit := Fill(4, validData.info.valid) // && !(io.info.fusel === FuType.bru && io.info.instr(24) === 1.U)) // ? store 不commit
 
