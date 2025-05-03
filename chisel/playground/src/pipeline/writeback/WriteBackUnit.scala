@@ -31,10 +31,12 @@ class WriteBackUnit extends Module {
   io.debug.rf_wnum  := validData.info.reg_waddr
   io.debug.commit   := Fill(4, validData.info.valid && !(io.info.fusel === FuType.lsu && io.info.instr(24) === 1.U)) // ? store 不commit
 
+  /*
   printf(p"writeBackUnit ${Hexadecimal(io.info.instr)}\n");
   printf(p"futype ${Hexadecimal(io.info.fusel)}\n");
   printf(p"wen ${Hexadecimal(io.info.reg_wen)}\n");
   printf(p"commit ${Hexadecimal(io.debug.commit)}\n");
+   */
   // io.debug.commit := Fill(4, validData.info.valid) // && !(io.info.fusel === FuType.bru && io.info.instr(24) === 1.U)) // ? store 不commit
 
   // printf(p"PC: 0x${Hexadecimal(io.debug.pc)}, commit: 0x${Hexadecimal(io.debug.commit)}, Hexadecimal rf_wdata: 0x${Hexadecimal(io.debug.rf_wdata)}, Hexadecimal rf_wnum: 0x${Hexadecimal(io.debug.rf_wnum)}\n");

@@ -1462,6 +1462,8 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
   output [31:0] io_debug_rf_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
 );
 
+  wire       io_regfile_wen_0 =
+    io_writeBackStage_data_info_reg_wen & io_writeBackStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:21:46
   wire [3:0] io_debug_commit_0 =
     {4{io_writeBackStage_data_info_valid
          & ~(io_writeBackStage_data_info_fusel == 3'h2
@@ -1471,13 +1473,12 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
       if ((`PRINTF_COND_) & ~reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:34:9, :37:9
         $fwrite(32'h80000002, "writeBackUnit %x\n", io_writeBackStage_data_info_instr);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:34:9
         $fwrite(32'h80000002, "futype %x\n", io_writeBackStage_data_info_fusel);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:34:9, :35:9
-        $fwrite(32'h80000002, "bit %x\n", io_writeBackStage_data_info_instr[24]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:32:103, :34:9, :36:9
+        $fwrite(32'h80000002, "wen %x\n", io_regfile_wen_0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:21:46, :34:9, :36:9
         $fwrite(32'h80000002, "commit %x\n", io_debug_commit_0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:32:28, :34:9, :37:9
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  assign io_regfile_wen =
-    io_writeBackStage_data_info_reg_wen & io_writeBackStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7, :21:46
+  assign io_regfile_wen = io_regfile_wen_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7, :21:46
   assign io_regfile_waddr = io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_regfile_wdata = io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_debug_pc = io_writeBackStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
