@@ -63,3 +63,55 @@ class DEBUG extends Bundle {
   val rf_wnum  = Output(UInt(REG_ADDR_WID.W))
   val rf_wdata = Output(UInt(XLEN.W))
 }
+
+class AR extends Bundle { // Read request (ar)
+  val id    = UInt(4.W)
+  val addr  = UInt(32.W)
+  val len   = UInt(8.W)
+  val size  = UInt(3.W)
+  val burst = UInt(2.W)
+  val lock  = UInt(2.W)
+  val cache = UInt(4.W)
+  val prot  = UInt(3.W)
+}
+
+class R extends Bundle { // Read response (r)
+  val id   = UInt(4.W)
+  val data = UInt(32.W)
+  val resp = UInt(2.W)
+  val last = Bool()
+}
+
+class AW extends Bundle { // Write request (aw)
+  val id    = UInt(4.W)
+  val addr  = UInt(32.W)
+  val len   = UInt(8.W)
+  val size  = UInt(3.W)
+  val burst = UInt(2.W)
+  val lock  = UInt(2.W)
+  val cache = UInt(4.W)
+  val prot  = UInt(3.W)
+}
+
+class W extends Bundle { // Write data (w)
+  val id   = UInt(4.W)
+  val data = UInt(32.W)
+  val strb = UInt(4.W)
+  val last = Bool()
+}
+
+class B extends Bundle { // Write response (b)
+  val id   = UInt(4.W)
+  val resp = UInt(2.W)
+}
+
+class AXI extends Bundle {
+  // Decoupled Read Request & Response
+  val ar = Decoupled(new AR())         // Handshake for read request
+  val r  = Flipped(Decoupled(new R())) // Read response handshake
+
+  // Decoupled Write Request, Data & Response
+  val aw = Decoupled(new AW())         // Write request handshake
+  val w  = Decoupled(new W())          // Write data handshake
+  val b  = Flipped(Decoupled(new B())) // Write response handshake
+}

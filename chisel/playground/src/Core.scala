@@ -10,11 +10,13 @@ import pipeline._
 class Core extends Module {
   val io = IO(new Bundle {
     val interrupt = Input(new ExtInterrupt())
-    val instSram  = new InstSram()
-    val dataSram  = new DataSram()
+    val axi       = new AXI()
     val debug     = new DEBUG()
+    val dataSram  = new DataSram()
   })
 
+  val icache         = Module(new Icache())
+  val axibridge      = Module(new Axibridge())
   val fetchUnit      = Module(new FetchUnit())
   val decodeStage    = Module(new DecodeStage())
   val decodeUnit     = Module(new DecodeUnit())
@@ -28,7 +30,10 @@ class Core extends Module {
   val controlUnit    = Module(new ControlUnit())
 
   // 取指单元
-  fetchUnit.io.instSram    <> io.instSram
+  axibridge.io.axi <> io.axi
+  icache.io.axi    <> axibridge.io.icache
+
+  fetchUnit.io.icache      <> icache
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
   controlUnit.io.branch := executeUnit.io.branch
@@ -41,13 +46,7 @@ class Core extends Module {
 
   executeUnit.io.executeStage <> executeStage.io.executeUnit
 
-  executeUnit.io.dataSram.wen   <> io.dataSram.wen
-  executeUnit.io.dataSram.addr  <> io.dataSram.addr
-  executeUnit.io.dataSram.wdata <> io.dataSram.wdata
-  executeUnit.io.dataSram.en    <> io.dataSram.en
-  executeUnit.io.dataSram.rdata := DontCare
-
-  memoryUnit.io.dataSram.rdata <> io.dataSram.rdata
+  io.dataSram := DontCare
 
   executeUnit.io.memoryStage <> memoryStage.io.executeUnit
 
