@@ -3,7 +3,7 @@ import chisel3.util._
 import cpu._
 import cpu.defines._
 
-class PuaCpu extends Module {
+class core_top extends Module {
   val io = IO(new Bundle {
     val ext_int = Input(new ExtInterrupt())
     val axi     = new AXI()
@@ -22,7 +22,6 @@ class PuaCpu extends Module {
   io.axi.ar.bits.lock  := 0.U
   io.axi.ar.bits.cache := 0.U
   io.axi.ar.bits.prot  := 0.U
-  printf("%d\n", io.axi.ar.bits.burst)
 
   core.io.dataSram := DontCare
 }
