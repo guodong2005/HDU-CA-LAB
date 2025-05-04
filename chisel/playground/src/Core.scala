@@ -54,6 +54,8 @@ class Core extends Module {
 
   io.dataSram := DontCare
 
+  executeUnit.io.dataSram    := DontCare
+  memoryUnit.io.dataSram     := DontCare
   executeUnit.io.memoryStage <> memoryStage.io.executeUnit
 
   memoryUnit.io.memoryStage    <> memoryStage.io.memoryUnit
