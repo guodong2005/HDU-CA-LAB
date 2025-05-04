@@ -1,5 +1,6 @@
 import cpu._
 import circt.stage._
+import chisel3.dontTouch
 
 object Elaborate extends App {
   implicit val cpuConfig = new CpuConfig()
