@@ -34,10 +34,15 @@ class Core extends Module {
   icache.io.axi    <> axibridge.io.icache
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
-  fetchUnit.io.icache.io   <> icache.io
-  controlUnit.io.branch    := executeUnit.io.branch
-  fetchUnit.io.branch      := executeUnit.io.branch
-  fetchUnit.io.target      := executeUnit.io.target
+  fetchUnit.io.inst        := icache.io.inst
+  fetchUnit.io.valid       := icache.io.valid
+  icache.io.addr           := fetchUnit.io.addr
+
+  controlUnit.io.branch     := executeUnit.io.branch
+  controlUnit.io.cacheStall := !icache.io.valid
+
+  fetchUnit.io.branch := executeUnit.io.branch
+  fetchUnit.io.target := executeUnit.io.target
   //
   decodeUnit.io.decodeStage  <> decodeStage.io.decodeUnit
   decodeUnit.io.regfile      <> regfile.io.read
