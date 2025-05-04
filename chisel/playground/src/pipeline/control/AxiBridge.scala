@@ -11,6 +11,7 @@ class Axibridge extends Module { // 总线能支持流水线吗
     val dcache = Flipped(new AXI())
     val icache = Flipped(new AXI())
   })
+  io.axi := DontCare
   val ar_sel_lock = RegInit(false.B)
   val ar_sel_val  = RegInit(false.B)
 

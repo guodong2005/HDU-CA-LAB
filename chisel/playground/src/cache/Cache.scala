@@ -12,6 +12,7 @@ class Icache extends Module {
     val inst  = Output(UInt(32.W))
     val valid = Output(UInt(32.W))
   })
+  io.axi              := DontCare
   io.axi.ar.valid     := true.B
   io.axi.ar.bits.addr := io.addr
   io.axi.ar.bits.size := 4.U
