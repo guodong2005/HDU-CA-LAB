@@ -8,8 +8,8 @@ import cpu.defines.Const._
 class Axibridge extends Module { // 总线能支持流水线吗
   val io = IO(new Bundle {
     val axi    = new AXI()
-    val dcache = new AXI()
-    val icache = new AXI()
+    val dcache = Flipped(new AXI())
+    val icache = Flipped(new AXI())
   })
   val ar_sel_lock = RegInit(false.B)
   val ar_sel_val  = RegInit(false.B)
