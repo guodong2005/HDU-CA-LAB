@@ -6,6 +6,7 @@ import chisel3.util._
 import defines._
 import defines.Const._
 import pipeline._
+import dataclass.data
 
 class Core extends Module {
   val io = IO(new Bundle {
