@@ -1941,7 +1941,7 @@ module PuaCpu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scal
     .io_debug_rf_wdata   (io_debug_rf_wdata)
   );
   assign io_axi_ar_bits_len = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :13:20
-  assign io_axi_ar_bits_burst = 2'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :19:24
+  assign io_axi_ar_bits_burst = 2'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :20:24
   assign io_axi_ar_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :13:20
   assign io_axi_ar_bits_cache = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :13:20
   assign io_axi_ar_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :13:20

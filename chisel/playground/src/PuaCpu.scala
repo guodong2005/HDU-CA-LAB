@@ -22,6 +22,7 @@ class PuaCpu extends Module {
   io.axi.ar.bits.lock  := 0.U
   io.axi.ar.bits.cache := 0.U
   io.axi.ar.bits.prot  := 0.U
+  printf("%d\n", io.axi.ar.bits.burst)
 
   core.io.dataSram := DontCare
 }
