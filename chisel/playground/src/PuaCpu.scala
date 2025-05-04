@@ -18,9 +18,13 @@ class core_top extends Module {
 
   val core = Module(new Core())
 
+  io.ws_valid := DontCare
+  io.rf_data  := DontCare
+  /*
   io.break_point := true.B
   io.infor_flag  := true.B
   io.reg_num     := 4.U
+   */
 
   dontTouch(io)
   io.ext_int <> core.io.interrupt
