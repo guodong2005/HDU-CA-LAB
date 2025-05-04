@@ -12,6 +12,7 @@ class PuaCpu extends Module {
 
   val core = Module(new Core())
 
+  dontTouch(io.axi)
   io.ext_int <> core.io.interrupt
   io.axi     <> core.io.axi
   io.debug   <> core.io.debug
