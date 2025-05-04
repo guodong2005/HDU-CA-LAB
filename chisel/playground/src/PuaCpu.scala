@@ -5,7 +5,8 @@ import cpu.defines._
 
 class core_top extends Module {
   val io = IO(new Bundle {
-    val ext_int     = Input(new ExtInterrupt())
+    // val ext_int     = Input(new ExtInterrupt())
+    val ext_int     = Input(UInt(8.W))
     val break_point = Input(Bool())
     val infor_flag  = Input(Bool())
     val reg_num     = Input(UInt(4.W))
