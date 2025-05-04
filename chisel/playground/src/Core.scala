@@ -10,7 +10,8 @@ import dataclass.data
 
 class Core extends Module {
   val io = IO(new Bundle {
-    val interrupt = Input(new ExtInterrupt())
+    // val interrupt = Input(new ExtInterrupt())
+    val interrupt = UInt(8.W)
     val axi       = new AXI()
     val debug     = new DEBUG()
     val dataSram  = new DataSram()
