@@ -31,8 +31,9 @@ class Core extends Module {
   val controlUnit    = Module(new ControlUnit())
 
   // 取指单元
-  axibridge.io.axi <> io.axi
-  icache.io.axi    <> axibridge.io.icache
+  axibridge.io.axi    <> io.axi
+  icache.io.axi       <> axibridge.io.icache
+  axibridge.io.dcache := DontCare
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
   fetchUnit.io.inst        := icache.io.inst
