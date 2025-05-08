@@ -16,8 +16,6 @@ class FetchUnit extends Module {
     val branch       = Input(Bool())
     val target       = Input(UInt(XLEN.W))
     val signal       = Input(new Signals())
-    val inst         = Input(UInt(32.W))
-    val valid        = Input(new Bool())
     val fetchrequest = Output(new FetchRequest())
   })
 
@@ -43,6 +41,8 @@ class FetchUnit extends Module {
     isValid := Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, true.B, false.B)
   }
 
+  io.fetchrequest.addr  = pc
+  io.fetchrequest.valid = isValid
   /*
   switch(state) {
     is(boot) {
