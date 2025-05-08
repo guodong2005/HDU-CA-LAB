@@ -43,8 +43,9 @@ class ControlUnit extends Module {
   val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
 
   // Generate control signals using modular assignment
-  io.signals.fetchUnitSignal.allow_to_go   := !pipeline_stall || io.cacheStall
-  io.signals.decodeUnitSignal.allow_to_go  := !pipeline_stall
+  io.signals.fetchUnitSignal.allow_to_go  := (!pipeline_stall) || (!io.cacheStall)
+  io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall) || (!io.cacheStall)
+
   io.signals.executeUnitSignal.allow_to_go := true.B
   io.signals.memoryUnitSignal.allow_to_go  := true.B
 
