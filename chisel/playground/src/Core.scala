@@ -39,7 +39,7 @@ class Core extends Module {
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
   fetchUnit.io.inst        := icache.io.inst
   fetchUnit.io.valid       := icache.io.valid
-  icache.io.addr           := fetchUnit.io.addr
+  icache.io.fetchrequest   := fetchUnit.io.fetchrequest
 
   controlUnit.io.branch     := executeUnit.io.branch
   controlUnit.io.cacheStall := !icache.io.valid

@@ -19,7 +19,7 @@ class Axibridge extends Module { // 总线能支持流水线吗
 
   val ar_id = Mux(ar_sel_lock, ar_sel_val, io.dcache.ar.valid)
   when(io.axi.ar.valid) {
-    when(io.axi.ar.ready) {
+    when(io.axi.ar.ready) { //  握手成功, 此时返回的不一定为 valid, 此时不能有新的
       ar_sel_lock := false.B
     }.otherwise {
       ar_sel_lock := true.B

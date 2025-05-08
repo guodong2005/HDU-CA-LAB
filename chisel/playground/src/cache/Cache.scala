@@ -7,14 +7,17 @@ import cpu.defines.Const._
 
 class Icache extends Module {
   val io = IO(new Bundle {
-    val axi   = new AXI()
-    val addr  = Input(UInt(32.W))
-    val inst  = Output(UInt(32.W))
-    val valid = Output(UInt(32.W))
+    val axi          = new AXI()
+    val fetchrequest = Input(new FetchRequest())
+    val inst         = Output(UInt(32.W))
+    val valid        = Output(Bool())
   })
-  io.axi              := DontCare
-  io.axi.ar.valid     := true.B
-  io.axi.ar.bits.addr := io.addr
+
+  io.axi := DontCare
+  // 先用一个笨方法，假设 ready 跟 response 同时到达
+
+  io.axi.ar.valid     := io.fetchrequest.valid
+  io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 4.U
 
   io.valid := io.axi.r.valid;
