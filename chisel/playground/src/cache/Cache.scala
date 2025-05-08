@@ -18,7 +18,7 @@ class Icache extends Module {
 
   io.axi.ar.valid     := io.fetchrequest.valid
   io.axi.ar.bits.addr := io.fetchrequest.addr
-  io.axi.ar.bits.size := 4.U
+  io.axi.ar.bits.size := 2.U
 
   io.valid := io.axi.r.valid;
   io.inst  := io.axi.r.bits.data;
