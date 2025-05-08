@@ -31,6 +31,7 @@ class Axibridge extends Module { // 总线能支持流水线吗
   io.axi.ar.valid     := Mux(ar_id, io.dcache.ar.valid, io.icache.ar.valid)
   io.axi.ar.bits.addr := Mux(ar_id, io.dcache.ar.bits.addr, io.icache.ar.bits.addr)
   io.axi.ar.bits.size := Mux(ar_id, io.dcache.ar.bits.size, io.icache.ar.bits.size)
+  io.axi.r.ready      := true.B
 
   val r_sel = io.axi.r.bits.id(0)
   io.icache.r.valid     := !r_sel && io.axi.r.valid
