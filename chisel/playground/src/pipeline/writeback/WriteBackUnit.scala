@@ -17,6 +17,7 @@ class WriteBackUnit extends Module {
 
   val validData = io.writeBackStage.data
 
+  val canStart = RegNext(reset.asBool) & (!reset.asBool)
   // Write to the register file
   io.regfile.wen   := validData.info.reg_wen & validData.info.valid // Enable register write based on control signal
   io.regfile.waddr := validData.info.reg_waddr                      // Write to the destination register

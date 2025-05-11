@@ -23,3 +23,21 @@ class Icache extends Module {
   io.valid := io.axi.r.valid;
   io.inst  := io.axi.r.bits.data;
 }
+class Dcache extends Module {
+  val io = IO(new Bundle {
+    val axi          = new AXI()
+    val fetchrequest = Input(new FetchRequest())
+    val inst         = Output(UInt(32.W))
+    val valid        = Output(Bool())
+  })
+
+  io.axi := DontCare
+  // 先用一个笨方法，假设 ready 跟 response 同时到达
+
+  io.axi.ar.valid     := io.fetchrequest.valid
+  io.axi.ar.bits.addr := io.fetchrequest.addr
+  io.axi.ar.bits.size := 2.U
+
+  io.valid := io.axi.r.valid;
+  io.inst  := io.axi.r.bits.data;
+}
