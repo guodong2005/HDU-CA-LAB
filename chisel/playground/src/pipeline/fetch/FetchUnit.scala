@@ -21,9 +21,6 @@ class FetchUnit extends Module {
     val fetchrequest = Output(new FetchRequest())
   })
 
-  val boot :: send :: receive :: Nil = Enum(3)
-  val state                          = RegInit(boot)
-
   val pc      = RegInit(0.U)
   val isValid = RegInit(0.U)
 
@@ -52,19 +49,6 @@ class FetchUnit extends Module {
 
   io.fetchrequest.addr  := pc
   io.fetchrequest.valid := isValid
-  /*
-  switch(state) {
-    is(boot) {
-      state := send
-    }
-    is(send) {
-      state := receive
-    }
-    is(receive) {}
-  }
-   */
-
-  // 初始直接 +0， 因为接收到的 valid 是 0, 所以 allow to go = 0
 
 }
 
