@@ -27,7 +27,7 @@ class FetchUnit extends Module {
   val answerValid = io.valid
   val nxtpc       = Mux(io.branch === 0.U, pc + Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, (4.U), (0.U)), io.target)
 
-  val canStart = RegNext(!reset.asBool) & (!reset.asBool)
+  val canStart = RegNext(reset.asBool) & (reset.asBool)
 
   // 问的不可能马上达到，所以
   io.decodeStage.data.valid := answerValid
