@@ -13,6 +13,9 @@ verilog:
 	$(MAKE) -C $(CHISEL_DIR) verilog
 	cp $(CHISEL_DIR)/build/core_top.v $(SRC_DIR)
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/IP/myCPU/core_top.v
+	cd ${CHIPLAB_HOME}/sims/verilator/run_prog
+	make
+
 
 trace: obj_dir/V$(TOP_NAME)
 	$(call git_commit, "trace") # DO NOT REMOVE THIS LINE!!!
