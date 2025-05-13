@@ -1,4 +1,5 @@
-SRC_DIR  := ./coreSRC_FILE := $(shell find $(SRC_DIR) -name '*.svh') $(shell find $(SRC_DIR) -name '*.h') $(shell find $(SRC_DIR) -name '*.v') $(shell find $(SRC_DIR) -name '*.sv')
+SRC_DIR  := ./core
+SRC_FILE := $(shell find $(SRC_DIR) -name '*.svh') $(shell find $(SRC_DIR) -name '*.h') $(shell find $(SRC_DIR) -name '*.v') $(shell find $(SRC_DIR) -name '*.sv')
 CHISEL_DIR = ../chisel
 BUILD_DIR = $(CHISEL_DIR)/build
 TESTBIN_DIR = ./test/bin/am-tests/unalign.bin
@@ -14,8 +15,6 @@ verilog:
 	cp $(CHISEL_DIR)/build/core_top.v $(SRC_DIR)
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/IP/myCPU/core_top.v
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/guodong-cpu/core_top.v
-	sh /home/guodong/CPU/chiplab/IP/myCPU/addDiff.sh
-
 	$(MAKE) -C ${CHIPLAB_HOME}/sims/verilator/run_prog
 
 
