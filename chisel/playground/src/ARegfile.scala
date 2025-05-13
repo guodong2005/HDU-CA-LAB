@@ -24,24 +24,25 @@ class RegWrite extends Bundle {
 
 class ARegFile extends Module {
   val io = IO(new Bundle {
-    val read  = Flipped(new Src12Read())
-    val write = Flipped(new RegWrite())
+    val read     = Flipped(new Src12Read())
+    val write    = Flipped(new RegWrite())
     val regs_out = Output(Vec(AREG_NUM, UInt(XLEN.W))) // Expose registers to top
   })
 
   // 定义32个 64 位寄存器
   val regs = RegInit(VecInit(Seq.fill(AREG_NUM)(0.U(XLEN.W))))
-    // val regs = RegInit(VecInit((0 until AREG_NUM).map(_.U(XLEN.W)))) // for lab1
+  // val regs = RegInit(VecInit((0 until AREG_NUM).map(_.U(XLEN.W)))) // for lab1
 
   /*
 for(i:  0 -> 32)
   regs[i] = i
-  */
+   */
 
   // 写寄存器堆
   when(io.write.wen && (io.write.waddr =/= 0.U)) {
     regs(io.write.waddr) := io.write.wdata
   }
+  io.regs_out := regs
 
   // 读寄存器堆
   io.read.src1.rdata := regs(io.read.src1.raddr)
