@@ -3,6 +3,7 @@ SRC_FILE := $(shell find $(SRC_DIR) -name '*.svh') $(shell find $(SRC_DIR) -name
 CHISEL_DIR = ../chisel
 BUILD_DIR = $(CHISEL_DIR)/build
 TESTBIN_DIR = ./test/bin/am-tests/unalign.bin
+.DEFAULT_GOAL := verilog
 
 .PHONY: clean
 
