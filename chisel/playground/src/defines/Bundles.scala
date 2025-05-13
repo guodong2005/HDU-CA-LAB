@@ -116,62 +116,62 @@ class AXI extends Bundle {
   val b  = Flipped(Decoupled(new B())) // Write response handshake
 }
 class DifftestInstrCommit extends Bundle {
-  val clock          = Output(Clock())
-  val coreid         = Output(UInt(4.W))
-  val index          = Output(UInt(8.W))
-  val valid          = Output(Bool())
-  val pc             = Output(UInt(32.W))
-  val instr          = Output(UInt(32.W))
-  val skip           = Output(Bool())
-  val is_TLBFILL     = Output(Bool())
-  val TLBFILL_index  = Output(UInt(8.W))
-  val is_CNTinst     = Output(Bool())
-  val timer_64_value = Output(UInt(64.W))
-  val wen            = Output(Bool())
-  val wdest          = Output(UInt(5.W))
-  val wdata          = Output(UInt(32.W))
-  val csr_rstat      = Output(Bool())
-  val csr_data       = Output(UInt(32.W))
+  val clock          = Clock()
+  val coreid         = UInt(4.W)
+  val index          = UInt(8.W)
+  val valid          = Bool()
+  val pc             = UInt(32.W)
+  val instr          = UInt(32.W)
+  val skip           = Bool()
+  val is_TLBFILL     = Bool()
+  val TLBFILL_index  = UInt(8.W)
+  val is_CNTinst     = Bool()
+  val timer_64_value = UInt(64.W)
+  val wen            = Bool()
+  val wdest          = UInt(5.W)
+  val wdata          = UInt(32.W)
+  val csr_rstat      = Bool()
+  val csr_data       = UInt(32.W)
 }
 
 class DifftestExcpEvent extends Bundle {
-  val clock         = Output(Clock())
-  val coreid        = Output(UInt(4.W))
-  val excp_valid    = Output(Bool())
-  val eret          = Output(Bool())
-  val intrNo        = Output(UInt(11.W))
-  val cause         = Output(UInt(5.W))
-  val exceptionPC   = Output(UInt(32.W))
-  val exceptionInst = Output(UInt(32.W))
+  val clock         = Clock()
+  val coreid        = UInt(4.W)
+  val excp_valid    = Bool()
+  val eret          = Bool()
+  val intrNo        = UInt(11.W)
+  val cause         = UInt(5.W)
+  val exceptionPC   = UInt(32.W)
+  val exceptionInst = UInt(32.W)
 }
 
 class DifftestTrapEvent extends Bundle {
-  val clock    = Output(Clock())
-  val coreid   = Output(UInt(4.W))
-  val valid    = Output(Bool()) // Unused, set to 0
-  val code     = Output(UInt(32.W))
-  val pc       = Output(UInt(32.W))
-  val cycleCnt = Output(UInt(64.W))
-  val instrCnt = Output(UInt(64.W))
+  val clock    = Clock()
+  val coreid   = UInt(4.W)
+  val valid    = Bool() // Unused, set to 0
+  val code     = UInt(32.W)
+  val pc       = UInt(32.W)
+  val cycleCnt = UInt(64.W)
+  val instrCnt = UInt(64.W)
 }
 
 class DifftestStoreEvent extends Bundle {
-  val clock      = Output(Clock())
-  val coreid     = Output(UInt(4.W))
-  val index      = Output(UInt(8.W))
-  val valid      = Output(Bool())
-  val storePAddr = Output(UInt(32.W))
-  val storeVAddr = Output(UInt(32.W))
-  val storeData  = Output(UInt(32.W))
+  val clock      = Clock()
+  val coreid     = UInt(4.W)
+  val index      = UInt(8.W)
+  val valid      = Bool()
+  val storePAddr = UInt(32.W)
+  val storeVAddr = UInt(32.W)
+  val storeData  = UInt(32.W)
 }
 
 class DifftestLoadEvent extends Bundle {
-  val clock  = Output(Clock())
-  val coreid = Output(UInt(4.W))
-  val index  = Output(UInt(8.W))
-  val valid  = Output(Bool())
-  val paddr  = Output(UInt(32.W))
-  val vaddr  = Output(UInt(32.W))
+  val clock  = Clock()
+  val coreid = UInt(4.W)
+  val index  = UInt(8.W)
+  val valid  = Bool()
+  val paddr  = UInt(32.W)
+  val vaddr  = UInt(32.W)
 }
 
 class DifftestCSRRegState extends Bundle {
@@ -182,13 +182,12 @@ class DifftestGRegState extends Bundle {
   val gRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 General Registers
 }
 
-class Diffout extends Bundle {
-  val instrCommit = new DifftestInstrCommit()
-  val excpEvent   = new DifftestExcpEvent()
-  val trapEvent   = new DifftestTrapEvent()
-  val storeEvent  = new DifftestStoreEvent()
-  val loadEvent   = new DifftestLoadEvent()
-  val csrRegState = new DifftestCSRRegState()
-  val gRegState   = new DifftestGRegState()
-
+class DiffOut extends Bundle {
+  val instrCommit = Output(new DifftestInstrCommit())
+  val excpEvent   = Output(new DifftestExcpEvent())
+  val trapEvent   = Output(new DifftestTrapEvent())
+  val storeEvent  = Output(new DifftestStoreEvent())
+  val loadEvent   = Output(new DifftestLoadEvent())
+  val csrRegState = Output(new DifftestCSRRegState())
+  val gRegState   = Output(new DifftestGRegState())
 }
