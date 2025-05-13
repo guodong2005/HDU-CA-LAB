@@ -15,7 +15,7 @@ class Core extends Module {
     val axi       = new AXI()
     val debug     = new DEBUG()
     val dataSram  = new DataSram()
-    val Diff      = new Diff()
+    val Diff      = new DiffOut()
   })
 
   val icache         = Module(new Icache())
@@ -79,9 +79,8 @@ class Core extends Module {
   fetchUnit.io.signal             := controlUnit.io.signals
 
   // difftest:
-  io.Diff.io.debug <> io.debug
-  io.Diff.io.info  := writeBackUnit.io.info
+  io.Diff.io.debug     <> io.debug
+  io.Diff.io.info      := writeBackUnit.io.info
   io.Diff.io.gRegState := regfile.io.regs_out
 
-  
 }

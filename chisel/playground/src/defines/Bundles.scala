@@ -181,3 +181,14 @@ class DifftestCSRRegState extends Bundle {
 class DifftestGRegState extends Bundle {
   val gRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 General Registers
 }
+
+class Diffout extends Bundle {
+  val instrCommit = new DifftestInstrCommit()
+  val excpEvent   = new DifftestExcpEvent()
+  val trapEvent   = new DifftestTrapEvent()
+  val storeEvent  = new DifftestStoreEvent()
+  val loadEvent   = new DifftestLoadEvent()
+  val csrRegState = new DifftestCSRRegState()
+  val gRegState   = new DifftestGRegState()
+
+}
