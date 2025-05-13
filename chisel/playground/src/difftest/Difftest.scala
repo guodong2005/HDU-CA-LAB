@@ -15,6 +15,7 @@ class Diff extends Module {
   })
   // if I want to change store/load event, I will decode here.
   // because this module wont get boarded so no need to worry for the resource
+  io                           := DontCare
   io.diffout.instrCommit.instr := io.info.instr
   io.diffout.instrCommit.valid := io.debug.commit
   io.diffout.instrCommit.pc    := io.debug.pc
