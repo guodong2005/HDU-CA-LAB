@@ -1628,7 +1628,7 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Diff
                 io_diffout_gRegState_31	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:9:14
 );
 
-  assign io_diffout_instrCommit_valid = io_debug_commit[0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:8:7, :20:32
+  assign io_diffout_instrCommit_valid = io_debug_commit[0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:8:7, :21:32
   assign io_diffout_instrCommit_pc = io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:8:7
   assign io_diffout_instrCommit_instr = io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:8:7
   assign io_diffout_instrCommit_wdest = io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/Difftest.scala:8:7

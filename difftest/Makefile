@@ -14,6 +14,7 @@ verilog:
 	$(MAKE) -C $(CHISEL_DIR) verilog
 	cp $(CHISEL_DIR)/build/core_top.v $(SRC_DIR)
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/IP/myCPU/core_top.v
+	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/guodong-cpu/core_top.v
 	$(MAKE) -C ${CHIPLAB_HOME}/sims/verilator/run_prog
 
 
