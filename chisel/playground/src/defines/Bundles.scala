@@ -174,13 +174,13 @@ class DifftestLoadEvent extends Bundle {
   val vaddr  = UInt(32.W)
 }
 
-class DifftestCSRRegState extends Bundle {
-  val csrRegs = Vec(AREG_NUM, (UInt(XLEN.W))) // Assuming 32 CSR registers
-}
+// class DifftestCSRRegState extends Bundle {
+//   val csrRegs = Vec(AREG_NUM, (UInt(XLEN.W))) // Assuming 32 CSR registers
+// }
 
-class DifftestGRegState extends Bundle {
-  val gRegs = Vec(AREG_NUM, (UInt(XLEN.W))) // Assuming 32 General Registers
-}
+// class DifftestGRegState extends Bundle {
+//   val gRegs = // Assuming 32 General Registers
+// }
 
 class DiffOut extends Bundle {
   val instrCommit = Output(new DifftestInstrCommit())
@@ -188,6 +188,6 @@ class DiffOut extends Bundle {
   val trapEvent   = Output(new DifftestTrapEvent())
   val storeEvent  = Output(new DifftestStoreEvent())
   val loadEvent   = Output(new DifftestLoadEvent())
-  val csrRegState = Output(new DifftestCSRRegState())
-  val gRegState   = Output(new DifftestGRegState())
+  val csrRegState = Output(Vec(AREG_NUM, (UInt(XLEN.W))))
+  val gRegState   = Output(Vec(AREG_NUM, (UInt(XLEN.W))))
 }
