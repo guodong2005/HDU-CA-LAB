@@ -115,3 +115,69 @@ class AXI extends Bundle {
   val w  = Decoupled(new W())          // Write data handshake
   val b  = Flipped(Decoupled(new B())) // Write response handshake
 }
+class DifftestInstrCommit extends Bundle {
+  val clock          = Output(Clock())
+  val coreid         = Output(UInt(4.W))
+  val index          = Output(UInt(8.W))
+  val valid          = Output(Bool())
+  val pc             = Output(UInt(32.W))
+  val instr          = Output(UInt(32.W))
+  val skip           = Output(Bool())
+  val is_TLBFILL     = Output(Bool())
+  val TLBFILL_index  = Output(UInt(8.W))
+  val is_CNTinst     = Output(Bool())
+  val timer_64_value = Output(UInt(64.W))
+  val wen            = Output(Bool())
+  val wdest          = Output(UInt(5.W))
+  val wdata          = Output(UInt(32.W))
+  val csr_rstat      = Output(Bool())
+  val csr_data       = Output(UInt(32.W))
+}
+
+class DifftestExcpEvent extends Bundle {
+  val clock         = Output(Clock())
+  val coreid        = Output(UInt(4.W))
+  val excp_valid    = Output(Bool())
+  val eret          = Output(Bool())
+  val intrNo        = Output(UInt(11.W))
+  val cause         = Output(UInt(5.W))
+  val exceptionPC   = Output(UInt(32.W))
+  val exceptionInst = Output(UInt(32.W))
+}
+
+class DifftestTrapEvent extends Bundle {
+  val clock    = Output(Clock())
+  val coreid   = Output(UInt(4.W))
+  val valid    = Output(Bool()) // Unused, set to 0
+  val code     = Output(UInt(32.W))
+  val pc       = Output(UInt(32.W))
+  val cycleCnt = Output(UInt(64.W))
+  val instrCnt = Output(UInt(64.W))
+}
+
+class DifftestStoreEvent extends Bundle {
+  val clock      = Output(Clock())
+  val coreid     = Output(UInt(4.W))
+  val index      = Output(UInt(8.W))
+  val valid      = Output(Bool())
+  val storePAddr = Output(UInt(32.W))
+  val storeVAddr = Output(UInt(32.W))
+  val storeData  = Output(UInt(32.W))
+}
+
+class DifftestLoadEvent extends Bundle {
+  val clock  = Output(Clock())
+  val coreid = Output(UInt(4.W))
+  val index  = Output(UInt(8.W))
+  val valid  = Output(Bool())
+  val paddr  = Output(UInt(32.W))
+  val vaddr  = Output(UInt(32.W))
+}
+
+class DifftestCSRRegState extends Bundle {
+  val csrRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 CSR registers
+}
+
+class DifftestGRegState extends Bundle {
+  val gRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 General Registers
+}

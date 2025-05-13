@@ -26,6 +26,7 @@ class ARegFile extends Module {
   val io = IO(new Bundle {
     val read  = Flipped(new Src12Read())
     val write = Flipped(new RegWrite())
+    val regs_out = Output(Vec(AREG_NUM, UInt(XLEN.W))) // Expose registers to top
   })
 
   // 定义32个 64 位寄存器
