@@ -13,8 +13,9 @@ class core_top extends Module {
     val ws_valid    = Output(Bool())
     val rf_data     = Output(UInt(32.W))
 
-    val axi   = new AXI()
-    val debug = new DEBUG()
+    val axi     = new AXI()
+    val debug   = new DEBUG()
+    val diffout = new DiffOut()
   })
 
   val core = Module(new Core())
@@ -31,6 +32,7 @@ class core_top extends Module {
   io.ext_int <> core.io.interrupt
   io.axi     <> core.io.axi
   io.debug   <> core.io.debug
+  io.diffout <> core.io.diff
 
   io.axi.ar.bits.burst := 1.U
   io.axi.ar.bits.len   := 0.U
