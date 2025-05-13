@@ -175,11 +175,11 @@ class DifftestLoadEvent extends Bundle {
 }
 
 class DifftestCSRRegState extends Bundle {
-  val csrRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 CSR registers
+  val csrRegs = Vec(AREG_NUM, (UInt(XLEN.W))) // Assuming 32 CSR registers
 }
 
 class DifftestGRegState extends Bundle {
-  val gRegs = Vec(AREG_NUM, Output(UInt(XLEN.W))) // Assuming 32 General Registers
+  val gRegs = Vec(AREG_NUM, (UInt(XLEN.W))) // Assuming 32 General Registers
 }
 
 class DiffOut extends Bundle {
