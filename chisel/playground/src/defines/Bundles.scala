@@ -179,7 +179,7 @@ class DifftestCSRRegState extends Bundle {
 }
 
 class DifftestGRegState extends Bundle {
-  val gRegs = Vec(32, Output(UInt(32.W))) // Assuming 32 General Registers
+  val gRegs = Vec(AREG_NUM, Output(UInt(XLEN.W))) // Assuming 32 General Registers
 }
 
 class DiffOut extends Bundle {
