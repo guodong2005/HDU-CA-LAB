@@ -7,8 +7,9 @@ import cpu.defines.Const._
 
 class Diff extends Module {
   val io = IO(new Bundle {
-    val debug = Flipped(new DEBUG())
-    val info  = Input(new Info())
+    val debug   = Flipped(new DEBUG())
+    val info    = Input(new Info())
+    val regs_in = Input(Vec(AREG_NUM, UInt(XLEN.W)))
     // Outputs :
     val diffout = Output(new DiffOut())
   })
@@ -19,5 +20,6 @@ class Diff extends Module {
   io.diffout.instrCommit.pc    := io.debug.pc
   io.diffout.instrCommit.wdest := io.debug.rf_wnum
   io.diffout.instrCommit.wdata := io.debug.rf_wdata
+  io.diffout.gRegState         := io.regs_in
 
 }

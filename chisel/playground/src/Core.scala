@@ -80,9 +80,9 @@ class Core extends Module {
   fetchUnit.io.signal             := controlUnit.io.signals
 
   // difftest:
-  diff.io.debug             <> writeBackUnit.io.debug
-  diff.io.info              := writeBackUnit.io.info
-  diff.io.diffout.gRegState := regfile.io.regs_out
+  diff.io.debug   <> writeBackUnit.io.debug
+  diff.io.info    := writeBackUnit.io.info
+  diff.io.regs_in := regfile.io.regs_out
 
   io.Diff := diff.io.diffout
 
