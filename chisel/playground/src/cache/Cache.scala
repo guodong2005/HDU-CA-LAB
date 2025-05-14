@@ -33,10 +33,10 @@ class Icache extends Module {
   io.axi.ar.valid     := io.fetchrequest.valid
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
-  io.icacheStall      := !io.axi.r.valid
 
-  io.valid := io.axi.r.valid;
-  io.inst  := io.axi.r.bits.data;
+  io.valid       := io.axi.r.valid;
+  io.icacheStall := ~io.axi.r.valid
+  io.inst        := io.axi.r.bits.data;
 }
 class Dcache extends Module {
   val io = IO(new Bundle {

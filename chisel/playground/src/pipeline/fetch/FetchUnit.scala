@@ -44,7 +44,7 @@ class FetchUnit extends Module {
     }
   }.otherwise {
     pc      := nxtpc
-    isValid := Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, true.B, false.B)
+    isValid := io.signal.fetchUnitSignal.allow_to_go
   }
 
   io.fetchrequest.addr  := pc
