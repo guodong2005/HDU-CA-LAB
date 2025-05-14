@@ -19,9 +19,17 @@ class Icache extends Module {
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
 
-  io.valid       := io.axi.r.valid
-  io.inst        := io.axi.r.bits.data
-  io.icacheStall := ~io.axi.r.valid
+  io.valid := io.axi.r.valid
+  io.inst  := io.axi.r.bits.data
+  // 当放出了请求，并且请求还没被响应时，icache 处于 stall 状态
+  val yes :: no :: Nil = Enum(2)
+  val hasWait          = RegInit(no)
+  when(io.axi.r.valid) {
+    hasWait := no
+  }.elsewhen(io.fetchrequest.valid) {
+    hasWait := yes
+  }
+  io.icacheStall := hasWait === yes
 }
 class Dcache extends Module {
   val io = IO(new Bundle {
