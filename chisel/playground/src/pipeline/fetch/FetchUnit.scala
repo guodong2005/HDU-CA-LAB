@@ -27,7 +27,7 @@ class FetchUnit extends Module {
 
   val freetogo = io.signal.fetchUnitSignal.allow_to_go
   val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
-  printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
+  // printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
   io.decodeStage.data.valid := io.valid
@@ -43,7 +43,7 @@ class FetchUnit extends Module {
       isValid := true.B
     }
   }.otherwise {
-    printf(p"in reg nxtpc: ${Hexadecimal(nxtpc)}\n");
+    // printf(p"in reg nxtpc: ${Hexadecimal(nxtpc)}\n");
     pc      := nxtpc
     isValid := io.signal.fetchUnitSignal.allow_to_go
   }
