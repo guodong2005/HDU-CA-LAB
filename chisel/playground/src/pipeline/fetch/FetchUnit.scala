@@ -29,7 +29,7 @@ class FetchUnit extends Module {
   val pc      = RegInit(0.U)
   val isValid = RegInit(0.U)
 
-  val freetogo = io.signal.fetchUnitSignal.allow_to_go
+  val freetogo = io.signal.fetchUnitSignal.allow_to_go & io.fetchanswer.valid & (io.fetchanswer.pc === pc)
   val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
   // printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
