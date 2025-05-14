@@ -10,7 +10,7 @@ class Icache extends Module {
     val axi          = new AXI()
     val fetchrequest = Input(new FetchRequest())
     val icacheStall  = Output(Bool())
-    val fetchanswer  = Input(new FetchAnswer())
+    val fetchanswer  = Output(new FetchAnswer())
   })
 
   io.axi              := DontCare
@@ -25,9 +25,12 @@ class Icache extends Module {
   when(io.fetchrequest.valid) {
     waitingPC := io.fetchrequest.addr
   }
+
   io.fetchanswer.valid := io.axi.r.valid
   io.fetchanswer.data  := io.axi.r.bits.data
-  io.icacheStall       := hasWait
+  io.fetchanswer       := waitingPC
+
+  io.icacheStall := hasWait
   when(io.axi.r.valid) {
     hasWait        := no
     io.icacheStall := no
