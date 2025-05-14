@@ -15,7 +15,7 @@ verilog:
 	cp $(CHISEL_DIR)/build/core_top.v $(SRC_DIR)
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/IP/myCPU/core_top.v
 	cp $(CHISEL_DIR)/build/core_top.v /home/guodong/CPU/chiplab/guodong-cpu/core_top.v
-	sh ${CHIPLAB_HOME}/IP/myCPU/addDiff.sh
+	sh ${CHIPLAB_HOME}/guodong-cpu/addDiff.sh
 	$(MAKE) -C ${CHIPLAB_HOME}/sims/verilator/run_prog
 
 
