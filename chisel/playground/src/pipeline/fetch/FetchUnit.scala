@@ -24,12 +24,13 @@ class FetchUnit extends Module {
   val pc      = RegInit(0.U)
   val isValid = RegInit(0.U)
 
-  val freetogo = io.signal.fetchUnitSignal.allow_to_go
-  val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
-  printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
+  val answerValid = io.valid
+  val nxtpc       = Mux(io.branch === 0.U, pc + Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, (4.U), (0.U)), io.target)
+
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
-  io.decodeStage.data.valid := io.valid
+  // 问的不可能马上达到，所以
+  io.decodeStage.data.valid := answerValid
   io.decodeStage.data.pc    := pc
   io.decodeStage.data.inst  := io.inst
 
@@ -43,7 +44,7 @@ class FetchUnit extends Module {
     }
   }.otherwise {
     pc      := nxtpc
-    isValid := io.signal.fetchUnitSignal.allow_to_go
+    isValid := Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, true.B, false.B)
   }
 
   io.fetchrequest.addr  := pc
