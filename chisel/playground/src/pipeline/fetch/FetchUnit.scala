@@ -25,7 +25,8 @@ class FetchUnit extends Module {
   val isValid = RegInit(0.U)
 
   val answerValid = io.valid
-  val nxtpc       = Mux(io.branch === 0.U, pc + Mux(io.signal.fetchUnitSignal.allow_to_go === true.B, (4.U), (0.U)), io.target)
+  val freetogo    = io.signal.fetchUnitSignal.allow_to_go & answerValid
+  val nxtpc       = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
 
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 

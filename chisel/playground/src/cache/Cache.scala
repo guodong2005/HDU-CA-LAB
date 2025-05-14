@@ -34,9 +34,9 @@ class Icache extends Module {
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
 
-  io.valid       := io.axi.r.valid;
-  io.icacheStall := ~io.valid
-  io.inst        := io.axi.r.bits.data;
+  io.valid       := io.axi.r.valid
+  io.icacheStall := ~io.axi.r.valid // 非常奇怪的问题，这里不符合预期,不会是右边的值
+  io.inst        := io.axi.r.bits.data
 }
 class Dcache extends Module {
   val io = IO(new Bundle {
