@@ -9,9 +9,8 @@ class Icache extends Module {
   val io = IO(new Bundle {
     val axi          = new AXI()
     val fetchrequest = Input(new FetchRequest())
-    val inst         = Output(UInt(32.W))
-    val valid        = Output(Bool())
     val icacheStall  = Output(Bool())
+    val fetchanswer  = Input(new FetchAnswer())
   })
 
   io.axi              := DontCare
@@ -19,12 +18,16 @@ class Icache extends Module {
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
 
-  io.valid := io.axi.r.valid
-  io.inst  := io.axi.r.bits.data
   // 当放出了请求，并且请求还没被响应时，icache 处于 stall 状态
   val no :: yes :: Nil = Enum(2)
   val hasWait          = RegInit(yes)
-  io.icacheStall := hasWait
+  val waitingPC        = RegInit(0.U(XLEN.W))
+  when(io.fetchrequest.valid) {
+    waitingPC := io.fetchrequest.addr
+  }
+  io.fetchanswer.valid := io.axi.r.valid
+  io.fetchanswer.data  := io.axi.r.bits.data
+  io.icacheStall       := hasWait
   when(io.axi.r.valid) {
     hasWait        := no
     io.icacheStall := no

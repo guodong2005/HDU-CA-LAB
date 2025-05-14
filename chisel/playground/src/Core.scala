@@ -39,8 +39,7 @@ class Core extends Module {
   axibridge.io.dcache := DontCare
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
-  fetchUnit.io.inst        := icache.io.inst
-  fetchUnit.io.valid       := icache.io.valid
+  fetchUnit.io.fetchanswer := icache.io.fetchanswer
   icache.io.fetchrequest   := fetchUnit.io.fetchrequest
 
   controlUnit.io.branch      := executeUnit.io.branch
