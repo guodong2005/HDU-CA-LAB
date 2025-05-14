@@ -22,7 +22,7 @@ class ControlUnit extends Module {
     val executeInfo   = Input(new Info())
     val memoryInfo    = Input(new Info())
     val writeBackInfo = Input(new Info())
-    val cacheStall    = Input(new Bool())
+    val icacheStall   = Input(new Bool())
     val signals       = Output(new Signals())
     val branch        = Input(Bool()) // Changed to Input for modularity
   })
@@ -43,8 +43,8 @@ class ControlUnit extends Module {
   val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
 
   // Generate control signals using modular assignment
-  io.signals.fetchUnitSignal.allow_to_go  := (!pipeline_stall) && (!io.cacheStall)
-  io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall) && (!io.cacheStall)
+  io.signals.fetchUnitSignal.allow_to_go  := (!pipeline_stall) && (!io.icacheStall)
+  io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall) // icache stall 只会影响 fetchUnit
 
   io.signals.executeUnitSignal.allow_to_go := true.B
   io.signals.memoryUnitSignal.allow_to_go  := true.B

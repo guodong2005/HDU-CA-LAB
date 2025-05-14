@@ -1552,6 +1552,7 @@ module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
 endmodule
 
 module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+  input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
   input  [31:0] io_debug_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
   input  [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
   input  [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
@@ -1628,11 +1629,47 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/diff
                 io_diffout_gRegState_31	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
 );
 
-  assign io_diffout_instrCommit_valid = io_debug_commit[0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :22:32
-  assign io_diffout_instrCommit_pc = io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-  assign io_diffout_instrCommit_instr = io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-  assign io_diffout_instrCommit_wdest = io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-  assign io_diffout_instrCommit_wdata = io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+  reg [31:0] io_diffout_instrCommit_instr_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:26:42
+  reg [3:0]  io_diffout_instrCommit_valid_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:27:42
+  reg [31:0] io_diffout_instrCommit_pc_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:28:42
+  reg [4:0]  io_diffout_instrCommit_wdest_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:29:42
+  reg [31:0] io_diffout_instrCommit_wdata_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:30:42
+  always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+    io_diffout_instrCommit_instr_REG <= io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:26:42
+    io_diffout_instrCommit_valid_REG <= io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:27:42
+    io_diffout_instrCommit_pc_REG <= io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:28:42
+    io_diffout_instrCommit_wdest_REG <= io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:29:42
+    io_diffout_instrCommit_wdata_REG <= io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:30:42
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+    `ifdef FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      automatic logic [31:0] _RANDOM[0:89];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+        `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+        for (logic [6:0] i = 7'h0; i < 7'h5A; i += 7'h1) begin
+          _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+        end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+        io_diffout_instrCommit_instr_REG = {_RANDOM[7'h55][31:25], _RANDOM[7'h56][24:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42
+        io_diffout_instrCommit_valid_REG = _RANDOM[7'h56][28:25];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :27:42
+        io_diffout_instrCommit_pc_REG = {_RANDOM[7'h56][31:29], _RANDOM[7'h57][28:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :28:42
+        io_diffout_instrCommit_wdest_REG = {_RANDOM[7'h57][31:29], _RANDOM[7'h58][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :28:42, :29:42
+        io_diffout_instrCommit_wdata_REG = {_RANDOM[7'h58][31:2], _RANDOM[7'h59][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :29:42, :30:42
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      `FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_diffout_instrCommit_valid = io_diffout_instrCommit_valid_REG[0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :27:{32,42}
+  assign io_diffout_instrCommit_pc = io_diffout_instrCommit_pc_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :28:42
+  assign io_diffout_instrCommit_instr = io_diffout_instrCommit_instr_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42
+  assign io_diffout_instrCommit_wdest = io_diffout_instrCommit_wdest_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :29:42
+  assign io_diffout_instrCommit_wdata = io_diffout_instrCommit_wdata_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :30:42
   assign io_diffout_gRegState_0 = io_regs_in_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
   assign io_diffout_gRegState_1 = io_regs_in_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
   assign io_diffout_gRegState_2 = io_regs_in_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
@@ -2180,6 +2217,7 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_branch                               (_executeUnit_io_branch)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
   );
   Diff diff (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+    .clock                        (clock),
     .io_debug_pc                  (_writeBackUnit_io_debug_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_debug_commit              (_writeBackUnit_io_debug_commit),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_debug_rf_wnum             (_writeBackUnit_io_debug_rf_wnum),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
