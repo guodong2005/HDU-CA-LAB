@@ -15,6 +15,7 @@ class Icache extends Module {
   })
 
   io.axi := DontCare
+  /*
 // icacheStall 代表现在要一个指令，指令还没回来之前，需要 stall 住 fetchUnit.
 // 有两个状态，为是否存在一个未被应答的指令.
   val yes :: no :: Nil = Enum(2)
@@ -27,11 +28,12 @@ class Icache extends Module {
   }.otherwise {
     hasWait := io.fetchrequest.valid
   }
-  io.icacheStall := hasWait
+   */
 
   io.axi.ar.valid     := io.fetchrequest.valid
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
+  io.icacheStall      := !io.axi.r.valid
 
   io.valid := io.axi.r.valid;
   io.inst  := io.axi.r.bits.data;
