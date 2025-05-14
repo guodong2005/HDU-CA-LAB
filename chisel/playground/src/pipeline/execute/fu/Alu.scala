@@ -16,17 +16,16 @@ class Alu extends Module {
 
   switch(io.info.op) {
     // Other 32-bit operations remain unchanged
-    is(ALUOpType.add) { io.result := io.src_info.src1_data + io.src_info.src2_data } // ADD
-    is(ALUOpType.sub) { io.result := io.src_info.src1_data - io.src_info.src2_data } // SUB
-    is(ALUOpType.and) { io.result := io.src_info.src1_data & io.src_info.src2_data } // AND
-    is(ALUOpType.or) { io.result := io.src_info.src1_data | io.src_info.src2_data } // OR
-    is(ALUOpType.xor) { io.result := io.src_info.src1_data ^ io.src_info.src2_data } // XOR
-    is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt).asUInt } // SLT (signed)
-    is(ALUOpType.sltu) { io.result := (io.src_info.src1_data < io.src_info.src2_data) } // SLTU (unsigned)
-    is(ALUOpType.sll) { io.result := io.src_info.src1_data << io.src_info.src2_data(4, 0) } // SLL
-    is(ALUOpType.srl) { io.result := io.src_info.src1_data >> io.src_info.src2_data(4, 0) } // SRL (logical right shift)
-    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt } // SRA (arithmetic right shift)
+    is(ALUOpType.sub) { io.result := (io.src_info.src1_data - io.src_info.src2_data)(31, 0) } // SUB
+    is(ALUOpType.and) { io.result := (io.src_info.src1_data & io.src_info.src2_data)(31, 0) } // AND
+    is(ALUOpType.or) { io.result := (io.src_info.src1_data | io.src_info.src2_data)(31, 0) } // OR
+    is(ALUOpType.xor) { io.result := (io.src_info.src1_data ^ io.src_info.src2_data)(31, 0) } // XOR
+    is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt).asUInt(31, 0) } // SLT (signed)
+    is(ALUOpType.sltu) { io.result := (io.src_info.src1_data < io.src_info.src2_data)(31, 0) } // SLTU (unsigned)
+    is(ALUOpType.sll) { io.result := (io.src_info.src1_data << io.src_info.src2_data(4, 0))(31, 0) } // SLL
+    is(ALUOpType.srl) { io.result := (io.src_info.src1_data >> io.src_info.src2_data(4, 0))(31, 0) } // SRL (logical right shift)
+    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt(31, 0) } // SRA (arithmetic right shift)
+
   }
-  io.result := io.result(31, 0)
 
 }
