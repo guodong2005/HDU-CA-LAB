@@ -17,6 +17,7 @@ class Diff extends Module {
   val diffout_reg = RegInit(0.U.asTypeOf(new DiffOut()))
 
   // When commit is true, update diffout with new values from debug/info
+  io.diffout := DontCare
   when(io.debug.commit =/= false.B) {
     io.diffout.instrCommit.instr := io.info.instr
     io.diffout.instrCommit.valid := io.debug.commit
