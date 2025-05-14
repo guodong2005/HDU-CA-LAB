@@ -17,11 +17,17 @@ class Diff extends Module {
   // Register to store previous diffout state
   val diffout_reg = RegInit(0.U.asTypeOf(new DiffOut()))
 
-  io.diffout                   := DontCare
-  io.diffout.instrCommit.instr := io.info.instr
-  io.diffout.instrCommit.valid := io.debug.commit
-  io.diffout.instrCommit.pc    := io.debug.pc
-  io.diffout.instrCommit.wdest := io.debug.rf_wnum
-  io.diffout.instrCommit.wdata := io.debug.rf_wdata
-  io.diffout.gRegState         := io.regs_in
+  io.diffout := DontCare
+//   io.diffout.instrCommit.instr := io.info.instr
+//   io.diffout.instrCommit.valid := io.debug.commit
+//   io.diffout.instrCommit.pc    := io.debug.pc
+//   io.diffout.instrCommit.wdest := io.debug.rf_wnum
+//   io.diffout.instrCommit.wdata := io.debug.rf_wdata
+  io.diffout.instrCommit.instr := RegNext(io.info.instr)
+  io.diffout.instrCommit.valid := RegNext(io.debug.commit)
+  io.diffout.instrCommit.pc    := RegNext(io.debug.pc)
+  io.diffout.instrCommit.wdest := RegNext(io.debug.rf_wnum)
+  io.diffout.instrCommit.wdata := RegNext(io.debug.rf_wdata)
+
+  io.diffout.gRegState := io.regs_in
 }
