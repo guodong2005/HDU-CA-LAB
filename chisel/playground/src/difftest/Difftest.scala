@@ -25,7 +25,7 @@ class Diff extends Module {
     diffout_reg.instrCommit.wdest := io.debug.rf_wnum
     diffout_reg.instrCommit.wdata := io.debug.rf_wdata
     diffout_reg.gRegState         := io.regs_in
-    io.diffout.csrRegState        := DontCare
+    io.diffout                    := DontCare
     io.diffout.instrCommit.instr  := io.info.instr
     io.diffout.instrCommit.valid  := io.debug.commit
     io.diffout.instrCommit.pc     := io.debug.pc
