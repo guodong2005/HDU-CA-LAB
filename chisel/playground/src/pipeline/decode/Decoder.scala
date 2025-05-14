@@ -16,7 +16,7 @@ class Decoder extends Module with HasInstrType {
       val info = new Info()
     })
   })
-  printf(p"Decoder inst: ${Hexadecimal(io.in.inst)}\n")
+  // printf(p"Decoder inst: ${Hexadecimal(io.in.inst)}\n")
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(io.in.inst, Instructions.DecodeDefault, Instructions.DecodeTable)
   val inst = Mux(instrType === InstrN, Instructions.NOP, io.in.inst)

@@ -27,5 +27,6 @@ class Alu extends Module {
     is(ALUOpType.srl) { io.result := io.src_info.src1_data >> io.src_info.src2_data(4, 0) } // SRL (logical right shift)
     is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt } // SRA (arithmetic right shift)
   }
+  io.result := io.result(31, 0)
 
 }

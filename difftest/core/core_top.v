@@ -1143,8 +1143,8 @@ module Alu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [31:0] io_result	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:9:14
 );
 
-  wire [94:0] _io_result_T_12 =
-    {63'h0, io_src_info_src1_data} << io_src_info_src2_data[5:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:26:{60,84}
+  wire [62:0] _io_result_T_12 =
+    {31'h0, io_src_info_src1_data} << io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:24:35, :26:{60,84}
   assign io_result =
     io_info_op == 5'h0
       ? io_src_info_src1_data + io_src_info_src2_data
@@ -1165,10 +1165,10 @@ module Alu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                                   ? _io_result_T_12[31:0]
                                   : io_info_op == 5'h5
                                       ? io_src_info_src1_data
-                                        >> io_src_info_src2_data[5:0]
+                                        >> io_src_info_src2_data[4:0]
                                       : io_info_op == 5'h6
                                           ? $signed($signed(io_src_info_src1_data)
-                                                    >>> io_src_info_src2_data[5:0])
+                                                    >>> io_src_info_src2_data[4:0])
                                           : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:8:7, :15:13, :17:22, :19:{35,60}, :20:{35,60}, :21:{35,60}, :22:{34,59}, :23:{35,60}, :24:{35,68}, :25:{36,62}, :26:{35,60}, :27:{35,60,84}, :28:{35,68,92}
 endmodule
 
