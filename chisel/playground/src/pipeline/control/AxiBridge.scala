@@ -36,7 +36,7 @@ class Axibridge extends Module { // 总线能支持流水线吗
   val r_sel = io.axi.r.bits.id(0)
   io.icache.r.valid     := RegNext { !r_sel && io.axi.r.valid }
   io.icache.r.bits.data := io.axi.r.bits.data
-  io.dcache.r.valid     := r_sel && io.axi.r.valid
+  io.dcache.r.valid     := RegNext { r_sel && io.axi.r.valid }
   io.dcache.r.bits.data := io.axi.r.bits.data
 
 }

@@ -25,11 +25,12 @@ class Icache extends Module {
   val yes :: no :: Nil = Enum(2)
   val hasWait          = RegInit(yes)
   when(io.axi.r.valid) {
-    hasWait := no
+    hasWait        := no
+    io.icacheStall := no
   }.elsewhen(io.fetchrequest.valid) {
-    hasWait := yes
+    hasWait        := yes
+    io.icacheStall := yes
   }
-  io.icacheStall := hasWait === yes
 }
 class Dcache extends Module {
   val io = IO(new Bundle {

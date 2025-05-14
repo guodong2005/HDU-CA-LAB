@@ -43,7 +43,6 @@ class FetchUnit extends Module {
       isValid := true.B
     }
   }.otherwise {
-    // printf(p"in reg nxtpc: ${Hexadecimal(nxtpc)}\n");
     pc      := nxtpc
     isValid := io.signal.fetchUnitSignal.allow_to_go
   }
