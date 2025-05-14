@@ -17,7 +17,7 @@ class Diff extends Module {
   // Register to store previous diffout state
   val diffout_reg = RegInit(0.U.asTypeOf(new DiffOut()))
 
-  when(io.debug.commit === true.B) {
+  when(io.debug.commit =/= false.B) {
     // Update diffout_reg when commit is valid
     diffout_reg.instrCommit.instr := io.info.instr
     diffout_reg.instrCommit.valid := io.debug.commit
@@ -29,5 +29,5 @@ class Diff extends Module {
 
   // Set output based on stored state
   io.diffout                   := diffout_reg
-  io.diffout.instrCommit.valid := Mux(io.debug.commit === true.B, diffout_reg.instrCommit.valid, 0.U)
+  io.diffout.instrCommit.valid := Mux(io.debug.commit =/= false.B, diffout_reg.instrCommit.valid, 0.U)
 }
