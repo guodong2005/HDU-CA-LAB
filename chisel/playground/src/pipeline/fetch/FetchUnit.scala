@@ -24,13 +24,12 @@ class FetchUnit extends Module {
   val pc      = RegInit(0.U)
   val isValid = RegInit(0.U)
 
-  val answerValid = io.valid
-  val freetogo    = io.signal.fetchUnitSignal.allow_to_go & answerValid
-  val nxtpc       = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
+  val freetogo = io.signal.fetchUnitSignal.allow_to_go
+  val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
 
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
-  io.decodeStage.data.valid := answerValid
+  io.decodeStage.data.valid := io.valid
   io.decodeStage.data.pc    := pc
   io.decodeStage.data.inst  := io.inst
 
