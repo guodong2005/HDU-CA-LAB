@@ -14,7 +14,7 @@ class Diff extends Module {
   })
 
   // Register to store previous diffout state
-  val diffout_reg = RegInit(0.U.asTypeOf(new DiffOut()))
+  val diffout_reg = RegInit(0.U.asTypeOf(chiselTypeOf(io.diffout)))
 
   // When commit is true, update diffout with new values from debug/info
   io.diffout := DontCare
