@@ -44,7 +44,7 @@ class Core extends Module {
   icache.io.fetchrequest   := fetchUnit.io.fetchrequest
 
   controlUnit.io.branch      := executeUnit.io.branch
-  controlUnit.io.icacheStall := !icache.io.icacheStall
+  controlUnit.io.icacheStall := icache.io.icacheStall
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
