@@ -26,7 +26,7 @@ class FetchUnit extends Module {
 
   val freetogo = io.signal.fetchUnitSignal.allow_to_go
   val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
-
+  printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
   io.decodeStage.data.valid := io.valid
