@@ -29,5 +29,5 @@ class Diff extends Module {
 
   // Set output based on stored state
   io.diffout                   := diffout_reg
-  io.diffout.instrCommit.valid := Mux(io.debug.commit =/= false.B, diffout_reg.instrCommit.valid, 0.U)
+  io.diffout.instrCommit.valid := Mux(io.debug.commit =/= false.B, io.debug.commit, 0.U)
 }
