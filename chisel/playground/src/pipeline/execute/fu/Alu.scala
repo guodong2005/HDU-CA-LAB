@@ -23,9 +23,9 @@ class Alu extends Module {
     is(ALUOpType.xor) { io.result := io.src_info.src1_data ^ io.src_info.src2_data } // XOR
     is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt).asUInt } // SLT (signed)
     is(ALUOpType.sltu) { io.result := (io.src_info.src1_data < io.src_info.src2_data) } // SLTU (unsigned)
-    is(ALUOpType.sll) { io.result := io.src_info.src1_data << io.src_info.src2_data(5, 0) } // SLL
-    is(ALUOpType.srl) { io.result := io.src_info.src1_data >> io.src_info.src2_data(5, 0) } // SRL (logical right shift)
-    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(5, 0)).asUInt } // SRA (arithmetic right shift)
+    is(ALUOpType.sll) { io.result := io.src_info.src1_data << io.src_info.src2_data(4, 0) } // SLL
+    is(ALUOpType.srl) { io.result := io.src_info.src1_data >> io.src_info.src2_data(4, 0) } // SRL (logical right shift)
+    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt } // SRA (arithmetic right shift)
   }
 
 }
