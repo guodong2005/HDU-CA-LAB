@@ -19,6 +19,7 @@ class Decoder extends Module with HasInstrType {
   val inst = io.in.inst
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
+  inst        := Mux(instrType === InstrN, NOP, inst)
   io.out.info := DontCare
 
   io.out.info.valid := false.B

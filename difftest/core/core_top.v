@@ -65,10 +65,10 @@ module Icache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
 );
 
   reg  hasWait;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:26:33
-  wire io_icacheStall_0 = io_axi_r_valid | ~io_fetchrequest_valid & hasWait;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:26:33, :28:24, :29:20, :31:37, :32:20
+  wire io_icacheStall_0 = ~io_axi_r_valid & (io_fetchrequest_valid | hasWait);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:26:33, :28:24, :29:20, :31:37, :32:20
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
     if (reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
-      hasWait <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7, :26:33
+      hasWait <= 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7, :26:33
     else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
       hasWait <= io_icacheStall_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:26:33, :28:24, :29:20, :31:37
   end // always @(posedge)
