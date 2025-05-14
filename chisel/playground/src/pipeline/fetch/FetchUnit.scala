@@ -30,7 +30,6 @@ class FetchUnit extends Module {
 
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
-  // 问的不可能马上达到，所以
   io.decodeStage.data.valid := answerValid
   io.decodeStage.data.pc    := pc
   io.decodeStage.data.inst  := io.inst

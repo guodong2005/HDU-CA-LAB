@@ -14,29 +14,13 @@ class Icache extends Module {
     val icacheStall  = Output(Bool())
   })
 
-  io.axi := DontCare
-  /*
-// icacheStall 代表现在要一个指令，指令还没回来之前，需要 stall 住 fetchUnit.
-// 有两个状态，为是否存在一个未被应答的指令.
-  val yes :: no :: Nil = Enum(2)
-  val hasWait          = RegInit(no)
-
-  when(hasWait === yes) {
-    when(io.valid === true.B) {
-      hasWait := no
-    }
-  }.otherwise {
-    hasWait := io.fetchrequest.valid
-  }
-   */
-
+  io.axi              := DontCare
   io.axi.ar.valid     := io.fetchrequest.valid
   io.axi.ar.bits.addr := io.fetchrequest.addr
   io.axi.ar.bits.size := 2.U
 
-  io.valid       := io.axi.r.valid
-  io.icacheStall := ~io.axi.r.valid // 非常奇怪的问题，这里不符合预期,不会是右边的值
-  io.inst        := io.axi.r.bits.data
+  io.valid := io.axi.r.valid
+  io.inst  := io.axi.r.bits.data
 }
 class Dcache extends Module {
   val io = IO(new Bundle {
