@@ -34,6 +34,7 @@ class Diff extends Module {
   }.otherwise {
     io.diffout := diffout_reg
   }
+  io.diffout.csrRegState := DontCare
 
   // Set output based on stored state
   io.diffout.instrCommit.valid := Mux(io.debug.commit =/= false.B, io.debug.commit, 0.U)
