@@ -28,7 +28,7 @@ class Icache extends Module {
 
   io.fetchanswer.valid := io.axi.r.valid
   io.fetchanswer.data  := io.axi.r.bits.data
-  io.fetchanswer       := waitingPC
+  io.fetchanswer.pc    := waitingPC
 
   io.icacheStall := hasWait
   when(io.axi.r.valid) {
