@@ -5,6 +5,7 @@ import chisel3.util._
 import cpu.defines.Const._
 import cpu.CpuConfig
 import cpu.defines._
+import cpu.defines.Instructions.NOP
 
 class FetchRequest extends Bundle {
   val addr  = UInt(XLEN.W)
@@ -31,7 +32,7 @@ class FetchUnit extends Module {
 
   io.decodeStage.data.valid := io.valid
   io.decodeStage.data.pc    := pc
-  io.decodeStage.data.inst  := io.inst
+  io.decodeStage.data.inst  := Mux(io.valid === true.B, io.inst, NOP)
 
   when(pc === 0.U) {
     when(canStart === false.B) {
