@@ -43,8 +43,9 @@ class Core extends Module {
   fetchUnit.io.valid       := icache.io.valid
   icache.io.fetchrequest   := fetchUnit.io.fetchrequest
 
-  controlUnit.io.branch      := executeUnit.io.branch
-  controlUnit.io.icacheStall := icache.io.icacheStall
+  controlUnit.io.branch := executeUnit.io.branch
+  // controlUnit.io.icacheStall := icache.io.icacheStall
+  controlUnit.io.icacheStall := !icache.io.valid
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
