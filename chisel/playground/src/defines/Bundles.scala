@@ -19,7 +19,7 @@ class SrcInfo extends Bundle {
 
 class RdInfo extends Bundle {
   val wdata = UInt(XLEN.W)
-  val addr2 = UInt(2.W)
+  val addr3 = UInt(3.W)
 }
 
 class Info extends Bundle {
