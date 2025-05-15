@@ -48,7 +48,7 @@ class FetchUnit extends Module {
     }
   }.otherwise {
     pc      := nxtpc
-    isValid := io.signal.fetchUnitSignal.allow_to_go
+    isValid := freetogo
   }
 
   io.fetchrequest.addr  := pc
