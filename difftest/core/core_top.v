@@ -1226,7 +1226,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:67:13
     always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:67:13
       if ((`PRINTF_COND_) & ~_GEN & ~_GEN_0 & ~_GEN_1 & (|io_info_op) & _GEN_2 & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:37:19, :67:13
-        $fwrite(32'h80000002, "bne triggered: src1_data = %b, src2_data = %b, pc = %x\n",
+        $fwrite(32'h80000002, "bne triggered: src1_data = %x, src2_data = %x, pc = %x\n",
                 io_src_info_src1_data, io_src_info_src2_data, io_pc);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:67:13
     end // always @(posedge)
   `endif // not def SYNTHESIS
