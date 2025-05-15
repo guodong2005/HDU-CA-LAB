@@ -48,10 +48,10 @@ class Fu extends Module with HasInstrType {
       // FuType.lsu -> lsu.io.result
     )
   )
-  io.data.rd_info.wdata := result 
+  io.data.rd_info.wdata := result
 
   io.data.branch := bru.io.branch
   io.data.target := bru.io.target
 
-  io.data.rd_info.addr3 := lsu.io.addr3
+  io.data.rd_info.addr2 := lsu.io.addr2
 }

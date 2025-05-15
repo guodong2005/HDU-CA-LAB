@@ -5,13 +5,20 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
+class RwRequest extends Bundle {
+  val writeEn = Bool()
+  val addr    = UInt(XLEN.W)
+  val len     = UInt(2.W)
+  val data    = UInt(XLEN.W)
+  val valid   = Bool()
+}
 class Lsu extends Module {
   val io = IO(new Bundle {
-    val info     = Input(new Info())
-    val src_info = Input(new SrcInfo())
-    val result   = Output(UInt(XLEN.W))
-    val addr3    = Output(UInt(3.W))
-    val dataSram = new DataSram()
+    val info      = Input(new Info())
+    val src_info  = Input(new SrcInfo())
+    val result    = Output(UInt(XLEN.W))
+    val addr2     = Output(UInt(2.W))
+    val rwrequest = Output(new RwRequest())
   })
 
   /*
@@ -28,27 +35,16 @@ TODO: add unaligned exception
    */
 
   // io.dataSram.addr := io.src_info.src1_data + io.info.imm
-  io.dataSram.addr := LookupTree(
-    LSUOpType.isStore(io.info.op),
-    Seq(
-      true.B  -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0),
-      false.B -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
-    )
-  )
-  io.addr3 := io.dataSram.addr(2, 0)
-  val count = 1.U << (io.info.op(1, 0)) // 要写几个字节
-  val bits  = (1.U << count) - 1.U      // 生成一个字节个数的全 1 串
+  io.rwrequest.valid   := io.info.fusel === FuType.lsu && io.info.valid
+  io.rwrequest.writeEn := !LSUOpType.isStore(io.info.op)
+  io.rwrequest.addr    := (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
-  val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)), 8)
-
-  io.dataSram.en  := !reset.asBool
-  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
-  io.dataSram.wdata := LookupTree(
+  io.rwrequest.len := LookupTree(
     io.info.op,
     Seq(
-      LSUOpType.sb -> Fill(8, io.src_info.src2_data(7, 0)),  // Store Byte: replicate the lowest byte 8 times
-      LSUOpType.sh -> Fill(4, io.src_info.src2_data(15, 0)), // Store Halfword: replicate the lowest 2 bytes 4 times
-      LSUOpType.sw -> Fill(2, io.src_info.src2_data(31, 0))  // Store Word: replicate the lowest 4 bytes 2 times
+      LSUOpType.sb -> 0.U,
+      LSUOpType.sh -> 1.U,
+      LSUOpType.sw -> 2.U
     )
   )
   io.result := 0.U // data sram takes 2 period so now we cannot have the read result

@@ -5,6 +5,10 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 import cpu.CpuConfig
+class RwAnswer extends Bundle {
+  val valid = Bool()
+  val data  = UInt(XLEN.W)
+}
 
 class ExeMemData extends Bundle {
   val pc       = UInt(XLEN.W)

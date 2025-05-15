@@ -22,6 +22,7 @@ class Icache extends Module {
   val no :: yes :: Nil = Enum(2)
   val hasWait          = RegInit(yes)
   val waitingPC        = RegInit(0.U(XLEN.W))
+  // 流水线冲刷后，如果有残余请求我们要等他消耗掉，用一个期待的 PC 来鉴别这个请求是不是我们想要的
   when(io.fetchrequest.valid) {
     waitingPC := io.fetchrequest.addr
   }
@@ -46,7 +47,6 @@ class Dcache extends Module {
     val inst         = Output(UInt(32.W))
     val valid        = Output(Bool())
   })
-
   io.axi := DontCare
   // 先用一个笨方法，假设 ready 跟 response 同时到达
 
