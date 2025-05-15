@@ -64,6 +64,7 @@ class Bru extends Module {
 
     // BNE (Branch if Not Equal)
     is(BRUOpType.bne) {
+      printf(p"bne triggered: src1_data = ${Binary(io.src_info.src1_data)}, src2_data = ${Binary(io.src_info.src2_data)}, pc = ${Hexadecimal(pc)}\n")
       io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data =/= io.src_info.src2_data)
       io.target := (pc.asSInt + imm).asUInt
       io.result := 0.U

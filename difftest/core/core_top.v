@@ -1120,30 +1120,33 @@ module Alu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   output [31:0] io_result	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:9:14
 );
 
-  wire [62:0] _io_result_T_14 =
-    {31'h0, io_src_info_src1_data} << io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:23:35, :25:{61,85}
+  wire [62:0] _io_result_T_17 =
+    {31'h0, io_src_info_src1_data} << io_src_info_src2_data[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:24:35, :26:{61,85}
   assign io_result =
-    io_info_op == 5'h1
-      ? io_src_info_src1_data - io_src_info_src2_data
-      : io_info_op == 5'h8
-          ? io_src_info_src1_data & io_src_info_src2_data
-          : io_info_op == 5'h7
-              ? io_src_info_src1_data | io_src_info_src2_data
-              : io_info_op == 5'h4
-                  ? io_src_info_src1_data ^ io_src_info_src2_data
-                  : io_info_op == 5'h2
-                      ? {31'h0,
-                         $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)}
-                      : io_info_op == 5'h3
-                          ? {31'h0, io_src_info_src1_data < io_src_info_src2_data}
-                          : io_info_op == 5'h9
-                              ? _io_result_T_14[31:0]
-                              : io_info_op == 5'h5
-                                  ? io_src_info_src1_data >> io_src_info_src2_data[4:0]
-                                  : io_info_op == 5'h6
-                                      ? $signed($signed(io_src_info_src1_data)
-                                                >>> io_src_info_src2_data[4:0])
-                                      : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:8:7, :15:13, :17:22, :19:{35,61}, :20:{35,61}, :21:{34,60}, :22:{35,61}, :23:{35,68}, :24:{36,69}, :25:{35,61,92}, :26:{35,61,85}, :27:{35,68,92}
+    io_info_op == 5'h0
+      ? io_src_info_src1_data + io_src_info_src2_data
+      : io_info_op == 5'h1
+          ? io_src_info_src1_data - io_src_info_src2_data
+          : io_info_op == 5'h8
+              ? io_src_info_src1_data & io_src_info_src2_data
+              : io_info_op == 5'h7
+                  ? io_src_info_src1_data | io_src_info_src2_data
+                  : io_info_op == 5'h4
+                      ? io_src_info_src1_data ^ io_src_info_src2_data
+                      : io_info_op == 5'h2
+                          ? {31'h0,
+                             $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)}
+                          : io_info_op == 5'h3
+                              ? {31'h0, io_src_info_src1_data < io_src_info_src2_data}
+                              : io_info_op == 5'h9
+                                  ? _io_result_T_17[31:0]
+                                  : io_info_op == 5'h5
+                                      ? io_src_info_src1_data
+                                        >> io_src_info_src2_data[4:0]
+                                      : io_info_op == 5'h6
+                                          ? $signed($signed(io_src_info_src1_data)
+                                                    >>> io_src_info_src2_data[4:0])
+                                          : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Alu.scala:8:7, :15:13, :17:22, :19:{35,61}, :20:{35,61}, :21:{35,61}, :22:{34,60}, :23:{35,61}, :24:{35,68}, :25:{36,69}, :26:{35,61,92}, :27:{35,61,85}, :28:{35,68,92}
 endmodule
 
 module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7
