@@ -5,15 +5,29 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
+class readRequest extends Bundle {
+  val valid = Bool()
+  val id    = UInt(4.W)
+  val addr  = UInt(32.W)
+  val size  = UInt(3.W)
+}
 class Axibridge extends Module { // 总线能支持流水线吗
   val io = IO(new Bundle {
     val axi         = new AXI()
     val dcacheInput = Flipped(new AXI())
     val icacheInput = Flipped(new AXI())
   })
-  val a      = io.dcacheInput
-  val icache = RegInit(a)
-  val dcache = RegInit(a)
+  val icache = RegInit(0.U.asTypeOf(new readRequest))
+  val dcache = RegInit(0.U.asTypeOf(new readRequest))
+
+  icache.valid := io.icacheInput.ar.valid
+  icache.addr  := io.icacheInput.ar.bits.addr
+  icache.size  := io.icacheInput.ar.bits.size
+  icache.id    := io.icacheInput.ar.bits.id
+  dcache.valid := io.dcacheInput.ar.valid
+  dcache.addr  := io.dcacheInput.ar.bits.addr
+  dcache.size  := io.dcacheInput.ar.bits.size
+  dcache.id    := io.dcacheInput.ar.bits.id
 
   io.axi         := DontCare
   io.icacheInput := DontCare
@@ -29,21 +43,21 @@ class Axibridge extends Module { // 总线能支持流水线吗
   val ar_sel_lock = RegInit(false.B)
   val ar_sel_val  = RegInit(false.B)
 
-  val ar_id = Mux(ar_sel_lock, ar_sel_val, dcache.ar.valid)
+  val ar_id = Mux(ar_sel_lock, ar_sel_val, dcache.valid)
 
   when(io.axi.ar.valid) {
     when(io.axi.ar.ready) { //  握手成功, 此时返回的不一定为 valid, 此时不能有新的
-      when(dcache.ar.valid) {
-        io.axi.ar.bits.id   := Cat(0.U(3.W), dcache.ar.bits.id)
-        io.axi.ar.valid     := dcache.ar.valid
-        io.axi.ar.bits.addr := dcache.ar.bits.addr
-        io.axi.ar.bits.size := dcache.ar.bits.size
+      when(dcache.valid) {
+        io.axi.ar.bits.id   := Cat(0.U(3.W), dcache.id)
+        io.axi.ar.valid     := dcache.valid
+        io.axi.ar.bits.addr := dcache.addr
+        io.axi.ar.bits.size := dcache.size
         dcache              := 0.U.asTypeOf(new AXI())
       }.otherwise {
-        io.axi.ar.bits.id   := Cat(0.U(3.W), icache.ar.bits.id)
-        io.axi.ar.valid     := icache.ar.valid
-        io.axi.ar.bits.addr := icache.ar.bits.addr
-        io.axi.ar.bits.size := icache.ar.bits.size
+        io.axi.ar.bits.id   := Cat(0.U(3.W), icache.id)
+        io.axi.ar.valid     := icache.valid
+        io.axi.ar.bits.addr := icache.addr
+        io.axi.ar.bits.size := icache.size
         icache              := 0.U.asTypeOf(new AXI())
       }
     }.otherwise {
