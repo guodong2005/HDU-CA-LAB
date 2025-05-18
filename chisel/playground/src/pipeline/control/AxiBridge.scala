@@ -20,24 +20,23 @@ class Axibridge extends Module { // 总线能支持流水线吗
   val icache = RegInit(0.U.asTypeOf(new readRequest))
   val dcache = RegInit(0.U.asTypeOf(new readRequest))
 
-  icache.valid := io.icacheInput.ar.valid
-  icache.addr  := io.icacheInput.ar.bits.addr
-  icache.size  := io.icacheInput.ar.bits.size
-  icache.id    := io.icacheInput.ar.bits.id
-  dcache.valid := io.dcacheInput.ar.valid
-  dcache.addr  := io.dcacheInput.ar.bits.addr
-  dcache.size  := io.dcacheInput.ar.bits.size
-  dcache.id    := io.dcacheInput.ar.bits.id
-
   io.axi         := DontCare
   io.icacheInput := DontCare
   io.dcacheInput := DontCare
 
   when(io.icacheInput.ar.valid) {
-    icache := io.icacheInput
+    icache.valid := io.icacheInput.ar.valid
+    icache.addr  := io.icacheInput.ar.bits.addr
+    icache.size  := io.icacheInput.ar.bits.size
+    icache.id    := io.icacheInput.ar.bits.id
+
   }
   when(io.dcacheInput.ar.valid) {
-    dcache := io.dcacheInput
+    dcache.valid := io.dcacheInput.ar.valid
+    dcache.addr  := io.dcacheInput.ar.bits.addr
+    dcache.size  := io.dcacheInput.ar.bits.size
+    dcache.id    := io.dcacheInput.ar.bits.id
+
   }
 
   val ar_sel_lock = RegInit(false.B)
