@@ -11,8 +11,10 @@ class Axibridge extends Module { // 总线能支持流水线吗
     val dcacheInput = Flipped(new AXI())
     val icacheInput = Flipped(new AXI())
   })
-  val icache = RegInit(0.U.asTypeOf(new AXI()))
-  val dcache = RegInit(0.U.asTypeOf(new AXI()))
+  val a      = io.dcacheInput
+  val icache = RegInit(a)
+  val dcache = RegInit(a)
+
   io.axi         := DontCare
   io.icacheInput := DontCare
   io.dcacheInput := DontCare
