@@ -32,11 +32,9 @@ class Icache extends Module {
 
   io.icacheStall := hasWait
   when(io.axi.r.valid) {
-    hasWait        := no
-    io.icacheStall := no
+    hasWait := no
   }.elsewhen(io.fetchrequest.valid) {
-    hasWait        := yes
-    io.icacheStall := yes
+    hasWait := yes
   }
 }
 class Dcache extends Module {
