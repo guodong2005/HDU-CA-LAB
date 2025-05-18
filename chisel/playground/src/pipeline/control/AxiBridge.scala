@@ -51,13 +51,13 @@ class Axibridge extends Module { // 总线能支持流水线吗
         io.axi.ar.valid     := dcache.valid
         io.axi.ar.bits.addr := dcache.addr
         io.axi.ar.bits.size := dcache.size
-        dcache              := 0.U.asTypeOf(new AXI())
+        dcache              := 0.U.asTypeOf(new readRequest)
       }.otherwise {
         io.axi.ar.bits.id   := Cat(0.U(3.W), icache.id)
         io.axi.ar.valid     := icache.valid
         io.axi.ar.bits.addr := icache.addr
         io.axi.ar.bits.size := icache.size
-        icache              := 0.U.asTypeOf(new AXI())
+        icache              := 0.U.asTypeOf(new readRequest)
       }
     }.otherwise {
       // ar_sel_lock := true.B
