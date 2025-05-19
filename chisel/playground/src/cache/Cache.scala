@@ -30,7 +30,7 @@ class Icache extends Module {
   io.fetchanswer.data  := io.axi.r.bits.data
   io.fetchanswer.pc    := waitingPC
 
-  io.icacheStall := hasWait | io.axi.r.valid // 这里会吞掉一个时钟周期，或许我应该使用 combinational logic
+  io.icacheStall := hasWait | io.axi.ar.valid // 这里会吞掉一个时钟周期，或许我应该使用 combinational logic
   when(io.axi.r.valid) {
     hasWait := no
   }.elsewhen(io.fetchrequest.valid) {

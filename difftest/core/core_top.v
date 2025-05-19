@@ -112,7 +112,7 @@ module Icache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
   `endif // ENABLE_INITIAL_REG_
   assign io_axi_ar_valid = io_fetchrequest_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
   assign io_axi_ar_bits_addr = io_fetchrequest_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
-  assign io_icacheStall = hasWait;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7, :23:33
+  assign io_icacheStall = hasWait | io_axi_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7, :23:33, :33:29
   assign io_fetchanswer_data = io_axi_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
   assign io_fetchanswer_pc = waitingPC;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7, :24:33
   assign io_fetchanswer_valid = io_axi_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:8:7
