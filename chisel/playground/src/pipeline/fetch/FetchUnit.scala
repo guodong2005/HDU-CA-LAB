@@ -18,7 +18,7 @@ class FetchAnswer extends Bundle {
 }
 class FetchUnit extends Module {
   val io = IO(new Bundle {
-    val decodeStage  = new DecodeStage()
+    val decodeStage  = new FetchUnitDecodeUnit()
     val fetchanswer  = Input(new FetchAnswer())
     val icacheStall  = Input(Bool())
     val branch       = Input(Bool())
