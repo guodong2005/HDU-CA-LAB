@@ -26,19 +26,11 @@ class FetchAnswer extends Bundle {
  */
 class FetchUnit extends Module {
   val io = IO(new Bundle {
-    // Output to the decode stage (the decoded fetched instruction).
-    // (For clarity, we assume that decodeStage.data is of type IfIdData.)
-    val decodeStage = new FetchUnitDecodeUnit()
-    // Read response coming from the I‑cache (AXI R channel).
-    val fetchanswer = Input(new FetchAnswer())
-    // Branch control: if branch is true then jump to “target” instead of PC+4.
-    val branch = Input(Bool())
-    val target = Input(UInt(XLEN.W))
-    // Some external signal controlling whether the fetch unit (and later decode stage) is allowed to proceed.
-    val signal = Input(new Signals())
-    // AXI‑like fetch request (read address) channel.
-    // The fetch unit (AXI master) drives valid and bits (the address),
-    // and the I‑cache (AXI slave) drives ready.
+    val decodeStage  = new FetchUnitDecodeUnit()
+    val fetchanswer  = Input(new FetchAnswer())
+    val branch       = Input(Bool())
+    val target       = Input(UInt(XLEN.W))
+    val signal       = Input(new Signals())
     val fetchrequest = (Decoupled(UInt(XLEN.W)))
   })
 
