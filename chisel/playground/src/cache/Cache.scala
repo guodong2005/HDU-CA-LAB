@@ -38,6 +38,7 @@ class ICache extends Module {
   })
 
   // Default assignments for the AXI AR channel.
+  io.axi              := DontCare
   io.axi.ar.bits.size := 2.U
   io.axi.ar.bits.addr := 0.U
   io.axi.ar.valid     := false.B
