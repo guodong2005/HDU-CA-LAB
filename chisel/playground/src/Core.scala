@@ -40,10 +40,10 @@ class Core extends Module {
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
   fetchUnit.io.fetchanswer := icache.io.fetchanswer
+  fetchUnit.io.icacheStall := icache.io.icacheStall
   icache.io.fetchrequest   := fetchUnit.io.fetchrequest
 
-  controlUnit.io.branch      := executeUnit.io.branch
-  controlUnit.io.icacheStall := icache.io.icacheStall
+  controlUnit.io.branch := executeUnit.io.branch
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target

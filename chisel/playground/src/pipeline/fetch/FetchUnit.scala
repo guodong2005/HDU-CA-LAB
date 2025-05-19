@@ -18,25 +18,43 @@ class FetchAnswer extends Bundle {
 }
 class FetchUnit extends Module {
   val io = IO(new Bundle {
-    val decodeStage  = new FetchUnitDecodeUnit()
+    val decodeStage  = new DecodeStage()
     val fetchanswer  = Input(new FetchAnswer())
+    val icacheStall  = Input(Bool())
     val branch       = Input(Bool())
     val target       = Input(UInt(XLEN.W))
     val signal       = Input(new Signals())
     val fetchrequest = Output(new FetchRequest())
   })
 
-  val pc      = RegInit(0.U)
-  val isValid = RegInit(0.U)
+  val pc         = RegInit(0.U)
+  val isValid    = RegInit(0.U)
+  val currentget = RegInit(true.B)
+  val inst       = RegInit(0.U(XLEN.W))
 
-  val freetogo = io.signal.fetchUnitSignal.allow_to_go & io.fetchanswer.valid & (io.fetchanswer.pc === pc)
-  val nxtpc    = Mux(io.branch === 0.U, pc + Mux(freetogo === true.B, (4.U), (0.U)), io.target)
-  // printf(p"nxtpc: ${Hexadecimal(nxtpc)}\n");
+  val instvalid = io.fetchanswer.valid & (io.fetchanswer.pc === pc)
+  val ready     = io.signal.fetchUnitSignal.allow_to_go
+  val data      = RegInit(0.U.asTypeOf(new IfIdData()))
+
+  when(instvalid) {
+    data.inst  := io.fetchanswer.data
+    data.pc    := io.fetchanswer.pc
+    data.valid := true.B
+  }
+
   val canStart = RegNext(!reset.asBool) & (!reset.asBool)
 
-  io.decodeStage.data.valid := io.fetchanswer.valid & (io.fetchanswer.pc === pc)
-  io.decodeStage.data.pc    := pc
-  io.decodeStage.data.inst  := Mux(io.decodeStage.data.valid === true.B, io.fetchanswer.data, NOP)
+  val stall = (!ready) | data.valid // 有一个指令没发送，当前就要 stall
+  val nxtpc = Mux(io.branch === 0.U, pc + 4.U, io.target)
+  io.decodeStage.data := 0.U.asTypeOf(new IfIdData())
+  when(data.valid) {
+    when(ready) {
+      io.decodeStage.data.pc    := data.pc
+      io.decodeStage.data.valid := data.valid
+      io.decodeStage.data.inst  := data.inst
+      data                      := 0.U.asTypeOf(new IfIdData())
+    }
+  }
 
   when(pc === 0.U) {
     when(canStart === false.B) {
@@ -47,12 +65,10 @@ class FetchUnit extends Module {
       isValid := true.B
     }
   }.otherwise {
-    pc      := nxtpc
-    isValid := io.signal.fetchUnitSignal.allow_to_go
+    pc := Mux(stall, pc, nxtpc)
   }
-
   io.fetchrequest.addr  := pc
-  io.fetchrequest.valid := isValid
+  io.fetchrequest.valid := !stall // stall 不要发送请求
 
 }
 

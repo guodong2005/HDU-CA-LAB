@@ -20,7 +20,7 @@ class Icache extends Module {
 
   // 当放出了请求，并且请求还没被响应时，icache 处于 stall 状态
   val no :: yes :: Nil = Enum(2)
-  val hasWait          = RegInit(yes)
+  val hasWait          = RegInit(no)
   val waitingPC        = RegInit(0.U(XLEN.W))
   when(io.fetchrequest.valid) {
     waitingPC := io.fetchrequest.addr
