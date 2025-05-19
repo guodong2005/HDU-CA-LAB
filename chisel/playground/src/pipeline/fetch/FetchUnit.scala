@@ -65,7 +65,7 @@ class FetchUnit extends Module {
       isValid := true.B
     }
   }.otherwise {
-    pc := Mux(stall | io.icacheStall, pc, nxtpc)
+    pc := Mux(stall | !instvalid, pc, nxtpc)
   }
   io.fetchrequest.addr  := pc
   io.fetchrequest.valid := !stall & !io.icacheStall & isValid // stall 不要发送请求
