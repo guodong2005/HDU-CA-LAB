@@ -18,7 +18,7 @@ class Core extends Module {
     val diff      = new DiffOut()
   })
 
-  val icache         = Module(new Icache())
+  val icache         = Module(new ICache())
   val axibridge      = Module(new Axibridge())
   val fetchUnit      = Module(new FetchUnit())
   val decodeStage    = Module(new DecodeStage())
@@ -38,10 +38,24 @@ class Core extends Module {
   icache.io.axi            <> axibridge.io.icacheInput
   axibridge.io.dcacheInput := DontCare
 
-  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
-  fetchUnit.io.fetchanswer := icache.io.fetchanswer
-  fetchUnit.io.icacheStall := icache.io.icacheStall
-  icache.io.fetchrequest   := fetchUnit.io.fetchrequest
+  fetchUnit.io.decodeStage        <> decodeStage.io.fetchUnit
+  icache.io.fetch_req.valid       := fetchUnit.io.fetchrequest.valid
+  icache.io.fetch_req.addr        := fetchUnit.io.fetchrequest.bits
+  fetchUnit.io.fetchrequest.ready := icache.io.fetch_req.ready
+
+  // --------------------------------------------------------------
+  // Connect the ICache fetch response to the Fetch Unit's fetch answer.
+  // The ICache returns:
+  //   fetch_rsp.valid, fetch_rsp.data, fetch_rsp.addr (pc)
+  //
+  // We map these signals to:
+  //   fetchUnit.io.fetchanswer.valid  ← icache.io.fetch_rsp.valid
+  //   fetchUnit.io.fetchanswer.data   ← icache.io.fetch_rsp.data
+  //   fetchUnit.io.fetchanswer.pc     ← icache.io.fetch_rsp.addr
+  // --------------------------------------------------------------
+  fetchUnit.io.fetchanswer.valid := icache.io.fetch_rsp.valid
+  fetchUnit.io.fetchanswer.data  := icache.io.fetch_rsp.data
+  fetchUnit.io.fetchanswer.pc    := icache.io.fetch_rsp.addr
 
   controlUnit.io.branch := executeUnit.io.branch
 
