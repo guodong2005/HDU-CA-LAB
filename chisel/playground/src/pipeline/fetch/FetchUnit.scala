@@ -39,7 +39,7 @@ class FetchUnit extends Module {
     // AXI‑like fetch request (read address) channel.
     // The fetch unit (AXI master) drives valid and bits (the address),
     // and the I‑cache (AXI slave) drives ready.
-    val fetchrequest = Flipped(Decoupled(UInt(XLEN.W)))
+    val fetchrequest = (Decoupled(UInt(XLEN.W)))
   })
 
   // -------------------------------------------------------------------------
