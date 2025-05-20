@@ -84,6 +84,7 @@ class Lsu extends Module {
   val state                 = RegInit(sIdle)
 
   dontTouch(dcacheReqReg)
+  printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
     reqValidReg  := true.B
@@ -107,24 +108,26 @@ class Lsu extends Module {
   switch(state) {
     is(sIdle) {
       // If a request is pending and the slave is ready, handshake occurs.
-      when(reqValidReg && io.dcache.req.ready) {
-        when(LSUOpType.isStore(opReg)) { // Use the latched op from opReg.
-          // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
-          // For this example, we assume no store-conditional, so storeSC is false.
-          val storeSC = false.B
-          val st_w    = (opReg === LSUOpType.sw).asUInt
-          val st_h    = (opReg === LSUOpType.sh).asUInt
-          val st_b    = (opReg === LSUOpType.sb).asUInt
-          val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
+      when(reqValidReg) {
+        when(io.dcache.req.ready) {
+          when(LSUOpType.isStore(opReg)) { // Use the latched op from opReg.
+            // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
+            // For this example, we assume no store-conditional, so storeSC is false.
+            val storeSC = false.B
+            val st_w    = (opReg === LSUOpType.sw).asUInt
+            val st_h    = (opReg === LSUOpType.sh).asUInt
+            val st_b    = (opReg === LSUOpType.sb).asUInt
+            val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
-          io.diffout.storeEvent.valid      := store_valid
-          io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
-          io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
-          io.diffout.storeEvent.storeData  := storeWdata
+            io.diffout.storeEvent.valid      := store_valid
+            io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
+            io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
+            io.diffout.storeEvent.storeData  := storeWdata
+          }
+          // On handshake, clear the stored request flag and proceed.
+          reqValidReg := false.B
+          state       := sWait
         }
-        // On handshake, clear the stored request flag and proceed.
-        reqValidReg := false.B
-        state       := sWait
       }
     }
     is(sWait) {
