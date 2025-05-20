@@ -110,6 +110,8 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // FSM for issuing and completing the DCache request.
   // ------------------------------------------------------------
+  dontTouch(newReq);
+  dontTouch(dcacheReqReg);
   switch(state) {
     is(sIdle) {
       // If we have a new LSU operation and no pending request, capture it.
