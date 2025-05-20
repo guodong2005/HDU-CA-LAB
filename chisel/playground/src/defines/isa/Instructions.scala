@@ -78,8 +78,9 @@ object LSUOpType {
   def sh = "b1001".U
   def sw = "b1010".U
 
-  def isStore(func: UInt): Bool = func(3)
-  def isLoad(func:  UInt): Bool = !isStore(func)
+  def isStore(func:  UInt): Bool = func(3)
+  def isLoad(func:   UInt): Bool = !isStore(func)
+  def isSigned(func: UInt): Bool = func(2)
 }
 
 object BRUOpType {

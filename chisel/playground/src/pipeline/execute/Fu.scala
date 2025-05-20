@@ -14,10 +14,11 @@ class Fu extends Module with HasInstrType {
       val src_info = Input(new SrcInfo())
       val rd_info  = Output(new RdInfo())
       val branch   = Bool()
+      val diffout  = Output(new DiffOut())
       val target   = UInt(XLEN.W)
+      val ready    = Output(Bool())
     }
 
-    val dataSram = new DataSram()
   })
 
   val alu = Module(new Alu())
@@ -31,7 +32,6 @@ class Fu extends Module with HasInstrType {
   mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.dataSram <> io.dataSram // same as := ? Answer :no, but I should have a deeper understanding !
   lsu.io.info     := io.data.info
   lsu.io.src_info := io.data.src_info
 
@@ -44,14 +44,15 @@ class Fu extends Module with HasInstrType {
     Seq(
       FuType.alu -> alu.io.result,
       FuType.mdu -> mdu.io.result,
-      FuType.bru -> bru.io.result
-      // FuType.lsu -> lsu.io.result
+      FuType.bru -> bru.io.result,
+      FuType.lsu -> lsu.io.result
     )
   )
-  io.data.rd_info.wdata := result 
+  io.data.rd_info.wdata := result
+  io.data.diffout       := lsu.io.diffout
 
   io.data.branch := bru.io.branch
   io.data.target := bru.io.target
+  io.data.ready  := lsu.io.ready
 
-  io.data.rd_info.addr3 := lsu.io.addr3
 }

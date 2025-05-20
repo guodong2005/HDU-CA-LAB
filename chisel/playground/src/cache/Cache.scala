@@ -92,3 +92,185 @@ class ICache extends Module {
     }
   }
 }
+
+/**
+ * DCache module implementing a simple data cache interface.
+ *
+ * The CPU interface is provided via a Decoupled request/response pair. For a load, the module performs an AXI read transaction (AR/R channels). For a store, it uses a sub–FSM (within the global sWrite state) to manage the independent handshakes on the AW (write address) and W (write data) channels.
+ * Once both channels have handshaken, the FSM waits for the write response (B channel).
+ *
+ * This implementation processes one transaction at a time.
+ */
+class DCache extends Module {
+  val io = IO(new Bundle {
+    // CPU–side interface.
+    val req  = Flipped(Decoupled(new DCacheReq))
+    val resp = Decoupled(new DCacheResp)
+
+    // AXI interface – acting as master.
+    val axi = new AXI()
+  })
+
+  // ------------------------------------------------------------
+  // Default assignments for AXI channels.
+  // ------------------------------------------------------------
+  // Read address channel (AR)
+  io.axi.ar.valid     := false.B
+  io.axi.ar.bits.addr := 0.U
+  io.axi.ar.bits.size := 2.U // 4-byte transfer (2^2)
+  io.axi.ar.bits.id   := 0.U
+
+  // Write address channel (AW)
+  io.axi.aw.valid     := false.B
+  io.axi.aw.bits.addr := 0.U
+  io.axi.aw.bits.size := 2.U
+  io.axi.aw.bits.id   := 0.U
+
+  // Write data channel (W) with an additional strobe field.
+  io.axi.w.valid     := false.B
+  io.axi.w.bits.data := 0.U
+  io.axi.w.bits.strb := 0.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
+
+  // Read data channel (R) and write response channel (B):
+  io.axi.r.ready := true.B
+  io.axi.b.ready := true.B
+
+  // ------------------------------------------------------------
+  // Global FSM for DCache transactions.
+  // ------------------------------------------------------------
+  // Global state enumeration:
+  //   sIdle:       Waiting for a CPU request.
+  //   sReadReq:    Issue a read request (AR channel) for load.
+  //   sReadWait:   Wait for read data (R channel).
+  //   sWrite:      Start a write transaction; use a sub-FSM for AW/W channels.
+  //   sWriteResp:  Wait for the write response on the B channel.
+  val sIdle :: sReadReq :: sReadWait :: sWrite :: sWriteResp :: Nil = Enum(5)
+  val state                                                         = RegInit(sIdle)
+
+  // Latch the incoming CPU request.
+  val reqReg    = Reg(new DCacheReq)
+  val reqStored = RegInit(false.B)
+
+  // The CPU request interface is ready when idle.
+  io.req.ready := (state === sIdle)
+
+  // Default CPU response assignments.
+  io.resp.valid       := false.B
+  io.resp.bits.rdata  := 0.U
+  io.axi.ar.bits.size := reqReg.size
+
+  // ------------------------------------------------------------
+  // Write Sub-FSM (active only in global state sWrite).
+  // ------------------------------------------------------------
+  // Enumerate the sub-states:
+  //   wIdle:      Neither AW nor W handshake has occurred.
+  //   wAWDone:    AW handshake has completed; waiting for W handshake.
+  //   wWDone:     W handshake has completed; waiting for AW handshake.
+  //   wComplete:  Both AW and W handshakes have completed.
+  val wIdle :: wAWDone :: wWDone :: wComplete :: Nil = Enum(4)
+  val writeSubState                                  = RegInit(wIdle)
+
+  // ------------------------------------------------------------
+  // Global FSM Implementation
+  // ------------------------------------------------------------
+  switch(state) {
+    is(sIdle) {
+      // When a CPU request arrives, latch it.
+      when(io.req.valid) {
+        reqReg    := io.req.bits
+        reqStored := true.B
+        when(io.req.bits.write) {
+          state         := sWrite // Begin a write transaction.
+          writeSubState := wIdle  // Initialize the write sub-FSM.
+        }.otherwise {
+          state := sReadReq // Begin a read transaction.
+        }
+      }
+    }
+    is(sReadReq) {
+      // Issue the AXI AR transaction (read address).
+      io.axi.ar.valid     := true.B
+      io.axi.ar.bits.addr := reqReg.addr
+      when(io.axi.ar.ready) {
+        state := sReadWait
+      }
+    }
+    is(sReadWait) {
+      // Wait for the AXI R channel to return the read data.
+      when(io.axi.r.valid) {
+        io.resp.valid      := true.B
+        io.resp.bits.rdata := io.axi.r.bits.data
+        when(io.resp.ready) {
+          reqStored := false.B
+          state     := sIdle
+        }
+      }
+    }
+    is(sWrite) {
+      // In the write state, a sub-FSM manages the handshakes on both AW and W channels.
+      // Set up AW channel signals.
+      io.axi.aw.bits.addr := reqReg.addr
+      io.axi.aw.bits.size := 2.U
+      io.axi.aw.bits.id   := 0.U
+
+      // Set up W channel signals.
+      io.axi.w.bits.data := reqReg.wdata
+      io.axi.w.bits.strb := "hF".U // For a full 32-bit write.
+
+      // Sub-FSM implementation:
+      switch(writeSubState) {
+        is(wIdle) {
+          // In this state, drive valid on both AW and W channels.
+          io.axi.aw.valid := true.B
+          io.axi.w.valid  := true.B
+          when(io.axi.aw.ready && io.axi.w.ready) {
+            // Both handshakes succeed in the same cycle.
+            writeSubState := wComplete
+          }.elsewhen(io.axi.aw.ready && !io.axi.w.ready) {
+            // AW handshake occurs first; wait for W handshake.
+            writeSubState := wAWDone
+          }.elsewhen(!io.axi.aw.ready && io.axi.w.ready) {
+            // W handshake occurs first; wait for AW handshake.
+            writeSubState := wWDone
+          }
+        }
+        is(wAWDone) {
+          // AW handshake is done. Stop driving AW while continuing to drive W.
+          io.axi.aw.valid := false.B
+          io.axi.w.valid  := true.B
+          when(io.axi.w.ready) {
+            writeSubState := wComplete
+          }
+        }
+        is(wWDone) {
+          // W handshake is done. Stop driving W while continuing to drive AW.
+          io.axi.aw.valid := true.B
+          io.axi.w.valid  := false.B
+          when(io.axi.aw.ready) {
+            writeSubState := wComplete
+          }
+        }
+        is(wComplete) {
+          // Both handshakes are complete: deassert valid signals.
+          io.axi.aw.valid := false.B
+          io.axi.w.valid  := false.B
+          // Transition the global FSM to wait for the write response (B channel).
+          state := sWriteResp
+          // Reset sub-FSM for future write transactions.
+          writeSubState := wIdle
+        }
+      }
+    }
+    is(sWriteResp) {
+      // Wait for the write response on the AXI B channel.
+      when(io.axi.b.valid) {
+        io.resp.valid      := true.B
+        io.resp.bits.rdata := 0.U // For store operations, a dummy data response.
+        when(io.resp.ready) {
+          reqStored := false.B
+          state     := sIdle
+        }
+      }
+    }
+  }
+}

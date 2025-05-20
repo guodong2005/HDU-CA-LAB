@@ -34,6 +34,7 @@ class Info extends Bundle {
   val src1_ren   = Bool()
   val src2_ren   = Bool()
   val fusel      = UInt(3.W)
+  val diffout    = new DiffOut()
 }
 
 class SrcReadSignal extends Bundle {

@@ -5,51 +5,128 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
+/** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is “don’t care.” */
+class DCacheReq extends Bundle {
+  val addr  = UInt(XLEN.W)
+  val write = Bool()       // false: load; true: store
+  val wdata = UInt(XLEN.W) // valid only if write is true
+  val size  = UInt(2.W)    // 0: byte, 1: half-word, 2: word
+}
+
+/** CPU–side response for a memory access. For a load, rdata holds the loaded word. For a store, a dummy value (here 0) is returned. */
+class DCacheResp extends Bundle {
+  val rdata = UInt(XLEN.W)
+  val valid = Bool()
+}
 class Lsu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
-    val addr3    = Output(UInt(3.W))
-    val dataSram = new DataSram()
+    val ready    = Output(Bool()) // Added ready signal
+    val diffout  = Output(new DiffOut())
+    val dcache = new Bundle {
+      val req  = Flipped(Decoupled(new DCacheReq))
+      val resp = Decoupled(new DCacheResp)
+    }
   })
 
-  /*
-dataSram is a 64-bit ram so datasram.wen has 8 bit to represent the 8 bits' write signals.
-generate tmp_datasram for me , for example, if the instruction is lb:
-
-tmp_datasram_wen := LSUOpType.lb[1:0] <<datasram.addr[2:0]
-
-tmp_datasram_wen := LSUOpType.sh[1:0] <<datasram.addr[2:0] ... like this
-
-in some case like the datasram.addr[0] = 1 and the command type is double word might incurs that we write 8 bytes which is not in the same sram unit, you can ignore it
-
-TODO: add unaligned exception
-   */
-
-  // io.dataSram.addr := io.src_info.src1_data + io.info.imm
-  io.dataSram.addr := LookupTree(
+  // ------------------------------------------------------------
+  // Effective Address Computation
+  // ------------------------------------------------------------
+  val effectiveAddr = LookupTree(
     LSUOpType.isStore(io.info.op),
     Seq(
-      true.B  -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0),
-      false.B -> (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
+      true.B -> (io.src_info.src1_data.asSInt +
+        SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0),
+      false.B -> (io.src_info.src1_data.asSInt +
+        SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
     )
   )
-  io.addr3 := io.dataSram.addr(2, 0)
-  val count = 1.U << (io.info.op(1, 0)) // 要写几个字节
-  val bits  = (1.U << count) - 1.U      // 生成一个字节个数的全 1 串
 
-  val tmpwen = ZeroExtend((bits << (io.dataSram.addr(2, 0).asUInt)), 8)
-
-  io.dataSram.en  := !reset.asBool
-  io.dataSram.wen := tmpwen & Fill(8, io.info.valid && (io.info.fusel === FuType.lsu) && LSUOpType.isStore(io.info.op))
-  io.dataSram.wdata := LookupTree(
+  val storeWdata = LookupTree(
     io.info.op,
     Seq(
-      LSUOpType.sb -> Fill(8, io.src_info.src2_data(7, 0)),  // Store Byte: replicate the lowest byte 8 times
-      LSUOpType.sh -> Fill(4, io.src_info.src2_data(15, 0)), // Store Halfword: replicate the lowest 2 bytes 4 times
-      LSUOpType.sw -> Fill(2, io.src_info.src2_data(31, 0))  // Store Word: replicate the lowest 4 bytes 2 times
+      LSUOpType.sb -> io.src_info.src2_data(7, 0),
+      LSUOpType.sh -> io.src_info.src2_data(15, 0),
+      LSUOpType.sw -> io.src_info.src2_data(31, 0)
     )
   )
-  io.result := 0.U // data sram takes 2 period so now we cannot have the read result
+
+  val size = LookupTree(
+    io.info.op,
+    Seq(
+      LSUOpType.lb -> 0.U(2.W),
+      LSUOpType.lh -> 1.U(2.W),
+      LSUOpType.lw -> 2.U(2.W),
+      LSUOpType.sb -> 0.U(2.W),
+      LSUOpType.sh -> 1.U(2.W),
+      LSUOpType.sw -> 2.U(2.W)
+    )
+  )
+
+  // ------------------------------------------------------------
+  // Construct DCache Request
+  // ------------------------------------------------------------
+  val dcacheReq = Wire(new DCacheReq)
+  dcacheReq.addr  := effectiveAddr
+  dcacheReq.write := LSUOpType.isStore(io.info.op)
+  dcacheReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
+  dcacheReq.size  := size
+
+  // ------------------------------------------------------------
+  // LSU FSM
+  // ------------------------------------------------------------
+  val sIdle :: sWait :: Nil = Enum(2)
+  val state                 = RegInit(sIdle)
+
+  // Default assignments
+  io.dcache.req.valid  := false.B
+  io.dcache.req.bits   := dcacheReq
+  io.dcache.resp.ready := true.B            // Always ready to accept a response
+  io.result            := 0.U
+  io.ready             := (state === sIdle) // Ready when in Idle state
+  switch(state) {
+    is(sIdle) {
+      // When an LSU op is active:
+      when(io.info.valid && (io.info.fusel === FuType.lsu)) {
+        io.dcache.req.valid := true.B
+        when(io.dcache.req.ready) {
+          // On handshake, if this is a store operation, generate a diffstore event.
+          when(LSUOpType.isStore(io.info.op)) {
+            io.diffout.storeEvent.valid      := true.B
+            io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
+            io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
+            io.diffout.storeEvent.storeData  := storeWdata
+          }
+          state := sWait
+        }
+      }
+    }
+    is(sWait) {
+      // Wait for the DCache response.
+      when(io.dcache.resp.valid) {
+        // For a load operation, compute the result and generate a diffload event.
+        when(!LSUOpType.isStore(io.info.op)) {
+          io.result := LookupTree(
+            io.info.op,
+            Seq(
+              LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
+              LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
+              LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
+              LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
+              LSUOpType.lw  -> io.dcache.resp.bits.rdata
+            )
+          )
+          io.diffout.loadEvent.valid := true.B
+          io.diffout.loadEvent.paddr := effectiveAddr.asUInt
+          io.diffout.loadEvent.vaddr := effectiveAddr.asUInt
+        }.otherwise {
+          // For stores, the result is typically a dummy value.
+          io.result := 0.U
+        }
+        state := sIdle
+      }
+    }
+  }
 }
