@@ -106,7 +106,11 @@ class FetchUnit extends Module {
     is(sWait) {
       // In the wait state, the unit awaits a fetch answer whose pc matches the latched reqPC.
       val answerMatches = (io.fetchanswer.pc === reqPC)
-      when(io.fetchanswer.valid && answerMatches) {
+      when(io.branch) {
+        // If a branch is signaled, update the PC to the target address.
+        pc    := io.target
+        state := sIdle
+      }.elsewhen(io.fetchanswer.valid && answerMatches) {
         when(decodeReady) {
           // If the decode stage is ready, forward the fetched instruction immediately.
           io.decodeStage.data.inst  := io.fetchanswer.data
