@@ -117,7 +117,7 @@ class Axibridge extends Module {
     aw_hold := false.B
   }
   io.axi.aw.valid         := aw_hold
-  io.axi.aw.bits          := regDcacheAw
+  io.axi.aw.bits.addr     := regDcacheAw.addr
   io.dcacheInput.aw.ready := io.axi.aw.ready
 
   // Write Data Channel (W)
@@ -130,7 +130,7 @@ class Axibridge extends Module {
     w_hold := false.B
   }
   io.axi.w.valid         := w_hold
-  io.axi.w.bits          := regDcacheW
+  io.axi.w.bits.data     := regDcacheW.data
   io.dcacheInput.w.ready := io.axi.w.ready
 
   // Write Response Channel (B)
