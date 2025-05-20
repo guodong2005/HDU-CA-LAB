@@ -115,6 +115,7 @@ class DCache extends Module {
   // Default assignments for AXI channels.
   // ------------------------------------------------------------
   // Read address channel (AR)
+  io.axi              := DontCare
   io.axi.ar.valid     := false.B
   io.axi.ar.bits.addr := 0.U
   io.axi.ar.bits.size := 2.U // 4-byte transfer (2^2)
