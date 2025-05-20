@@ -75,7 +75,7 @@ class FetchUnit extends Module {
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
 
-  -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Drive the fetch request (AXI AR channel).
   // A new fetch request is issued (with the current pc) only when:
   //   - The fetch unit is in the idle state (sIdle),
