@@ -81,7 +81,7 @@ class FetchUnit extends Module {
   //   - The fetch unit is in the idle state (sIdle),
   //   - Not stalled, and
   //   - canStart is true (ensuring that we have come out of reset).
-  io.fetchrequest.valid := (state === sIdle) && !stall && canStart
+  io.fetchrequest.valid := (state === sIdle) && !stall && RegNext(canStart)
   io.fetchrequest.bits  := pc
 
   // -------------------------------------------------------------------------
