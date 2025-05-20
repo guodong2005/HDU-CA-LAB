@@ -16,7 +16,6 @@ class DCacheReq extends Bundle {
 /** CPU–side response for a memory access. For a load, rdata holds the loaded word. For a store, a dummy value (here 0) is returned. */
 class DCacheResp extends Bundle {
   val rdata = UInt(XLEN.W)
-  val valid = Bool()
 }
 class Lsu extends Module {
   val io = IO(new Bundle {
