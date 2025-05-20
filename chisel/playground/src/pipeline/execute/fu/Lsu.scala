@@ -68,7 +68,7 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // Construct DCache Request
   // ------------------------------------------------------------
-  val dcacheReq = Wire(0.U.asTypeOf(new DCacheReq))
+  val dcacheReq = RegInit(0.U.asTypeOf(new DCacheReq))
   // ------------------------------------------------------------
   // LSU FSM
   // ------------------------------------------------------------
