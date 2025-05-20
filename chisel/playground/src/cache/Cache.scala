@@ -115,22 +115,18 @@ class DCache extends Module {
   // Default assignments for AXI channels.
   // ------------------------------------------------------------
   // Read address channel (AR)
-  io.axi              := DontCare
-  io.axi.ar.valid     := false.B
-  io.axi.ar.bits.addr := 0.U
-  io.axi.ar.bits.size := 2.U // 4-byte transfer (2^2)
-  io.axi.ar.bits.id   := 0.U
+  io.axi            := DontCare
+  io.axi.ar.valid   := false.B
+  io.axi.ar.bits.id := 1.U
 
   // Write address channel (AW)
-  io.axi.aw.valid     := false.B
-  io.axi.aw.bits.addr := 0.U
-  io.axi.aw.bits.size := 2.U
-  io.axi.aw.bits.id   := 0.U
+  io.axi.aw.valid   := false.B
+  io.axi.aw.bits.id := 1.U
 
   // Write data channel (W) with an additional strobe field.
   io.axi.w.valid     := false.B
-  io.axi.w.bits.data := 0.U
-  io.axi.w.bits.strb := 0.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
+  io.axi.w.bits.id   := 1.U
+  io.axi.w.bits.strb := 15.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
 
   // Read data channel (R) and write response channel (B):
   io.axi.r.ready := true.B

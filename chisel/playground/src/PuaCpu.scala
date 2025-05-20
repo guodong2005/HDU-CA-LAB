@@ -40,5 +40,15 @@ class core_top extends Module {
   io.axi.ar.bits.cache := 0.U
   io.axi.ar.bits.prot  := 0.U
 
+  io.axi.aw.bits.burst := 1.U
+  io.axi.aw.bits.len   := 0.U
+  io.axi.aw.bits.id    := 1.U
+  io.axi.aw.bits.lock  := 0.U
+  io.axi.aw.bits.cache := 0.U
+  io.axi.aw.bits.prot  := 0.U
+
+  io.axi.w.bits.id   := 1.U
+  io.axi.w.bits.last := 1.U
+
   core.io.dataSram := DontCare
 }

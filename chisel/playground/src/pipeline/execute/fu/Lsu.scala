@@ -85,15 +85,25 @@ class Lsu extends Module {
   io.dcache.resp.ready := true.B            // Always ready to accept a response
   io.result            := 0.U
   io.ready             := (state === sIdle) // Ready when in Idle state
+
   switch(state) {
     is(sIdle) {
-      // When an LSU op is active:
+      // When an LSU operation is active:
       when(io.info.valid && (io.info.fusel === FuType.lsu)) {
         io.dcache.req.valid := true.B
         when(io.dcache.req.ready) {
           // On handshake, if this is a store operation, generate a diffstore event.
           when(LSUOpType.isStore(io.info.op)) {
-            io.diffout.storeEvent.valid      := true.B
+            // Define the store valid signal as:
+            // {4'b0, (llbit && sc_w), st_w, st_h, st_b}
+            // For this example, we assume no store‐conditional: false.B.
+            val storeSC = false.B
+            val st_w    = (io.info.op === LSUOpType.sw).asUInt
+            val st_h    = (io.info.op === LSUOpType.sh).asUInt
+            val st_b    = (io.info.op === LSUOpType.sb).asUInt
+            val store_valid: UInt = Cat(0.U(4.W), storeSC.asUInt, st_w, st_h, st_b)
+
+            io.diffout.storeEvent.valid      := store_valid
             io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
             io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
             io.diffout.storeEvent.storeData  := storeWdata
@@ -117,7 +127,18 @@ class Lsu extends Module {
               LSUOpType.lw  -> io.dcache.resp.bits.rdata
             )
           )
-          io.diffout.loadEvent.valid := true.B
+          // Define the load valid signal as:
+          // {2'b0, ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b}
+          // In this example, we assume no load-linked so ll_w is false.
+          val ll_w  = false.B
+          val ld_w  = (io.info.op === LSUOpType.lw).asUInt
+          val ld_hu = (io.info.op === LSUOpType.lhu).asUInt
+          val ld_h  = (io.info.op === LSUOpType.lh).asUInt
+          val ld_bu = (io.info.op === LSUOpType.lbu).asUInt
+          val ld_b  = (io.info.op === LSUOpType.lb).asUInt
+          val load_valid: UInt = Cat(0.U(2.W), ll_w.asUInt, ld_w, ld_hu, ld_h, ld_bu, ld_b)
+
+          io.diffout.loadEvent.valid := load_valid
           io.diffout.loadEvent.paddr := effectiveAddr.asUInt
           io.diffout.loadEvent.vaddr := effectiveAddr.asUInt
         }.otherwise {
