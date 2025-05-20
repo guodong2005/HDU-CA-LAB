@@ -7,7 +7,7 @@ import cpu.CpuConfig
 import cpu.defines._
 import cpu.defines.Instructions.NOP
 
-// We keep these definitions for the fetch answer interface.
+// Keep these definitions for the fetch answer interface.
 class FetchAnswer extends Bundle {
   val data  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
@@ -15,7 +15,7 @@ class FetchAnswer extends Bundle {
 }
 
 /**
- * The FetchUnit sends out an address request to the I‑cache using an AXI‐like (ready/valid) channel. Here we use Chisel’s Decoupled interface so that:
+ * The FetchUnit sends out an address request to the I‑cache using an AXI‑like (ready/valid) channel. Here we use Chisel’s Decoupled interface so that:
  *   - io.fetchrequest.bits carries the requested (read) address,
  *   - io.fetchrequest.valid indicates a valid request from the fetch unit,
  *   - io.fetchrequest.ready is driven by the I‑cache (slave) when it is ready to accept the request.
@@ -26,26 +26,27 @@ class FetchAnswer extends Bundle {
  */
 class FetchUnit extends Module {
   val io = IO(new Bundle {
-    val decodeStage  = new FetchUnitDecodeUnit()
-    val fetchanswer  = Input(new FetchAnswer())
-    val branch       = Input(Bool())
-    val target       = Input(UInt(XLEN.W))
-    val signal       = Input(new Signals())
-    val fetchrequest = (Decoupled(UInt(XLEN.W)))
+    val decodeStage = new FetchUnitDecodeUnit()
+    val fetchanswer = Input(new FetchAnswer())
+    val branch      = Input(Bool())
+    val target      = Input(UInt(XLEN.W))
+    val signal      = Input(new Signals())
+    // The fetch request channel uses a ready/valid handshake (AXI‑like).
+    val fetchrequest = Decoupled(UInt(XLEN.W))
   })
 
   // -------------------------------------------------------------------------
   // Program Counter (PC) management.
   // -------------------------------------------------------------------------
+  // Initialize PC to 0. We want it to become PC_INIT once reset is over.
   val pc = RegInit(0.U(XLEN.W))
-  // We use a canStart flag so that on reset we do not update the PC until reset is gone.
+  // Generate a canStart flag so that we don't issue any fetch request while still in reset.
+  // (The RegNext ensures that canStart becomes a registered version of !reset.)
   val canStart = RegNext(!reset.asBool) && (!reset.asBool)
-  when(pc === 0.U) {
-    when(!canStart) {
-      pc := 0.U
-    }.otherwise {
-      pc := PC_INIT
-    }
+
+  // When canStart becomes true and we haven't started (pc is still 0), update the pc to PC_INIT.
+  when(canStart && (pc === 0.U)) {
+    pc := PC_INIT
   }
 
   // -------------------------------------------------------------------------
@@ -63,9 +64,8 @@ class FetchUnit extends Module {
   // -------------------------------------------------------------------------
   // Buffer for a fetched instruction waiting to be forwarded to decode.
   // If the decode stage is not ready, we store the result here.
+  // (Assume IfIdData has fields: inst, pc, and valid.)
   val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
-  // The "valid" field in ifid_reg indicates that an instruction is buffered.
-  // (We assume IfIdData has fields: inst, pc, and valid.)
 
   // -------------------------------------------------------------------------
   // Determine if the pipeline is stalled.
@@ -75,10 +75,13 @@ class FetchUnit extends Module {
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
 
-  // -------------------------------------------------------------------------
+  -------------------------------------------------------------------------
   // Drive the fetch request (AXI AR channel).
-  // We issue a new fetch request (with the current pc) only when in sIdle and not stalled.
-  io.fetchrequest.valid := (state === sIdle) && !stall
+  // A new fetch request is issued (with the current pc) only when:
+  //   - The fetch unit is in the idle state (sIdle),
+  //   - Not stalled, and
+  //   - canStart is true (ensuring that we have come out of reset).
+  io.fetchrequest.valid := (state === sIdle) && !stall && canStart
   io.fetchrequest.bits  := pc
 
   // -------------------------------------------------------------------------
@@ -91,39 +94,41 @@ class FetchUnit extends Module {
   // -------------------------------------------------------------------------
   switch(state) {
     is(sIdle) {
-      // In idle state, if a fetch request handshake occurs then latch the current PC
-      // and transition to sWait to await the read response.
-      when(io.fetchrequest.valid && io.fetchrequest.ready) {
+      // In the idle state, when the fetch request handshake occurs,
+      // latch the current PC into reqPC and transition to sWait to await the read response.
+      when(canStart === false.B) {
+        state := sIdle
+      }.elsewhen(io.fetchrequest.valid && io.fetchrequest.ready) {
         reqPC := pc
         state := sWait
       }
     }
     is(sWait) {
-      // In wait state, the unit awaits a fetch answer whose pc matches the latched reqPC.
+      // In the wait state, the unit awaits a fetch answer whose pc matches the latched reqPC.
       val answerMatches = (io.fetchanswer.pc === reqPC)
       when(io.fetchanswer.valid && answerMatches) {
         when(decodeReady) {
-          // If the decode stage can accept an instruction, forward the fetched data immediately.
+          // If the decode stage is ready, forward the fetched instruction immediately.
           io.decodeStage.data.inst  := io.fetchanswer.data
           io.decodeStage.data.pc    := reqPC
           io.decodeStage.data.valid := true.B
-          // Update the PC: on a branch, use the target; otherwise, increment by 4.
+          // Update the PC: if a branch is signaled, use the branch target; otherwise, increment by 4.
           pc    := Mux(io.branch, io.target, reqPC + 4.U)
           state := sIdle
         }.otherwise {
-          // Otherwise, buffer the fetched instruction until decode is ready.
+          // If the decode stage is not ready, buffer the fetched instruction.
           ifid_reg.inst  := io.fetchanswer.data
           ifid_reg.pc    := reqPC
           ifid_reg.valid := true.B
-          // Remain in sWait; no PC update until the buffered instruction is consumed.
+          // Remain in sWait; the PC and state are not updated until the buffered instruction is consumed.
         }
       }
     }
   }
 
   // -------------------------------------------------------------------------
-  // If a buffered instruction exists and the decode stage is now ready, forward it.
-  // This works to quickly drain the buffer once decode is ready.
+  // If a buffered instruction exists and the decode stage is ready, forward it.
+  // This helps quickly drain the buffer once decode is ready.
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
