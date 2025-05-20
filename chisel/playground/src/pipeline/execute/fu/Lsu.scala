@@ -68,12 +68,7 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // Construct DCache Request
   // ------------------------------------------------------------
-  val dcacheReq = Wire(new DCacheReq)
-  dcacheReq.addr  := effectiveAddr
-  dcacheReq.write := LSUOpType.isStore(io.info.op)
-  dcacheReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
-  dcacheReq.size  := size
-
+  val dcacheReq = RegInit(0.U.asTypeOf(new DCacheReq))
   // ------------------------------------------------------------
   // LSU FSM
   // ------------------------------------------------------------
@@ -91,6 +86,11 @@ class Lsu extends Module {
       // When an LSU op is active:
       when(io.info.valid && (io.info.fusel === FuType.lsu)) {
         io.dcache.req.valid := true.B
+        dcacheReq.addr      := effectiveAddr
+        dcacheReq.write     := LSUOpType.isStore(io.info.op)
+        dcacheReq.wdata     := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
+        dcacheReq.size      := size
+
         when(io.dcache.req.ready) {
           // On handshake, if this is a store operation, generate a diffstore event.
           when(LSUOpType.isStore(io.info.op)) {
