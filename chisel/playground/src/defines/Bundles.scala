@@ -116,7 +116,7 @@ class AXI extends Bundle {
   val b  = Flipped(Decoupled(new B())) // Write response handshake
 }
 class DifftestInstrCommit extends Bundle {
-  val clock          = Clock()
+  // val clock          = Clock()
   val coreid         = UInt(4.W)
   val index          = UInt(8.W)
   val valid          = Bool()
@@ -135,7 +135,7 @@ class DifftestInstrCommit extends Bundle {
 }
 
 class DifftestExcpEvent extends Bundle {
-  val clock         = Clock()
+  // val clock         = Clock()
   val coreid        = UInt(4.W)
   val excp_valid    = Bool()
   val eret          = Bool()
@@ -146,7 +146,7 @@ class DifftestExcpEvent extends Bundle {
 }
 
 class DifftestTrapEvent extends Bundle {
-  val clock    = Clock()
+  // val clock    = Clock()
   val coreid   = UInt(4.W)
   val valid    = Bool() // Unused, set to 0
   val code     = UInt(32.W)
@@ -156,7 +156,7 @@ class DifftestTrapEvent extends Bundle {
 }
 
 class DifftestStoreEvent extends Bundle {
-  val clock      = Clock()
+  // val clock      = Clock()
   val coreid     = UInt(4.W)
   val index      = UInt(8.W)
   val valid      = Bool()
@@ -166,7 +166,7 @@ class DifftestStoreEvent extends Bundle {
 }
 
 class DifftestLoadEvent extends Bundle {
-  val clock  = Clock()
+  // val clock  = Clock()
   val coreid = UInt(4.W)
   val index  = UInt(8.W)
   val valid  = Bool()
