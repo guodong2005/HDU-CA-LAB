@@ -17,20 +17,23 @@ class DCacheReq extends Bundle {
 class DCacheResp extends Bundle {
   val rdata = UInt(XLEN.W)
 }
+
 class Lsu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
-    val ready    = Output(Bool()) // Added ready signal
+    val ready    = Output(Bool()) // LSU is ready for a new op when Idle and no pending request.
     val diffout  = Output(new DiffOutData())
     val dcache = new Bundle {
-      val req  = (Decoupled(new DCacheReq))
+      val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
 
+  // Default assignment for diffout.
   io.diffout := DontCare
+
   // ------------------------------------------------------------
   // Effective Address Computation
   // ------------------------------------------------------------
@@ -66,56 +69,80 @@ class Lsu extends Module {
   )
 
   // ------------------------------------------------------------
-  // Construct DCache Request
+  // Construct the new dcache request (combinational).
   // ------------------------------------------------------------
-  val dcacheReq = RegInit(0.U.asTypeOf(new DCacheReq))
+  val newReq = Wire(new DCacheReq)
+  newReq.addr  := effectiveAddr
+  newReq.write := LSUOpType.isStore(io.info.op)
+  newReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
+  newReq.size  := size
+
   // ------------------------------------------------------------
-  // LSU FSM
+  // Buffer for DCache Request and its valid flag.
+  // We use registers so that if the slave is not ready in a given cycle,
+  // the request (and thus its bits) are held into the next clock cycle.
+  // ------------------------------------------------------------
+  val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))
+  val reqValidReg  = RegInit(false.B) // Indicates a stored request is pending.
+
+  // ------------------------------------------------------------
+  // LSU FSM: sIdle and sWait states.
+  // sIdle: Await a new LSU op. sWait: Wait for dcache response.
   // ------------------------------------------------------------
   val sIdle :: sWait :: Nil = Enum(2)
   val state                 = RegInit(sIdle)
-  dcacheReq.addr  := effectiveAddr
-  dcacheReq.write := LSUOpType.isStore(io.info.op)
-  dcacheReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
-  dcacheReq.size  := size
 
-  // Default assignments
-  io.dcache.req.valid  := false.B
-  io.dcache.req.bits   := dcacheReq
-  io.dcache.resp.ready := true.B            // Always ready to accept a response
-  io.result            := 0.U
-  io.ready             := (state === sIdle) // Ready when in Idle state
+  // ------------------------------------------------------------
+  // Drive the decoupled request interface.
+  // The bits come from the stored request register;
+  // the valid signal comes from our held request flag.
+  // ------------------------------------------------------------
+  io.dcache.req.bits   := dcacheReqReg
+  io.dcache.req.valid  := reqValidReg
+  io.dcache.resp.ready := true.B // Always ready to receive a response.
 
+  // The LSU output result defaults to 0.
+  io.result := 0.U
+
+  // LSU is "ready" when in sIdle and when no request is pending.
+  io.ready := (state === sIdle) && !reqValidReg
+
+  // ------------------------------------------------------------
+  // FSM for issuing and completing the DCache request.
+  // ------------------------------------------------------------
   switch(state) {
     is(sIdle) {
-      // When an LSU operation is active:
-      when(io.info.valid && (io.info.fusel === FuType.lsu)) {
-        io.dcache.req.valid := true.B
-        when(io.dcache.req.ready) {
-          // On handshake, if this is a store operation, generate a diffstore event.
-          when(LSUOpType.isStore(io.info.op)) {
-            // Define the store valid signal as:
-            // {4'b0, (llbit && sc_w), st_w, st_h, st_b}
-            // For this example, we assume no store‐conditional: false.B.
-            val storeSC = false.B
-            val st_w    = (io.info.op === LSUOpType.sw).asUInt
-            val st_h    = (io.info.op === LSUOpType.sh).asUInt
-            val st_b    = (io.info.op === LSUOpType.sb).asUInt
-            val store_valid: UInt = Cat(0.U(4.W), storeSC.asUInt, st_w, st_h, st_b)
+      // If we have a new LSU operation and no pending request, capture it.
+      when(io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
+        dcacheReqReg := newReq
+        reqValidReg  := true.B
+      }
+      // If a request is pending and the slave is ready, handshake occurs.
+      when(reqValidReg && io.dcache.req.ready) {
+        // If this is a store operation, generate a diffstore event.
+        when(LSUOpType.isStore(io.info.op)) {
+          // Build an 8-bit valid signal for store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
+          // For this example, we assume no store-conditional (false.B).
+          val storeSC = false.B
+          val st_w    = (io.info.op === LSUOpType.sw).asUInt
+          val st_h    = (io.info.op === LSUOpType.sh).asUInt
+          val st_b    = (io.info.op === LSUOpType.sb).asUInt
+          val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
-            io.diffout.storeEvent.valid      := store_valid
-            io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
-            io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
-            io.diffout.storeEvent.storeData  := storeWdata
-          }
-          state := sWait
+          io.diffout.storeEvent.valid      := store_valid
+          io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
+          io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
+          io.diffout.storeEvent.storeData  := storeWdata
         }
+        // Handshake: clear the valid flag and transition to sWait.
+        reqValidReg := false.B
+        state       := sWait
       }
     }
     is(sWait) {
       // Wait for the DCache response.
       when(io.dcache.resp.valid) {
-        // For a load operation, compute the result and generate a diffload event.
+        // For a load operation, build the result and diffload event.
         when(!LSUOpType.isStore(io.info.op)) {
           io.result := LookupTree(
             io.info.op,
@@ -127,24 +154,25 @@ class Lsu extends Module {
               LSUOpType.lw  -> io.dcache.resp.bits.rdata
             )
           )
-          // Define the load valid signal as:
-          // {2'b0, ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b}
-          // In this example, we assume no load-linked so ll_w is false.
+
+          // Build an 8-bit valid signal for load as: {2'b0, ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b}
+          // For this example, no load-linked is used (ll_w is false).
           val ll_w  = false.B
           val ld_w  = (io.info.op === LSUOpType.lw).asUInt
           val ld_hu = (io.info.op === LSUOpType.lhu).asUInt
           val ld_h  = (io.info.op === LSUOpType.lh).asUInt
           val ld_bu = (io.info.op === LSUOpType.lbu).asUInt
           val ld_b  = (io.info.op === LSUOpType.lb).asUInt
-          val load_valid: UInt = Cat(0.U(2.W), ll_w.asUInt, ld_w, ld_hu, ld_h, ld_bu, ld_b)
+          val load_valid: UInt = Cat(0.U(2.W), ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b)
 
           io.diffout.loadEvent.valid := load_valid
           io.diffout.loadEvent.paddr := effectiveAddr.asUInt
           io.diffout.loadEvent.vaddr := effectiveAddr.asUInt
         }.otherwise {
-          // For stores, the result is typically a dummy value.
+          // For stores, the result is typically dummy.
           io.result := 0.U
         }
+        // Once the response is received, go back to Idle.
         state := sIdle
       }
     }

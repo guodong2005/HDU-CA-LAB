@@ -145,8 +145,7 @@ class DCache extends Module {
   val state                                                         = RegInit(sIdle)
 
   // Latch the incoming CPU request.
-  val reqReg = Reg(new DCacheReq)
-  dontTouch(reqReg)
+  val reqReg    = Reg(new DCacheReq)
   val reqStored = RegInit(false.B)
 
   // The CPU request interface is ready when idle.
