@@ -31,6 +31,7 @@ class Lsu extends Module {
     }
   })
 
+  io.diffout := DontCare
   // ------------------------------------------------------------
   // Effective Address Computation
   // ------------------------------------------------------------
