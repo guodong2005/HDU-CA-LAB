@@ -122,6 +122,84 @@ module ICache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
   assign io_fetch_rsp_addr = latchedAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:19:7, :56:28
 endmodule
 
+module DCache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+  input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+                reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+  output        io_req_ready,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+  input         io_req_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+                io_req_bits_write,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+  output        io_resp_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+  output [31:0] io_resp_bits_rdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+  input         io_axi_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+  input  [31:0] io_axi_r_bits_data	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+);
+
+  reg  [2:0] state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78
+  reg  [1:0] writeSubState;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:172:63
+  wire       _GEN = state == 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :177:17, :187:17
+  wire       _GEN_0 = state == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14, :149:78, :177:17, :195:29, :196:15
+  wire       _GEN_1 = ~(|state) | _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :156:26, :159:23, :177:17
+  always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+    if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      state <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:118:23, :149:78
+      writeSubState <= 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :172:63
+    end
+    else if (|state) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :156:26
+      automatic logic _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :222:29
+      automatic logic _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:222:29
+      automatic logic _GEN_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:177:17
+      _GEN_2 = writeSubState == 2'h0 | writeSubState == 2'h1 | writeSubState == 2'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :149:78, :172:63, :222:29
+      _GEN_3 = writeSubState != 2'h3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :172:63, :222:29
+      _GEN_4 = state != 3'h3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :177:17, :184:25
+      if (_GEN)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:177:17
+        state <= 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14, :149:78, :195:29, :196:15
+      else if (_GEN_0) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:177:17
+        if (io_axi_r_valid)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+          state <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:118:23, :149:78
+      end
+      else if (_GEN_4 | _GEN_2 | _GEN_3) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :177:17, :222:29
+      end
+      else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:177:17, :222:29
+        state <= 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :259:17
+      if (_GEN | _GEN_0 | _GEN_4 | _GEN_2 | _GEN_3) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:149:78, :172:63, :177:17, :222:29
+      end
+      else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:172:63, :177:17
+        writeSubState <= 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :172:63
+    end
+    else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:156:26
+      if (io_req_valid)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14
+        state <= {1'h0, io_req_bits_write, 1'h1};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:105:14, :149:78, :153:26, :156:26, :159:23, :177:17, :183:33, :184:25, :187:17, :227:32, :230:38, :233:39, :267:28, :270:29, :271:21, :272:21
+      if (io_req_valid & io_req_bits_write)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:172:63, :180:26, :183:33, :185:25
+        writeSubState <= 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :172:63
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+    `ifdef FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      automatic logic [31:0] _RANDOM[0:2];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+        `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+          _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+        end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+        state = _RANDOM[2'h0][2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :149:78
+        writeSubState = _RANDOM[2'h2][8:7];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :172:63
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+      `FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_req_ready = ~(|state);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :149:78, :156:26
+  assign io_resp_valid = ~_GEN_1 & _GEN_0 & io_axi_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :159:23, :177:17
+  assign io_resp_bits_rdata =
+    _GEN_1 | ~(_GEN_0 & io_axi_r_valid) ? 32'h0 : io_axi_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :120:23, :159:23, :160:23, :177:17, :201:28, :203:28
+endmodule
+
 module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
   input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
                 reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
@@ -132,6 +210,8 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   input         io_axi_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
   input  [3:0]  io_axi_r_bits_id,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
   input  [31:0] io_axi_r_bits_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
+  output        io_dcacheInput_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
+  output [31:0] io_dcacheInput_r_bits_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
   input         io_icacheInput_ar_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
   input  [31:0] io_icacheInput_ar_bits_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
   output        io_icacheInput_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14
@@ -142,12 +222,14 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   reg [31:0] regIcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:36:29
   reg [2:0]  regIcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:36:29
   reg        io_icacheInput_r_valid_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:90:40
+  reg        io_dcacheInput_r_valid_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:94:40
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
       regIcacheReq_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :36:29
       regIcacheReq_addr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :36:29
       regIcacheReq_size <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :36:29
       io_icacheInput_r_valid_REG <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :90:40
+      io_dcacheInput_r_valid_REG <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :94:40
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
       regIcacheReq_valid <=
@@ -158,6 +240,7 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
         regIcacheReq_size <= 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:21:14, :36:29
       end
       io_icacheInput_r_valid_REG <= ~(io_axi_r_bits_id[0]) & io_axi_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:87:31, :90:{40,42,50}
+      io_dcacheInput_r_valid_REG <= io_axi_r_bits_id[0] & io_axi_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:87:31, :94:{40,49}
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
@@ -177,6 +260,7 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
         regIcacheReq_addr = {_RANDOM[2'h1][31:13], _RANDOM[2'h2][12:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29
         regIcacheReq_size = _RANDOM[2'h2][15:13];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29
         io_icacheInput_r_valid_REG = _RANDOM[2'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29, :90:40
+        io_dcacheInput_r_valid_REG = _RANDOM[2'h2][17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29, :94:40
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
@@ -186,6 +270,8 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   assign io_axi_ar_valid = regIcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29
   assign io_axi_ar_bits_addr = regIcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29
   assign io_axi_ar_bits_size = regIcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :36:29
+  assign io_dcacheInput_r_valid = io_dcacheInput_r_valid_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :94:40
+  assign io_dcacheInput_r_bits_data = io_axi_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
   assign io_icacheInput_r_valid = io_icacheInput_r_valid_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7, :90:40
   assign io_icacheInput_r_bits_data = io_axi_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:20:7
 endmodule
@@ -585,7 +671,7 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
                                                                                                                                                                ? 3'h5
                                                                                                                                                                : _GEN_49
                                                                                                                                                                    ? 3'h6
-                                                                                                                                                                   : {3{_GEN_50}}};	// src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
+                                                                                                                                                                   : {3{_GEN_50}}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:23:15, src/main/scala/chisel3/util/Lookup.scala:31:38, :34:39
   wire [31:0]     inst = instrType == 3'h0 ? 32'h2800000 : io_in_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:22:{17,28}, src/main/scala/chisel3/util/Lookup.scala:34:39
   wire            _GEN_55 = instrType == 3'h5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:51:18, src/main/scala/chisel3/util/Lookup.scala:34:39
   wire            _GEN_56 = instrType == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:53:24, src/main/scala/chisel3/util/Lookup.scala:34:39
@@ -596,20 +682,20 @@ module Decoder(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/d
   wire            _GEN_61 = _GEN_55 | _GEN_56;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:39:28, :51:{18,30}, :53:{24,36}, :56:36
   wire            _GEN_62 = _GEN_56 | _GEN_57;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:40:28, :53:{24,36}, :56:{24,36}, :58:36
   wire [7:0][4:0] _GEN_63 =
-    {{5'h0}, {5'h0}, {inst[14:10]}, {5'h0}, {5'h0}, {inst[14:10]}, {inst[4:0]}, {5'h0}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:22:17, :40:28, :48:{29,53}, :51:{18,30}, :53:36, :56:36, :58:{24,36}, :61:{24,36}, :65:36
+    {{5'h0}, {5'h0}, {inst[14:10]}, {5'h0}, {5'h0}, {inst[14:10]}, {inst[4:0]}, {5'h0}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:22:17, :23:15, :40:28, :48:{29,53}, :51:{18,30}, :53:36, :56:36, :58:{24,36}, :61:{24,36}, :65:36
   wire            _GEN_64 = _GEN_58 | _GEN_59;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:43:28, :58:{24,36}, :61:{24,36}
   assign io_out_info_instr = inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :22:17
-  assign io_out_info_src1_raddr = _GEN_61 | ~(_GEN_57 | ~_GEN_60) ? inst[9:5] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :22:17, :39:28, :40:28, :48:41, :51:30, :53:36, :56:{24,36}, :58:36, :61:36, :65:36
+  assign io_out_info_src1_raddr = _GEN_61 | ~(_GEN_57 | ~_GEN_60) ? inst[9:5] : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :22:17, :23:15, :39:28, :48:41, :51:30, :53:36, :56:{24,36}, :58:36, :61:36, :65:36
   assign io_out_info_src2_raddr = _GEN_63[instrType];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :51:{18,30}, :53:36, :56:36, :58:{24,36}, :61:{24,36}, :65:36, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_op =
     _GEN_55 | _GEN_56 | ~(_GEN_57 | ~(_GEN_58 | _GEN_59 | (&instrType)))
       ? {1'h0, fuOpType}
-      : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :41:28, :51:{18,30}, :53:{24,36}, :56:{24,36}, :58:{24,36}, :61:{24,36}, :65:24, src/main/scala/chisel3/util/Lookup.scala:34:39
+      : 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :23:15, :41:28, :51:{18,30}, :53:{24,36}, :56:{24,36}, :58:{24,36}, :61:{24,36}, :65:24, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_reg_wen = _GEN_55 | _GEN_62 | ~_GEN_60 & (&instrType);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :40:28, :42:28, :51:{18,30}, :53:36, :56:36, :58:36, :61:36, :65:{24,36}, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_reg_waddr =
     _GEN_55 | _GEN_56 | _GEN_57 | _GEN_58
       ? inst[4:0]
-      : _GEN_59 | ~(&instrType) ? 5'h0 : fuOpType == 4'hA ? 5'h1 : inst[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :22:17, :38:28, :40:28, :48:29, :51:{18,30}, :53:{24,36}, :56:{24,36}, :58:{24,36}, :61:{24,36}, :65:{24,36}, :67:{22,32}, src/main/scala/chisel3/util/Lookup.scala:34:39
+      : _GEN_59 | ~(&instrType) ? 5'h0 : fuOpType == 4'hA ? 5'h1 : inst[4:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :22:17, :23:15, :38:28, :48:29, :51:{18,30}, :53:{24,36}, :56:{24,36}, :58:{24,36}, :61:{24,36}, :65:{24,36}, :67:{22,32}, src/main/scala/chisel3/util/Lookup.scala:34:39
   assign io_out_info_src1_ren = _GEN_61 | ~_GEN_57 & _GEN_64;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :39:28, :43:28, :51:30, :53:36, :56:{24,36}, :58:36, :61:36
   assign io_out_info_src2_ren = _GEN_55 | ~_GEN_62 & _GEN_64;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/decode/Decoder.scala:8:7, :40:28, :43:28, :44:28, :51:{18,30}, :53:36, :56:36, :58:36, :61:36
   assign io_out_info_fusel =
@@ -1117,12 +1203,12 @@ module ExecuteStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipel
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
       data_pc <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
       data_info_instr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
-      data_info_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:20:14, :27:21, :31:63
+      data_info_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:20:14, :27:21, :31:63, :32:67, :41:76, :42:10
       data_info_op <= 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
-      data_info_reg_wen <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:20:14, :27:21, :31:63
+      data_info_reg_wen <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:20:14, :27:21, :31:63, :32:67, :41:76, :42:10
       data_info_reg_waddr <= 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
       data_info_imm <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
-      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
       data_src_info_src1_data <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
       data_src_info_src2_data <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}
     end
@@ -1137,7 +1223,7 @@ module ExecuteStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipel
       data_info_reg_wen <= ~_GEN & io_decodeUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:21, :32:67, :41:{62,76}, :42:10
       data_info_reg_waddr <= _GEN ? 5'h0 : io_decodeUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}, :32:67, :41:{62,76}, :42:10
       data_info_imm <= _GEN ? 32'h0 : io_decodeUnit_data_info_imm;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}, :32:67, :41:{62,76}, :42:10
-      data_info_fusel <= _GEN ? 3'h0 : io_decodeUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21, :32:67, :41:{62,76}, :42:10
+      data_info_fusel <= _GEN ? 3'h0 : io_decodeUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}, :32:67, :41:{62,76}, :42:10
       data_src_info_src1_data <= _GEN ? 32'h0 : io_decodeUnit_data_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}, :32:67, :41:{62,76}, :42:10
       data_src_info_src2_data <= _GEN ? 32'h0 : io_decodeUnit_data_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:27:{21,34}, :32:67, :41:{62,76}, :42:10
     end
@@ -1147,24 +1233,24 @@ module ExecuteStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipel
       `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
-      automatic logic [31:0] _RANDOM[0:5];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
+      automatic logic [31:0] _RANDOM[0:91];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
       `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
         `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
-        for (logic [2:0] i = 3'h0; i < 3'h6; i += 3'h1) begin
+        for (logic [6:0] i = 7'h0; i < 7'h5C; i += 7'h1) begin
           _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
         end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
-        data_pc = _RANDOM[3'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_instr = _RANDOM[3'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_valid = _RANDOM[3'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_op = _RANDOM[3'h2][15:11];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_reg_wen = _RANDOM[3'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_reg_waddr = _RANDOM[3'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_imm = {_RANDOM[3'h2][31:22], _RANDOM[3'h3][21:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_info_fusel = _RANDOM[3'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_src_info_src1_data = {_RANDOM[3'h3][31:27], _RANDOM[3'h4][26:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
-        data_src_info_src2_data = {_RANDOM[3'h4][31:27], _RANDOM[3'h5][26:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_pc = _RANDOM[7'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_instr = _RANDOM[7'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_valid = _RANDOM[7'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_op = _RANDOM[7'h2][15:11];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_reg_wen = _RANDOM[7'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_reg_waddr = _RANDOM[7'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_imm = {_RANDOM[7'h2][31:22], _RANDOM[7'h3][21:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_info_fusel = _RANDOM[7'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_src_info_src1_data = {_RANDOM[7'h59][31:15], _RANDOM[7'h5A][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
+        data_src_info_src2_data = {_RANDOM[7'h5A][31:15], _RANDOM[7'h5B][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7, :27:21
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
@@ -1263,6 +1349,88 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                               : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:10:44, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:9:7, :16:13, :17:44, :20:22, :23:{17,42}, :26:51, :27:{17,27}, :30:43, :31:{17,27}, :36:{25,104,128}, :37:{51,63,95,99}, :38:{17,23}, :41:{23,88}, :42:17, :48:27, :49:{27,38}, :51:{17,23}, :57:27, :58:{27,38}, :59:{17,23}
 endmodule
 
+module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+  input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+                reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+                io_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input  [4:0]  io_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input  [31:0] io_info_imm,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input  [2:0]  io_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input  [31:0] io_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_src_info_src2_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  output [31:0] io_result,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input         io_dcache_req_ready,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  output        io_dcache_req_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+                io_dcache_req_bits_write,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input         io_dcache_resp_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+  input  [31:0] io_dcache_resp_bits_rdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:14
+);
+
+  wire [31:0] effectiveAddr =
+    (io_info_op[3]
+       ? io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]}
+       : 32'h0)
+    | (io_info_op[3]
+         ? 32'h0
+         : io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]});	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:81:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:33:14, :40:47, :41:33, :42:48, src/main/scala/chisel3/util/Mux.scala:30:73
+  reg         state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:81:38
+  wire        _GEN = io_info_valid & io_info_fusel == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:92:{26,44}
+  always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+    if (reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      state <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, :81:38
+    else if (state)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:81:38
+      state <= ~(state & io_dcache_resp_valid) & state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:81:38, :89:17, :108:34, :128:15
+    else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:81:38
+      state <= _GEN & io_dcache_req_ready | state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:81:38, :92:{26,61}, :94:35, :102:17
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+    `ifdef FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      automatic logic [31:0] _RANDOM[0:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+        `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+        state = _RANDOM[/*Zero width*/ 1'b0][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, :81:38
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+      `FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_result =
+    state & io_dcache_resp_valid & ~(io_info_op[3])
+      ? (io_info_op == 5'h0
+           ? {{24{io_dcache_resp_bits_rdata[7]}}, io_dcache_resp_bits_rdata[7:0]}
+           : 32'h0)
+        | (io_info_op == 5'h4 ? {24'h0, io_dcache_resp_bits_rdata[7:0]} : 32'h0)
+        | (io_info_op == 5'h1
+             ? {{16{io_dcache_resp_bits_rdata[15]}}, io_dcache_resp_bits_rdata[15:0]}
+             : 32'h0)
+        | (io_info_op == 5'h5 ? {16'h0, io_dcache_resp_bits_rdata[15:0]} : 32'h0)
+        | (io_info_op == 5'h2 ? io_dcache_resp_bits_rdata : 32'h0)
+      : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:81:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, :33:14, :81:38, :87:24, :89:17, :110:14, :114:70, :116:70, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_diffout_storeEvent_storePAddr = effectiveAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_diffout_storeEvent_storeVAddr = effectiveAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_diffout_storeEvent_storeData =
+    {16'h0,
+     {8'h0, io_info_op == 5'h8 ? io_src_info_src2_data[7:0] : 8'h0}
+       | (io_info_op == 5'h9 ? io_src_info_src2_data[15:0] : 16'h0)}
+    | (io_info_op == 5'hA ? io_src_info_src2_data : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:10:49, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, :33:14, :50:44, :51:44, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_diffout_loadEvent_paddr = effectiveAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_diffout_loadEvent_vaddr = effectiveAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_dcache_req_valid = ~state & _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7, :81:38, :84:24, :89:17, :92:{26,61}
+  assign io_dcache_req_bits_write = io_info_op[3];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:81:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:20:7
+endmodule
+
 module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:7
   input         clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:7
                 reset,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:7
@@ -1351,25 +1519,57 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
                 io_data_src_info_src2_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   output [31:0] io_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
   output        io_data_branch,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
-  output [31:0] io_data_target	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  output [31:0] io_data_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_data_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_data_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_data_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_data_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_data_target,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  input         io_dcache_req_ready,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  output        io_dcache_req_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+                io_dcache_req_bits_write,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  input         io_dcache_resp_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
+  input  [31:0] io_dcache_resp_bits_rdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
 );
 
-  wire [31:0] _bru_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:26:19
-  wire [31:0] _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:24:19
-  wire [31:0] _alu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:23:19
-  Alu alu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:23:19
+  wire [31:0] _bru_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:30:19
+  wire [31:0] _lsu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:29:19
+  wire [31:0] _mdu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:28:19
+  wire [31:0] _alu_io_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:27:19
+  Alu alu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:27:19
     .io_info_op            (io_data_info_op),
     .io_src_info_src1_data (io_data_src_info_src1_data),
     .io_src_info_src2_data (io_data_src_info_src2_data),
     .io_result             (_alu_io_result)
   );
-  Mdu mdu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:24:19
+  Mdu mdu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:28:19
     .io_info_op            (io_data_info_op),
     .io_src_info_src1_data (io_data_src_info_src1_data),
     .io_src_info_src2_data (io_data_src_info_src2_data),
     .io_result             (_mdu_io_result)
   );
-  Bru bru (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:26:19
+  Lsu lsu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:29:19
+    .clock                            (clock),
+    .reset                            (reset),
+    .io_info_valid                    (io_data_info_valid),
+    .io_info_op                       (io_data_info_op),
+    .io_info_imm                      (io_data_info_imm),
+    .io_info_fusel                    (io_data_info_fusel),
+    .io_src_info_src1_data            (io_data_src_info_src1_data),
+    .io_src_info_src2_data            (io_data_src_info_src2_data),
+    .io_result                        (_lsu_io_result),
+    .io_diffout_storeEvent_storePAddr (io_data_diffout_storeEvent_storePAddr),
+    .io_diffout_storeEvent_storeVAddr (io_data_diffout_storeEvent_storeVAddr),
+    .io_diffout_storeEvent_storeData  (io_data_diffout_storeEvent_storeData),
+    .io_diffout_loadEvent_paddr       (io_data_diffout_loadEvent_paddr),
+    .io_diffout_loadEvent_vaddr       (io_data_diffout_loadEvent_vaddr),
+    .io_dcache_req_ready              (io_dcache_req_ready),
+    .io_dcache_req_valid              (io_dcache_req_valid),
+    .io_dcache_req_bits_write         (io_dcache_req_bits_write),
+    .io_dcache_resp_valid             (io_dcache_resp_valid),
+    .io_dcache_resp_bits_rdata        (io_dcache_resp_bits_rdata)
+  );
+  Bru bru (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:30:19
     .clock                 (clock),
     .reset                 (reset),
     .io_info_valid         (io_data_info_valid),
@@ -1386,7 +1586,8 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
   assign io_data_rd_info_wdata =
     (io_data_info_fusel == 3'h0 ? _alu_io_result : 32'h0)
     | (io_data_info_fusel == 3'h1 ? _mdu_io_result : 32'h0)
-    | (io_data_info_fusel == 3'h3 ? _bru_io_result : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :23:19, :24:19, :26:19, src/main/scala/chisel3/util/Mux.scala:30:73
+    | (io_data_info_fusel == 3'h3 ? _bru_io_result : 32'h0)
+    | (io_data_info_fusel == 3'h2 ? _lsu_io_result : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :27:19, :28:19, :29:19, :30:19, src/main/scala/chisel3/util/Mux.scala:30:73
 endmodule
 
 module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
@@ -1408,24 +1609,49 @@ module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
                 io_memoryStage_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   output [4:0]  io_memoryStage_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   output [2:0]  io_memoryStage_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
-  output [31:0] io_memoryStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output [31:0] io_memoryStage_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_memoryStage_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_memoryStage_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_memoryStage_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_memoryStage_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_memoryStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
   output        io_branch,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
-  output [31:0] io_target	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output [31:0] io_target,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  input         io_dcache_req_ready,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  output        io_dcache_req_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+                io_dcache_req_bits_write,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  input         io_dcache_resp_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
+  input  [31:0] io_dcache_resp_bits_rdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:11:14
 );
 
-  Fu Fu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:19:18
-    .clock                      (clock),
-    .reset                      (reset),
-    .io_data_pc                 (io_executeStage_data_pc),
-    .io_data_info_valid         (io_executeStage_data_info_valid),
-    .io_data_info_op            (io_executeStage_data_info_op),
-    .io_data_info_imm           (io_executeStage_data_info_imm),
-    .io_data_info_fusel         (io_executeStage_data_info_fusel),
-    .io_data_src_info_src1_data (io_executeStage_data_src_info_src1_data),
-    .io_data_src_info_src2_data (io_executeStage_data_src_info_src2_data),
-    .io_data_rd_info_wdata      (io_memoryStage_data_rd_info_wdata),
-    .io_data_branch             (io_branch),
-    .io_data_target             (io_target)
+  Fu Fu (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:23:18
+    .clock                                 (clock),
+    .reset                                 (reset),
+    .io_data_pc                            (io_executeStage_data_pc),
+    .io_data_info_valid                    (io_executeStage_data_info_valid),
+    .io_data_info_op                       (io_executeStage_data_info_op),
+    .io_data_info_imm                      (io_executeStage_data_info_imm),
+    .io_data_info_fusel                    (io_executeStage_data_info_fusel),
+    .io_data_src_info_src1_data            (io_executeStage_data_src_info_src1_data),
+    .io_data_src_info_src2_data            (io_executeStage_data_src_info_src2_data),
+    .io_data_rd_info_wdata                 (io_memoryStage_data_rd_info_wdata),
+    .io_data_branch                        (io_branch),
+    .io_data_diffout_storeEvent_storePAddr
+      (io_memoryStage_data_info_diffout_storeEvent_storePAddr),
+    .io_data_diffout_storeEvent_storeVAddr
+      (io_memoryStage_data_info_diffout_storeEvent_storeVAddr),
+    .io_data_diffout_storeEvent_storeData
+      (io_memoryStage_data_info_diffout_storeEvent_storeData),
+    .io_data_diffout_loadEvent_paddr
+      (io_memoryStage_data_info_diffout_loadEvent_paddr),
+    .io_data_diffout_loadEvent_vaddr
+      (io_memoryStage_data_info_diffout_loadEvent_vaddr),
+    .io_data_target                        (io_target),
+    .io_dcache_req_ready                   (io_dcache_req_ready),
+    .io_dcache_req_valid                   (io_dcache_req_valid),
+    .io_dcache_req_bits_write              (io_dcache_req_bits_write),
+    .io_dcache_resp_valid                  (io_dcache_resp_valid),
+    .io_dcache_resp_bits_rdata             (io_dcache_resp_bits_rdata)
   );
   assign io_memoryStage_data_pc = io_executeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
   assign io_memoryStage_data_info_instr = io_executeStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteUnit.scala:10:7
@@ -1444,14 +1670,26 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
                 io_executeUnit_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   input  [4:0]  io_executeUnit_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   input  [2:0]  io_executeUnit_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
-  input  [31:0] io_executeUnit_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  input  [31:0] io_executeUnit_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_executeUnit_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_executeUnit_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_executeUnit_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_executeUnit_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_executeUnit_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output [31:0] io_memoryUnit_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
                 io_memoryUnit_data_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output        io_memoryUnit_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
                 io_memoryUnit_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output [4:0]  io_memoryUnit_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output [2:0]  io_memoryUnit_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
-  output [31:0] io_memoryUnit_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  output        io_memoryUnit_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  output [31:0] io_memoryUnit_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_memoryUnit_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_memoryUnit_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  output        io_memoryUnit_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  output [31:0] io_memoryUnit_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_memoryUnit_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_memoryUnit_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
 );
 
   reg [31:0] data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
@@ -1460,6 +1698,13 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
   reg        data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
   reg [4:0]  data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
   reg [2:0]  data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg        data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg [31:0] data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg [31:0] data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg [31:0] data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg        data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg [31:0] data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+  reg [31:0] data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
   reg [31:0] data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
@@ -1468,7 +1713,14 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
       data_info_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
       data_info_reg_wen <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
       data_info_reg_waddr <= 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
-      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_storeEvent_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_storeEvent_storePAddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_storeEvent_storeVAddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_storeEvent_storeData <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_loadEvent_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_loadEvent_paddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
+      data_info_diffout_loadEvent_vaddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
       data_rd_info_wdata <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:{21,34}
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
@@ -1478,6 +1730,18 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
       data_info_reg_wen <= io_executeUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
       data_info_reg_waddr <= io_executeUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
       data_info_fusel <= io_executeUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+      data_info_diffout_storeEvent_valid <= 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14, :27:21
+      data_info_diffout_storeEvent_storePAddr <=
+        io_executeUnit_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+      data_info_diffout_storeEvent_storeVAddr <=
+        io_executeUnit_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+      data_info_diffout_storeEvent_storeData <=
+        io_executeUnit_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+      data_info_diffout_loadEvent_valid <= 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14, :27:21
+      data_info_diffout_loadEvent_paddr <=
+        io_executeUnit_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
+      data_info_diffout_loadEvent_vaddr <=
+        io_executeUnit_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
       data_rd_info_wdata <= io_executeUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:27:21
     end
   end // always @(posedge)
@@ -1486,21 +1750,31 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
       `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
-      automatic logic [31:0] _RANDOM[0:4];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
+      automatic logic [31:0] _RANDOM[0:90];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
       `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
         `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
-        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
+        for (logic [6:0] i = 7'h0; i < 7'h5B; i += 7'h1) begin
           _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
         end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
-        data_pc = _RANDOM[3'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_info_instr = _RANDOM[3'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_info_valid = _RANDOM[3'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_info_reg_wen = _RANDOM[3'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_info_reg_waddr = _RANDOM[3'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_info_fusel = _RANDOM[3'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
-        data_rd_info_wdata = {_RANDOM[3'h3][31:27], _RANDOM[3'h4][26:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_pc = _RANDOM[7'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_instr = _RANDOM[7'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_valid = _RANDOM[7'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_reg_wen = _RANDOM[7'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_reg_waddr = _RANDOM[7'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_fusel = _RANDOM[7'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_storeEvent_valid = _RANDOM[7'h14][1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_storeEvent_storePAddr =
+          {_RANDOM[7'h14][31:2], _RANDOM[7'h15][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_storeEvent_storeVAddr =
+          {_RANDOM[7'h15][31:2], _RANDOM[7'h16][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_storeEvent_storeData =
+          {_RANDOM[7'h16][31:2], _RANDOM[7'h17][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_loadEvent_valid = _RANDOM[7'h17][14];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_loadEvent_paddr = {_RANDOM[7'h17][31:15], _RANDOM[7'h18][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_info_diffout_loadEvent_vaddr = {_RANDOM[7'h18][31:15], _RANDOM[7'h19][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+        data_rd_info_wdata = {_RANDOM[7'h59][31:15], _RANDOM[7'h5A][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7
@@ -1513,6 +1787,20 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
   assign io_memoryUnit_data_info_reg_wen = data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
   assign io_memoryUnit_data_info_reg_waddr = data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
   assign io_memoryUnit_data_info_fusel = data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_storeEvent_valid =
+    data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_storeEvent_storePAddr =
+    data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_storeEvent_storeVAddr =
+    data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_storeEvent_storeData =
+    data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_loadEvent_valid =
+    data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_loadEvent_paddr =
+    data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
+  assign io_memoryUnit_data_info_diffout_loadEvent_vaddr =
+    data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
   assign io_memoryUnit_data_rd_info_wdata = data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:20:7, :27:21
 endmodule
 
@@ -1523,14 +1811,28 @@ module MemoryUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
                 io_memoryStage_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   input  [4:0]  io_memoryStage_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   input  [2:0]  io_memoryStage_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
-  input  [31:0] io_memoryStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  input         io_memoryStage_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  input  [31:0] io_memoryStage_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_memoryStage_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_memoryStage_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  input         io_memoryStage_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  input  [31:0] io_memoryStage_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_memoryStage_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_memoryStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   output [31:0] io_writeBackStage_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
                 io_writeBackStage_data_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   output        io_writeBackStage_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
                 io_writeBackStage_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   output [4:0]  io_writeBackStage_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
   output [2:0]  io_writeBackStage_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
-  output [31:0] io_writeBackStage_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  output        io_writeBackStage_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  output [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_writeBackStage_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  output        io_writeBackStage_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+  output [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_writeBackStage_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
+                io_writeBackStage_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:12:14
 );
 
   assign io_writeBackStage_data_pc = io_memoryStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
@@ -1539,8 +1841,21 @@ module MemoryUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipelin
   assign io_writeBackStage_data_info_reg_wen = io_memoryStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
   assign io_writeBackStage_data_info_reg_waddr = io_memoryStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
   assign io_writeBackStage_data_info_fusel = io_memoryStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
-  assign io_writeBackStage_data_rd_info_wdata =
-    io_memoryStage_data_info_fusel == 3'h2 ? 32'h0 : io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7, :12:14, :53:{46,58}, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_writeBackStage_data_info_diffout_storeEvent_valid =
+    io_memoryStage_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_storeEvent_storePAddr =
+    io_memoryStage_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_storeEvent_storeVAddr =
+    io_memoryStage_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_storeEvent_storeData =
+    io_memoryStage_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_loadEvent_valid =
+    io_memoryStage_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_loadEvent_paddr =
+    io_memoryStage_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_info_diffout_loadEvent_vaddr =
+    io_memoryStage_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
+  assign io_writeBackStage_data_rd_info_wdata = io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryUnit.scala:11:7
 endmodule
 
 module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
@@ -1552,14 +1867,32 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
                 io_memoryUnit_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   input  [4:0]  io_memoryUnit_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   input  [2:0]  io_memoryUnit_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
-  input  [31:0] io_memoryUnit_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  input         io_memoryUnit_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  input  [31:0] io_memoryUnit_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_memoryUnit_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_memoryUnit_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  input         io_memoryUnit_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  input  [31:0] io_memoryUnit_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_memoryUnit_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_memoryUnit_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   output [31:0] io_writeBackUnit_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
                 io_writeBackUnit_data_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   output        io_writeBackUnit_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
                 io_writeBackUnit_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   output [4:0]  io_writeBackUnit_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
   output [2:0]  io_writeBackUnit_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
-  output [31:0] io_writeBackUnit_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [3:0]  io_writeBackUnit_data_info_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [7:0]  io_writeBackUnit_data_info_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output        io_writeBackUnit_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [31:0] io_writeBackUnit_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_writeBackUnit_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [3:0]  io_writeBackUnit_data_info_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [7:0]  io_writeBackUnit_data_info_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output        io_writeBackUnit_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+  output [31:0] io_writeBackUnit_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_writeBackUnit_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
+                io_writeBackUnit_data_rd_info_wdata	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14
 );
 
   reg [31:0] data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
@@ -1568,6 +1901,17 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
   reg        data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
   reg [4:0]  data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
   reg [2:0]  data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [3:0]  data_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [7:0]  data_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg        data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [31:0] data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [31:0] data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [31:0] data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [3:0]  data_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [7:0]  data_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg        data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [31:0] data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+  reg [31:0] data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
   reg [31:0] data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
@@ -1576,7 +1920,18 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
       data_info_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21, :26:54
       data_info_reg_wen <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21, :26:54
       data_info_reg_waddr <= 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
-      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+      data_info_fusel <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
+      data_info_diffout_storeEvent_coreid <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_storeEvent_index <= 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_storeEvent_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21, :26:54
+      data_info_diffout_storeEvent_storePAddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
+      data_info_diffout_storeEvent_storeVAddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
+      data_info_diffout_storeEvent_storeData <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
+      data_info_diffout_loadEvent_coreid <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_loadEvent_index <= 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_loadEvent_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21, :26:54
+      data_info_diffout_loadEvent_paddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
+      data_info_diffout_loadEvent_vaddr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
       data_rd_info_wdata <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:{21,34}
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
@@ -1586,6 +1941,24 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
       data_info_reg_wen <= io_memoryUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
       data_info_reg_waddr <= io_memoryUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
       data_info_fusel <= io_memoryUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_storeEvent_coreid <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_storeEvent_index <= 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_storeEvent_valid <=
+        io_memoryUnit_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_storeEvent_storePAddr <=
+        io_memoryUnit_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_storeEvent_storeVAddr <=
+        io_memoryUnit_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_storeEvent_storeData <=
+        io_memoryUnit_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_loadEvent_coreid <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_loadEvent_index <= 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:19:14, :25:21
+      data_info_diffout_loadEvent_valid <=
+        io_memoryUnit_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_loadEvent_paddr <=
+        io_memoryUnit_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
+      data_info_diffout_loadEvent_vaddr <=
+        io_memoryUnit_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
       data_rd_info_wdata <= io_memoryUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:25:21
     end
   end // always @(posedge)
@@ -1594,21 +1967,35 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
       `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
-      automatic logic [31:0] _RANDOM[0:4];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
+      automatic logic [31:0] _RANDOM[0:90];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
       `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
         `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
-        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
+        for (logic [6:0] i = 7'h0; i < 7'h5B; i += 7'h1) begin
           _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
         end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
-        data_pc = _RANDOM[3'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_info_instr = _RANDOM[3'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_info_valid = _RANDOM[3'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_info_reg_wen = _RANDOM[3'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_info_reg_waddr = _RANDOM[3'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_info_fusel = _RANDOM[3'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
-        data_rd_info_wdata = {_RANDOM[3'h3][31:27], _RANDOM[3'h4][26:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_pc = _RANDOM[7'h0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_instr = _RANDOM[7'h1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_valid = _RANDOM[7'h2][0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_reg_wen = _RANDOM[7'h2][16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_reg_waddr = _RANDOM[7'h2][21:17];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_fusel = _RANDOM[7'h3][26:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_coreid = _RANDOM[7'h13][24:21];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_index = {_RANDOM[7'h13][31:25], _RANDOM[7'h14][0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_valid = _RANDOM[7'h14][1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_storePAddr =
+          {_RANDOM[7'h14][31:2], _RANDOM[7'h15][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_storeVAddr =
+          {_RANDOM[7'h15][31:2], _RANDOM[7'h16][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_storeEvent_storeData =
+          {_RANDOM[7'h16][31:2], _RANDOM[7'h17][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_loadEvent_coreid = _RANDOM[7'h17][5:2];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_loadEvent_index = _RANDOM[7'h17][13:6];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_loadEvent_valid = _RANDOM[7'h17][14];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_loadEvent_paddr = {_RANDOM[7'h17][31:15], _RANDOM[7'h18][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_info_diffout_loadEvent_vaddr = {_RANDOM[7'h18][31:15], _RANDOM[7'h19][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+        data_rd_info_wdata = {_RANDOM[7'h59][31:15], _RANDOM[7'h5A][14:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7
@@ -1621,6 +2008,28 @@ module WriteBackStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pip
   assign io_writeBackUnit_data_info_reg_wen = data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
   assign io_writeBackUnit_data_info_reg_waddr = data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
   assign io_writeBackUnit_data_info_fusel = data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_coreid =
+    data_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_index =
+    data_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_valid =
+    data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_storePAddr =
+    data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr =
+    data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_storeEvent_storeData =
+    data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_loadEvent_coreid =
+    data_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_loadEvent_index =
+    data_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_loadEvent_valid =
+    data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_loadEvent_paddr =
+    data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
+  assign io_writeBackUnit_data_info_diffout_loadEvent_vaddr =
+    data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
   assign io_writeBackUnit_data_rd_info_wdata = data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackStage.scala:18:7, :25:21
 endmodule
 
@@ -1631,7 +2040,18 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
                 io_writeBackStage_data_info_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   input  [4:0]  io_writeBackStage_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   input  [2:0]  io_writeBackStage_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
-  input  [31:0] io_writeBackStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [3:0]  io_writeBackStage_data_info_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [7:0]  io_writeBackStage_data_info_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input         io_writeBackStage_data_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_writeBackStage_data_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [3:0]  io_writeBackStage_data_info_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [7:0]  io_writeBackStage_data_info_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input         io_writeBackStage_data_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  input  [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_writeBackStage_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_writeBackStage_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output        io_regfile_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [4:0]  io_regfile_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [31:0] io_regfile_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
@@ -1639,7 +2059,18 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
   output [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
   output [31:0] io_debug_rf_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
-                io_info_instr	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [3:0]  io_info_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [7:0]  io_info_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output        io_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [31:0] io_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [3:0]  io_info_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [7:0]  io_info_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output        io_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+  output [31:0] io_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
+                io_info_diffout_loadEvent_vaddr	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:10:14
 );
 
   assign io_regfile_wen =
@@ -1654,27 +2085,49 @@ module WriteBackUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipe
   assign io_debug_rf_wnum = io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_debug_rf_wdata = io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
   assign io_info_instr = io_writeBackStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_coreid =
+    io_writeBackStage_data_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_index =
+    io_writeBackStage_data_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_valid =
+    io_writeBackStage_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_storePAddr =
+    io_writeBackStage_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_storeVAddr =
+    io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_storeEvent_storeData =
+    io_writeBackStage_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_loadEvent_coreid =
+    io_writeBackStage_data_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_loadEvent_index =
+    io_writeBackStage_data_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_loadEvent_valid =
+    io_writeBackStage_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_loadEvent_paddr =
+    io_writeBackStage_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
+  assign io_info_diffout_loadEvent_vaddr =
+    io_writeBackStage_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/writeback/WriteBackUnit.scala:9:7
 endmodule
 
-module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:7
-  input  [4:0] io_decodeInfo_src1_raddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_decodeInfo_src2_raddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input        io_decodeInfo_src1_ren,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_decodeInfo_src2_ren,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_executeInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_executeInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input  [4:0] io_executeInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input        io_memoryInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_memoryInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input  [4:0] io_memoryInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input        io_writeBackInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_writeBackInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input  [4:0] io_writeBackInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  output       io_signals_fetchUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_signals_fetchUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_signals_decodeUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-               io_signals_decodeUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
-  input        io_branch	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:21:14
+module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7
+  input  [4:0] io_decodeInfo_src1_raddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_decodeInfo_src2_raddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input        io_decodeInfo_src1_ren,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_decodeInfo_src2_ren,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_executeInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_executeInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input  [4:0] io_executeInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input        io_memoryInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_memoryInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input  [4:0] io_memoryInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input        io_writeBackInfo_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_writeBackInfo_reg_wen,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input  [4:0] io_writeBackInfo_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  output       io_signals_fetchUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_signals_fetchUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_signals_decodeUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+               io_signals_decodeUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
+  input        io_branch	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:14
 );
 
   wire pipeline_stall =
@@ -1687,10 +2140,10 @@ module ControlUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
     | io_writeBackInfo_valid & io_writeBackInfo_reg_wen & (|io_writeBackInfo_reg_waddr)
     & (io_decodeInfo_src1_ren & io_decodeInfo_src1_raddr == io_writeBackInfo_reg_waddr
        | io_decodeInfo_src2_ren & io_decodeInfo_src2_raddr == io_writeBackInfo_reg_waddr);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:31:{97,101}, :32:{30,58,88}, :33:{31,59}, :35:{94,98}, :36:{30,58,87}, :37:{31,59}, :39:{102,106}, :40:{30,58,90}, :41:{31,59}, :43:53
-  assign io_signals_fetchUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:7, :43:53, :46:47
-  assign io_signals_fetchUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:7
-  assign io_signals_decodeUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:7, :43:53, :46:47
-  assign io_signals_decodeUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:20:7
+  assign io_signals_fetchUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :43:53, :46:48
+  assign io_signals_fetchUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7
+  assign io_signals_decodeUnitSignal_allow_to_go = ~pipeline_stall;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7, :43:53, :46:48
+  assign io_signals_decodeUnitSignal_do_flush = io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/ControlUnit.scala:19:7
 endmodule
 
 module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
@@ -1700,6 +2153,17 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/diff
   input  [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
   input  [31:0] io_debug_rf_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [3:0]  io_info_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [7:0]  io_info_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input         io_info_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [31:0] io_info_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_info_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_info_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [3:0]  io_info_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [7:0]  io_info_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input         io_info_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  input  [31:0] io_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_regs_in_0,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_regs_in_1,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_regs_in_2,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
@@ -1737,6 +2201,17 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/diff
                 io_diffout_instrCommit_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
   output [4:0]  io_diffout_instrCommit_wdest,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
   output [31:0] io_diffout_instrCommit_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [3:0]  io_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [7:0]  io_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output        io_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [31:0] io_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [3:0]  io_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [7:0]  io_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output        io_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+  output [31:0] io_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
+                io_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_diffout_gRegState_0,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_diffout_gRegState_1,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
                 io_diffout_gRegState_2,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:9:14
@@ -1776,31 +2251,67 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/diff
   reg [31:0] io_diffout_instrCommit_pc_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:28:42
   reg [4:0]  io_diffout_instrCommit_wdest_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:29:42
   reg [31:0] io_diffout_instrCommit_wdata_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:30:42
+  reg [3:0]  io_diffout_loadEvent_REG_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+  reg [7:0]  io_diffout_loadEvent_REG_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+  reg        io_diffout_loadEvent_REG_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+  reg [31:0] io_diffout_loadEvent_REG_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+  reg [31:0] io_diffout_loadEvent_REG_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+  reg [3:0]  io_diffout_storeEvent_REG_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+  reg [7:0]  io_diffout_storeEvent_REG_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+  reg        io_diffout_storeEvent_REG_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+  reg [31:0] io_diffout_storeEvent_REG_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+  reg [31:0] io_diffout_storeEvent_REG_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+  reg [31:0] io_diffout_storeEvent_REG_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
     io_diffout_instrCommit_instr_REG <= io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:26:42
     io_diffout_instrCommit_valid_REG <= io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:27:42
     io_diffout_instrCommit_pc_REG <= io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:28:42
     io_diffout_instrCommit_wdest_REG <= io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:29:42
     io_diffout_instrCommit_wdata_REG <= io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:30:42
+    io_diffout_loadEvent_REG_coreid <= io_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+    io_diffout_loadEvent_REG_index <= io_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+    io_diffout_loadEvent_REG_valid <= io_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+    io_diffout_loadEvent_REG_paddr <= io_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+    io_diffout_loadEvent_REG_vaddr <= io_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:32:35
+    io_diffout_storeEvent_REG_coreid <= io_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+    io_diffout_storeEvent_REG_index <= io_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+    io_diffout_storeEvent_REG_valid <= io_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+    io_diffout_storeEvent_REG_storePAddr <= io_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+    io_diffout_storeEvent_REG_storeVAddr <= io_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
+    io_diffout_storeEvent_REG_storeData <= io_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:33:35
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
     `ifdef FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
       `FIRRTL_BEFORE_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-      automatic logic [31:0] _RANDOM[0:89];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
+      automatic logic [31:0] _RANDOM[0:94];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
       `ifdef INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
         `INIT_RANDOM_PROLOG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-        for (logic [6:0] i = 7'h0; i < 7'h5A; i += 7'h1) begin
+        for (logic [6:0] i = 7'h0; i < 7'h5F; i += 7'h1) begin
           _RANDOM[i] = `RANDOM;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
         end	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
-        io_diffout_instrCommit_instr_REG = {_RANDOM[7'h55][31:25], _RANDOM[7'h56][24:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42
-        io_diffout_instrCommit_valid_REG = _RANDOM[7'h56][28:25];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :27:42
-        io_diffout_instrCommit_pc_REG = {_RANDOM[7'h56][31:29], _RANDOM[7'h57][28:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :28:42
-        io_diffout_instrCommit_wdest_REG = {_RANDOM[7'h57][31:29], _RANDOM[7'h58][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :28:42, :29:42
-        io_diffout_instrCommit_wdata_REG = {_RANDOM[7'h58][31:2], _RANDOM[7'h59][1:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :29:42, :30:42
+        io_diffout_instrCommit_instr_REG = {_RANDOM[7'h55][31:20], _RANDOM[7'h56][19:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42
+        io_diffout_instrCommit_valid_REG = _RANDOM[7'h56][23:20];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :27:42
+        io_diffout_instrCommit_pc_REG = {_RANDOM[7'h56][31:24], _RANDOM[7'h57][23:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42, :28:42
+        io_diffout_instrCommit_wdest_REG = _RANDOM[7'h57][28:24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :28:42, :29:42
+        io_diffout_instrCommit_wdata_REG = {_RANDOM[7'h57][31:29], _RANDOM[7'h58][28:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :28:42, :30:42
+        io_diffout_loadEvent_REG_coreid = {_RANDOM[7'h58][31:29], _RANDOM[7'h59][0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :30:42, :32:35
+        io_diffout_loadEvent_REG_index = _RANDOM[7'h59][8:1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+        io_diffout_loadEvent_REG_valid = _RANDOM[7'h59][9];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+        io_diffout_loadEvent_REG_paddr = {_RANDOM[7'h59][31:10], _RANDOM[7'h5A][9:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+        io_diffout_loadEvent_REG_vaddr = {_RANDOM[7'h5A][31:10], _RANDOM[7'h5B][9:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+        io_diffout_storeEvent_REG_coreid = _RANDOM[7'h5B][13:10];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35, :33:35
+        io_diffout_storeEvent_REG_index = _RANDOM[7'h5B][21:14];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35, :33:35
+        io_diffout_storeEvent_REG_valid = _RANDOM[7'h5B][22];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35, :33:35
+        io_diffout_storeEvent_REG_storePAddr =
+          {_RANDOM[7'h5B][31:23], _RANDOM[7'h5C][22:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35, :33:35
+        io_diffout_storeEvent_REG_storeVAddr =
+          {_RANDOM[7'h5C][31:23], _RANDOM[7'h5D][22:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+        io_diffout_storeEvent_REG_storeData =
+          {_RANDOM[7'h5D][31:23], _RANDOM[7'h5E][22:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
@@ -1812,6 +2323,17 @@ module Diff(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/diff
   assign io_diffout_instrCommit_instr = io_diffout_instrCommit_instr_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :26:42
   assign io_diffout_instrCommit_wdest = io_diffout_instrCommit_wdest_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :29:42
   assign io_diffout_instrCommit_wdata = io_diffout_instrCommit_wdata_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :30:42
+  assign io_diffout_storeEvent_coreid = io_diffout_storeEvent_REG_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_storeEvent_index = io_diffout_storeEvent_REG_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_storeEvent_valid = io_diffout_storeEvent_REG_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_storeEvent_storePAddr = io_diffout_storeEvent_REG_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_storeEvent_storeVAddr = io_diffout_storeEvent_REG_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_storeEvent_storeData = io_diffout_storeEvent_REG_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :33:35
+  assign io_diffout_loadEvent_coreid = io_diffout_loadEvent_REG_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+  assign io_diffout_loadEvent_index = io_diffout_loadEvent_REG_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+  assign io_diffout_loadEvent_valid = io_diffout_loadEvent_REG_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+  assign io_diffout_loadEvent_paddr = io_diffout_loadEvent_REG_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
+  assign io_diffout_loadEvent_vaddr = io_diffout_loadEvent_REG_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7, :32:35
   assign io_diffout_gRegState_0 = io_regs_in_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
   assign io_diffout_gRegState_1 = io_regs_in_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
   assign io_diffout_gRegState_2 = io_regs_in_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/difftest/difftest.scala:8:7
@@ -1865,6 +2387,17 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
                 io_diff_instrCommit_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   output [4:0]  io_diff_instrCommit_wdest,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   output [31:0] io_diff_instrCommit_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [3:0]  io_diff_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [7:0]  io_diff_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output        io_diff_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [31:0] io_diff_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+                io_diff_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+                io_diff_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [3:0]  io_diff_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [7:0]  io_diff_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output        io_diff_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [31:0] io_diff_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+                io_diff_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
                 io_diff_gRegState_0,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
                 io_diff_gRegState_1,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
                 io_diff_gRegState_2,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
@@ -1899,118 +2432,166 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
                 io_diff_gRegState_31	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
 );
 
-  wire        _controlUnit_io_signals_fetchUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
-  wire        _controlUnit_io_signals_fetchUnitSignal_do_flush;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
-  wire        _controlUnit_io_signals_decodeUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
-  wire        _controlUnit_io_signals_decodeUnitSignal_do_flush;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
-  wire        _writeBackUnit_io_regfile_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [4:0]  _writeBackUnit_io_regfile_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [31:0] _writeBackUnit_io_regfile_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [31:0] _writeBackUnit_io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [3:0]  _writeBackUnit_io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [4:0]  _writeBackUnit_io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [31:0] _writeBackUnit_io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [31:0] _writeBackUnit_io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-  wire [31:0] _writeBackStage_io_writeBackUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire        _writeBackStage_io_writeBackUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire        _writeBackStage_io_writeBackUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire [4:0]  _writeBackStage_io_writeBackUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire [2:0]  _writeBackStage_io_writeBackUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire [31:0] _writeBackStage_io_writeBackUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-  wire [31:0] _memoryUnit_io_writeBackStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire [31:0] _memoryUnit_io_writeBackStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire        _memoryUnit_io_writeBackStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire        _memoryUnit_io_writeBackStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire [4:0]  _memoryUnit_io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire [2:0]  _memoryUnit_io_writeBackStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire [31:0] _memoryUnit_io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-  wire [31:0] _memoryStage_io_memoryUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire [31:0] _memoryStage_io_memoryUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire        _memoryStage_io_memoryUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire        _memoryStage_io_memoryUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire [4:0]  _memoryStage_io_memoryUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire [2:0]  _memoryStage_io_memoryUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire [31:0] _memoryStage_io_memoryUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-  wire [31:0] _executeUnit_io_memoryStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [31:0] _executeUnit_io_memoryStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire        _executeUnit_io_memoryStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire        _executeUnit_io_memoryStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [4:0]  _executeUnit_io_memoryStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [2:0]  _executeUnit_io_memoryStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [31:0] _executeUnit_io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire        _executeUnit_io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [31:0] _executeUnit_io_target;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-  wire [31:0] _executeStage_io_executeUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [31:0] _executeStage_io_executeUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire        _executeStage_io_executeUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [4:0]  _executeStage_io_executeUnit_data_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire        _executeStage_io_executeUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [4:0]  _executeStage_io_executeUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [31:0] _executeStage_io_executeUnit_data_info_imm;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [2:0]  _executeStage_io_executeUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [31:0] _executeStage_io_executeUnit_data_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [31:0] _executeStage_io_executeUnit_data_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-  wire [31:0] _regfile_io_read_src1_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_read_src2_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_9;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_10;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_11;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_12;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_13;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_14;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_15;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_16;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_17;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_18;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_19;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_20;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_21;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_22;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_23;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_24;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_25;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_26;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_27;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_28;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_29;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_30;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [31:0] _regfile_io_regs_out_31;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-  wire [4:0]  _decodeUnit_io_regfile_src1_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [4:0]  _decodeUnit_io_regfile_src2_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeUnit_io_executeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeUnit_io_executeStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire        _decodeUnit_io_executeStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [4:0]  _decodeUnit_io_executeStage_data_info_src1_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [4:0]  _decodeUnit_io_executeStage_data_info_src2_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [4:0]  _decodeUnit_io_executeStage_data_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire        _decodeUnit_io_executeStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [4:0]  _decodeUnit_io_executeStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeUnit_io_executeStage_data_info_imm;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire        _decodeUnit_io_executeStage_data_info_src1_ren;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire        _decodeUnit_io_executeStage_data_info_src2_ren;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [2:0]  _decodeUnit_io_executeStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeUnit_io_executeStage_data_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeUnit_io_executeStage_data_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-  wire [31:0] _decodeStage_io_decodeUnit_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
-  wire        _decodeStage_io_decodeUnit_data_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
-  wire [31:0] _decodeStage_io_decodeUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
-  wire [31:0] _fetchUnit_io_decodeStage_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-  wire        _fetchUnit_io_decodeStage_data_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-  wire [31:0] _fetchUnit_io_decodeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-  wire        _fetchUnit_io_fetchrequest_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-  wire [31:0] _fetchUnit_io_fetchrequest_bits;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-  wire        _axibridge_io_icacheInput_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
-  wire [31:0] _axibridge_io_icacheInput_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+  wire        _controlUnit_io_signals_fetchUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+  wire        _controlUnit_io_signals_fetchUnitSignal_do_flush;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+  wire        _controlUnit_io_signals_decodeUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+  wire        _controlUnit_io_signals_decodeUnitSignal_do_flush;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+  wire        _writeBackUnit_io_regfile_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [4:0]  _writeBackUnit_io_regfile_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_regfile_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [3:0]  _writeBackUnit_io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [4:0]  _writeBackUnit_io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [3:0]  _writeBackUnit_io_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [7:0]  _writeBackUnit_io_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire        _writeBackUnit_io_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [3:0]  _writeBackUnit_io_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [7:0]  _writeBackUnit_io_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire        _writeBackUnit_io_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackUnit_io_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire        _writeBackStage_io_writeBackUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire        _writeBackStage_io_writeBackUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [4:0]  _writeBackStage_io_writeBackUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [2:0]  _writeBackStage_io_writeBackUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [3:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [7:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire        _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [3:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [7:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire        _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _writeBackStage_io_writeBackUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire        _memoryUnit_io_writeBackStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire        _memoryUnit_io_writeBackStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [4:0]  _memoryUnit_io_writeBackStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [2:0]  _memoryUnit_io_writeBackStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire        _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire        _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryUnit_io_writeBackStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire        _memoryStage_io_memoryUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire        _memoryStage_io_memoryUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [4:0]  _memoryStage_io_memoryUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [2:0]  _memoryStage_io_memoryUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire        _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire        _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _memoryStage_io_memoryUnit_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  wire [31:0] _executeUnit_io_memoryStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire        _executeUnit_io_memoryStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire        _executeUnit_io_memoryStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [4:0]  _executeUnit_io_memoryStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [2:0]  _executeUnit_io_memoryStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_memoryStage_data_rd_info_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire        _executeUnit_io_branch;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeUnit_io_target;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire        _executeUnit_io_dcache_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire        _executeUnit_io_dcache_req_bits_write;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  wire [31:0] _executeStage_io_executeUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [31:0] _executeStage_io_executeUnit_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire        _executeStage_io_executeUnit_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [4:0]  _executeStage_io_executeUnit_data_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire        _executeStage_io_executeUnit_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [4:0]  _executeStage_io_executeUnit_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [31:0] _executeStage_io_executeUnit_data_info_imm;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [2:0]  _executeStage_io_executeUnit_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [31:0] _executeStage_io_executeUnit_data_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [31:0] _executeStage_io_executeUnit_data_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+  wire [31:0] _regfile_io_read_src1_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_read_src2_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_8;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_9;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_10;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_11;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_12;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_13;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_14;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_15;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_16;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_17;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_18;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_19;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_20;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_21;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_22;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_23;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_24;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_25;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_26;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_27;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_28;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_29;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_30;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [31:0] _regfile_io_regs_out_31;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  wire [4:0]  _decodeUnit_io_regfile_src1_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [4:0]  _decodeUnit_io_regfile_src2_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeUnit_io_executeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeUnit_io_executeStage_data_info_instr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire        _decodeUnit_io_executeStage_data_info_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [4:0]  _decodeUnit_io_executeStage_data_info_src1_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [4:0]  _decodeUnit_io_executeStage_data_info_src2_raddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [4:0]  _decodeUnit_io_executeStage_data_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire        _decodeUnit_io_executeStage_data_info_reg_wen;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [4:0]  _decodeUnit_io_executeStage_data_info_reg_waddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeUnit_io_executeStage_data_info_imm;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire        _decodeUnit_io_executeStage_data_info_src1_ren;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire        _decodeUnit_io_executeStage_data_info_src2_ren;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [2:0]  _decodeUnit_io_executeStage_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeUnit_io_executeStage_data_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeUnit_io_executeStage_data_src_info_src2_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  wire [31:0] _decodeStage_io_decodeUnit_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+  wire        _decodeStage_io_decodeUnit_data_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+  wire [31:0] _decodeStage_io_decodeUnit_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+  wire [31:0] _fetchUnit_io_decodeStage_data_inst;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  wire        _fetchUnit_io_decodeStage_data_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  wire [31:0] _fetchUnit_io_decodeStage_data_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  wire        _fetchUnit_io_fetchrequest_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  wire [31:0] _fetchUnit_io_fetchrequest_bits;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  wire        _axibridge_io_dcacheInput_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  wire [31:0] _axibridge_io_dcacheInput_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  wire        _axibridge_io_icacheInput_r_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  wire [31:0] _axibridge_io_icacheInput_r_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  wire        _dcache_io_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+  wire        _dcache_io_resp_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+  wire [31:0] _dcache_io_resp_bits_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
   wire        _icache_io_axi_ar_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
   wire [31:0] _icache_io_axi_ar_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
   wire        _icache_io_fetch_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
@@ -2022,16 +2603,27 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .reset               (reset),
     .io_axi_ar_valid     (_icache_io_axi_ar_valid),
     .io_axi_ar_bits_addr (_icache_io_axi_ar_bits_addr),
-    .io_axi_r_valid      (_axibridge_io_icacheInput_r_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
-    .io_axi_r_bits_data  (_axibridge_io_icacheInput_r_bits_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
-    .io_fetch_req_valid  (_fetchUnit_io_fetchrequest_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-    .io_fetch_req_addr   (_fetchUnit_io_fetchrequest_bits),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .io_axi_r_valid      (_axibridge_io_icacheInput_r_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .io_axi_r_bits_data  (_axibridge_io_icacheInput_r_bits_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .io_fetch_req_valid  (_fetchUnit_io_fetchrequest_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+    .io_fetch_req_addr   (_fetchUnit_io_fetchrequest_bits),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
     .io_fetch_req_ready  (_icache_io_fetch_req_ready),
     .io_fetch_rsp_valid  (_icache_io_fetch_rsp_valid),
     .io_fetch_rsp_data   (_icache_io_fetch_rsp_data),
     .io_fetch_rsp_addr   (_icache_io_fetch_rsp_addr)
   );
-  Axibridge axibridge (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+  DCache dcache (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+    .clock              (clock),
+    .reset              (reset),
+    .io_req_ready       (_dcache_io_req_ready),
+    .io_req_valid       (_executeUnit_io_dcache_req_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_req_bits_write  (_executeUnit_io_dcache_req_bits_write),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_resp_valid      (_dcache_io_resp_valid),
+    .io_resp_bits_rdata (_dcache_io_resp_bits_rdata),
+    .io_axi_r_valid     (_axibridge_io_dcacheInput_r_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .io_axi_r_bits_data (_axibridge_io_dcacheInput_r_bits_data)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  );
+  Axibridge axibridge (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
     .clock                       (clock),
     .reset                       (reset),
     .io_axi_ar_ready             (io_axi_ar_ready),
@@ -2041,12 +2633,14 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_axi_r_valid              (io_axi_r_valid),
     .io_axi_r_bits_id            (io_axi_r_bits_id),
     .io_axi_r_bits_data          (io_axi_r_bits_data),
+    .io_dcacheInput_r_valid      (_axibridge_io_dcacheInput_r_valid),
+    .io_dcacheInput_r_bits_data  (_axibridge_io_dcacheInput_r_bits_data),
     .io_icacheInput_ar_valid     (_icache_io_axi_ar_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
     .io_icacheInput_ar_bits_addr (_icache_io_axi_ar_bits_addr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
     .io_icacheInput_r_valid      (_axibridge_io_icacheInput_r_valid),
     .io_icacheInput_r_bits_data  (_axibridge_io_icacheInput_r_bits_data)
   );
-  FetchUnit fetchUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+  FetchUnit fetchUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
     .clock                                 (clock),
     .reset                                 (reset),
     .io_decodeStage_data_inst              (_fetchUnit_io_decodeStage_data_inst),
@@ -2055,36 +2649,36 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_fetchanswer_data                   (_icache_io_fetch_rsp_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
     .io_fetchanswer_pc                     (_icache_io_fetch_rsp_addr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
     .io_fetchanswer_valid                  (_icache_io_fetch_rsp_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
-    .io_branch                             (_executeUnit_io_branch),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_target                             (_executeUnit_io_target),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+    .io_branch                             (_executeUnit_io_branch),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_target                             (_executeUnit_io_target),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
     .io_signal_fetchUnitSignal_allow_to_go
-      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_fetchrequest_ready                 (_icache_io_fetch_req_ready),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:21:30
     .io_fetchrequest_valid                 (_fetchUnit_io_fetchrequest_valid),
     .io_fetchrequest_bits                  (_fetchUnit_io_fetchrequest_bits)
   );
-  DecodeStage decodeStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  DecodeStage decodeStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
     .clock                                        (clock),
     .reset                                        (reset),
-    .io_fetchUnit_data_inst                       (_fetchUnit_io_decodeStage_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-    .io_fetchUnit_data_valid                      (_fetchUnit_io_decodeStage_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
-    .io_fetchUnit_data_pc                         (_fetchUnit_io_decodeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:23:30
+    .io_fetchUnit_data_inst                       (_fetchUnit_io_decodeStage_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+    .io_fetchUnit_data_valid                      (_fetchUnit_io_decodeStage_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+    .io_fetchUnit_data_pc                         (_fetchUnit_io_decodeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
     .io_controlSignal_fetchUnitSignal_allow_to_go
-      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_controlSignal_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+      (_controlUnit_io_signals_fetchUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_decodeUnit_data_inst                      (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeUnit_data_valid                     (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
-  DecodeUnit decodeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
-    .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
-    .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
-    .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:24:30
+  DecodeUnit decodeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+    .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+    .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+    .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
     .io_regfile_src1_raddr                   (_decodeUnit_io_regfile_src1_raddr),
-    .io_regfile_src1_rdata                   (_regfile_io_read_src1_rdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+    .io_regfile_src1_rdata                   (_regfile_io_read_src1_rdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
     .io_regfile_src2_raddr                   (_decodeUnit_io_regfile_src2_raddr),
-    .io_regfile_src2_rdata                   (_regfile_io_read_src2_rdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+    .io_regfile_src2_rdata                   (_regfile_io_read_src2_rdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
     .io_executeStage_data_pc                 (_decodeUnit_io_executeStage_data_pc),
     .io_executeStage_data_info_instr
       (_decodeUnit_io_executeStage_data_info_instr),
@@ -2111,16 +2705,16 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_executeStage_data_src_info_src2_data
       (_decodeUnit_io_executeStage_data_src_info_src2_data)
   );
-  ARegFile regfile (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
+  ARegFile regfile (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
     .clock              (clock),
     .reset              (reset),
-    .io_read_src1_raddr (_decodeUnit_io_regfile_src1_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+    .io_read_src1_raddr (_decodeUnit_io_regfile_src1_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_read_src1_rdata (_regfile_io_read_src1_rdata),
-    .io_read_src2_raddr (_decodeUnit_io_regfile_src2_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+    .io_read_src2_raddr (_decodeUnit_io_regfile_src2_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_read_src2_rdata (_regfile_io_read_src2_rdata),
-    .io_write_wen       (_writeBackUnit_io_regfile_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_write_waddr     (_writeBackUnit_io_regfile_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_write_wdata     (_writeBackUnit_io_regfile_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_write_wen       (_writeBackUnit_io_regfile_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_write_waddr     (_writeBackUnit_io_regfile_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_write_wdata     (_writeBackUnit_io_regfile_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
     .io_regs_out_0      (_regfile_io_regs_out_0),
     .io_regs_out_1      (_regfile_io_regs_out_1),
     .io_regs_out_2      (_regfile_io_regs_out_2),
@@ -2154,32 +2748,32 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_regs_out_30     (_regfile_io_regs_out_30),
     .io_regs_out_31     (_regfile_io_regs_out_31)
   );
-  ExecuteStage executeStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  ExecuteStage executeStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .clock                                         (clock),
     .reset                                         (reset),
-    .io_decodeUnit_data_pc                         (_decodeUnit_io_executeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+    .io_decodeUnit_data_pc                         (_decodeUnit_io_executeStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_instr
-      (_decodeUnit_io_executeStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_valid
-      (_decodeUnit_io_executeStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_op
-      (_decodeUnit_io_executeStage_data_info_op),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_op),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_reg_wen
-      (_decodeUnit_io_executeStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_reg_waddr
-      (_decodeUnit_io_executeStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_imm
-      (_decodeUnit_io_executeStage_data_info_imm),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_imm),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_info_fusel
-      (_decodeUnit_io_executeStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_src_info_src1_data
-      (_decodeUnit_io_executeStage_data_src_info_src1_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_src_info_src1_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeUnit_data_src_info_src2_data
-      (_decodeUnit_io_executeStage_data_src_info_src2_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_src_info_src2_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_controlSignal_decodeUnitSignal_allow_to_go
-      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_controlSignal_decodeUnitSignal_do_flush
-      (_controlUnit_io_signals_decodeUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+      (_controlUnit_io_signals_decodeUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_executeUnit_data_pc                        (_executeStage_io_executeUnit_data_pc),
     .io_executeUnit_data_info_instr
       (_executeStage_io_executeUnit_data_info_instr),
@@ -2200,27 +2794,31 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_executeUnit_data_src_info_src2_data
       (_executeStage_io_executeUnit_data_src_info_src2_data)
   );
-  ExecuteUnit executeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .clock                                   (clock),
-    .reset                                   (reset),
-    .io_executeStage_data_pc                 (_executeStage_io_executeUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+  ExecuteUnit executeUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .clock                                                  (clock),
+    .reset                                                  (reset),
+    .io_executeStage_data_pc
+      (_executeStage_io_executeUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_info_instr
-      (_executeStage_io_executeUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_info_valid
-      (_executeStage_io_executeUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-    .io_executeStage_data_info_op            (_executeStage_io_executeUnit_data_info_op),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+    .io_executeStage_data_info_op
+      (_executeStage_io_executeUnit_data_info_op),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_info_reg_wen
-      (_executeStage_io_executeUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_info_reg_waddr
-      (_executeStage_io_executeUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-    .io_executeStage_data_info_imm           (_executeStage_io_executeUnit_data_info_imm),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+    .io_executeStage_data_info_imm
+      (_executeStage_io_executeUnit_data_info_imm),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_info_fusel
-      (_executeStage_io_executeUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_src_info_src1_data
-      (_executeStage_io_executeUnit_data_src_info_src1_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+      (_executeStage_io_executeUnit_data_src_info_src1_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
     .io_executeStage_data_src_info_src2_data
-      (_executeStage_io_executeUnit_data_src_info_src2_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
-    .io_memoryStage_data_pc                  (_executeUnit_io_memoryStage_data_pc),
+      (_executeStage_io_executeUnit_data_src_info_src2_data),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+    .io_memoryStage_data_pc
+      (_executeUnit_io_memoryStage_data_pc),
     .io_memoryStage_data_info_instr
       (_executeUnit_io_memoryStage_data_info_instr),
     .io_memoryStage_data_info_valid
@@ -2231,40 +2829,115 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
       (_executeUnit_io_memoryStage_data_info_reg_waddr),
     .io_memoryStage_data_info_fusel
       (_executeUnit_io_memoryStage_data_info_fusel),
+    .io_memoryStage_data_info_diffout_storeEvent_storePAddr
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr),
+    .io_memoryStage_data_info_diffout_storeEvent_storeVAddr
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr),
+    .io_memoryStage_data_info_diffout_storeEvent_storeData
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData),
+    .io_memoryStage_data_info_diffout_loadEvent_paddr
+      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr),
+    .io_memoryStage_data_info_diffout_loadEvent_vaddr
+      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr),
     .io_memoryStage_data_rd_info_wdata
       (_executeUnit_io_memoryStage_data_rd_info_wdata),
-    .io_branch                               (_executeUnit_io_branch),
-    .io_target                               (_executeUnit_io_target)
+    .io_branch                                              (_executeUnit_io_branch),
+    .io_target                                              (_executeUnit_io_target),
+    .io_dcache_req_ready                                    (_dcache_io_req_ready),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+    .io_dcache_req_valid
+      (_executeUnit_io_dcache_req_valid),
+    .io_dcache_req_bits_write
+      (_executeUnit_io_dcache_req_bits_write),
+    .io_dcache_resp_valid                                   (_dcache_io_resp_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
+    .io_dcache_resp_bits_rdata                              (_dcache_io_resp_bits_rdata)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:22:30
   );
-  MemoryStage memoryStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .clock                              (clock),
-    .reset                              (reset),
-    .io_executeUnit_data_pc             (_executeUnit_io_memoryStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_info_instr     (_executeUnit_io_memoryStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_info_valid     (_executeUnit_io_memoryStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_info_reg_wen   (_executeUnit_io_memoryStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_info_reg_waddr (_executeUnit_io_memoryStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_info_fusel     (_executeUnit_io_memoryStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_executeUnit_data_rd_info_wdata  (_executeUnit_io_memoryStage_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
-    .io_memoryUnit_data_pc              (_memoryStage_io_memoryUnit_data_pc),
-    .io_memoryUnit_data_info_instr      (_memoryStage_io_memoryUnit_data_info_instr),
-    .io_memoryUnit_data_info_valid      (_memoryStage_io_memoryUnit_data_info_valid),
-    .io_memoryUnit_data_info_reg_wen    (_memoryStage_io_memoryUnit_data_info_reg_wen),
-    .io_memoryUnit_data_info_reg_waddr  (_memoryStage_io_memoryUnit_data_info_reg_waddr),
-    .io_memoryUnit_data_info_fusel      (_memoryStage_io_memoryUnit_data_info_fusel),
-    .io_memoryUnit_data_rd_info_wdata   (_memoryStage_io_memoryUnit_data_rd_info_wdata)
+  MemoryStage memoryStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .clock                                                  (clock),
+    .reset                                                  (reset),
+    .io_executeUnit_data_pc
+      (_executeUnit_io_memoryStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_instr
+      (_executeUnit_io_memoryStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_valid
+      (_executeUnit_io_memoryStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_reg_wen
+      (_executeUnit_io_memoryStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_reg_waddr
+      (_executeUnit_io_memoryStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_fusel
+      (_executeUnit_io_memoryStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_diffout_storeEvent_storePAddr
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_diffout_storeEvent_storeVAddr
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_diffout_storeEvent_storeData
+      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_diffout_loadEvent_paddr
+      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_info_diffout_loadEvent_vaddr
+      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_executeUnit_data_rd_info_wdata
+      (_executeUnit_io_memoryStage_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_memoryUnit_data_pc
+      (_memoryStage_io_memoryUnit_data_pc),
+    .io_memoryUnit_data_info_instr
+      (_memoryStage_io_memoryUnit_data_info_instr),
+    .io_memoryUnit_data_info_valid
+      (_memoryStage_io_memoryUnit_data_info_valid),
+    .io_memoryUnit_data_info_reg_wen
+      (_memoryStage_io_memoryUnit_data_info_reg_wen),
+    .io_memoryUnit_data_info_reg_waddr
+      (_memoryStage_io_memoryUnit_data_info_reg_waddr),
+    .io_memoryUnit_data_info_fusel
+      (_memoryStage_io_memoryUnit_data_info_fusel),
+    .io_memoryUnit_data_info_diffout_storeEvent_valid
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid),
+    .io_memoryUnit_data_info_diffout_storeEvent_storePAddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr),
+    .io_memoryUnit_data_info_diffout_storeEvent_storeVAddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr),
+    .io_memoryUnit_data_info_diffout_storeEvent_storeData
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData),
+    .io_memoryUnit_data_info_diffout_loadEvent_valid
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid),
+    .io_memoryUnit_data_info_diffout_loadEvent_paddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr),
+    .io_memoryUnit_data_info_diffout_loadEvent_vaddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr),
+    .io_memoryUnit_data_rd_info_wdata
+      (_memoryStage_io_memoryUnit_data_rd_info_wdata)
   );
-  MemoryUnit memoryUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-    .io_memoryStage_data_pc                (_memoryStage_io_memoryUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .io_memoryStage_data_info_instr        (_memoryStage_io_memoryUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .io_memoryStage_data_info_valid        (_memoryStage_io_memoryUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .io_memoryStage_data_info_reg_wen      (_memoryStage_io_memoryUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+  MemoryUnit memoryUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryStage_data_pc
+      (_memoryStage_io_memoryUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_instr
+      (_memoryStage_io_memoryUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_valid
+      (_memoryStage_io_memoryUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_reg_wen
+      (_memoryStage_io_memoryUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
     .io_memoryStage_data_info_reg_waddr
-      (_memoryStage_io_memoryUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .io_memoryStage_data_info_fusel        (_memoryStage_io_memoryUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+      (_memoryStage_io_memoryUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_fusel
+      (_memoryStage_io_memoryUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_storeEvent_valid
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_storeEvent_storePAddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_storeEvent_storeVAddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_storeEvent_storeData
+      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_loadEvent_valid
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_loadEvent_paddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_memoryStage_data_info_diffout_loadEvent_vaddr
+      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
     .io_memoryStage_data_rd_info_wdata
-      (_memoryStage_io_memoryUnit_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
-    .io_writeBackStage_data_pc             (_memoryUnit_io_writeBackStage_data_pc),
+      (_memoryStage_io_memoryUnit_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+    .io_writeBackStage_data_pc
+      (_memoryUnit_io_writeBackStage_data_pc),
     .io_writeBackStage_data_info_instr
       (_memoryUnit_io_writeBackStage_data_info_instr),
     .io_writeBackStage_data_info_valid
@@ -2275,23 +2948,56 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
       (_memoryUnit_io_writeBackStage_data_info_reg_waddr),
     .io_writeBackStage_data_info_fusel
       (_memoryUnit_io_writeBackStage_data_info_fusel),
+    .io_writeBackStage_data_info_diffout_storeEvent_valid
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
+    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
+    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
+    .io_writeBackStage_data_info_diffout_storeEvent_storeData
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
+    .io_writeBackStage_data_info_diffout_loadEvent_valid
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
+    .io_writeBackStage_data_info_diffout_loadEvent_paddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
+    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
     .io_writeBackStage_data_rd_info_wdata
       (_memoryUnit_io_writeBackStage_data_rd_info_wdata)
   );
-  WriteBackStage writeBackStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-    .clock                                (clock),
-    .reset                                (reset),
-    .io_memoryUnit_data_pc                (_memoryUnit_io_writeBackStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-    .io_memoryUnit_data_info_instr        (_memoryUnit_io_writeBackStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-    .io_memoryUnit_data_info_valid        (_memoryUnit_io_writeBackStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+  WriteBackStage writeBackStage (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .clock                                                    (clock),
+    .reset                                                    (reset),
+    .io_memoryUnit_data_pc
+      (_memoryUnit_io_writeBackStage_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_instr
+      (_memoryUnit_io_writeBackStage_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_valid
+      (_memoryUnit_io_writeBackStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_memoryUnit_data_info_reg_wen
-      (_memoryUnit_io_writeBackStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+      (_memoryUnit_io_writeBackStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_memoryUnit_data_info_reg_waddr
-      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-    .io_memoryUnit_data_info_fusel        (_memoryUnit_io_writeBackStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_fusel
+      (_memoryUnit_io_writeBackStage_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_storeEvent_valid
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_storeEvent_storePAddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_storeEvent_storeVAddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_storeEvent_storeData
+      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_loadEvent_valid
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_loadEvent_paddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_memoryUnit_data_info_diffout_loadEvent_vaddr
+      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_memoryUnit_data_rd_info_wdata
-      (_memoryUnit_io_writeBackStage_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
-    .io_writeBackUnit_data_pc             (_writeBackStage_io_writeBackUnit_data_pc),
+      (_memoryUnit_io_writeBackStage_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+    .io_writeBackUnit_data_pc
+      (_writeBackStage_io_writeBackUnit_data_pc),
     .io_writeBackUnit_data_info_instr
       (_writeBackStage_io_writeBackUnit_data_info_instr),
     .io_writeBackUnit_data_info_valid
@@ -2302,59 +3008,134 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
     .io_writeBackUnit_data_info_fusel
       (_writeBackStage_io_writeBackUnit_data_info_fusel),
+    .io_writeBackUnit_data_info_diffout_storeEvent_coreid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid),
+    .io_writeBackUnit_data_info_diffout_storeEvent_index
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index),
+    .io_writeBackUnit_data_info_diffout_storeEvent_valid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),
+    .io_writeBackUnit_data_info_diffout_storeEvent_storePAddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr),
+    .io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),
+    .io_writeBackUnit_data_info_diffout_storeEvent_storeData
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),
+    .io_writeBackUnit_data_info_diffout_loadEvent_coreid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid),
+    .io_writeBackUnit_data_info_diffout_loadEvent_index
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index),
+    .io_writeBackUnit_data_info_diffout_loadEvent_valid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),
+    .io_writeBackUnit_data_info_diffout_loadEvent_paddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr),
+    .io_writeBackUnit_data_info_diffout_loadEvent_vaddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr),
     .io_writeBackUnit_data_rd_info_wdata
       (_writeBackStage_io_writeBackUnit_data_rd_info_wdata)
   );
-  WriteBackUnit writeBackUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_writeBackStage_data_pc             (_writeBackStage_io_writeBackUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+  WriteBackUnit writeBackUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_writeBackStage_data_pc
+      (_writeBackStage_io_writeBackUnit_data_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_info_instr
-      (_writeBackStage_io_writeBackUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_info_valid
-      (_writeBackStage_io_writeBackUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_info_reg_wen
-      (_writeBackStage_io_writeBackUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_info_reg_waddr
-      (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_info_fusel
-      (_writeBackStage_io_writeBackUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_fusel),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_coreid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_index
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_valid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_storeEvent_storeData
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_loadEvent_coreid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_loadEvent_index
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_loadEvent_valid
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_loadEvent_paddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
+      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackStage_data_rd_info_wdata
-      (_writeBackStage_io_writeBackUnit_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
-    .io_regfile_wen                        (_writeBackUnit_io_regfile_wen),
-    .io_regfile_waddr                      (_writeBackUnit_io_regfile_waddr),
-    .io_regfile_wdata                      (_writeBackUnit_io_regfile_wdata),
-    .io_debug_pc                           (_writeBackUnit_io_debug_pc),
-    .io_debug_commit                       (_writeBackUnit_io_debug_commit),
-    .io_debug_rf_wnum                      (_writeBackUnit_io_debug_rf_wnum),
-    .io_debug_rf_wdata                     (_writeBackUnit_io_debug_rf_wdata),
-    .io_info_instr                         (_writeBackUnit_io_info_instr)
+      (_writeBackStage_io_writeBackUnit_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
+    .io_regfile_wen
+      (_writeBackUnit_io_regfile_wen),
+    .io_regfile_waddr
+      (_writeBackUnit_io_regfile_waddr),
+    .io_regfile_wdata
+      (_writeBackUnit_io_regfile_wdata),
+    .io_debug_pc
+      (_writeBackUnit_io_debug_pc),
+    .io_debug_commit
+      (_writeBackUnit_io_debug_commit),
+    .io_debug_rf_wnum
+      (_writeBackUnit_io_debug_rf_wnum),
+    .io_debug_rf_wdata
+      (_writeBackUnit_io_debug_rf_wdata),
+    .io_info_instr
+      (_writeBackUnit_io_info_instr),
+    .io_info_diffout_storeEvent_coreid
+      (_writeBackUnit_io_info_diffout_storeEvent_coreid),
+    .io_info_diffout_storeEvent_index
+      (_writeBackUnit_io_info_diffout_storeEvent_index),
+    .io_info_diffout_storeEvent_valid
+      (_writeBackUnit_io_info_diffout_storeEvent_valid),
+    .io_info_diffout_storeEvent_storePAddr
+      (_writeBackUnit_io_info_diffout_storeEvent_storePAddr),
+    .io_info_diffout_storeEvent_storeVAddr
+      (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),
+    .io_info_diffout_storeEvent_storeData
+      (_writeBackUnit_io_info_diffout_storeEvent_storeData),
+    .io_info_diffout_loadEvent_coreid
+      (_writeBackUnit_io_info_diffout_loadEvent_coreid),
+    .io_info_diffout_loadEvent_index
+      (_writeBackUnit_io_info_diffout_loadEvent_index),
+    .io_info_diffout_loadEvent_valid
+      (_writeBackUnit_io_info_diffout_loadEvent_valid),
+    .io_info_diffout_loadEvent_paddr
+      (_writeBackUnit_io_info_diffout_loadEvent_paddr),
+    .io_info_diffout_loadEvent_vaddr
+      (_writeBackUnit_io_info_diffout_loadEvent_vaddr)
   );
-  ControlUnit controlUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+  ControlUnit controlUnit (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
     .io_decodeInfo_src1_raddr
-      (_decodeUnit_io_executeStage_data_info_src1_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_src1_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeInfo_src2_raddr
-      (_decodeUnit_io_executeStage_data_info_src2_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_src2_raddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeInfo_src1_ren
-      (_decodeUnit_io_executeStage_data_info_src1_ren),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_src1_ren),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_decodeInfo_src2_ren
-      (_decodeUnit_io_executeStage_data_info_src2_ren),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:25:30
+      (_decodeUnit_io_executeStage_data_info_src2_ren),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
     .io_executeInfo_valid
-      (_executeUnit_io_memoryStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+      (_executeUnit_io_memoryStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
     .io_executeInfo_reg_wen
-      (_executeUnit_io_memoryStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+      (_executeUnit_io_memoryStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
     .io_executeInfo_reg_waddr
-      (_executeUnit_io_memoryStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+      (_executeUnit_io_memoryStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
     .io_memoryInfo_valid
-      (_memoryUnit_io_writeBackStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+      (_memoryUnit_io_writeBackStage_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_memoryInfo_reg_wen
-      (_memoryUnit_io_writeBackStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+      (_memoryUnit_io_writeBackStage_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_memoryInfo_reg_waddr
-      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:30:30
+      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
     .io_writeBackInfo_valid
-      (_writeBackStage_io_writeBackUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackInfo_reg_wen
-      (_writeBackStage_io_writeBackUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_reg_wen),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_writeBackInfo_reg_waddr
-      (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:31:30
+      (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
     .io_signals_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
     .io_signals_fetchUnitSignal_do_flush
@@ -2363,89 +3144,122 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_signals_decodeUnitSignal_do_flush
       (_controlUnit_io_signals_decodeUnitSignal_do_flush),
-    .io_branch                               (_executeUnit_io_branch)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:28:30
+    .io_branch                               (_executeUnit_io_branch)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
   );
-  Diff diff (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
-    .clock                        (clock),
-    .io_debug_pc                  (_writeBackUnit_io_debug_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_debug_commit              (_writeBackUnit_io_debug_commit),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_debug_rf_wnum             (_writeBackUnit_io_debug_rf_wnum),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_debug_rf_wdata            (_writeBackUnit_io_debug_rf_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_info_instr                (_writeBackUnit_io_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:32:30
-    .io_regs_in_0                 (_regfile_io_regs_out_0),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_1                 (_regfile_io_regs_out_1),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_2                 (_regfile_io_regs_out_2),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_3                 (_regfile_io_regs_out_3),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_4                 (_regfile_io_regs_out_4),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_5                 (_regfile_io_regs_out_5),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_6                 (_regfile_io_regs_out_6),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_7                 (_regfile_io_regs_out_7),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_8                 (_regfile_io_regs_out_8),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_9                 (_regfile_io_regs_out_9),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_10                (_regfile_io_regs_out_10),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_11                (_regfile_io_regs_out_11),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_12                (_regfile_io_regs_out_12),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_13                (_regfile_io_regs_out_13),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_14                (_regfile_io_regs_out_14),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_15                (_regfile_io_regs_out_15),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_16                (_regfile_io_regs_out_16),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_17                (_regfile_io_regs_out_17),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_18                (_regfile_io_regs_out_18),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_19                (_regfile_io_regs_out_19),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_20                (_regfile_io_regs_out_20),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_21                (_regfile_io_regs_out_21),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_22                (_regfile_io_regs_out_22),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_23                (_regfile_io_regs_out_23),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_24                (_regfile_io_regs_out_24),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_25                (_regfile_io_regs_out_25),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_26                (_regfile_io_regs_out_26),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_27                (_regfile_io_regs_out_27),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_28                (_regfile_io_regs_out_28),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_29                (_regfile_io_regs_out_29),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_30                (_regfile_io_regs_out_30),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_regs_in_31                (_regfile_io_regs_out_31),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:26:30
-    .io_diffout_instrCommit_valid (io_diff_instrCommit_valid),
-    .io_diffout_instrCommit_pc    (io_diff_instrCommit_pc),
-    .io_diffout_instrCommit_instr (io_diff_instrCommit_instr),
-    .io_diffout_instrCommit_wdest (io_diff_instrCommit_wdest),
-    .io_diffout_instrCommit_wdata (io_diff_instrCommit_wdata),
-    .io_diffout_gRegState_0       (io_diff_gRegState_0),
-    .io_diffout_gRegState_1       (io_diff_gRegState_1),
-    .io_diffout_gRegState_2       (io_diff_gRegState_2),
-    .io_diffout_gRegState_3       (io_diff_gRegState_3),
-    .io_diffout_gRegState_4       (io_diff_gRegState_4),
-    .io_diffout_gRegState_5       (io_diff_gRegState_5),
-    .io_diffout_gRegState_6       (io_diff_gRegState_6),
-    .io_diffout_gRegState_7       (io_diff_gRegState_7),
-    .io_diffout_gRegState_8       (io_diff_gRegState_8),
-    .io_diffout_gRegState_9       (io_diff_gRegState_9),
-    .io_diffout_gRegState_10      (io_diff_gRegState_10),
-    .io_diffout_gRegState_11      (io_diff_gRegState_11),
-    .io_diffout_gRegState_12      (io_diff_gRegState_12),
-    .io_diffout_gRegState_13      (io_diff_gRegState_13),
-    .io_diffout_gRegState_14      (io_diff_gRegState_14),
-    .io_diffout_gRegState_15      (io_diff_gRegState_15),
-    .io_diffout_gRegState_16      (io_diff_gRegState_16),
-    .io_diffout_gRegState_17      (io_diff_gRegState_17),
-    .io_diffout_gRegState_18      (io_diff_gRegState_18),
-    .io_diffout_gRegState_19      (io_diff_gRegState_19),
-    .io_diffout_gRegState_20      (io_diff_gRegState_20),
-    .io_diffout_gRegState_21      (io_diff_gRegState_21),
-    .io_diffout_gRegState_22      (io_diff_gRegState_22),
-    .io_diffout_gRegState_23      (io_diff_gRegState_23),
-    .io_diffout_gRegState_24      (io_diff_gRegState_24),
-    .io_diffout_gRegState_25      (io_diff_gRegState_25),
-    .io_diffout_gRegState_26      (io_diff_gRegState_26),
-    .io_diffout_gRegState_27      (io_diff_gRegState_27),
-    .io_diffout_gRegState_28      (io_diff_gRegState_28),
-    .io_diffout_gRegState_29      (io_diff_gRegState_29),
-    .io_diffout_gRegState_30      (io_diff_gRegState_30),
-    .io_diffout_gRegState_31      (io_diff_gRegState_31)
+  Diff diff (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:35:30
+    .clock                                 (clock),
+    .io_debug_pc                           (_writeBackUnit_io_debug_pc),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_debug_commit                       (_writeBackUnit_io_debug_commit),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_debug_rf_wnum                      (_writeBackUnit_io_debug_rf_wnum),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_debug_rf_wdata                     (_writeBackUnit_io_debug_rf_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_instr                         (_writeBackUnit_io_info_instr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_coreid
+      (_writeBackUnit_io_info_diffout_storeEvent_coreid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_index
+      (_writeBackUnit_io_info_diffout_storeEvent_index),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_valid
+      (_writeBackUnit_io_info_diffout_storeEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_storePAddr
+      (_writeBackUnit_io_info_diffout_storeEvent_storePAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_storeVAddr
+      (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_storeEvent_storeData
+      (_writeBackUnit_io_info_diffout_storeEvent_storeData),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_loadEvent_coreid
+      (_writeBackUnit_io_info_diffout_loadEvent_coreid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_loadEvent_index
+      (_writeBackUnit_io_info_diffout_loadEvent_index),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_loadEvent_valid
+      (_writeBackUnit_io_info_diffout_loadEvent_valid),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_loadEvent_paddr
+      (_writeBackUnit_io_info_diffout_loadEvent_paddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_info_diffout_loadEvent_vaddr
+      (_writeBackUnit_io_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:33:30
+    .io_regs_in_0                          (_regfile_io_regs_out_0),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_1                          (_regfile_io_regs_out_1),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_2                          (_regfile_io_regs_out_2),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_3                          (_regfile_io_regs_out_3),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_4                          (_regfile_io_regs_out_4),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_5                          (_regfile_io_regs_out_5),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_6                          (_regfile_io_regs_out_6),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_7                          (_regfile_io_regs_out_7),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_8                          (_regfile_io_regs_out_8),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_9                          (_regfile_io_regs_out_9),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_10                         (_regfile_io_regs_out_10),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_11                         (_regfile_io_regs_out_11),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_12                         (_regfile_io_regs_out_12),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_13                         (_regfile_io_regs_out_13),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_14                         (_regfile_io_regs_out_14),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_15                         (_regfile_io_regs_out_15),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_16                         (_regfile_io_regs_out_16),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_17                         (_regfile_io_regs_out_17),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_18                         (_regfile_io_regs_out_18),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_19                         (_regfile_io_regs_out_19),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_20                         (_regfile_io_regs_out_20),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_21                         (_regfile_io_regs_out_21),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_22                         (_regfile_io_regs_out_22),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_23                         (_regfile_io_regs_out_23),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_24                         (_regfile_io_regs_out_24),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_25                         (_regfile_io_regs_out_25),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_26                         (_regfile_io_regs_out_26),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_27                         (_regfile_io_regs_out_27),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_28                         (_regfile_io_regs_out_28),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_29                         (_regfile_io_regs_out_29),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_30                         (_regfile_io_regs_out_30),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_regs_in_31                         (_regfile_io_regs_out_31),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:27:30
+    .io_diffout_instrCommit_valid          (io_diff_instrCommit_valid),
+    .io_diffout_instrCommit_pc             (io_diff_instrCommit_pc),
+    .io_diffout_instrCommit_instr          (io_diff_instrCommit_instr),
+    .io_diffout_instrCommit_wdest          (io_diff_instrCommit_wdest),
+    .io_diffout_instrCommit_wdata          (io_diff_instrCommit_wdata),
+    .io_diffout_storeEvent_coreid          (io_diff_storeEvent_coreid),
+    .io_diffout_storeEvent_index           (io_diff_storeEvent_index),
+    .io_diffout_storeEvent_valid           (io_diff_storeEvent_valid),
+    .io_diffout_storeEvent_storePAddr      (io_diff_storeEvent_storePAddr),
+    .io_diffout_storeEvent_storeVAddr      (io_diff_storeEvent_storeVAddr),
+    .io_diffout_storeEvent_storeData       (io_diff_storeEvent_storeData),
+    .io_diffout_loadEvent_coreid           (io_diff_loadEvent_coreid),
+    .io_diffout_loadEvent_index            (io_diff_loadEvent_index),
+    .io_diffout_loadEvent_valid            (io_diff_loadEvent_valid),
+    .io_diffout_loadEvent_paddr            (io_diff_loadEvent_paddr),
+    .io_diffout_loadEvent_vaddr            (io_diff_loadEvent_vaddr),
+    .io_diffout_gRegState_0                (io_diff_gRegState_0),
+    .io_diffout_gRegState_1                (io_diff_gRegState_1),
+    .io_diffout_gRegState_2                (io_diff_gRegState_2),
+    .io_diffout_gRegState_3                (io_diff_gRegState_3),
+    .io_diffout_gRegState_4                (io_diff_gRegState_4),
+    .io_diffout_gRegState_5                (io_diff_gRegState_5),
+    .io_diffout_gRegState_6                (io_diff_gRegState_6),
+    .io_diffout_gRegState_7                (io_diff_gRegState_7),
+    .io_diffout_gRegState_8                (io_diff_gRegState_8),
+    .io_diffout_gRegState_9                (io_diff_gRegState_9),
+    .io_diffout_gRegState_10               (io_diff_gRegState_10),
+    .io_diffout_gRegState_11               (io_diff_gRegState_11),
+    .io_diffout_gRegState_12               (io_diff_gRegState_12),
+    .io_diffout_gRegState_13               (io_diff_gRegState_13),
+    .io_diffout_gRegState_14               (io_diff_gRegState_14),
+    .io_diffout_gRegState_15               (io_diff_gRegState_15),
+    .io_diffout_gRegState_16               (io_diff_gRegState_16),
+    .io_diffout_gRegState_17               (io_diff_gRegState_17),
+    .io_diffout_gRegState_18               (io_diff_gRegState_18),
+    .io_diffout_gRegState_19               (io_diff_gRegState_19),
+    .io_diffout_gRegState_20               (io_diff_gRegState_20),
+    .io_diffout_gRegState_21               (io_diff_gRegState_21),
+    .io_diffout_gRegState_22               (io_diff_gRegState_22),
+    .io_diffout_gRegState_23               (io_diff_gRegState_23),
+    .io_diffout_gRegState_24               (io_diff_gRegState_24),
+    .io_diffout_gRegState_25               (io_diff_gRegState_25),
+    .io_diffout_gRegState_26               (io_diff_gRegState_26),
+    .io_diffout_gRegState_27               (io_diff_gRegState_27),
+    .io_diffout_gRegState_28               (io_diff_gRegState_28),
+    .io_diffout_gRegState_29               (io_diff_gRegState_29),
+    .io_diffout_gRegState_30               (io_diff_gRegState_30),
+    .io_diffout_gRegState_31               (io_diff_gRegState_31)
   );
-  assign io_debug_pc = _writeBackUnit_io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :32:30
-  assign io_debug_commit = _writeBackUnit_io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :32:30
-  assign io_debug_rf_wnum = _writeBackUnit_io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :32:30
-  assign io_debug_rf_wdata = _writeBackUnit_io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :32:30
+  assign io_debug_pc = _writeBackUnit_io_debug_pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :33:30
+  assign io_debug_commit = _writeBackUnit_io_debug_commit;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :33:30
+  assign io_debug_rf_wnum = _writeBackUnit_io_debug_rf_wnum;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :33:30
+  assign io_debug_rf_wdata = _writeBackUnit_io_debug_rf_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :33:30
 endmodule
 
 module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7
@@ -2497,7 +3311,6 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   output [3:0]  io_debug_commit,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [4:0]  io_debug_rf_wnum,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_debug_rf_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_diffout_instrCommit_clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [3:0]  io_diffout_instrCommit_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [7:0]  io_diffout_instrCommit_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_instrCommit_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
@@ -2513,7 +3326,6 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   output [31:0] io_diffout_instrCommit_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_instrCommit_csr_rstat,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_diffout_instrCommit_csr_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_diffout_excpEvent_clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [3:0]  io_diffout_excpEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_excpEvent_excp_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_excpEvent_eret,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
@@ -2521,21 +3333,18 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   output [4:0]  io_diffout_excpEvent_cause,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_diffout_excpEvent_exceptionPC,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_excpEvent_exceptionInst,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_diffout_trapEvent_clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [3:0]  io_diffout_trapEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_trapEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_diffout_trapEvent_code,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_trapEvent_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [63:0] io_diffout_trapEvent_cycleCnt,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_trapEvent_instrCnt,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_diffout_storeEvent_clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [3:0]  io_diffout_storeEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [7:0]  io_diffout_storeEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_storeEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [31:0] io_diffout_storeEvent_storePAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_storeEvent_storeVAddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
                 io_diffout_storeEvent_storeData,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
-  output        io_diffout_loadEvent_clock,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [3:0]  io_diffout_loadEvent_coreid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output [7:0]  io_diffout_loadEvent_index,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
   output        io_diffout_loadEvent_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:7:14
@@ -2608,56 +3417,67 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
 );
 
   Core core (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:21:20
-    .clock                     (clock),
-    .reset                     (reset),
-    .io_axi_ar_ready           (io_axi_ar_ready),
-    .io_axi_ar_valid           (io_axi_ar_valid),
-    .io_axi_ar_bits_addr       (io_axi_ar_bits_addr),
-    .io_axi_ar_bits_size       (io_axi_ar_bits_size),
-    .io_axi_r_valid            (io_axi_r_valid),
-    .io_axi_r_bits_id          (io_axi_r_bits_id),
-    .io_axi_r_bits_data        (io_axi_r_bits_data),
-    .io_debug_pc               (io_debug_pc),
-    .io_debug_commit           (io_debug_commit),
-    .io_debug_rf_wnum          (io_debug_rf_wnum),
-    .io_debug_rf_wdata         (io_debug_rf_wdata),
-    .io_diff_instrCommit_valid (io_diffout_instrCommit_valid),
-    .io_diff_instrCommit_pc    (io_diffout_instrCommit_pc),
-    .io_diff_instrCommit_instr (io_diffout_instrCommit_instr),
-    .io_diff_instrCommit_wdest (io_diffout_instrCommit_wdest),
-    .io_diff_instrCommit_wdata (io_diffout_instrCommit_wdata),
-    .io_diff_gRegState_0       (io_diffout_gRegState_0),
-    .io_diff_gRegState_1       (io_diffout_gRegState_1),
-    .io_diff_gRegState_2       (io_diffout_gRegState_2),
-    .io_diff_gRegState_3       (io_diffout_gRegState_3),
-    .io_diff_gRegState_4       (io_diffout_gRegState_4),
-    .io_diff_gRegState_5       (io_diffout_gRegState_5),
-    .io_diff_gRegState_6       (io_diffout_gRegState_6),
-    .io_diff_gRegState_7       (io_diffout_gRegState_7),
-    .io_diff_gRegState_8       (io_diffout_gRegState_8),
-    .io_diff_gRegState_9       (io_diffout_gRegState_9),
-    .io_diff_gRegState_10      (io_diffout_gRegState_10),
-    .io_diff_gRegState_11      (io_diffout_gRegState_11),
-    .io_diff_gRegState_12      (io_diffout_gRegState_12),
-    .io_diff_gRegState_13      (io_diffout_gRegState_13),
-    .io_diff_gRegState_14      (io_diffout_gRegState_14),
-    .io_diff_gRegState_15      (io_diffout_gRegState_15),
-    .io_diff_gRegState_16      (io_diffout_gRegState_16),
-    .io_diff_gRegState_17      (io_diffout_gRegState_17),
-    .io_diff_gRegState_18      (io_diffout_gRegState_18),
-    .io_diff_gRegState_19      (io_diffout_gRegState_19),
-    .io_diff_gRegState_20      (io_diffout_gRegState_20),
-    .io_diff_gRegState_21      (io_diffout_gRegState_21),
-    .io_diff_gRegState_22      (io_diffout_gRegState_22),
-    .io_diff_gRegState_23      (io_diffout_gRegState_23),
-    .io_diff_gRegState_24      (io_diffout_gRegState_24),
-    .io_diff_gRegState_25      (io_diffout_gRegState_25),
-    .io_diff_gRegState_26      (io_diffout_gRegState_26),
-    .io_diff_gRegState_27      (io_diffout_gRegState_27),
-    .io_diff_gRegState_28      (io_diffout_gRegState_28),
-    .io_diff_gRegState_29      (io_diffout_gRegState_29),
-    .io_diff_gRegState_30      (io_diffout_gRegState_30),
-    .io_diff_gRegState_31      (io_diffout_gRegState_31)
+    .clock                         (clock),
+    .reset                         (reset),
+    .io_axi_ar_ready               (io_axi_ar_ready),
+    .io_axi_ar_valid               (io_axi_ar_valid),
+    .io_axi_ar_bits_addr           (io_axi_ar_bits_addr),
+    .io_axi_ar_bits_size           (io_axi_ar_bits_size),
+    .io_axi_r_valid                (io_axi_r_valid),
+    .io_axi_r_bits_id              (io_axi_r_bits_id),
+    .io_axi_r_bits_data            (io_axi_r_bits_data),
+    .io_debug_pc                   (io_debug_pc),
+    .io_debug_commit               (io_debug_commit),
+    .io_debug_rf_wnum              (io_debug_rf_wnum),
+    .io_debug_rf_wdata             (io_debug_rf_wdata),
+    .io_diff_instrCommit_valid     (io_diffout_instrCommit_valid),
+    .io_diff_instrCommit_pc        (io_diffout_instrCommit_pc),
+    .io_diff_instrCommit_instr     (io_diffout_instrCommit_instr),
+    .io_diff_instrCommit_wdest     (io_diffout_instrCommit_wdest),
+    .io_diff_instrCommit_wdata     (io_diffout_instrCommit_wdata),
+    .io_diff_storeEvent_coreid     (io_diffout_storeEvent_coreid),
+    .io_diff_storeEvent_index      (io_diffout_storeEvent_index),
+    .io_diff_storeEvent_valid      (io_diffout_storeEvent_valid),
+    .io_diff_storeEvent_storePAddr (io_diffout_storeEvent_storePAddr),
+    .io_diff_storeEvent_storeVAddr (io_diffout_storeEvent_storeVAddr),
+    .io_diff_storeEvent_storeData  (io_diffout_storeEvent_storeData),
+    .io_diff_loadEvent_coreid      (io_diffout_loadEvent_coreid),
+    .io_diff_loadEvent_index       (io_diffout_loadEvent_index),
+    .io_diff_loadEvent_valid       (io_diffout_loadEvent_valid),
+    .io_diff_loadEvent_paddr       (io_diffout_loadEvent_paddr),
+    .io_diff_loadEvent_vaddr       (io_diffout_loadEvent_vaddr),
+    .io_diff_gRegState_0           (io_diffout_gRegState_0),
+    .io_diff_gRegState_1           (io_diffout_gRegState_1),
+    .io_diff_gRegState_2           (io_diffout_gRegState_2),
+    .io_diff_gRegState_3           (io_diffout_gRegState_3),
+    .io_diff_gRegState_4           (io_diffout_gRegState_4),
+    .io_diff_gRegState_5           (io_diffout_gRegState_5),
+    .io_diff_gRegState_6           (io_diffout_gRegState_6),
+    .io_diff_gRegState_7           (io_diffout_gRegState_7),
+    .io_diff_gRegState_8           (io_diffout_gRegState_8),
+    .io_diff_gRegState_9           (io_diffout_gRegState_9),
+    .io_diff_gRegState_10          (io_diffout_gRegState_10),
+    .io_diff_gRegState_11          (io_diffout_gRegState_11),
+    .io_diff_gRegState_12          (io_diffout_gRegState_12),
+    .io_diff_gRegState_13          (io_diffout_gRegState_13),
+    .io_diff_gRegState_14          (io_diffout_gRegState_14),
+    .io_diff_gRegState_15          (io_diffout_gRegState_15),
+    .io_diff_gRegState_16          (io_diffout_gRegState_16),
+    .io_diff_gRegState_17          (io_diffout_gRegState_17),
+    .io_diff_gRegState_18          (io_diffout_gRegState_18),
+    .io_diff_gRegState_19          (io_diffout_gRegState_19),
+    .io_diff_gRegState_20          (io_diffout_gRegState_20),
+    .io_diff_gRegState_21          (io_diffout_gRegState_21),
+    .io_diff_gRegState_22          (io_diffout_gRegState_22),
+    .io_diff_gRegState_23          (io_diffout_gRegState_23),
+    .io_diff_gRegState_24          (io_diffout_gRegState_24),
+    .io_diff_gRegState_25          (io_diffout_gRegState_25),
+    .io_diff_gRegState_26          (io_diffout_gRegState_26),
+    .io_diff_gRegState_27          (io_diffout_gRegState_27),
+    .io_diff_gRegState_28          (io_diffout_gRegState_28),
+    .io_diff_gRegState_29          (io_diffout_gRegState_29),
+    .io_diff_gRegState_30          (io_diffout_gRegState_30),
+    .io_diff_gRegState_31          (io_diffout_gRegState_31)
   );
   assign io_ws_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_rf_data = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
@@ -2683,7 +3503,6 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   assign io_axi_w_bits_strb = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_axi_w_bits_last = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_axi_b_ready = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_instrCommit_clock = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_index = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_skip = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
@@ -2694,7 +3513,6 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   assign io_diffout_instrCommit_wen = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_csr_rstat = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_csr_data = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_excpEvent_clock = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_excpEvent_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_excpEvent_excp_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_excpEvent_eret = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
@@ -2702,26 +3520,12 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   assign io_diffout_excpEvent_cause = 5'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_excpEvent_exceptionPC = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_excpEvent_exceptionInst = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_trapEvent_clock = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_code = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_pc = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_cycleCnt = 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_trapEvent_instrCnt = 64'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_clock = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_index = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_storePAddr = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_storeVAddr = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_storeEvent_storeData = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_clock = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_index = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_paddr = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_diffout_loadEvent_vaddr = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_csrRegState_0 = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_csrRegState_1 = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_csrRegState_2 = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20

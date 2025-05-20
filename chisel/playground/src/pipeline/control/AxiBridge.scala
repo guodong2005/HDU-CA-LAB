@@ -101,4 +101,42 @@ class Axibridge extends Module {
   // ------------------------------------------------------------
   io.dcacheInput.ar.ready := true.B
   io.icacheInput.ar.ready := true.B
+
+  // ------------------------------------------------------------
+  // Write Handshake for dcache write request.
+  // We assume that only dcache issues write transactions.
+  // ------------------------------------------------------------
+
+  // Write Address Channel (AW)
+  val regDcacheAw = RegInit(0.U.asTypeOf(io.dcacheInput.aw.bits))
+  val aw_hold     = RegInit(false.B)
+  when(io.dcacheInput.aw.valid) {
+    regDcacheAw := io.dcacheInput.aw.bits
+    aw_hold     := true.B
+  }.elsewhen(io.axi.aw.ready && aw_hold) {
+    aw_hold := false.B
+  }
+  io.axi.aw.valid         := aw_hold
+  io.axi.aw.bits          := regDcacheAw
+  io.dcacheInput.aw.ready := io.axi.aw.ready
+
+  // Write Data Channel (W)
+  val regDcacheW = RegInit(0.U.asTypeOf(io.dcacheInput.w.bits))
+  val w_hold     = RegInit(false.B)
+  when(io.dcacheInput.w.valid) {
+    regDcacheW := io.dcacheInput.w.bits
+    w_hold     := true.B
+  }.elsewhen(io.axi.w.ready && w_hold) {
+    w_hold := false.B
+  }
+  io.axi.w.valid         := w_hold
+  io.axi.w.bits          := regDcacheW
+  io.dcacheInput.w.ready := io.axi.w.ready
+
+  // Write Response Channel (B)
+  // Forward the write response from the external interface back to the dcache.
+  io.dcacheInput.b.bits  := io.axi.b.bits
+  io.dcacheInput.b.valid := io.axi.b.valid
+  // For simplicity, we assume this bridge is always ready to accept a B-channel response.
+  io.axi.b.ready := true.B
 }
