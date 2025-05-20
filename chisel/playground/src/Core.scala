@@ -37,26 +37,20 @@ class Core extends Module {
   // 取指单元
   axibridge.io.axi         <> io.axi
   icache.io.axi            <> axibridge.io.icacheInput
+  dcache.io.axi            <> axibridge.io.dcacheInput
   axibridge.io.dcacheInput := DontCare
 
-  fetchUnit.io.decodeStage        <> decodeStage.io.fetchUnit
+  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
+
   icache.io.fetch_req.valid       := fetchUnit.io.fetchrequest.valid
   icache.io.fetch_req.addr        := fetchUnit.io.fetchrequest.bits
   fetchUnit.io.fetchrequest.ready := icache.io.fetch_req.ready
+  fetchUnit.io.fetchanswer.valid  := icache.io.fetch_rsp.valid
+  fetchUnit.io.fetchanswer.data   := icache.io.fetch_rsp.data
+  fetchUnit.io.fetchanswer.pc     := icache.io.fetch_rsp.addr
 
-  // --------------------------------------------------------------
-  // Connect the ICache fetch response to the Fetch Unit's fetch answer.
-  // The ICache returns:
-  //   fetch_rsp.valid, fetch_rsp.data, fetch_rsp.addr (pc)
-  //
-  // We map these signals to:
-  //   fetchUnit.io.fetchanswer.valid  ← icache.io.fetch_rsp.valid
-  //   fetchUnit.io.fetchanswer.data   ← icache.io.fetch_rsp.data
-  //   fetchUnit.io.fetchanswer.pc     ← icache.io.fetch_rsp.addr
-  // --------------------------------------------------------------
-  fetchUnit.io.fetchanswer.valid := icache.io.fetch_rsp.valid
-  fetchUnit.io.fetchanswer.data  := icache.io.fetch_rsp.data
-  fetchUnit.io.fetchanswer.pc    := icache.io.fetch_rsp.addr
+  dcache.io.req  <> executeUnit.io.dcache.req
+  dcache.io.resp <> executeUnit.io.dcache.resp
 
   controlUnit.io.branch           := executeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
