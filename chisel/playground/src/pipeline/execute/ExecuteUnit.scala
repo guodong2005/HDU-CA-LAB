@@ -14,10 +14,15 @@ class ExecuteUnit extends Module {
     val ready        = Output(Bool())
     val branch       = Output(Bool())
     val target       = Output(UInt(XLEN.W))
+    val dcache = new Bundle {
+      val req  = (Decoupled(new DCacheReq))
+      val resp = Flipped(Decoupled(new DCacheResp))
+    }
   })
 
   val fu = Module(new Fu()).io
 
+  fu.dcache        <> io.dcache
   fu.data.pc       := io.executeStage.data.pc
   fu.data.info     := io.executeStage.data.info
   fu.data.src_info := io.executeStage.data.src_info

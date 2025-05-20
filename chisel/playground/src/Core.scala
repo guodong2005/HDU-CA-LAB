@@ -19,6 +19,7 @@ class Core extends Module {
   })
 
   val icache         = Module(new ICache())
+  val dcache         = Module(new DCache)
   val axibridge      = Module(new Axibridge())
   val fetchUnit      = Module(new FetchUnit())
   val decodeStage    = Module(new DecodeStage())
@@ -57,7 +58,8 @@ class Core extends Module {
   fetchUnit.io.fetchanswer.data  := icache.io.fetch_rsp.data
   fetchUnit.io.fetchanswer.pc    := icache.io.fetch_rsp.addr
 
-  controlUnit.io.branch := executeUnit.io.branch
+  controlUnit.io.branch           := executeUnit.io.branch
+  controlUnit.io.executeUnitReady := executeUnit.io.ready
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
@@ -70,8 +72,9 @@ class Core extends Module {
 
   io.dataSram := DontCare
 
-  executeUnit.io.memoryStage <> memoryStage.io.executeUnit
-
+  executeUnit.io.memoryStage   <> memoryStage.io.executeUnit
+  executeUnit.io.dcache.req    <> dcache.io.req
+  executeUnit.io.dcache.resp   <> dcache.io.resp
   memoryUnit.io.memoryStage    <> memoryStage.io.memoryUnit
   memoryUnit.io.writeBackStage <> writeBackStage.io.memoryUnit
 

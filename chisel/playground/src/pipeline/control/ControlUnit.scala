@@ -11,7 +11,6 @@ class ControlSignal extends Bundle {
 }
 class Signals extends Bundle {
   val fetchUnitSignal   = Output(new ControlSignal())
-  val passUnitSignal    = Output(new ControlSignal())
   val decodeUnitSignal  = Output(new ControlSignal())
   val executeUnitSignal = Output(new ControlSignal())
   val memoryUnitSignal  = Output(new ControlSignal())
@@ -19,12 +18,13 @@ class Signals extends Bundle {
 
 class ControlUnit extends Module {
   val io = IO(new Bundle {
-    val decodeInfo    = Input(new Info())
-    val executeInfo   = Input(new Info())
-    val memoryInfo    = Input(new Info())
-    val writeBackInfo = Input(new Info())
-    val signals       = Output(new Signals())
-    val branch        = Input(Bool()) // Changed to Input for modularity
+    val decodeInfo       = Input(new Info())
+    val executeInfo      = Input(new Info())
+    val memoryInfo       = Input(new Info())
+    val writeBackInfo    = Input(new Info())
+    val executeUnitReady = Input(Bool())
+    val signals          = Output(new Signals())
+    val branch           = Input(Bool()) // Changed to Input for modularity
   })
 
   // Conflict detection logic
@@ -43,16 +43,15 @@ class ControlUnit extends Module {
   val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
 
   // Generate control signals using modular assignment
-  io.signals.fetchUnitSignal.allow_to_go  := (!pipeline_stall)
-  io.signals.passUnitSignal.allow_to_go   := (!pipeline_stall)
-  io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall)
+  io.signals.fetchUnitSignal.allow_to_go   := (!pipeline_stall) & io.signals.decodeUnitSignal.allow_to_go
+  io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & io.signals.executeUnitSignal.allow_to_go
+  io.signals.executeUnitSignal.allow_to_go := io.executeUnitReady
 // icache stall 只会影响 fetchUnit
 
   io.signals.executeUnitSignal.allow_to_go := true.B
   io.signals.memoryUnitSignal.allow_to_go  := true.B
 
   io.signals.fetchUnitSignal.do_flush   := io.branch
-  io.signals.passUnitSignal.do_flush    := io.branch
   io.signals.decodeUnitSignal.do_flush  := io.branch
   io.signals.executeUnitSignal.do_flush := false.B
   io.signals.memoryUnitSignal.do_flush  := false.B

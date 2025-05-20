@@ -18,7 +18,10 @@ class Fu extends Module with HasInstrType {
       val target   = UInt(XLEN.W)
       val ready    = Output(Bool())
     }
-
+    val dcache = new Bundle {
+      val req  = (Decoupled(new DCacheReq))
+      val resp = Flipped(Decoupled(new DCacheResp))
+    }
   })
 
   val alu = Module(new Alu())
@@ -26,6 +29,7 @@ class Fu extends Module with HasInstrType {
   val lsu = Module(new Lsu())
   val bru = Module(new Bru())
 
+  lsu.io.dcache   <> io.dcache
   alu.io.info     := io.data.info
   alu.io.src_info := io.data.src_info
 
