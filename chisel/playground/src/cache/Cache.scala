@@ -127,7 +127,6 @@ class DCache extends Module {
   io.axi.w.valid     := false.B
   io.axi.w.bits.id   := 1.U
   io.axi.w.bits.strb := 15.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
-  io.axi.w.bits.data := io.req.bits.wdata
 
   // Read data channel (R) and write response channel (B):
   io.axi.r.ready := true.B
@@ -146,7 +145,8 @@ class DCache extends Module {
   val state                                                         = RegInit(sIdle)
 
   // Latch the incoming CPU request.
-  val reqReg    = Reg(new DCacheReq)
+  val reqReg = Reg(new DCacheReq)
+  dontTouch(reqReg)
   val reqStored = RegInit(false.B)
 
   // The CPU request interface is ready when idle.
