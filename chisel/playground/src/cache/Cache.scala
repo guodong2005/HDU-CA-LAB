@@ -127,6 +127,7 @@ class DCache extends Module {
   io.axi.w.valid     := false.B
   io.axi.w.bits.id   := 1.U
   io.axi.w.bits.strb := 15.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
+  io.axi.w.bits.data := io.req.bits.wdata
 
   // Read data channel (R) and write response channel (B):
   io.axi.r.ready := true.B
