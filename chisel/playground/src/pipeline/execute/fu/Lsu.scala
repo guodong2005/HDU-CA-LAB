@@ -26,8 +26,8 @@ class Lsu extends Module {
     val ready    = Output(Bool()) // Added ready signal
     val diffout  = Output(new DiffOut())
     val dcache = new Bundle {
-      val req  = Flipped(Decoupled(new DCacheReq))
-      val resp = Decoupled(new DCacheResp)
+      val req  = (Decoupled(new DCacheReq))
+      val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
 
