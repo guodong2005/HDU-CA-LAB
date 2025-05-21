@@ -62,6 +62,7 @@ class DEBUG extends Bundle {
   val commit   = Output(UInt(4.W))
   val rf_wnum  = Output(UInt(REG_ADDR_WID.W))
   val rf_wdata = Output(UInt(XLEN.W))
+  val wen      = Output(Bool())
 }
 
 class AR extends Bundle { // Read request (ar)

@@ -27,10 +27,12 @@ class WriteBackUnit extends Module {
   io.info.reg_wen   := io.regfile.wen
   io.info.reg_waddr := io.regfile.waddr
   // Debugging output
-  io.debug.pc       := validData.pc                                                                                  // Track the program counter for debugging
+  io.debug.pc       := validData.pc // Track the program counter for debugging
+  io.debug.wen      := io.regfile.wen
   io.debug.rf_wdata := validData.rd_info.wdata
   io.debug.rf_wnum  := validData.info.reg_waddr
-  io.debug.commit   := Fill(4, validData.info.valid && !(io.info.fusel === FuType.lsu && io.info.instr(24) === 1.U)) // ? store 不commit
+  // io.debug.commit   := Fill(4, validData.info.valid && !(io.info.fusel === FuType.lsu && io.info.instr(24) === 1.U)) // ? store 不commit
+  io.debug.commit := Fill(4, validData.info.valid) // ? store 不commit
 
   /*
   printf(p"writeBackUnit ${Hexadecimal(io.info.instr)}\n");
