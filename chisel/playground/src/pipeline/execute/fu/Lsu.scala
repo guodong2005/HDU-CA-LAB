@@ -10,6 +10,7 @@ class DCacheReq extends Bundle {
   val addr  = UInt(XLEN.W)
   val write = Bool()       // false: load; true: store
   val wdata = UInt(XLEN.W) // valid only if write is true
+  val wstrb = UInt(4.W)    // byte write mask
   val size  = UInt(2.W)    // 0: byte, 1: half-word, 2: word
 }
 
@@ -51,31 +52,46 @@ class Lsu extends Module {
   val storeWdata = LookupTree(
     io.info.op,
     Seq(
-      LSUOpType.sb -> io.src_info.src2_data(7, 0),
-      LSUOpType.sh -> io.src_info.src2_data(15, 0),
+      LSUOpType.sb -> Fill(4, io.src_info.src2_data(7, 0)),
+      LSUOpType.sh -> Fill(2, io.src_info.src2_data(15, 0)),
       LSUOpType.sw -> io.src_info.src2_data(31, 0)
     )
   )
 
-  val size = LookupTree(
-    io.info.op,
+  // Extract the lower two bits of the effective address
+  val addr_low2 = effectiveAddr(1, 0)
+
+// Determine the size field based on memory operation type
+  val size = MuxCase(
+    0.U(2.W),
     Seq(
-      LSUOpType.lb -> 0.U(2.W),
-      LSUOpType.lh -> 1.U(2.W),
-      LSUOpType.lw -> 2.U(2.W),
-      LSUOpType.sb -> 0.U(2.W),
-      LSUOpType.sh -> 1.U(2.W),
-      LSUOpType.sw -> 2.U(2.W)
+      (LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sh)) -> 1.U(2.W),
+      (LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sw)) -> 2.U(2.W)
     )
   )
+
+// Generate write strobe (`strb`) based on the operation and address alignment
+  val strb = MuxCase(
+    0.U(4.W),
+    Seq(
+      (io.info.op === LSUOpType.sb) -> (1.U(4.W) << addr_low2), // Byte write
+      (io.info.op === LSUOpType.sh) -> (3.U(4.W) << addr_low2), // Half-word write (2 bytes)
+      (io.info.op === LSUOpType.sw) -> 15.U(4.W)                // Full-word write (4 bytes, all bits set)
+    )
+  )
+
+// Assign the computed values
+  val storeAddr = effectiveAddr(31, 2) << 2
+  val storeStrb = strb
 
   // ------------------------------------------------------------
   // Construct the new DCache Request combinationally.
   // ------------------------------------------------------------
   val newReq = Wire(new DCacheReq)
-  newReq.addr  := effectiveAddr
+  newReq.addr  := storeAddr
   newReq.write := LSUOpType.isStore(io.info.op)
   newReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
+  newReq.wstrb := storeStrb
   newReq.size  := size
 
   val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))

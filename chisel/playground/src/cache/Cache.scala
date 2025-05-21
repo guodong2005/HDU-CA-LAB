@@ -212,7 +212,7 @@ class DCache extends Module {
 
       // Set up W channel signals.
       io.axi.w.bits.data := reqReg.wdata
-      io.axi.w.bits.strb := "hF".U // For a full 32-bit write.
+      io.axi.w.bits.strb := reqReg.wstrb // For a full 32-bit write.
 
       // Sub-FSM implementation:
       switch(writeSubState) {
