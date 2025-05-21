@@ -31,7 +31,9 @@ class Lsu extends Module {
     }
   })
 
-  io.diffout := DontCare
+  io.diffout                  := DontCare
+  io.diffout.storeEvent.valid := 0.U
+  io.diffout.loadEvent.valid  := 0.U
 
   // ------------------------------------------------------------
   // Effective Address Computation
