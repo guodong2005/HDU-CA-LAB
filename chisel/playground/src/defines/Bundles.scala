@@ -159,7 +159,7 @@ class DifftestStoreEvent extends Bundle {
   // val clock      = Clock()
   val coreid     = UInt(4.W)
   val index      = UInt(8.W)
-  val valid      = Bool()
+  val valid      = UInt(8.W)
   val storePAddr = UInt(32.W)
   val storeVAddr = UInt(32.W)
   val storeData  = UInt(32.W)
@@ -169,7 +169,7 @@ class DifftestLoadEvent extends Bundle {
   // val clock  = Clock()
   val coreid = UInt(4.W)
   val index  = UInt(8.W)
-  val valid  = Bool()
+  val valid  = UInt(8.W)
   val paddr  = UInt(32.W)
   val vaddr  = UInt(32.W)
 }
