@@ -149,7 +149,7 @@ class DCache extends Module {
   val reqStored = RegInit(false.B)
 
   // The CPU request interface is ready when idle.
-  io.req.ready := (state === sIdle) & (!io.req.valid)
+  io.req.ready := (state === sIdle) & (!reqStored)
 
   // Default CPU response assignments.
   io.resp.valid       := false.B
