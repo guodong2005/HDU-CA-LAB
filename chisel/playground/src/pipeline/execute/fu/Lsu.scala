@@ -120,9 +120,9 @@ class Lsu extends Module {
             val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
             io.diffout.storeEvent.valid      := store_valid
-            io.diffout.storeEvent.storePAddr := effectiveAddr.asUInt
-            io.diffout.storeEvent.storeVAddr := effectiveAddr.asUInt
-            io.diffout.storeEvent.storeData  := storeWdata
+            io.diffout.storeEvent.storePAddr := dcacheReqReg.addr.asUInt
+            io.diffout.storeEvent.storeVAddr := dcacheReqReg.addr.asUInt
+            io.diffout.storeEvent.storeData  := dcacheReqReg.wdata
           }
           // On handshake, clear the stored request flag and proceed.
           reqValidReg := false.B
@@ -157,8 +157,9 @@ class Lsu extends Module {
           val load_valid: UInt = Cat(0.U(2.W), ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b)
 
           io.diffout.loadEvent.valid := load_valid
-          io.diffout.loadEvent.paddr := effectiveAddr.asUInt
-          io.diffout.loadEvent.vaddr := effectiveAddr.asUInt
+          io.diffout.loadEvent.paddr := dcacheReqReg.addr.asUInt
+          io.diffout.loadEvent.vaddr := dcacheReqReg.addr.asUInt
+
         }.otherwise {
           // For store ops, result is typically not used.
           io.result := 0.U
