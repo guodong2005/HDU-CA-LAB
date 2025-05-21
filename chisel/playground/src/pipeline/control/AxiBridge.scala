@@ -119,13 +119,14 @@ class Axibridge extends Module {
   }
   io.axi.aw.valid         := aw_hold
   io.axi.aw.bits.addr     := regDcacheAw.addr
-  io.axi.w.bits.strb      := 15.U(4.W)
   io.axi.aw.bits.size     := regDcacheAw.size
   io.dcacheInput.aw.ready := io.axi.aw.ready
 
   // Write Data Channel (W)
   val regDcacheW = RegInit(0.U.asTypeOf(io.dcacheInput.w.bits))
-  val w_hold     = RegInit(false.B)
+  io.axi.w.bits.strb := regDcacheW.strb
+  io.axi.w.bits.data := regDcacheW.data
+  val w_hold = RegInit(false.B)
   when(io.dcacheInput.w.valid) {
     regDcacheW := io.dcacheInput.w.bits
     w_hold     := true.B
