@@ -52,7 +52,7 @@ class Bru extends Module {
     is(BRUOpType.jirl) {
       io.branch := info.valid && (info.fusel === FuType.bru)
       io.result := pc + 4.U // Return address (PC + 4)
-      io.target := io.src_info.src1_data + SignedExtend(Cat(imm, "b00".U), 32);
+      io.target := (io.src_info.src1_data.asSInt + imm).asUInt;
     }
 
     // BEQ (Branch if Equal)
