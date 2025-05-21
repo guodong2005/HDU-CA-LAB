@@ -17,6 +17,7 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def SRAI_W = BitPat("b00000000010010001???????????????") // Shift Right Arithmetic Immediate Word
 
   def SLT   = BitPat("b00000000000100100???????????????")
+  def NOR   = BitPat("b00000000000101000???????????????")
   def SLTU  = BitPat("b00000000000100101???????????????")
   def ADD_W = BitPat("b00000000000100000???????????????")
   def SUB_W = BitPat("b00000000000100010???????????????")
@@ -87,6 +88,7 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     SLTU   -> List(InstrR, FuType.alu, ALUOpType.sltu), // Set Less Than Unsigned
     XORI   -> List(InstrI, FuType.alu, ALUOpType.xor),  // XOR Immediate
     XOR    -> List(InstrR, FuType.alu, ALUOpType.xor),  // XOR
+    NOR    -> List(InstrR, FuType.alu, ALUOpType.nor),  // NOR
     SLLI_W -> List(InstrI, FuType.alu, ALUOpType.sll),  // Shift Left Logical Immediate
     SRLI_W -> List(InstrI, FuType.alu, ALUOpType.srl),  // Shift Right Logical Immediate
     SRL_W  -> List(InstrR, FuType.alu, ALUOpType.srl),  // Shift Right Logical

@@ -63,6 +63,7 @@ object ALUOpType {
   def or   = "b00111".U // OR
   def and  = "b01000".U // AND
   def sll  = "b01001".U // Shift Left Logical Word
+  def nor  = "b01100".U // NOR
 
 }
 
