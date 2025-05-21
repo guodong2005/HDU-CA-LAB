@@ -24,7 +24,7 @@ class Lsu extends Module {
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
     val ready    = Output(Bool()) // LSU ready signal
-    val diffout  = Output(new DiffOutData())
+    val diffout  = Output(new DiffOut())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
