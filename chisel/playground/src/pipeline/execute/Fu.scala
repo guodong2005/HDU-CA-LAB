@@ -14,7 +14,7 @@ class Fu extends Module with HasInstrType {
       val src_info = Input(new SrcInfo())
       val rd_info  = Output(new RdInfo())
       val branch   = Bool()
-      val diffout  = Output(new DiffOutData())
+      val diffout  = Output(new DiffOut())
       val target   = UInt(XLEN.W)
       val ready    = Output(Bool())
     }
