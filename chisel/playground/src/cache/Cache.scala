@@ -65,7 +65,7 @@ class ICache extends Module {
   io.fetch_rsp.data  := io.axi.r.bits.data // Forward data from the AXI interface.
   io.fetch_rsp.addr  := latchedAddr        // Return the latched fetch address.
 
-  // ---- FSM Implementation ---- //
+  // ---- FSM Implementati7on ---- //
   switch(state) {
     is(sIdle) {
       // When the fetch unit issues a valid request,
