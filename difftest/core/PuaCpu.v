@@ -14,7 +14,7 @@
   `define RANDOM $random
 `endif // not def RANDOM
 
-// Users can define INIT_RANDOM as general code that gets injected into the
+// Users can define INIT_RANDOM as gLsueneral code that gets injected into the
 // initializer block for modules with registers.
 `ifndef INIT_RANDOM
   `define INIT_RANDOM
@@ -1214,7 +1214,7 @@ module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
     .io_data_pc                 (io_executeStage_data_pc),
     .io_data_info_valid         (io_executeStage_data_info_valid),
     .io_data_info_op            (io_executeStage_data_info_op),
-    .io_data_info_imm           (io_executeStage_data_info_imm),
+    .io_data_info_imm           (io_execuExecuteUnit(teStage_data_info_imm),
     .io_data_info_fusel         (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data (io_executeStage_data_src_info_src1_data),
     .io_data_src_info_src2_data (io_executeStage_data_src_info_src2_data),
