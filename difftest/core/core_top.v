@@ -1811,7 +1811,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       : _GEN_0
           ? io_pc + io_info_imm
           : _GEN_1
-              ? io_src_info_src1_data + {io_info_imm[30:0], 1'h0}
+              ? io_src_info_src1_data + io_info_imm
               : _GEN_2
                   ? io_pc + io_info_imm
                   : _GEN_3
@@ -1822,7 +1822,7 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                               ? io_pc + io_info_imm
                               : _GEN_6
                                   ? io_pc + io_info_imm
-                                  : _GEN_7 ? io_pc + io_info_imm : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:10:23, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:7, :25:13, :37:19, :41:{17,31}, :47:{17,31}, :55:{17,42}, :61:{17,31}, :69:{17,31}, :76:{17,31}, :83:{17,31}, :90:{17,31}, :97:{17,31}
+                                  : _GEN_7 ? io_pc + io_info_imm : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:7, :25:13, :37:19, :41:{17,31}, :47:{17,31}, :55:{17,50}, :61:{17,31}, :69:{17,31}, :76:{17,31}, :83:{17,31}, :90:{17,31}, :97:{17,31}
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7
