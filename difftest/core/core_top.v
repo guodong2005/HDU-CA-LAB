@@ -227,7 +227,7 @@ module DCache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
       `FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_req_ready = ~(|state);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :145:78, :152:26
+  assign io_req_ready = ~(|state) & ~io_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :145:78, :152:{26,37,40}
   assign io_resp_valid =
     ~_GEN_6 & (_GEN_0 ? io_axi_r_valid : ~_GEN_1 & _GEN_8 & io_axi_b_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:104:7, :123:21, :124:21, :155:23, :173:17, :197:28, :211:27
   assign io_resp_bits_rdata =
