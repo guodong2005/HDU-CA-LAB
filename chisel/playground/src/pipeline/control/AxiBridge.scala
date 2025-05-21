@@ -26,8 +26,8 @@ class Axibridge extends Module {
     val icacheInput = Flipped(new AXI())
   })
 
-  io.axi         := DontCare
-  io.dcacheInput := DontCare
+  io.axi := DontCare
+  // io.dcacheInput := DontCare
   io.icacheInput := DontCare
   // ------------------------------------------------------------
   // Latch incoming AR requests from caches.
