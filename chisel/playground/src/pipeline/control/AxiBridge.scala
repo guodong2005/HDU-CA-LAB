@@ -27,8 +27,8 @@ class Axibridge extends Module {
   })
 
   dontTouch(io.dcacheInput)
-  io.axi := DontCare
-  // io.dcacheInput := DontCare
+  io.axi         := DontCare
+  io.dcacheInput := DontCare
   io.icacheInput := DontCare
   // ------------------------------------------------------------
   // Latch incoming AR requests from caches.
