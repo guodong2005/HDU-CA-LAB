@@ -35,10 +35,9 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
-  axibridge.io.axi         <> io.axi
-  icache.io.axi            <> axibridge.io.icacheInput
-  dcache.io.axi            <> axibridge.io.dcacheInput
-  axibridge.io.dcacheInput := DontCare
+  axibridge.io.axi <> io.axi
+  icache.io.axi    <> axibridge.io.icacheInput
+  dcache.io.axi    <> axibridge.io.dcacheInput
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 

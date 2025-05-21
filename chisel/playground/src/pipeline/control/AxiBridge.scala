@@ -26,6 +26,7 @@ class Axibridge extends Module {
     val icacheInput = Flipped(new AXI())
   })
 
+  doutTouch(io.dcacheInput)
   io.axi := DontCare
   // io.dcacheInput := DontCare
   io.icacheInput := DontCare
