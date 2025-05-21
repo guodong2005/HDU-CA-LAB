@@ -30,8 +30,10 @@ class Diff extends Module {
   io.diffout.instrCommit.wdata := RegNext(io.debug.rf_wdata)
   io.diffout.instrCommit.wen   := RegNext(io.debug.wen)
 
-  io.diffout.loadEvent  := RegNext(io.info.diffout.loadEvent)
-  io.diffout.storeEvent := RegNext(io.info.diffout.storeEvent)
+  // io.diffout.loadEvent  := RegNext(io.info.diffout.loadEvent)
+  io.diffout.loadEvent := (io.info.diffout.loadEvent)
+  // io.diffout.storeEvent := RegNext(io.info.diffout.storeEvent)
+  io.diffout.storeEvent := (io.info.diffout.storeEvent)
 
   io.diffout.gRegState := io.regs_in
 }
