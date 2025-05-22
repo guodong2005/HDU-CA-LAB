@@ -55,14 +55,12 @@ class ExecuteUnit extends Module {
   fu.io.data.info     := info
   fu.io.data.src_info := srcinfo
 
-  io.branch                := fu.io.data.branch
-  io.target                := fu.io.data.target
-  io.ready                 := fu.io.data.ready
-  io.memoryStage.data.pc   := fu.io.data.pc
-  io.memoryStage.data.info := fu.io.data.info
-  when(fu.io.data.valid === false.B) {
-    io.memoryStage.data.info.valid := fu.io.data.valid
-  }
+  io.branch                        := fu.io.data.branch
+  io.target                        := fu.io.data.target
+  io.ready                         := fu.io.data.ready
+  io.memoryStage.data.pc           := fu.io.data.pc
+  io.memoryStage.data.info         := fu.io.data.info
+  io.memoryStage.data.info.valid   := fu.io.data.valid
   io.memoryStage.data.info.diffout := fu.io.data.diffout
   io.memoryStage.data.src_info     := srcinfo
   io.memoryStage.data.rd_info      := fu.io.data.rd_info
