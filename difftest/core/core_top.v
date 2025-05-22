@@ -2098,6 +2098,14 @@ module MemoryStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
   input  [31:0] io_executeUnit_data_info_diffout_loadEvent_paddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
                 io_executeUnit_data_info_diffout_loadEvent_vaddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
                 io_executeUnit_data_rd_info_wdata,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+  input         io_controlSignal_fetchUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_fetchUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_decodeUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_decodeUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_executeUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_executeUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_memoryUnitSignal_allow_to_go,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
+                io_controlSignal_memoryUnitSignal_do_flush,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output [31:0] io_memoryUnit_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
                 io_memoryUnit_data_info_instr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
   output        io_memoryUnit_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/memory/MemoryStage.scala:21:14
@@ -3365,6 +3373,18 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
       (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
     .io_executeUnit_data_rd_info_wdata
       (_executeUnit_io_memoryStage_data_rd_info_wdata),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:29:30
+    .io_controlSignal_fetchUnitSignal_allow_to_go
+      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+    .io_controlSignal_fetchUnitSignal_do_flush
+      (_controlUnit_io_signals_fetchUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+    .io_controlSignal_decodeUnitSignal_allow_to_go
+      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+    .io_controlSignal_decodeUnitSignal_do_flush
+      (_controlUnit_io_signals_decodeUnitSignal_do_flush),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:34:30
+    .io_controlSignal_executeUnitSignal_allow_to_go         (1'h1),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :12:14, :21:30, :22:30, :23:30, :24:30, :25:30, :28:30, :29:30, :30:30, :32:30, :34:30
+    .io_controlSignal_executeUnitSignal_do_flush            (1'h0),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :12:14, :21:30, :22:30, :23:30, :24:30, :25:30, :26:30, :28:30, :29:30, :30:30, :32:30, :34:30, :35:30
+    .io_controlSignal_memoryUnitSignal_allow_to_go          (1'h1),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :12:14, :21:30, :22:30, :23:30, :24:30, :25:30, :28:30, :29:30, :30:30, :32:30, :34:30
+    .io_controlSignal_memoryUnitSignal_do_flush             (1'h0),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11:7, :12:14, :21:30, :22:30, :23:30, :24:30, :25:30, :26:30, :28:30, :29:30, :30:30, :32:30, :34:30, :35:30
     .io_memoryUnit_data_pc
       (_memoryStage_io_memoryUnit_data_pc),
     .io_memoryUnit_data_info_instr
