@@ -128,6 +128,7 @@ class DCache extends Module {
 
   req.valid := Mux(reqStored, reqStored, io.req.valid)
   req.bits  := Mux(reqStored, reqReg, io.req.bits)
+  req.ready := DontCare
   // The CPU request interface is ready when idle.
   io.req.ready := (state === sIdle)
 
