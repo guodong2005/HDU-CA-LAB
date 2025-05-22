@@ -12,6 +12,16 @@ class readRequest extends Bundle {
   val addr  = UInt(32.W)
   val size  = UInt(3.W)
 }
+class awRequest extends Bundle {
+  val valid = Bool()
+  val size  = UInt(3.W)
+  val addr  = UInt(32.W)
+}
+class wRequest extends Bundle {
+  val valid = Bool()
+  val strb  = UInt(4.W)
+  val data  = UInt(32.W)
+}
 
 /**
  * Axibridge acts as an intermediary between two cache modules (dcache and icache) and an external AXI memory bus. It arbitrates AR (read address) requests from both caches and forwards them on the external bus. When the AXI slave returns read data, the bridge demultiplexes the response to the
@@ -130,24 +140,34 @@ class Axibridge extends Module {
   }.elsewhen(io.axi.aw.ready && aw_hold) {
     aw_hold := false.B
   }
-  io.axi.aw.valid         := aw_hold
-  io.axi.aw.bits.addr     := regDcacheAw.addr
-  io.axi.aw.bits.size     := regDcacheAw.size
+
+  val DcacheAw = Wire(new awRequest)
+  DcacheAw.valid          := Mux(aw_hold, regDcacheAw, io.dcacheInput.aw.bits)
+  DcacheAw.addr           := Mux(aw_hold, regDcacheAw.addr, io.dcacheInput.aw.bits.addr)
+  DcacheAw.size           := Mux(aw_hold, regDcacheAw.size, io.dcacheInput.aw.bits.size)
+  io.axi.aw.valid         := DcacheAw.valid
+  io.axi.aw.bits.addr     := DcacheAw.addr
+  io.axi.aw.bits.size     := DcacheAw.size
   io.dcacheInput.aw.ready := io.axi.aw.ready
 
   // Write Data Channel (W)
   val regDcacheW = RegInit(0.U.asTypeOf(io.dcacheInput.w.bits))
-  io.axi.w.bits.strb := regDcacheW.strb
-  io.axi.w.bits.data := regDcacheW.data
-  val w_hold = RegInit(false.B)
+  val w_hold     = RegInit(false.B)
   when(io.dcacheInput.w.valid) {
     regDcacheW := io.dcacheInput.w.bits
     w_hold     := true.B
   }.elsewhen(io.axi.w.ready && w_hold) {
     w_hold := false.B
   }
-  io.axi.w.valid         := w_hold
-  io.axi.w.bits.data     := regDcacheW.data
+
+  val DcacheW = Wire(new wRequest)
+  DcacheW.valid      := Mux(w_hold, regDcacheW, io.dcacheInput.w.bits)
+  DcacheW.strb       := Mux(w_hold, regDcacheW.strb, io.dcacheInput.w.bits.strb)
+  DcacheW.data       := Mux(w_hold, regDcacheW.data, io.dcacheInput.w.bits.data)
+  io.axi.w.valid     := w_hold
+  io.axi.w.bits.data := DcacheW.data
+  io.axi.w.bits.strb := DcacheW.strb
+
   io.dcacheInput.w.ready := io.axi.w.ready
 
   // Write Response Channel (B)
