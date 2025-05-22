@@ -44,9 +44,6 @@ class ExecuteUnit extends Module {
     fu.io.data.info.valid := false.B
     infoReg := 0.U.asTypeOf(new Info())
   }
-  when(fu.io.data.valid === false.B) {
-    io.executeStage.data.info.valid := false.B
-  }
 
   fu.io.dcache        <> io.dcache
   fu.io.data.pc       := pc
