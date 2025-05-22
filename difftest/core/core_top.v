@@ -1834,7 +1834,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
              : 32'h0) | (op == 5'h5 ? {16'h0, io_dcache_resp_bits_rdata[15:0]} : 32'h0)
         | (op == 5'h2 ? io_dcache_resp_bits_rdata : 32'h0)
       : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :37:31, :116:12, :125:13, :134:17, :168:70, :170:70, src/main/scala/chisel3/util/Mux.scala:30:73
-  assign io_ready = ~(~reqValidReg & io_info_valid & _dcacheReq_valid_T) & ~state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :98:29, :102:38, :105:{15,61,80}, :126:13, :127:{39,75}, :128:14
+  assign io_ready = ~state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :102:38, :105:15
   assign io_diffout_storeEvent_valid =
     ~state & dcacheReq_valid & io_dcache_req_ready & op[3]
       ? {5'h0, op == 5'hA, op == 5'h9, op == 5'h8}
