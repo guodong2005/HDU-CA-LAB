@@ -32,7 +32,7 @@ class ExecuteUnit extends Module {
   io.ready                 := fu.io.data.ready
   io.memoryStage.data.pc   := fu.io.data.pc
   io.memoryStage.data.info := fu.io.data.info
-  when(fu.io.data.ready === false.B) {
+  when(fu.io.data.valid === false.B) {
     io.memoryStage.data.info.valid := false.B
   }
   io.memoryStage.data.info.diffout := fu.io.data.diffout

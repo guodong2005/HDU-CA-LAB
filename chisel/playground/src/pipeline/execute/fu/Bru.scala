@@ -11,11 +11,13 @@ class Bru extends Module {
     val info     = Input(new Info())
     val pc       = Input(UInt(XLEN.W))
     val src_info = Input(new SrcInfo())
+    val valid    = Output(Bool())
     val result   = Output(UInt(XLEN.W))
     val branch   = Output(Bool())
     val target   = Output(UInt(XLEN.W))
   })
 
+  io.valid := true.B
   val info = io.info
   val pc   = io.pc
   val imm  = info.imm.asSInt
