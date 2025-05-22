@@ -50,17 +50,30 @@ class Axibridge extends Module {
     regIcacheReq.id    := io.icacheInput.ar.bits.id
   }
 
+  val DcacheReq = Wire(new readRequest)
+  val IcacheReq = Wire(new readRequest)
+
+  DcacheReq.valid := Mux(regDcacheReq.valid, regDcacheReq, io.dcacheInput.ar.valid)
+  DcacheReq.addr  := Mux(regDcacheReq.valid, regDcacheReq.addr, io.dcacheInput.ar.bits.addr)
+  DcacheReq.id    := Mux(regDcacheReq.valid, regDcacheReq.id, io.dcacheInput.ar.bits.id)
+  DcacheReq.size  := Mux(regDcacheReq.valid, regDcacheReq.size, io.dcacheInput.ar.bits.size)
+
+  IcacheReq.valid := Mux(regIcacheReq.valid, regIcacheReq, io.icacheInput.ar.valid)
+  IcacheReq.addr  := Mux(regIcacheReq.valid, regIcacheReq.addr, io.icacheInput.ar.bits.addr)
+  IcacheReq.id    := Mux(regIcacheReq.valid, regIcacheReq.id, io.icacheInput.ar.bits.id)
+  IcacheReq.size  := Mux(regIcacheReq.valid, regIcacheReq.size, io.icacheInput.ar.bits.size)
+
   // ------------------------------------------------------------
   // Arbitration for the external AXI AR channel.
   // Priority: if dcache has a pending request, choose it; otherwise, pick icache.
   // ------------------------------------------------------------
-  val selValid = Mux(regDcacheReq.valid, true.B, regIcacheReq.valid)
-  val selAddr  = Mux(regDcacheReq.valid, regDcacheReq.addr, regIcacheReq.addr)
-  val selSize  = Mux(regDcacheReq.valid, regDcacheReq.size, regIcacheReq.size)
+  val selValid = Mux(DcacheReq.valid, true.B, IcacheReq.valid)
+  val selAddr  = Mux(DcacheReq.valid, DcacheReq.addr, IcacheReq.addr)
+  val selSize  = Mux(DcacheReq.valid, DcacheReq.size, IcacheReq.size)
   // Encode the cache source in the lowest bit:
   // For dcache, force LSB = 1; for icache, force LSB = 0.
   // Upper 3 bits come from the original request’s id.
-  val selId = Mux(regDcacheReq.valid, Cat(regDcacheReq.id(3, 1), 1.U(1.W)), Cat(regIcacheReq.id(3, 1), 0.U(1.W)))
+  val selId = Mux(DcacheReq.valid, Cat(DcacheReq.id(3, 1), 1.U(1.W)), Cat(IcacheReq.id(3, 1), 0.U(1.W)))
 
   // Drive the external AXI AR port.
   io.axi.ar.valid     := selValid
@@ -70,7 +83,7 @@ class Axibridge extends Module {
 
   // When the external AR handshake completes, clear the appropriate request.
   when(io.axi.ar.valid && io.axi.ar.ready) {
-    when(regDcacheReq.valid) {
+    when(DcacheReq.valid) {
       regDcacheReq.valid := false.B
     }.otherwise {
       regIcacheReq.valid := false.B
