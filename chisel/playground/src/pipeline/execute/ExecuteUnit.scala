@@ -22,28 +22,28 @@ class ExecuteUnit extends Module {
 
   val fu = Module(new Fu())
 
-  val srcInfoReg = RegInit(new SrcInfo())
-  val infoReg = RegInit(new Info())
-  val pcReg = RegInit(0.U(XLEN.W))
+  val srcInfoReg = RegInit(0.U.asTypeOf(new SrcInfo()))
+  val infoReg    = RegInit(0.U.asTypeOf(new Info()))
+  val pcReg      = RegInit(0.U(XLEN.W))
 
   when(io.executeStage.data.info.valid) {
     srcInfoReg := io.executeStage.data.src_info
   }
-  
+
   when(io.executeStage.data.info.valid) {
     infoReg := io.executeStage.data.info
   }
-when(io.executeStage.data.info.valid) {
+  when(io.executeStage.data.info.valid) {
     pcReg := io.executeStage.data.pc
   }
   val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
-  val info= Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
-  val pc = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
+  val info    = Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
+  val pc      = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
 
   fu.io.dcache        <> io.dcache
   fu.io.data.pc       := pc
-  fu.io.data.info     := info 
-  fu.io.data.src_info := srcinfo 
+  fu.io.data.info     := info
+  fu.io.data.src_info := srcinfo
 
   io.branch                := fu.io.data.branch
   io.target                := fu.io.data.target
