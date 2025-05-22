@@ -39,6 +39,7 @@ class ExecuteUnit extends Module {
   val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
   val info    = Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
   val pc      = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
+  printf(p"Hexadecimal PC: 0x${Hexadecimal(io.executeStage.data.pc)}\n")
 
   fu.io.dcache        <> io.dcache
   fu.io.data.pc       := pc
