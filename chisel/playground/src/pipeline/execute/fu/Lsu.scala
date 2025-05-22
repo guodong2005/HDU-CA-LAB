@@ -109,7 +109,7 @@ class Lsu extends Module {
   }
 
   val dcacheReq = Wire(Decoupled(new DCacheReq))
-  dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid)
+  dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid && (io.info.fusel === FuType.lsu))
   dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
   val op = Wire(UInt())
