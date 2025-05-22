@@ -1758,12 +1758,13 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   reg         reqValidReg;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29
   reg  [3:0]  opReg;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:99:29
   reg         state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38
-  wire        _io_ready_T_3 = io_info_fusel == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:61
-  wire        dcacheReq_valid = reqValidReg ? reqValidReg : io_info_valid & _io_ready_T_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :105:61, :112:{25,66}
+  wire        _dcacheReq_valid_T = io_info_fusel == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:61
+  wire        dcacheReq_valid =
+    reqValidReg ? reqValidReg : io_info_valid & _dcacheReq_valid_T;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :105:61, :112:{25,66}
   wire [31:0] dcacheReq_bits_addr = reqValidReg ? dcacheReqReg_addr : storeAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:84:40, :97:29, :98:29, :114:25
   wire [31:0] dcacheReq_bits_wdata = reqValidReg ? dcacheReqReg_wdata : newReq_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:93:22, :97:29, :98:29, :114:25
   wire [4:0]  op = reqValidReg ? {1'h0, opReg} : io_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:35:31, :98:29, :99:29, :116:12
-  wire        _GEN_0 = state & io_dcache_resp_valid & ~(op[3]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:37:31, :102:38, :116:12, :132:17, :162:14
+  wire        _GEN_0 = state & io_dcache_resp_valid & ~(op[3]);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:37:31, :102:38, :116:12, :134:17, :164:14
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7
       dcacheReqReg_addr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:35:31, :97:29
@@ -1777,9 +1778,9 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7
       automatic logic _GEN_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:77
-      automatic logic _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:94, :135:33, :136:35, :153:23
-      _GEN_1 = ~state & io_info_valid & _io_ready_T_3 & ~reqValidReg;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :102:38, :105:{15,61,77,80}
-      _GEN_2 = dcacheReq_valid & io_dcache_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:94, :112:25, :135:33, :136:35, :153:23
+      automatic logic _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:94, :137:33, :138:35, :155:23
+      _GEN_1 = ~state & io_info_valid & _dcacheReq_valid_T & ~reqValidReg;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :102:38, :105:{15,61,77,80}
+      _GEN_2 = dcacheReq_valid & io_dcache_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:94, :112:25, :137:33, :138:35, :155:23
       if (_GEN_1) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:105:77
         dcacheReqReg_addr <= storeAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:84:40, :97:29
         dcacheReqReg_write <= io_info_op[3];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:97:29
@@ -1788,11 +1789,11 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
         dcacheReqReg_size <= size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:97:29, src/main/scala/chisel3/util/Mux.scala:126:16
         opReg <= io_info_op[3:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:99:29, :108:18
       end
-      reqValidReg <= ~(~state & _GEN_2) & (_GEN_1 | reqValidReg);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :102:38, :105:{77,94}, :107:18, :132:17, :135:33, :136:35, :153:23
+      reqValidReg <= ~(~state & _GEN_2) & (_GEN_1 | reqValidReg);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:98:29, :102:38, :105:{77,94}, :107:18, :134:17, :137:33, :138:35, :155:23
       if (state)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38
-        state <= ~(state & io_dcache_resp_valid) & state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38, :132:17, :160:34, :192:15
+        state <= ~(state & io_dcache_resp_valid) & state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38, :134:17, :162:34, :194:15
       else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38
-        state <= _GEN_2 | state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38, :105:94, :135:33, :136:35, :153:23, :154:23
+        state <= _GEN_2 | state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:102:38, :105:94, :137:33, :138:35, :155:23, :156:23
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7
@@ -1832,17 +1833,17 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
              ? {{16{io_dcache_resp_bits_rdata[15]}}, io_dcache_resp_bits_rdata[15:0]}
              : 32'h0) | (op == 5'h5 ? {16'h0, io_dcache_resp_bits_rdata[15:0]} : 32'h0)
         | (op == 5'h2 ? io_dcache_resp_bits_rdata : 32'h0)
-      : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :37:31, :116:12, :125:13, :132:17, :166:70, :168:70, src/main/scala/chisel3/util/Mux.scala:30:73
-  assign io_ready = ~state | ~reqValidReg & io_info_valid & _io_ready_T_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :98:29, :102:38, :105:{15,61,80}, :126:{34,67}
+      : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :37:31, :116:12, :125:13, :134:17, :168:70, :170:70, src/main/scala/chisel3/util/Mux.scala:30:73
+  assign io_ready = ~(~reqValidReg & io_info_valid & _dcacheReq_valid_T) & ~state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :98:29, :102:38, :105:{15,61,80}, :126:13, :127:{39,75}, :128:14
   assign io_diffout_storeEvent_valid =
     ~state & dcacheReq_valid & io_dcache_req_ready & op[3]
       ? {5'h0, op == 5'hA, op == 5'h9, op == 5'h8}
-      : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :36:31, :102:38, :112:25, :116:12, :132:17, :135:33, :136:35, :137:39, :142:31, :143:31, :144:31, :145:40, :147:46
+      : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :36:31, :102:38, :112:25, :116:12, :134:17, :137:33, :138:35, :139:39, :144:31, :145:31, :146:31, :147:40, :149:46
   assign io_diffout_storeEvent_storePAddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :114:25
   assign io_diffout_storeEvent_storeVAddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :114:25
   assign io_diffout_storeEvent_storeData = dcacheReq_bits_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :114:25
   assign io_diffout_loadEvent_valid =
-    _GEN_0 ? {3'h0, op == 5'h2, op == 5'h5, op == 5'h1, op == 5'h4, ~(|op)} : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :37:31, :116:12, :132:17, :177:27, :178:27, :179:27, :180:27, :181:27, :182:37
+    _GEN_0 ? {3'h0, op == 5'h2, op == 5'h5, op == 5'h1, op == 5'h4, ~(|op)} : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :35:31, :37:31, :116:12, :134:17, :179:27, :180:27, :181:27, :182:27, :183:27, :184:37
   assign io_diffout_loadEvent_paddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :114:25
   assign io_diffout_loadEvent_vaddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :114:25
   assign io_dcache_req_valid = dcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :112:25
