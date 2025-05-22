@@ -175,5 +175,5 @@ class Axibridge extends Module {
   io.dcacheInput.b.bits  := io.axi.b.bits
   io.dcacheInput.b.valid := io.axi.b.valid
   // For simplicity, we assume this bridge is always ready to accept a B-channel response.
-  io.axi.b.ready := true.B
+  io.axi.b.ready := io.dcacheInput.b.ready
 }

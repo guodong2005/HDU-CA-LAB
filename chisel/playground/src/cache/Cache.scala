@@ -163,6 +163,7 @@ class DCache extends Module {
   io.axi.w.bits.strb  := req.bits.wstrb // For a full 32-bit write.
   io.axi.ar.bits.addr := req.bits.addr
 
+  io.axi.b.ready := false.B // write response may be very fast
   switch(state) {
     is(sIdle) {
       // When a CPU request arrives, latch it.
@@ -237,7 +238,8 @@ class DCache extends Module {
           // Transition the global FSM to wait for the write response (B channel).
           state := sWriteResp
           // Reset sub-FSM for future write transactions.
-          writeSubState := wIdle
+          writeSubState  := wIdle
+          io.axi.b.ready := true.B
         }
       }
     }
@@ -247,8 +249,9 @@ class DCache extends Module {
         io.resp.valid      := true.B
         io.resp.bits.rdata := 0.U // For store operations, a dummy data response.
         when(io.resp.ready) {
-          reqStored := false.B
-          state     := sIdle
+          reqStored      := false.B
+          state          := sIdle
+          io.axi.b.ready := false.B // Acknowledge the write response.
         }
       }
     }
