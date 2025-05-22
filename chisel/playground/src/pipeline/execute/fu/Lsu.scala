@@ -134,6 +134,7 @@ class Lsu extends Module {
   // ------------------------------------------------------------
 
   val valid = Wire(Bool())
+  valid    := false.B
   io.valid := valid
   switch(state) {
     is(sIdle) {
