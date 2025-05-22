@@ -24,12 +24,10 @@ class Fu extends Module with HasInstrType {
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
-  val dataReg = RegInit(0.U.asTypeOf(io.data))
 
   when(io.data.info.valid === true.B) {
     dataReg := io.data
   }
-
 
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())
@@ -74,9 +72,6 @@ class Fu extends Module with HasInstrType {
       FuType.lsu -> lsu.io.result
     )
   )
-  when(io.data.info.valid === false.B) {
-    io.data := dataReg
-  }
   io.data.rd_info.wdata := result
   io.data.diffout       := lsu.io.diffout
 
