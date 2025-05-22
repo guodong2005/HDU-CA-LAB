@@ -15,7 +15,7 @@ class Alu extends Module {
 
   io.result := 0.U
 
-  io.valid := true.B
+  io.valid := io.info.valid
   switch(io.info.op) {
     // Other 32-bit operations remain unchanged
     is(ALUOpType.add) { io.result := (io.src_info.src1_data + io.src_info.src2_data)(31, 0) } // ADD
