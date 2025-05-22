@@ -133,14 +133,12 @@ class Lsu extends Module {
   // FSM for Issuing the Request and Handling the Response
   // ------------------------------------------------------------
 
-  val valid = Wire(Bool())
-  valid    := false.B
-  io.valid := valid
+  io.valid := false.B
   switch(state) {
     is(sIdle) {
       // If a request is pending and the slave is ready, handshake occurs.
       when(io.dcache.req.valid) {
-        valid := false.B
+        io.valid := false.B
         when(io.dcache.req.ready) {
           when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
             // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
@@ -167,7 +165,7 @@ class Lsu extends Module {
       // Wait for the DCache response.
       when(io.dcache.resp.valid) {
         // If this was a load operation, generate a diffload event.
-        valid := true.B
+        io.valid := true.B
         when(!LSUOpType.isStore(op)) {
           io.result := LookupTree(
             op,
