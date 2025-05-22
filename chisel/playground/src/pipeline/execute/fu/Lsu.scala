@@ -101,7 +101,6 @@ class Lsu extends Module {
   val sIdle :: sWait :: Nil = Enum(2)
   val state                 = RegInit(sIdle)
 
-  dontTouch(dcacheReqReg)
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
@@ -111,6 +110,7 @@ class Lsu extends Module {
 
   val dcacheReq = Wire(Decoupled(new DCacheReq))
   dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid)
+  dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
   val op = Wire(UInt())
   op := Mux(reqValidReg, opReg, io.info.op)
