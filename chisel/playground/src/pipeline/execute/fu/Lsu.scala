@@ -109,16 +109,21 @@ class Lsu extends Module {
     opReg        := io.info.op
   }
 
+  val dcacheReq = Wire(Decoupled(new DCacheReq))
+  dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid)
+  dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
+  val op = Wire(UInt())
+  op := Mux(reqValidReg, opReg, io.info.op)
   // ------------------------------------------------------------
   // Drive the decoupled DCache request interface.
   // ------------------------------------------------------------
-  io.dcache.req.bits   := dcacheReqReg
-  io.dcache.req.valid  := reqValidReg
+  io.dcache.req.bits   := dcacheReq.bits
+  io.dcache.req.valid  := dcacheReq.valid
   io.dcache.resp.ready := true.B
 
   // Default outputs
   io.result := 0.U
-  io.ready  := (state === sIdle) && !reqValidReg
+  io.ready  := (state === sIdle)
 
   // ------------------------------------------------------------
   // FSM for Issuing the Request and Handling the Response
@@ -126,21 +131,21 @@ class Lsu extends Module {
   switch(state) {
     is(sIdle) {
       // If a request is pending and the slave is ready, handshake occurs.
-      when(reqValidReg) {
+      when(io.dcache.req.valid) {
         when(io.dcache.req.ready) {
-          when(LSUOpType.isStore(opReg)) { // Use the latched op from opReg.
+          when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
             // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
             // For this example, we assume no store-conditional, so storeSC is false.
             val storeSC = false.B
-            val st_w    = (opReg === LSUOpType.sw).asUInt
-            val st_h    = (opReg === LSUOpType.sh).asUInt
-            val st_b    = (opReg === LSUOpType.sb).asUInt
+            val st_w    = (op === LSUOpType.sw).asUInt
+            val st_h    = (op === LSUOpType.sh).asUInt
+            val st_b    = (op === LSUOpType.sb).asUInt
             val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
             io.diffout.storeEvent.valid      := store_valid
-            io.diffout.storeEvent.storePAddr := dcacheReqReg.addr.asUInt
-            io.diffout.storeEvent.storeVAddr := dcacheReqReg.addr.asUInt
-            io.diffout.storeEvent.storeData  := dcacheReqReg.wdata
+            io.diffout.storeEvent.storePAddr := dcacheReq.bits.addr.asUInt
+            io.diffout.storeEvent.storeVAddr := dcacheReq.bits.addr.asUInt
+            io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata
           }
           // On handshake, clear the stored request flag and proceed.
           reqValidReg := false.B
@@ -152,9 +157,9 @@ class Lsu extends Module {
       // Wait for the DCache response.
       when(io.dcache.resp.valid) {
         // If this was a load operation, generate a diffload event.
-        when(!LSUOpType.isStore(opReg)) {
+        when(!LSUOpType.isStore(op)) {
           io.result := LookupTree(
-            opReg,
+            op,
             Seq(
               LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
               LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
@@ -167,16 +172,16 @@ class Lsu extends Module {
           // Build an 8-bit valid signal for a load as: {2'b0, ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b}
           // For this example, assume no load-linked so ll_w is false.
           val ll_w  = false.B
-          val ld_w  = (opReg === LSUOpType.lw).asUInt
-          val ld_hu = (opReg === LSUOpType.lhu).asUInt
-          val ld_h  = (opReg === LSUOpType.lh).asUInt
-          val ld_bu = (opReg === LSUOpType.lbu).asUInt
-          val ld_b  = (opReg === LSUOpType.lb).asUInt
+          val ld_w  = (op === LSUOpType.lw).asUInt
+          val ld_hu = (op === LSUOpType.lhu).asUInt
+          val ld_h  = (op === LSUOpType.lh).asUInt
+          val ld_bu = (op === LSUOpType.lbu).asUInt
+          val ld_b  = (op === LSUOpType.lb).asUInt
           val load_valid: UInt = Cat(0.U(2.W), ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b)
 
           io.diffout.loadEvent.valid := load_valid
-          io.diffout.loadEvent.paddr := dcacheReqReg.addr.asUInt
-          io.diffout.loadEvent.vaddr := dcacheReqReg.addr.asUInt
+          io.diffout.loadEvent.paddr := dcacheReq.bits.addr.asUInt
+          io.diffout.loadEvent.vaddr := dcacheReq.bits.addr.asUInt
 
         }.otherwise {
           // For store ops, result is typically not used.

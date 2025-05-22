@@ -122,7 +122,10 @@ class DCache extends Module {
   // Latch the incoming CPU request.
   val reqReg    = Reg(new DCacheReq)
   val reqStored = RegInit(false.B)
-  when(io.req.valid) {}
+  when(io.req.valid && !reqStored) {
+    reqStored := true.B
+    reqReg    := io.req.bits
+  }
 
   val req = Wire(Decoupled(new DCacheReq))
 
@@ -164,8 +167,6 @@ class DCache extends Module {
     is(sIdle) {
       // When a CPU request arrives, latch it.
       when(io.req.valid) {
-        reqReg    := io.req.bits
-        reqStored := true.B
         when(io.req.bits.write) {
           state         := sWrite // Begin a write transaction.
           writeSubState := wIdle  // Initialize the write sub-FSM.
