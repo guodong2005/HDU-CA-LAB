@@ -128,6 +128,7 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // FSM for Issuing the Request and Handling the Response
   // ------------------------------------------------------------
+
   switch(state) {
     is(sIdle) {
       // If a request is pending and the slave is ready, handshake occurs.
@@ -136,6 +137,7 @@ class Lsu extends Module {
           when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
             // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
             // For this example, we assume no store-conditional, so storeSC is false.
+            val signal  = true.B
             val storeSC = false.B
             val st_w    = (op === LSUOpType.sw).asUInt
             val st_h    = (op === LSUOpType.sh).asUInt
