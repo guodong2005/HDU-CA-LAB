@@ -123,7 +123,7 @@ class Lsu extends Module {
 
   // Default outputs
   io.result := 0.U
-  io.ready  := (state === sIdle)
+  io.ready  := (state === sIdle) | (!reqValidReg && io.info.valid && (io.info.fusel === FuType.lsu))
 
   // ------------------------------------------------------------
   // FSM for Issuing the Request and Handling the Response

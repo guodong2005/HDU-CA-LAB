@@ -53,6 +53,7 @@ class Core extends Module {
 
   controlUnit.io.branch           := executeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
+  // executeUnit.fu.lsu.busy         := decodeUnit.io.islsu
 
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target

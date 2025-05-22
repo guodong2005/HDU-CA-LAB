@@ -20,19 +20,19 @@ class ExecuteUnit extends Module {
     }
   })
 
-  val fu = Module(new Fu()).io
+  val fu = Module(new Fu())
 
-  fu.dcache        <> io.dcache
-  fu.data.pc       := io.executeStage.data.pc
-  fu.data.info     := io.executeStage.data.info
-  fu.data.src_info := io.executeStage.data.src_info
+  fu.io.dcache        <> io.dcache
+  fu.io.data.pc       := io.executeStage.data.pc
+  fu.io.data.info     := io.executeStage.data.info
+  fu.io.data.src_info := io.executeStage.data.src_info
 
-  io.branch                        := fu.data.branch
-  io.target                        := fu.data.target
-  io.ready                         := fu.data.ready
-  io.memoryStage.data.pc           := fu.data.pc
-  io.memoryStage.data.info         := fu.data.info
-  io.memoryStage.data.info.diffout := fu.data.diffout
-  io.memoryStage.data.src_info     := fu.data.src_info
-  io.memoryStage.data.rd_info      := fu.data.rd_info;
+  io.branch                        := fu.io.data.branch
+  io.target                        := fu.io.data.target
+  io.ready                         := fu.io.data.ready
+  io.memoryStage.data.pc           := fu.io.data.pc
+  io.memoryStage.data.info         := fu.io.data.info
+  io.memoryStage.data.info.diffout := fu.io.data.diffout
+  io.memoryStage.data.src_info     := fu.io.data.src_info
+  io.memoryStage.data.rd_info      := fu.io.data.rd_info;
 }

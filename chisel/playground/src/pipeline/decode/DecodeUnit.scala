@@ -12,6 +12,7 @@ class DecodeUnit extends Module with HasInstrType {
     val regfile     = new Src12Read()
     // 输出
     val executeStage = Output(new DecodeUnitExecuteUnit())
+    val islsu        = Output(Bool())
   })
 
   val decoder = Module(new Decoder())
@@ -48,6 +49,8 @@ class DecodeUnit extends Module with HasInstrType {
   io.executeStage.data.info               := info
   io.executeStage.data.src_info.src1_data := Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
   io.executeStage.data.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
+
+  io.islsu := decoder.io.out.info.fusel === FuType.lsu
   // why doesnt need op type ?
 
   // io.executeStage.data.info               :=
