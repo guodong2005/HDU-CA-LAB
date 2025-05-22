@@ -61,7 +61,7 @@ class ExecuteUnit extends Module {
   io.memoryStage.data.pc   := fu.io.data.pc
   io.memoryStage.data.info := fu.io.data.info
   when(fu.io.data.valid === false.B) {
-    io.memoryStage.data.info.valid := false.B
+    io.memoryStage.data.info.valid := .B
   }
   io.memoryStage.data.info.diffout := fu.io.data.diffout
   io.memoryStage.data.src_info     := srcinfo
