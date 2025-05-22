@@ -48,11 +48,10 @@ class ControlUnit extends Module {
   io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall) & (io.executeUnitReady)
   // io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & (io.executeUnit.allowtogo) 居然不等价吗！
   io.signals.executeUnitSignal.allow_to_go := io.executeUnitReady
-  dontTouch(io.signals)
+  // dontTouch(io.signals)
 // icache stall 只会影响 fetchUnit
 
-  io.signals.executeUnitSignal.allow_to_go := true.B
-  io.signals.memoryUnitSignal.allow_to_go  := true.B
+  io.signals.memoryUnitSignal.allow_to_go := true.B
 
   io.signals.fetchUnitSignal.do_flush   := io.branch
   io.signals.decodeUnitSignal.do_flush  := io.branch
