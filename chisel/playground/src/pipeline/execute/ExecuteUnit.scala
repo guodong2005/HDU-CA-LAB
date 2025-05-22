@@ -26,14 +26,14 @@ class ExecuteUnit extends Module {
   val infoReg    = RegInit(0.U.asTypeOf(new Info()))
   val pcReg      = RegInit(0.U(XLEN.W))
 
-  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
+  when(io.executeStage.data.info.valid) {
     srcInfoReg := io.executeStage.data.src_info
   }
 
-  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
+  when(io.executeStage.data.info.valid) {
     infoReg := io.executeStage.data.info
   }
-  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
+  when(io.executeStage.data.info.valid) {
     pcReg := io.executeStage.data.pc
   }
   /*
