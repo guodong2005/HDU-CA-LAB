@@ -1743,7 +1743,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   wire [6:0]  _strb_T_3 = 7'h3 << _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:79:50, :80:50
   wire [3:0]  strb =
     _strb_T ? _strb_T_1[3:0] : _strb_T_2 ? _strb_T_3[3:0] : {4{io_info_op == 5'hA}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:69:54, :70:54, :71:54, :79:50, :80:50, src/main/scala/chisel3/util/Mux.scala:126:16
-  wire [31:0] storeAddr = {effectiveAddr[31:2], 2'h0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :86:{32,40}, src/main/scala/chisel3/util/Mux.scala:30:73
+  wire [31:0] newReq_addr = io_info_op[3] ? {effectiveAddr[31:2], 2'h0} : effectiveAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :86:{32,40}, :93:22, src/main/scala/chisel3/util/Mux.scala:30:73
   wire [31:0] newReq_wdata =
     io_info_op[3]
       ? (io_info_op == 5'h8 ? {2{{2{io_src_info_src2_data[7:0]}}}} : 32'h0)
@@ -1761,7 +1761,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   wire        _dcacheReq_valid_T = io_info_fusel == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:107:61
   wire        dcacheReq_valid =
     reqValidReg ? reqValidReg : io_info_valid & _dcacheReq_valid_T;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:100:29, :107:61, :114:{25,66}
-  wire [31:0] dcacheReq_bits_addr = reqValidReg ? dcacheReqReg_addr : storeAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:86:40, :99:29, :100:29, :116:25
+  wire [31:0] dcacheReq_bits_addr = reqValidReg ? dcacheReqReg_addr : newReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:93:22, :99:29, :100:29, :116:25
   wire [31:0] dcacheReq_bits_wdata = reqValidReg ? dcacheReqReg_wdata : newReq_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:95:22, :99:29, :100:29, :116:25
   wire [4:0]  op = reqValidReg ? {1'h0, opReg} : io_info_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:36:31, :100:29, :101:29, :118:12
   wire        _GEN_0 = state & io_dcache_resp_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:104:38, :136:12, :137:17, :166:34, :168:18
@@ -1783,7 +1783,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       _GEN_2 = ~state & io_info_valid & _dcacheReq_valid_T & ~reqValidReg;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:100:29, :104:38, :107:{15,61,77,80}
       _GEN_3 = dcacheReq_valid & io_dcache_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:107:94, :114:25, :140:33, :142:35, :159:23
       if (_GEN_2) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:107:77
-        dcacheReqReg_addr <= storeAddr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:86:40, :99:29
+        dcacheReqReg_addr <= newReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:93:22, :99:29
         dcacheReqReg_write <= io_info_op[3];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:99:29
         dcacheReqReg_wdata <= newReq_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:95:22, :99:29
         dcacheReqReg_wstrb <= strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:99:29, src/main/scala/chisel3/util/Mux.scala:126:16

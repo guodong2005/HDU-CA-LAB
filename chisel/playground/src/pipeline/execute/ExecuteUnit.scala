@@ -45,7 +45,6 @@ class ExecuteUnit extends Module {
   val srcinfo = Mux(infoReg.valid, srcInfoReg, io.executeStage.data.src_info)
   val info    = Mux(infoReg.valid, infoReg, io.executeStage.data.info)
   val pc      = Mux(infoReg.valid, pcReg, io.executeStage.data.pc)
-  printf(p"Hexadecimal PC: 0x${Hexadecimal(io.executeStage.data.pc)}\n")
   when(fu.io.data.valid === true.B) {
     fu.io.data.info.valid := false.B
     infoReg               := 0.U.asTypeOf(new Info())
