@@ -58,8 +58,8 @@ class ExecuteUnit extends Module {
   io.branch                        := fu.io.data.branch
   io.target                        := fu.io.data.target
   io.ready                         := fu.io.data.ready
-  io.memoryStage.data.pc           := fu.io.data.pc
-  io.memoryStage.data.info         := fu.io.data.info
+  io.memoryStage.data.pc           := pc
+  io.memoryStage.data.info         := info
   io.memoryStage.data.info.valid   := fu.io.data.valid
   io.memoryStage.data.info.diffout := fu.io.data.diffout
   io.memoryStage.data.src_info     := srcinfo
