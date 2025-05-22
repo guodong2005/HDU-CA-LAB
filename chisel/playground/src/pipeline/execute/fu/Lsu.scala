@@ -200,7 +200,7 @@ class Lsu extends Module {
       }
     }
   }
-  when(RegNext(io.valid)) {
+  when(RegInit(io.valid)) {
     io.valid := false.B
   }
 }
