@@ -133,7 +133,7 @@ class Lsu extends Module {
   // FSM for Issuing the Request and Handling the Response
   // ------------------------------------------------------------
 
-  io.valid := false.B
+  io.valid := io.dcache.resp.valid
   switch(state) {
     is(sIdle) {
       // If a request is pending and the slave is ready, handshake occurs.
