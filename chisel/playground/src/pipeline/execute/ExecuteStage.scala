@@ -30,7 +30,7 @@ class ExecuteStage extends Module {
   when(
     io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
       io.controlSignal.executeUnitSignal.allow_to_go === false.B) {
-    data := data // Retain the previous data
+    data := 0.U.asTypeOf(new IdExeData()) // Retain the previous data
   }.otherwise {
     data := io.decodeUnit.data // Update data if units are allowed to proceed
   }
