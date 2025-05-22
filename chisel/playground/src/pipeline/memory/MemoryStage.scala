@@ -35,6 +35,6 @@ class MemoryStage extends Module {
   when(io.controlSignal.executeUnitSignal.do_flush === true.B) {
     data := 0.U.asTypeOf(new ExeMemData()) // Reset data if flush signal is high
   }
-  io.memoryUnit.data := data
+  io.memoryUnit.data := Mux(io.controlSignal.executeUnitSignal.allow_to_go, data, 0.U.asTypeOf((new ExeMemData)))
 
 }
