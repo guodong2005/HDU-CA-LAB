@@ -118,8 +118,7 @@ class Lsu extends Module {
 
   // Default outputs
   io.result := 0.U
-  val curValid = reqValidReg | io.req.valid
-  io.ready := (state === sIdle) && !reqValidReg
+  io.ready  := (state === sIdle) && !reqValidReg
 
   // ------------------------------------------------------------
   // FSM for Issuing the Request and Handling the Response
@@ -132,10 +131,10 @@ class Lsu extends Module {
           when(LSUOpType.isStore(opReg)) { // Use the latched op from opReg.
             // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
             // For this example, we assume no store-conditional, so storeSC is false.
-            val storeSC           = false.B
-            val st_w              = (opReg === LSUOpType.sw).asUInt
-            val st_h              = (opReg === LSUOpType.sh).asUInt
-            val st_b              = (opReg === LSUOpType.sb).asUInt
+            val storeSC = false.B
+            val st_w    = (opReg === LSUOpType.sw).asUInt
+            val st_h    = (opReg === LSUOpType.sh).asUInt
+            val st_b    = (opReg === LSUOpType.sb).asUInt
             val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
             io.diffout.storeEvent.valid      := store_valid
