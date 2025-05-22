@@ -27,13 +27,15 @@ class ExecuteUnit extends Module {
   fu.io.data.info     := io.executeStage.data.info
   fu.io.data.src_info := io.executeStage.data.src_info
 
-  io.branch                        := fu.io.data.branch
-  io.target                        := fu.io.data.target
-  io.ready                         := fu.io.data.ready
-  io.memoryStage.data.pc           := fu.io.data.pc
-  io.memoryStage.data.info         := fu.io.data.info
-  io.memoryStage.data.info.valid   := fu.io.data.ready
-  io.memoryStage.data.info.diffout := fu.io.data.diffout
+  io.branch                := fu.io.data.branch
+  io.target                := fu.io.data.target
+  io.ready                 := fu.io.data.ready
+  io.memoryStage.data.pc   := fu.io.data.pc
+  io.memoryStage.data.info := fu.io.data.info
+  when(fu.io.data.ready === false.B) {
+    io.memoryStage.data.info.valid := false.B
+  }
+  io.memoryStage.data.info.diffout := fu.io.data.diffoutL
   io.memoryStage.data.src_info     := fu.io.data.src_info
   io.memoryStage.data.rd_info      := fu.io.data.rd_info;
 }
