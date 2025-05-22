@@ -122,17 +122,19 @@ class DCache extends Module {
   // Latch the incoming CPU request.
   val reqReg    = Reg(new DCacheReq)
   val reqStored = RegInit(false.B)
+  when(io.req.valid) {}
 
-  io.req.valid := io.req.valid
-  io.req.bits  := Mux(reqStored, reqReg, io.req.bits)
+  val req = Wire(Decoupled(new DCacheReq))
 
+  req.valid := Mux(reqStored, reqStored, io.req.valid)
+  req.bits  := Mux(reqStored, reqReg, io.req.bits)
   // The CPU request interface is ready when idle.
   io.req.ready := (state === sIdle)
 
   // Default CPU response assignments.
   io.resp.valid       := false.B
   io.resp.bits.rdata  := 0.U
-  io.axi.ar.bits.size := reqReg.size
+  io.axi.ar.bits.size := req.bits.size
 
   // ------------------------------------------------------------
   // Write Sub-FSM (active only in global state sWrite).
@@ -148,14 +150,14 @@ class DCache extends Module {
   // ------------------------------------------------------------
   // Global FSM Implementation
   // ------------------------------------------------------------
-  io.axi.aw.bits.addr := reqReg.addr
+  io.axi.aw.bits.addr := req.bits.addr
   io.axi.aw.bits.size := 2.U
   io.axi.aw.bits.id   := 0.U
 
   // Set up W channel signals.
-  io.axi.w.bits.data  := reqReg.wdata
-  io.axi.w.bits.strb  := reqReg.wstrb // For a full 32-bit write.
-  io.axi.ar.bits.addr := reqReg.addr
+  io.axi.w.bits.data  := req.bits.wdata
+  io.axi.w.bits.strb  := req.bits.wstrb // For a full 32-bit write.
+  io.axi.ar.bits.addr := req.bits.addr
 
   switch(state) {
     is(sIdle) {

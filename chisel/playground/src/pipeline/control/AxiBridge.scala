@@ -47,13 +47,13 @@ class Axibridge extends Module {
   val regIcacheReq = RegInit(0.U.asTypeOf(new readRequest))
 
   // When a cache asserts its AR valid, capture its request.
-  when(io.dcacheInput.ar.valid) {
+  when(io.dcacheInput.ar.valid && !regDcacheReq.valid) {
     regDcacheReq.valid := true.B
     regDcacheReq.addr  := io.dcacheInput.ar.bits.addr
     regDcacheReq.size  := io.dcacheInput.ar.bits.size
     regDcacheReq.id    := io.dcacheInput.ar.bits.id
   }
-  when(io.icacheInput.ar.valid) {
+  when(io.icacheInput.ar.valid && !regIcacheReq.valid) {
     regIcacheReq.valid := true.B
     regIcacheReq.addr  := io.icacheInput.ar.bits.addr
     regIcacheReq.size  := io.icacheInput.ar.bits.size
@@ -134,7 +134,7 @@ class Axibridge extends Module {
   // Write Address Channel (AW)
   val regDcacheAw = RegInit(0.U.asTypeOf(io.dcacheInput.aw.bits))
   val aw_hold     = RegInit(false.B)
-  when(io.dcacheInput.aw.valid) {
+  when(io.dcacheInput.aw.valid && !aw_hold) {
     regDcacheAw := io.dcacheInput.aw.bits
     aw_hold     := true.B
   }.elsewhen(io.axi.aw.ready && aw_hold) {
@@ -153,7 +153,7 @@ class Axibridge extends Module {
   // Write Data Channel (W)
   val regDcacheW = RegInit(0.U.asTypeOf(io.dcacheInput.w.bits))
   val w_hold     = RegInit(false.B)
-  when(io.dcacheInput.w.valid) {
+  when(io.dcacheInput.w.valid && !w_hold) {
     regDcacheW := io.dcacheInput.w.bits
     w_hold     := true.B
   }.elsewhen(io.axi.w.ready && w_hold) {
