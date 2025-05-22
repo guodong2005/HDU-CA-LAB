@@ -142,7 +142,7 @@ class Axibridge extends Module {
   }
 
   val DcacheAw = Wire(new awRequest)
-  DcacheAw.valid          := Mux(aw_hold, regDcacheAw, io.dcacheInput.aw.bits)
+  DcacheAw.valid          := Mux(aw_hold, aw_hold, io.dcacheInput.aw.valid)
   DcacheAw.addr           := Mux(aw_hold, regDcacheAw.addr, io.dcacheInput.aw.bits.addr)
   DcacheAw.size           := Mux(aw_hold, regDcacheAw.size, io.dcacheInput.aw.bits.size)
   io.axi.aw.valid         := DcacheAw.valid
@@ -161,7 +161,7 @@ class Axibridge extends Module {
   }
 
   val DcacheW = Wire(new wRequest)
-  DcacheW.valid      := Mux(w_hold, regDcacheW, io.dcacheInput.w.bits)
+  DcacheW.valid      := Mux(w_hold, w_hold, io.dcacheInput.w.valid)
   DcacheW.strb       := Mux(w_hold, regDcacheW.strb, io.dcacheInput.w.bits.strb)
   DcacheW.data       := Mux(w_hold, regDcacheW.data, io.dcacheInput.w.bits.data)
   io.axi.w.valid     := w_hold
