@@ -26,19 +26,24 @@ class ExecuteUnit extends Module {
   val infoReg    = RegInit(0.U.asTypeOf(new Info()))
   val pcReg      = RegInit(0.U(XLEN.W))
 
-  when(io.executeStage.data.info.valid) {
+  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
     srcInfoReg := io.executeStage.data.src_info
   }
 
-  when(io.executeStage.data.info.valid) {
+  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
     infoReg := io.executeStage.data.info
   }
-  when(io.executeStage.data.info.valid) {
+  when(io.executeStage.data.info.valid && infoReg.valid === false.B) {
     pcReg := io.executeStage.data.pc
   }
+  /*
   val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
   val info    = Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
   val pc      = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
+  */
+  val srcinfo = Mux(infoReg.valid, srcInfoReg,io.executeStage.data.src_info)
+  val info = Mux(infoReg.valid, infoReg,io.executeStage.data.info)
+  val pc = Mux(infoReg.valid, pcReg,io.executeStage.data.pc)
   printf(p"Hexadecimal PC: 0x${Hexadecimal(io.executeStage.data.pc)}\n")
   when(fu.io.data.ready === true.B){
     fu.io.data.info.valid := false.B
