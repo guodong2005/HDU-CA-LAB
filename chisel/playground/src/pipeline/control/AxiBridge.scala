@@ -53,12 +53,12 @@ class Axibridge extends Module {
   val DcacheReq = Wire(new readRequest)
   val IcacheReq = Wire(new readRequest)
 
-  DcacheReq.valid := Mux(regDcacheReq.valid, regDcacheReq, io.dcacheInput.ar.valid)
+  DcacheReq.valid := Mux(regDcacheReq.valid, regDcacheReq.valid, io.dcacheInput.ar.valid)
   DcacheReq.addr  := Mux(regDcacheReq.valid, regDcacheReq.addr, io.dcacheInput.ar.bits.addr)
   DcacheReq.id    := Mux(regDcacheReq.valid, regDcacheReq.id, io.dcacheInput.ar.bits.id)
   DcacheReq.size  := Mux(regDcacheReq.valid, regDcacheReq.size, io.dcacheInput.ar.bits.size)
 
-  IcacheReq.valid := Mux(regIcacheReq.valid, regIcacheReq, io.icacheInput.ar.valid)
+  IcacheReq.valid := Mux(regIcacheReq.valid, regIcacheReq.valid, io.icacheInput.ar.valid)
   IcacheReq.addr  := Mux(regIcacheReq.valid, regIcacheReq.addr, io.icacheInput.ar.bits.addr)
   IcacheReq.id    := Mux(regIcacheReq.valid, regIcacheReq.id, io.icacheInput.ar.bits.id)
   IcacheReq.size  := Mux(regIcacheReq.valid, regIcacheReq.size, io.icacheInput.ar.bits.size)
