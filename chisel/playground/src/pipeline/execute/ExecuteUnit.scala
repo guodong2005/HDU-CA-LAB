@@ -40,14 +40,14 @@ class ExecuteUnit extends Module {
   val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
   val info    = Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
   val pc      = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
-  */
-  val srcinfo = Mux(infoReg.valid, srcInfoReg,io.executeStage.data.src_info)
-  val info = Mux(infoReg.valid, infoReg,io.executeStage.data.info)
-  val pc = Mux(infoReg.valid, pcReg,io.executeStage.data.pc)
+   */
+  val srcinfo = Mux(infoReg.valid, srcInfoReg, io.executeStage.data.src_info)
+  val info    = Mux(infoReg.valid, infoReg, io.executeStage.data.info)
+  val pc      = Mux(infoReg.valid, pcReg, io.executeStage.data.pc)
   printf(p"Hexadecimal PC: 0x${Hexadecimal(io.executeStage.data.pc)}\n")
-  when(fu.io.data.ready === true.B){
+  when(fu.io.data.ready === true.B) {
     fu.io.data.info.valid := false.B
-    infoReg := 0.U.asTypeOf(new Info())
+    infoReg               := 0.U.asTypeOf(new Info())
   }
 
   fu.io.dcache        <> io.dcache
@@ -55,14 +55,12 @@ class ExecuteUnit extends Module {
   fu.io.data.info     := info
   fu.io.data.src_info := srcinfo
 
-  io.branch                := fu.io.data.branch
-  io.target                := fu.io.data.target
-  io.ready                 := fu.io.data.ready
-  io.memoryStage.data.pc   := fu.io.data.pc
-  io.memoryStage.data.info := fu.io.data.info
-  when(fu.io.data.valid === false.B) {
-    io.memoryStage.data.info.valid := .B
-  }
+  io.branch                        := fu.io.data.branch
+  io.target                        := fu.io.data.target
+  io.ready                         := fu.io.data.ready
+  io.memoryStage.data.pc           := fu.io.data.pc
+  io.memoryStage.data.info         := fu.io.data.info
+  io.memoryStage.data.info.valid   := fu.io.data.valid
   io.memoryStage.data.info.diffout := fu.io.data.diffout
   io.memoryStage.data.src_info     := srcinfo
   io.memoryStage.data.rd_info      := fu.io.data.rd_info

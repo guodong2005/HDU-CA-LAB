@@ -68,7 +68,7 @@ class Fu extends Module with HasInstrType {
       FuType.lsu -> lsu.io.result
     )
   )
-  when(lsu.io.ready){
+  when(lsu.io.ready) {
     fuselReg := 0.U.asTypeOf(new Info())
   }
   io.data.rd_info.wdata := result
