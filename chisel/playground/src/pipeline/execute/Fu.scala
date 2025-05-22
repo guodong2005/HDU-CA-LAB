@@ -37,18 +37,18 @@ class Fu extends Module with HasInstrType {
   val bru = Module(new Bru())
 
   lsu.io.dcache   <> io.dcache
-  alu.io.info     := data.info
-  alu.io.src_info := data.src_info
+  alu.io.info     := io.data.info
+  alu.io.src_info := io.data.src_info
 
-  mdu.io.info     := data.info
-  mdu.io.src_info := data.src_info
+  mdu.io.info     := io.data.info
+  mdu.io.src_info := io.data.src_info
 
-  lsu.io.info     := data.info
-  lsu.io.src_info := data.src_info
+  lsu.io.info     := io.data.info
+  lsu.io.src_info := io.data.src_info
 
-  bru.io.info     := data.info
-  bru.io.src_info := data.src_info
-  bru.io.pc       := data.pc
+  bru.io.info     := io.data.info
+  bru.io.src_info := io.data.src_info
+  bru.io.pc       := io.data.pc
 
   val fuselReg = RegInit(0.U.asTypeOf(new Info()))
   when(io.data.info.valid) {
