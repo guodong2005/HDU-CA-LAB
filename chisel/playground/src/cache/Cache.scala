@@ -93,14 +93,6 @@ class ICache extends Module {
   }
 }
 
-/**
- * DCache module implementing a simple data cache interface.
- *
- * The CPU interface is provided via a Decoupled request/response pair. For a load, the module performs an AXI read transaction (AR/R channels). For a store, it uses a sub–FSM (within the global sWrite state) to manage the independent handshakes on the AW (write address) and W (write data) channels.
- * Once both channels have handshaken, the FSM waits for the write response (B channel).
- *
- * This implementation processes one transaction at a time.
- */
 class DCache extends Module {
   val io = IO(new Bundle {
     // CPU–side interface.
@@ -111,36 +103,19 @@ class DCache extends Module {
     val axi = new AXI()
   })
 
-  // ------------------------------------------------------------
-  // Default assignments for AXI channels.
-  // ------------------------------------------------------------
-  // Read address channel (AR)
   io.axi            := DontCare
   io.axi.ar.valid   := false.B
   io.axi.ar.bits.id := 1.U
 
-  // Write address channel (AW)
   io.axi.aw.valid   := false.B
   io.axi.aw.bits.id := 1.U
 
-  // Write data channel (W) with an additional strobe field.
-  io.axi.w.valid     := false.B
-  io.axi.w.bits.id   := 1.U
-  io.axi.w.bits.strb := 15.U(4.W) // 4-bit strobe; for full word, strobe should be 0xF.
+  io.axi.w.valid   := false.B
+  io.axi.w.bits.id := 1.U
 
-  // Read data channel (R) and write response channel (B):
   io.axi.r.ready := true.B
   io.axi.b.ready := true.B
 
-  // ------------------------------------------------------------
-  // Global FSM for DCache transactions.
-  // ------------------------------------------------------------
-  // Global state enumeration:
-  //   sIdle:       Waiting for a CPU request.
-  //   sReadReq:    Issue a read request (AR channel) for load.
-  //   sReadWait:   Wait for read data (R channel).
-  //   sWrite:      Start a write transaction; use a sub-FSM for AW/W channels.
-  //   sWriteResp:  Wait for the write response on the B channel.
   val sIdle :: sReadReq :: sReadWait :: sWrite :: sWriteResp :: Nil = Enum(5)
   val state                                                         = RegInit(sIdle)
 
@@ -170,6 +145,15 @@ class DCache extends Module {
   // ------------------------------------------------------------
   // Global FSM Implementation
   // ------------------------------------------------------------
+  io.axi.aw.bits.addr := reqReg.addr
+  io.axi.aw.bits.size := 2.U
+  io.axi.aw.bits.id   := 0.U
+
+  // Set up W channel signals.
+  io.axi.w.bits.data  := reqReg.wdata
+  io.axi.w.bits.strb  := reqReg.wstrb // For a full 32-bit write.
+  io.axi.ar.bits.addr := reqReg.addr
+
   switch(state) {
     is(sIdle) {
       // When a CPU request arrives, latch it.
@@ -186,8 +170,7 @@ class DCache extends Module {
     }
     is(sReadReq) {
       // Issue the AXI AR transaction (read address).
-      io.axi.ar.valid     := true.B
-      io.axi.ar.bits.addr := reqReg.addr
+      io.axi.ar.valid := true.B
       when(io.axi.ar.ready) {
         state := sReadWait
       }
@@ -206,13 +189,6 @@ class DCache extends Module {
     is(sWrite) {
       // In the write state, a sub-FSM manages the handshakes on both AW and W channels.
       // Set up AW channel signals.
-      io.axi.aw.bits.addr := reqReg.addr
-      io.axi.aw.bits.size := 2.U
-      io.axi.aw.bits.id   := 0.U
-
-      // Set up W channel signals.
-      io.axi.w.bits.data := reqReg.wdata
-      io.axi.w.bits.strb := reqReg.wstrb // For a full 32-bit write.
 
       // Sub-FSM implementation:
       switch(writeSubState) {
