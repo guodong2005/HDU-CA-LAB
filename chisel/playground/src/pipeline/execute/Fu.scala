@@ -43,8 +43,13 @@ class Fu extends Module with HasInstrType {
   bru.io.src_info := io.data.src_info
   bru.io.pc       := io.data.pc
 
+  val fuselReg = RegInit(0.U.asTypeOf(new Info()))
+  when(io.data.info.valid) {
+    fuselReg := io.data.info
+  }
+  val fusel = Mux(io.data.info.valid, io.data.info.fusel, fuselReg.fusel)
   val result = LookupTree(
-    io.data.info.fusel,
+    fusel,
     Seq(
       FuType.alu -> alu.io.result,
       FuType.mdu -> mdu.io.result,
