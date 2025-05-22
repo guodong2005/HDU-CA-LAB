@@ -123,8 +123,11 @@ class DCache extends Module {
   val reqReg    = Reg(new DCacheReq)
   val reqStored = RegInit(false.B)
 
+  io.req.valid := Mux(reqStored, reqStored, io.req.valid)
+  io.req.bits  := Mux(reqStored, reqReg, io.req.bits)
+
   // The CPU request interface is ready when idle.
-  io.req.ready := (state === sIdle) & (!reqStored)
+  io.req.ready := (state === sIdle)
 
   // Default CPU response assignments.
   io.resp.valid       := false.B
