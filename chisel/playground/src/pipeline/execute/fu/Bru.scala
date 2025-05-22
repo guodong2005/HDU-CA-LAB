@@ -17,7 +17,7 @@ class Bru extends Module {
     val target   = Output(UInt(XLEN.W))
   })
 
-  io.valid := true.B
+  io.valid := true.B && io.info.valid && (io.info.fusel === FuType.bru)
   val info = io.info
   val pc   = io.pc
   val imm  = info.imm.asSInt
