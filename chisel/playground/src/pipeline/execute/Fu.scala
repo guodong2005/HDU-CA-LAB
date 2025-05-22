@@ -30,7 +30,6 @@ class Fu extends Module with HasInstrType {
     dataReg := io.data
   }
 
-  val data = Mux(dataReg.info.valid, dataReg, io.data)
 
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())

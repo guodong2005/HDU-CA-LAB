@@ -22,10 +22,32 @@ class ExecuteUnit extends Module {
 
   val fu = Module(new Fu())
 
+  val srcInfoReg = RegInit(new SrcInfo())
+  val rdInfoReg = RegInit(new RdInfo())
+  val infoReg = RegInit(new Info())
+  val pcReg = RegInit(0.U(XLEN.W))
+
+  when(io.executeStage.data.info.valid) {
+    srcInfoReg := io.executeStage.data.src_info
+  }
+  when(io.executeStage.data.info.valid) {
+    rdInfoReg := io.executeStage.data.rd_info
+  }
+  when(io.executeStage.data.info.valid) {
+    infoReg := io.executeStage.data.info
+  }
+when(io.executeStage.data.info.valid) {
+    pcReg := io.executeStage.data.pc
+  }
+  val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
+  val rdinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.rd_info, rdInfoReg)
+  val info= Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
+  val pc = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
+
   fu.io.dcache        <> io.dcache
-  fu.io.data.pc       := io.executeStage.data.pc
-  fu.io.data.info     := io.executeStage.data.info
-  fu.io.data.src_info := io.executeStage.data.src_info
+  fu.io.data.pc       := pc
+  fu.io.data.info     := info 
+  fu.io.data.src_info := srcinfo 
 
   io.branch                := fu.io.data.branch
   io.target                := fu.io.data.target
@@ -36,6 +58,6 @@ class ExecuteUnit extends Module {
     io.memoryStage.data.info.valid := false.B
   }
   io.memoryStage.data.info.diffout := fu.io.data.diffout
-  io.memoryStage.data.src_info     := fu.io.data.src_info
-  io.memoryStage.data.rd_info      := fu.io.data.rd_info;
+  io.memoryStage.data.src_info     := srcinfo
+  io.memoryStage.data.rd_info      := rdinfo
 }
