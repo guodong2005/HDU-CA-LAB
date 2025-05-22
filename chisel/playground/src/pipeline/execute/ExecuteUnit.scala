@@ -31,7 +31,8 @@ class ExecuteUnit extends Module {
   }
 
   when(io.executeStage.data.info.valid) {
-    infoReg := io.executeStage.data.info
+    infoReg       := io.executeStage.data.info
+    infoReg.valid := true.B
   }
   when(io.executeStage.data.info.valid) {
     pcReg := io.executeStage.data.pc
