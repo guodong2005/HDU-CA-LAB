@@ -25,10 +25,6 @@ class Fu extends Module with HasInstrType {
     }
   })
 
-  when(io.data.info.valid === true.B) {
-    dataReg := io.data
-  }
-
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())
   val lsu = Module(new Lsu())
