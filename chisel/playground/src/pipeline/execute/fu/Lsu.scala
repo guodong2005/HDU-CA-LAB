@@ -63,10 +63,11 @@ class Lsu extends Module {
 
 // Determine the size field based on memory operation type
   val size = MuxCase(
-    0.U(2.W),
+    2.U(2.W),
     Seq(
-      (LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sh)) -> 1.U(2.W),
-      (LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sw)) -> 2.U(2.W)
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sb)) -> 0.U(2.W),
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sh)) -> 1.U(2.W),
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.sw)) -> 2.U(2.W)
     )
   )
 
