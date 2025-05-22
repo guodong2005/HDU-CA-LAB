@@ -24,7 +24,7 @@ class MemoryStage extends Module {
     val memoryUnit    = Output(new ExecuteUnitMemoryUnit())
   })
 
-  val data = RegNext(0.U.asTypeOf(new ExeMemData()))
+  val data = RegInit(0.U.asTypeOf(new ExeMemData()))
   dontTouch(io.controlSignal)
   when(io.controlSignal.executeUnitSignal.allow_to_go === false.B) { // Memory unit stall
     data := data // Retain the previous data
