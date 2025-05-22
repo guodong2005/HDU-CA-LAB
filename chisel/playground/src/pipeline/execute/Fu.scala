@@ -62,6 +62,6 @@ class Fu extends Module with HasInstrType {
 
   io.data.branch := bru.io.branch
   io.data.target := bru.io.target
-  io.data.ready  := lsu.io.ready
+  io.data.ready  := RegNext(lsu.io.ready)
 
 }
