@@ -90,7 +90,7 @@ class Lsu extends Module {
   // Construct the new DCache Request combinationally.
   // ------------------------------------------------------------
   val newReq = Wire(new DCacheReq)
-  newReq.addr  := storeAddr
+  newReq.addr  := Mux(LSUOpType.isStore(io.info.op), storeAddr, effectiveAddr)
   newReq.write := LSUOpType.isStore(io.info.op)
   newReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
   newReq.wstrb := storeStrb
