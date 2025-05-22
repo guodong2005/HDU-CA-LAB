@@ -1831,7 +1831,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
       : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/isa/Instructions.scala:82:40, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :36:31, :37:31, :104:38, :114:25, :118:12, :137:17, :140:33, :142:35, :143:39, :148:31, :149:31, :150:31, :151:40, :153:46
   assign io_diffout_storeEvent_storePAddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :116:25
   assign io_diffout_storeEvent_storeVAddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :116:25
-  assign io_diffout_storeEvent_storeData = dcacheReq_bits_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :116:25
+  assign io_diffout_storeEvent_storeData = dcacheReq_bits_wdata + 32'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :116:25, :156:70
   assign io_diffout_loadEvent_valid =
     _GEN_1 ? {3'h0, op == 5'h2, op == 5'h5, op == 5'h1, op == 5'h4, ~(|op)} : 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :36:31, :38:31, :118:12, :137:17, :184:27, :185:27, :186:27, :187:27, :188:27, :189:37
   assign io_diffout_loadEvent_paddr = dcacheReq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:22:7, :116:25
