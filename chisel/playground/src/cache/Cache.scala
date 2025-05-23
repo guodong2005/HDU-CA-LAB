@@ -158,9 +158,8 @@ class DCache extends Module {
   switch(state) {
     is(sIdle) {
       when(io.axi.ar.valid && io.axi.ar.ready) {
-        io.axi.ar.valid := false.B
-        reqStored       := false.B
-        state           := sWait
+        reqStored := false.B
+        state     := sWait
       }
       when(io.axi.aw.valid && io.axi.aw.ready) {
         cnt   := cnt + 1.U
