@@ -165,7 +165,7 @@ class Lsu extends Module {
           io.diffout.storeEvent.valid      := store_valid
           io.diffout.storeEvent.storePAddr := dcacheReq.bits.addr.asUInt
           io.diffout.storeEvent.storeVAddr := dcacheReq.bits.addr.asUInt
-          io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata + 1.U
+          io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata
         }
         when(!LSUOpType.isStore(op)) {
           io.result := LookupTree(
