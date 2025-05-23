@@ -90,12 +90,15 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // Construct the new DCache Request combinationally.
   // ------------------------------------------------------------
+  val diffvalid = Mux(io.info.fusel === FuType.lsu, Mux(LSUOpType.isStore(op), store_valid, load_valid), 0.U(8.W))
+
   val newReq = Wire(new DCacheReq)
-  newReq.addr  := Mux(LSUOpType.isStore(io.info.op), storeAddr, effectiveAddr)
-  newReq.write := LSUOpType.isStore(io.info.op)
-  newReq.wdata := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
-  newReq.wstrb := storeStrb
-  newReq.size  := size
+  newReq.addr      := Mux(LSUOpType.isStore(io.info.op), storeAddr, effectiveAddr)
+  newReq.write     := LSUOpType.isStore(io.info.op)
+  newReq.wdata     := Mux(LSUOpType.isStore(io.info.op), storeWdata, 0.U)
+  newReq.wstrb     := storeStrb
+  newReq.size      := size
+  newReq.diffvalid := diffvalid
 
   val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))
   val reqValidReg  = RegInit(false.B) // Holds whether a request is pending.
@@ -130,8 +133,7 @@ class Lsu extends Module {
   val ld_b  = (op === LSUOpType.lb).asUInt
   val load_valid: UInt = Cat(0.U(3.W), ld_w, ld_hu, ld_h, ld_bu, ld_b)
 
-  dcacheReq.bits.diffvalid := Mux(io.info.fusel === FuType.lsu, Mux(LSUOpType.isStore(op), store_valid, load_valid), 0.U(8.W))
-
+  dcacheReq.bits.diffvalid := diffvalid
   // ------------------------------------------------------------
   // Drive the decoupled DCache request interface.
   // ------------------------------------------------------------
