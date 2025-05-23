@@ -41,6 +41,9 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // Effective Address Computation
   // ------------------------------------------------------------
+
+  val sIdle :: sWait :: Nil = Enum(2)
+  val state                 = RegInit(sIdle)
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
     reqValidReg  := true.B
@@ -110,9 +113,6 @@ class Lsu extends Module {
   val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))
   val reqValidReg  = RegInit(false.B) // Holds whether a request is pending.
   val opReg        = RegInit(0.U(4.W))
-
-  val sIdle :: sWait :: Nil = Enum(2)
-  val state                 = RegInit(sIdle)
 
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
 
