@@ -148,6 +148,7 @@ class Lsu extends Module {
       }
     }
     is(sWait) {
+      io.dcache.req.valid := false.B
       // Wait for the DCache response.
       when(io.dcache.resp.valid) {
         // If this was a load operation, generate a diffload event.
