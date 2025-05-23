@@ -7,11 +7,12 @@ import cpu.defines.Const._
 
 /** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is “don’t care.” */
 class DCacheReq extends Bundle {
-  val addr  = UInt(XLEN.W)
-  val write = Bool()       // false: load; true: store
-  val wdata = UInt(XLEN.W) // valid only if write is true
-  val wstrb = UInt(4.W)    // byte write mask
-  val size  = UInt(2.W)    // 0: byte, 1: half-word, 2: word
+  val addr      = UInt(XLEN.W)
+  val write     = Bool()       // false: load; true: store
+  val wdata     = UInt(XLEN.W) // valid only if write is true
+  val wstrb     = UInt(4.W)    // byte write mask
+  val size      = UInt(2.W)    // 0: byte, 1: half-word, 2: word
+  val diffvalid = UInt(8.W)
 }
 
 /** CPU–side response for a memory access. For a load, rdata holds the loaded word. For a store, a dummy value (here 0) is returned. */
@@ -116,6 +117,21 @@ class Lsu extends Module {
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
   val op = Wire(UInt())
   op := Mux(reqValidReg, opReg, io.info.op)
+
+  val st_w = (op === LSUOpType.sw).asUInt
+  val st_h = (op === LSUOpType.sh).asUInt
+  val st_b = (op === LSUOpType.sb).asUInt
+  val store_valid: UInt = Cat(0.U(5.W), storeSC, st_w, st_h, st_b)
+
+  val ld_w  = (op === LSUOpType.lw).asUInt
+  val ld_hu = (op === LSUOpType.lhu).asUInt
+  val ld_h  = (op === LSUOpType.lh).asUInt
+  val ld_bu = (op === LSUOpType.lbu).asUInt
+  val ld_b  = (op === LSUOpType.lb).asUInt
+  val load_valid: UInt = Cat(0.U(3.W), ld_w, ld_hu, ld_h, ld_bu, ld_b)
+
+  dcacheReq.bits.diffvalid := Mux(io.info.fusel === FuType.lsu, Mux(LSUOpType.isStore(op), store_valid, load_valid), 0.U(8.W))
+
   // ------------------------------------------------------------
   // Drive the decoupled DCache request interface.
   // ------------------------------------------------------------
@@ -153,16 +169,7 @@ class Lsu extends Module {
         // If this was a load operation, generate a diffload event.
         io.valid := true.B
         when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
-          // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
-          // For this example, we assume no store-conditional, so storeSC is false.
-          val signal  = true.B
-          val storeSC = false.B
-          val st_w    = (op === LSUOpType.sw).asUInt
-          val st_h    = (op === LSUOpType.sh).asUInt
-          val st_b    = (op === LSUOpType.sb).asUInt
-          val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
-
-          io.diffout.storeEvent.valid      := store_valid
+          io.diffout.storeEvent.valid      := dcacheReq.bits.diffvalid
           io.diffout.storeEvent.storePAddr := dcacheReq.bits.addr.asUInt
           io.diffout.storeEvent.storeVAddr := dcacheReq.bits.addr.asUInt
           io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata + 1.U
@@ -179,17 +186,7 @@ class Lsu extends Module {
             )
           )
 
-          // Build an 8-bit valid signal for a load as: {2'b0, ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b}
-          // For this example, assume no load-linked so ll_w is false.
-          val ll_w  = false.B
-          val ld_w  = (op === LSUOpType.lw).asUInt
-          val ld_hu = (op === LSUOpType.lhu).asUInt
-          val ld_h  = (op === LSUOpType.lh).asUInt
-          val ld_bu = (op === LSUOpType.lbu).asUInt
-          val ld_b  = (op === LSUOpType.lb).asUInt
-          val load_valid: UInt = Cat(0.U(2.W), ll_w, ld_w, ld_hu, ld_h, ld_bu, ld_b)
-
-          io.diffout.loadEvent.valid := load_valid
+          io.diffout.loadEvent.valid := dcacheReq.bits.diffvalid
           io.diffout.loadEvent.paddr := dcacheReq.bits.addr.asUInt
           io.diffout.loadEvent.vaddr := dcacheReq.bits.addr.asUInt
 
