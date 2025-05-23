@@ -41,6 +41,13 @@ class Lsu extends Module {
   // ------------------------------------------------------------
   // Effective Address Computation
   // ------------------------------------------------------------
+  when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
+    dcacheReqReg := newReq
+    reqValidReg  := true.B
+    opReg        := io.info.op
+  }
+  val op = Mux(reqValidReg, opReg, io.info.op)
+
   val effectiveAddr = LookupTree(
     LSUOpType.isStore(io.info.op),
     Seq(
@@ -108,18 +115,11 @@ class Lsu extends Module {
   val state                 = RegInit(sIdle)
 
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
-  when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
-    dcacheReqReg := newReq
-    reqValidReg  := true.B
-    opReg        := io.info.op
-  }
 
   val dcacheReq = Wire(Decoupled(new DCacheReq))
   dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid && (io.info.fusel === FuType.lsu))
   dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
-
-  val op = Mux(reqValidReg, opReg, io.info.op)
 
   val st_w = (op === LSUOpType.sw).asUInt
   val st_h = (op === LSUOpType.sh).asUInt
