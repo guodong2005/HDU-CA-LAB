@@ -116,7 +116,7 @@ class DCache extends Module {
   io.axi.r.ready := true.B
   io.axi.b.ready := true.B
 
-  val sIdle :: sWait :: Nil = Enum(3)
+  val sIdle :: sWait :: Nil = Enum(2)
   val state                 = RegInit(sIdle)
 
   // Latch the incoming CPU request.
