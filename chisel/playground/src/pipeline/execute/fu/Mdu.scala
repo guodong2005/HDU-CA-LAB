@@ -13,7 +13,7 @@ class Mdu extends Module {
     val result   = Output(UInt(XLEN.W))
     val valid    = Output(Bool())
   })
-  io.valid  := true.B
+  io.valid  := true.B && io.info.valid && (io.info.fusel === FuType.mdu)
   io.result := 0.U
   val iszero   = Mux(io.src_info.src2_data === 0.U, 1.U, 0.U)
   val iszero32 = Mux(io.src_info.src2_data(31, 0) === 0.U, 1.U, 0.U)
