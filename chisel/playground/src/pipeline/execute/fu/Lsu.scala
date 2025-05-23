@@ -115,7 +115,7 @@ class Lsu extends Module {
   dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
   val op = Wire(UInt())
-  op := Mux(reqValidReg, opReg, io.info.op)
+  op := Mux(io.info.valid, io.info.op, opReg)
   // ------------------------------------------------------------
   // Drive the decoupled DCache request interface.
   // ------------------------------------------------------------
