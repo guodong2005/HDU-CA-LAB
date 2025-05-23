@@ -137,7 +137,8 @@ class Axibridge extends Module {
   when(io.dcacheInput.aw.valid && !aw_hold) {
     regDcacheAw := io.dcacheInput.aw.bits
     aw_hold     := true.B
-  }.elsewhen(io.axi.aw.ready && aw_hold) {
+  }
+  when(io.axi.aw.ready && io.axi.aw.valid) {
     aw_hold := false.B
   }
 
@@ -156,7 +157,8 @@ class Axibridge extends Module {
   when(io.dcacheInput.w.valid && !w_hold) {
     regDcacheW := io.dcacheInput.w.bits
     w_hold     := true.B
-  }.elsewhen(io.axi.w.ready && w_hold) {
+  }
+  when(io.axi.w.ready && io.axi.w.valid) {
     w_hold := false.B
   }
 
@@ -164,7 +166,7 @@ class Axibridge extends Module {
   DcacheW.valid      := Mux(w_hold, w_hold, io.dcacheInput.w.valid)
   DcacheW.strb       := Mux(w_hold, regDcacheW.strb, io.dcacheInput.w.bits.strb)
   DcacheW.data       := Mux(w_hold, regDcacheW.data, io.dcacheInput.w.bits.data)
-  io.axi.w.valid     := w_hold
+  io.axi.w.valid     := DcacheW.valid
   io.axi.w.bits.data := DcacheW.data
   io.axi.w.bits.strb := DcacheW.strb
 
