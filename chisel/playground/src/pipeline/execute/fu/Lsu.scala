@@ -44,6 +44,11 @@ class Lsu extends Module {
 
   val sIdle :: sWait :: Nil = Enum(2)
   val state                 = RegInit(sIdle)
+
+  val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))
+  val reqValidReg  = RegInit(false.B) // Holds whether a request is pending.
+  val opReg        = RegInit(0.U(4.W))
+
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
     reqValidReg  := true.B
@@ -96,10 +101,18 @@ class Lsu extends Module {
 // Assign the computed values
   val storeAddr = effectiveAddr(31, 2) << 2
   val storeStrb = strb
+  val st_w      = (op === LSUOpType.sw).asUInt
+  val st_h      = (op === LSUOpType.sh).asUInt
+  val st_b      = (op === LSUOpType.sb).asUInt
+  val store_valid: UInt = Cat(0.U(5.W), st_w, st_h, st_b)
 
-  // ------------------------------------------------------------
-  // Construct the new DCache Request combinationally.
-  // ------------------------------------------------------------
+  val ld_w  = (op === LSUOpType.lw).asUInt
+  val ld_hu = (op === LSUOpType.lhu).asUInt
+  val ld_h  = (op === LSUOpType.lh).asUInt
+  val ld_bu = (op === LSUOpType.lbu).asUInt
+  val ld_b  = (op === LSUOpType.lb).asUInt
+  val load_valid: UInt = Cat(0.U(3.W), ld_w, ld_hu, ld_h, ld_bu, ld_b)
+
   val diffvalid = Mux(io.info.fusel === FuType.lsu, Mux(LSUOpType.isStore(op), store_valid, load_valid), 0.U(8.W))
 
   val newReq = Wire(new DCacheReq)
@@ -110,28 +123,15 @@ class Lsu extends Module {
   newReq.size      := size
   newReq.diffvalid := diffvalid
 
-  val dcacheReqReg = RegInit(0.U.asTypeOf(new DCacheReq))
-  val reqValidReg  = RegInit(false.B) // Holds whether a request is pending.
-  val opReg        = RegInit(0.U(4.W))
-
+  // ------------------------------------------------------------
+  // Construct the new DCache Request combinationally.
+  // ------------------------------------------------------------
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
 
   val dcacheReq = Wire(Decoupled(new DCacheReq))
   dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid && (io.info.fusel === FuType.lsu))
   dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
-
-  val st_w = (op === LSUOpType.sw).asUInt
-  val st_h = (op === LSUOpType.sh).asUInt
-  val st_b = (op === LSUOpType.sb).asUInt
-  val store_valid: UInt = Cat(0.U(5.W), st_w, st_h, st_b)
-
-  val ld_w  = (op === LSUOpType.lw).asUInt
-  val ld_hu = (op === LSUOpType.lhu).asUInt
-  val ld_h  = (op === LSUOpType.lh).asUInt
-  val ld_bu = (op === LSUOpType.lbu).asUInt
-  val ld_b  = (op === LSUOpType.lb).asUInt
-  val load_valid: UInt = Cat(0.U(3.W), ld_w, ld_hu, ld_h, ld_bu, ld_b)
 
   dcacheReq.bits.diffvalid := diffvalid
   // ------------------------------------------------------------
