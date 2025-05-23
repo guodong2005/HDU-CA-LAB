@@ -140,21 +140,7 @@ class Lsu extends Module {
       when(io.dcache.req.valid) {
         io.valid := false.B
         when(io.dcache.req.ready) {
-          when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
-            // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
-            // For this example, we assume no store-conditional, so storeSC is false.
-            val signal  = true.B
-            val storeSC = false.B
-            val st_w    = (op === LSUOpType.sw).asUInt
-            val st_h    = (op === LSUOpType.sh).asUInt
-            val st_b    = (op === LSUOpType.sb).asUInt
-            val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
 
-            io.diffout.storeEvent.valid      := store_valid
-            io.diffout.storeEvent.storePAddr := dcacheReq.bits.addr.asUInt
-            io.diffout.storeEvent.storeVAddr := dcacheReq.bits.addr.asUInt
-            io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata + 1.U
-          }
           // On handshake, clear the stored request flag and proceed.
           reqValidReg := false.B
           state       := sWait
@@ -166,6 +152,21 @@ class Lsu extends Module {
       when(io.dcache.resp.valid) {
         // If this was a load operation, generate a diffload event.
         io.valid := true.B
+        when(LSUOpType.isStore(op)) { // Use the latched op from opReg.
+          // Build an 8-bit valid signal for a store as: {4'b0, (llbit && sc_w), st_w, st_h, st_b}
+          // For this example, we assume no store-conditional, so storeSC is false.
+          val signal  = true.B
+          val storeSC = false.B
+          val st_w    = (op === LSUOpType.sw).asUInt
+          val st_h    = (op === LSUOpType.sh).asUInt
+          val st_b    = (op === LSUOpType.sb).asUInt
+          val store_valid: UInt = Cat(0.U(4.W), storeSC, st_w, st_h, st_b)
+
+          io.diffout.storeEvent.valid      := store_valid
+          io.diffout.storeEvent.storePAddr := dcacheReq.bits.addr.asUInt
+          io.diffout.storeEvent.storeVAddr := dcacheReq.bits.addr.asUInt
+          io.diffout.storeEvent.storeData  := dcacheReq.bits.wdata + 1.U
+        }
         when(!LSUOpType.isStore(op)) {
           io.result := LookupTree(
             op,
