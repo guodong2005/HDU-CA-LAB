@@ -121,7 +121,7 @@ class Lsu extends Module {
   val st_w = (op === LSUOpType.sw).asUInt
   val st_h = (op === LSUOpType.sh).asUInt
   val st_b = (op === LSUOpType.sb).asUInt
-  val store_valid: UInt = Cat(0.U(5.W), storeSC, st_w, st_h, st_b)
+  val store_valid: UInt = Cat(0.U(5.W), st_w, st_h, st_b)
 
   val ld_w  = (op === LSUOpType.lw).asUInt
   val ld_hu = (op === LSUOpType.lhu).asUInt
