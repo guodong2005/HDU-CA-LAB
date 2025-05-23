@@ -118,6 +118,7 @@ class Lsu extends Module {
   dcacheReq.valid := Mux(reqValidReg, reqValidReg, io.info.valid && (io.info.fusel === FuType.lsu))
   dcacheReq.ready := DontCare
   dcacheReq.bits  := Mux(reqValidReg, dcacheReqReg, newReq)
+
   val op = Mux(reqValidReg, opReg, io.info.op)
 
   val st_w = (op === LSUOpType.sw).asUInt
