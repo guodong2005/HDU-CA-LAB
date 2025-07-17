@@ -47,6 +47,9 @@ class FetchUnit extends Module {
 
   switch(state) {
     is(sIdle) {
+      when(io.branch) {
+        pc := io.target
+      }
       when(canStart === false.B) {
         state := sIdle
       }.elsewhen(io.fetchrequest.valid && io.fetchrequest.ready) {
