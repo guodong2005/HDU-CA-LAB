@@ -18,7 +18,7 @@ class FetchUnit extends Module {
   // ========================================================
   //  PC 和启动控制
   // ========================================================
-  val pc       = RegInit(0.U(XLEN.W))
+  val pc       = RegInit(PC_INIT)
   val canStart = RegNext(!reset.asBool) && (!reset.asBool)
   when(canStart && pc === 0.U) {
     pc := PC_INIT
