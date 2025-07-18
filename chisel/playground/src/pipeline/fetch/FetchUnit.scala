@@ -18,11 +18,10 @@ class FetchUnit extends Module {
     val branch      = Input(Bool())
     val target      = Input(UInt(XLEN.W))
     val signal      = Input(new Signals())
-    val icache_req  = Decoupled(UInt(XLEN.W))                    // 请求地址发给 icache
-    val icache_resp = Flipped(Valid(UInt((FETCH_WIDTH * 32).W))) // icache 返回的数据
+    val icache_req  = Decoupled(new ICacheReq)
+    val icache_resp = Flipped(Valid(new InstPacket))
   })
 
-  // 初始化 PC 和启动控制
   val pc       = RegInit(0.U(XLEN.W))
   val canStart = RegNext(!reset.asBool) && (!reset.asBool)
 
@@ -30,7 +29,6 @@ class FetchUnit extends Module {
     pc := PC_INIT
   }
 
-  // 状态机定义
   val sIdle :: sWaitCache :: Nil = Enum(2)
   val state                      = RegInit(sIdle)
   val reqPC                      = Reg(UInt(XLEN.W))
@@ -40,18 +38,17 @@ class FetchUnit extends Module {
   val stall       = !decodeReady || ifid_reg.valid
 
   // 默认输出
-  io.decodeStage.data := 0.U.asTypeOf(new IfIdData())
-  io.icache_req.valid := false.B
-  io.icache_req.bits  := pc
+  io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
+  io.icache_req.valid     := false.B
+  io.icache_req.bits.addr := pc(31, 0) // 发送地址给 ICache
 
-  // 分支跳转优先处理
+  // 分支跳转优先
   when(io.branch) {
     pc             := io.target
     state          := sIdle
     ifid_reg.valid := false.B
   }
 
-  // 主状态机逻辑
   switch(state) {
     is(sIdle) {
       when(canStart && !stall) {
@@ -65,18 +62,17 @@ class FetchUnit extends Module {
 
     is(sWaitCache) {
       when(io.icache_resp.valid) {
-        val instrs = io.icache_resp.bits.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
-        val inst   = instrs(0) // 取第一个指令（可扩展为多发射）
+        val inst = io.icache_resp.bits.data(0) // 取第一个指令（可扩展为多发射）
 
         when(decodeReady) {
           io.decodeStage.data.inst  := inst
-          io.decodeStage.data.pc    := reqPC
+          io.decodeStage.data.pc    := io.icache_resp.bits.addr
           io.decodeStage.data.valid := true.B
-          pc                        := reqPC + 4.U
+          pc                        := io.icache_resp.bits.addr + 4.U
           state                     := sIdle
         }.otherwise {
           ifid_reg.inst  := inst
-          ifid_reg.pc    := reqPC
+          ifid_reg.pc    := io.icache_resp.bits.addr
           ifid_reg.valid := true.B
         }
       }
