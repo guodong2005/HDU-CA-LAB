@@ -55,6 +55,17 @@
   `endif // not def ENABLE_INITIAL_MEM_
 `endif // not def SYNTHESIS
 
+// Standard header to adapt well known macros for prints and assertions.
+
+// Users can define 'PRINTF_COND' to add an extra gate to prints.
+`ifndef PRINTF_COND_
+  `ifdef PRINTF_COND
+    `define PRINTF_COND_ (`PRINTF_COND)
+  `else  // PRINTF_COND
+    `define PRINTF_COND_ 1
+  `endif // PRINTF_COND
+`endif // not def PRINTF_COND_
+
 // VCS coverage exclude_file
 module cache_tag_128x20(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:63:42
   input  [6:0]  RW0_addr,
@@ -1357,36 +1368,51 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   output [255:0] io_cache_resp	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
 );
 
-  reg         regDcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
-  reg  [3:0]  regDcacheReq_id;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
-  reg  [31:0] regDcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
-  reg  [2:0]  regDcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
-  reg         regIcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
-  reg  [3:0]  regIcacheReq_id;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
-  reg  [31:0] regIcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
-  reg  [2:0]  regIcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
-  wire        DcacheReq_valid =
+  reg          regDcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
+  reg  [3:0]   regDcacheReq_id;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
+  reg  [31:0]  regDcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
+  reg  [2:0]   regDcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
+  reg          regIcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
+  reg  [3:0]   regIcacheReq_id;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
+  reg  [31:0]  regIcacheReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
+  reg  [2:0]   regIcacheReq_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29
+  wire         DcacheReq_valid =
     regDcacheReq_valid ? regDcacheReq_valid : io_dcacheInput_ar_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29, :65:25
-  wire        selValid =
+  wire         selValid =
     DcacheReq_valid | (regIcacheReq_valid ? regIcacheReq_valid : io_icacheInput_ar_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29, :65:25, :70:25, :78:21
-  reg  [31:0] icacheDataBuffer_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [31:0] icacheDataBuffer_7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
-  reg  [2:0]  icacheBeatCounter;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:105:34
-  reg         icacheReceiving;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:106:34
-  reg  [31:0] regDcacheAw_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:138:28
-  reg  [2:0]  regDcacheAw_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:138:28
-  reg         aw_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28
-  wire        DcacheAw_valid = aw_hold ? aw_hold : io_dcacheInput_aw_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28, :149:33
-  reg  [31:0] regDcacheW_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:157:27
-  reg  [3:0]  regDcacheW_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:157:27
-  reg         w_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27
-  wire        DcacheW_valid = w_hold ? w_hold : io_dcacheInput_w_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27, :168:28
+  reg  [31:0]  icacheDataBuffer_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_6;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [31:0]  icacheDataBuffer_7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34
+  reg  [2:0]   icacheBeatCounter;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:105:34
+  reg          icacheReceiving;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:106:34
+  wire [255:0] io_cache_resp_0 =
+    {icacheDataBuffer_7,
+     icacheDataBuffer_6,
+     icacheDataBuffer_5,
+     icacheDataBuffer_4,
+     icacheDataBuffer_3,
+     icacheDataBuffer_2,
+     icacheDataBuffer_1,
+     icacheDataBuffer_0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:104:34, :127:37
+  `ifndef SYNTHESIS	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:128:9
+    always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:128:9
+      if ((`PRINTF_COND_) & ~reset)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:128:9
+        $fwrite(32'h80000002, "cache_resp = 0x%x\n", io_cache_resp_0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:127:37, :128:9
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
+  reg  [31:0]  regDcacheAw_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28
+  reg  [2:0]   regDcacheAw_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28
+  reg          aw_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:28
+  wire         DcacheAw_valid = aw_hold ? aw_hold : io_dcacheInput_aw_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:28, :150:33
+  reg  [31:0]  regDcacheW_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27
+  reg  [3:0]   regDcacheW_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27
+  reg          w_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:27
+  wire         DcacheW_valid = w_hold ? w_hold : io_dcacheInput_w_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:27, :169:28
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
       regDcacheReq_valid <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :46:29
@@ -1407,23 +1433,23 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
       icacheDataBuffer_7 <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:42, :104:34
       icacheBeatCounter <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :105:34
       icacheReceiving <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :106:34
-      regDcacheAw_addr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:42, :138:28
-      regDcacheAw_size <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :138:28
-      aw_hold <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :139:28
-      regDcacheW_data <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:42, :157:27
-      regDcacheW_strb <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :157:27
-      w_hold <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :158:27
+      regDcacheAw_addr <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:42, :139:28
+      regDcacheAw_size <= 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :139:28
+      aw_hold <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :140:28
+      regDcacheW_data <= 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:42, :158:27
+      regDcacheW_strb <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :158:27
+      w_hold <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :159:27
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
       automatic logic _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:49:32
       automatic logic _GEN_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:55:32
       automatic logic _GEN_1 = selValid & io_axi_ar_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:78:21, :90:24
-      automatic logic _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:32
-      automatic logic _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:31
+      automatic logic _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:141:32
+      automatic logic _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:160:31
       _GEN = io_dcacheInput_ar_valid & ~regDcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29, :49:{32,35}
       _GEN_0 = io_icacheInput_ar_valid & ~regIcacheReq_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:47:29, :55:{32,35}
-      _GEN_2 = io_dcacheInput_aw_valid & ~aw_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28, :140:{32,35}
-      _GEN_3 = io_dcacheInput_w_valid & ~w_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27, :159:{31,34}
+      _GEN_2 = io_dcacheInput_aw_valid & ~aw_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:28, :141:{32,35}
+      _GEN_3 = io_dcacheInput_w_valid & ~w_hold;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:27, :160:{31,34}
       regDcacheReq_valid <= ~(_GEN_1 & DcacheReq_valid) & (_GEN | regDcacheReq_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29, :49:{32,56}, :50:24, :65:25, :90:{24,44}, :91:27, :92:26
       if (_GEN) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:49:32
         regDcacheReq_id <= io_dcacheInput_ar_bits_id;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:46:29
@@ -1459,16 +1485,16 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
           icacheBeatCounter <= icacheBeatCounter + 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:105:34, :110:43, :111:64
         icacheReceiving <= ~io_axi_r_bits_last;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:39:18, :50:24, :106:34, :112:43, :114:32, :115:27
       end
-      if (_GEN_2) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:32
-        regDcacheAw_addr <= io_dcacheInput_aw_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:138:28
-        regDcacheAw_size <= io_dcacheInput_aw_bits_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:138:28
+      if (_GEN_2) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:141:32
+        regDcacheAw_addr <= io_dcacheInput_aw_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28
+        regDcacheAw_size <= io_dcacheInput_aw_bits_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28
       end
-      aw_hold <= ~(io_axi_aw_ready & DcacheAw_valid) & (_GEN_2 | aw_hold);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:139:28, :140:{32,45}, :142:17, :144:{24,44}, :145:13, :149:33
-      if (_GEN_3) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:31
-        regDcacheW_data <= io_dcacheInput_w_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:157:27
-        regDcacheW_strb <= io_dcacheInput_w_bits_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:157:27
+      aw_hold <= ~(io_axi_aw_ready & DcacheAw_valid) & (_GEN_2 | aw_hold);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:140:28, :141:{32,45}, :143:17, :145:{24,44}, :146:13, :150:33
+      if (_GEN_3) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:160:31
+        regDcacheW_data <= io_dcacheInput_w_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27
+        regDcacheW_strb <= io_dcacheInput_w_bits_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27
       end
-      w_hold <= ~(io_axi_w_ready & DcacheW_valid) & (_GEN_3 | w_hold);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:158:27, :159:{31,43}, :161:16, :163:{23,42}, :164:12, :168:28
+      w_hold <= ~(io_axi_w_ready & DcacheW_valid) & (_GEN_3 | w_hold);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:159:27, :160:{31,43}, :162:16, :164:{23,42}, :165:12, :169:28
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
@@ -1502,12 +1528,12 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
         icacheDataBuffer_7 = {_RANDOM[4'h9][31:16], _RANDOM[4'hA][15:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34
         icacheBeatCounter = _RANDOM[4'hA][18:16];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34, :105:34
         icacheReceiving = _RANDOM[4'hA][19];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34, :106:34
-        regDcacheAw_addr = {_RANDOM[4'hA][31:24], _RANDOM[4'hB][23:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34, :138:28
-        regDcacheAw_size = _RANDOM[4'hC][2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :138:28
-        aw_hold = _RANDOM[4'hC][14];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :138:28, :139:28
-        regDcacheW_data = {_RANDOM[4'hC][31:19], _RANDOM[4'hD][18:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :138:28, :157:27
-        regDcacheW_strb = _RANDOM[4'hD][22:19];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :157:27
-        w_hold = _RANDOM[4'hD][24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :157:27, :158:27
+        regDcacheAw_addr = {_RANDOM[4'hA][31:24], _RANDOM[4'hB][23:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34, :139:28
+        regDcacheAw_size = _RANDOM[4'hC][2:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :139:28
+        aw_hold = _RANDOM[4'hC][14];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :139:28, :140:28
+        regDcacheW_data = {_RANDOM[4'hC][31:19], _RANDOM[4'hD][18:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :139:28, :158:27
+        regDcacheW_strb = _RANDOM[4'hD][22:19];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :158:27
+        w_hold = _RANDOM[4'hD][24];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :158:27, :159:27
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
@@ -1534,19 +1560,19 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   assign io_axi_ar_bits_cache = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
   assign io_axi_ar_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
   assign io_axi_r_ready = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :50:24
-  assign io_axi_aw_valid = DcacheAw_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :149:33
+  assign io_axi_aw_valid = DcacheAw_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :150:33
   assign io_axi_aw_bits_id = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
-  assign io_axi_aw_bits_addr = aw_hold ? regDcacheAw_addr : io_dcacheInput_aw_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :138:28, :139:28, :150:33
+  assign io_axi_aw_bits_addr = aw_hold ? regDcacheAw_addr : io_dcacheInput_aw_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :139:28, :140:28, :151:33
   assign io_axi_aw_bits_len = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
-  assign io_axi_aw_bits_size = aw_hold ? regDcacheAw_size : io_dcacheInput_aw_bits_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :138:28, :139:28, :151:33
+  assign io_axi_aw_bits_size = aw_hold ? regDcacheAw_size : io_dcacheInput_aw_bits_size;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :139:28, :140:28, :152:33
   assign io_axi_aw_bits_burst = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
   assign io_axi_aw_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
   assign io_axi_aw_bits_cache = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
   assign io_axi_aw_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
-  assign io_axi_w_valid = DcacheW_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :168:28
+  assign io_axi_w_valid = DcacheW_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :169:28
   assign io_axi_w_bits_id = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
-  assign io_axi_w_bits_data = w_hold ? regDcacheW_data : io_dcacheInput_w_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :157:27, :158:27, :170:28
-  assign io_axi_w_bits_strb = w_hold ? regDcacheW_strb : io_dcacheInput_w_bits_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :157:27, :158:27, :169:28
+  assign io_axi_w_bits_data = w_hold ? regDcacheW_data : io_dcacheInput_w_bits_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :158:27, :159:27, :171:28
+  assign io_axi_w_bits_strb = w_hold ? regDcacheW_strb : io_dcacheInput_w_bits_strb;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :158:27, :159:27, :170:28
   assign io_axi_w_bits_last = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
   assign io_axi_b_ready = io_dcacheInput_b_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
   assign io_dcacheInput_ar_ready = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :50:24
@@ -1571,15 +1597,7 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   assign io_icacheInput_b_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
   assign io_icacheInput_b_bits_id = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7
   assign io_icacheInput_b_bits_resp = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18
-  assign io_cache_resp =
-    {icacheDataBuffer_7,
-     icacheDataBuffer_6,
-     icacheDataBuffer_5,
-     icacheDataBuffer_4,
-     icacheDataBuffer_3,
-     icacheDataBuffer_2,
-     icacheDataBuffer_1,
-     icacheDataBuffer_0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :104:34, :127:37
+  assign io_cache_resp = io_cache_resp_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :127:37
 endmodule
 
 module FetchUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:16:7

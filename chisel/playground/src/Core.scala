@@ -53,14 +53,8 @@ class Core extends Module {
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
-  icache.io.icache_req.valid     := fetchUnit.io.fetchrequest.valid
-  icache.io.icache_req.bits.addr := fetchUnit.io.fetchrequest.bits
-
-  fetchUnit.io.fetchrequest.ready := icache.io.icache_req.ready
-
-  fetchUnit.io.fetchanswer.valid := icache.io.icache_resp.valid
-  fetchUnit.io.fetchanswer.data  := icache.io.icache_resp.bits.data(0)
-  fetchUnit.io.fetchanswer.pc    := icache.io.icache_resp.bits.addr(0)
+  icache.io.icache_req  <> fetchUnit.io.icache_req
+  icache.io.icache_resp <> fetchUnit.io.icache_resp
 
   dcache.io.req  <> executeUnit.io.dcache.req
   dcache.io.resp <> executeUnit.io.dcache.resp

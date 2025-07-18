@@ -12,66 +12,70 @@ class FetchAnswer extends Bundle {
   val pc    = UInt(XLEN.W)
   val valid = Bool()
 }
-
 class FetchUnit extends Module {
   val io = IO(new Bundle {
-    val decodeStage  = new FetchUnitDecodeUnit()
-    val fetchanswer  = Input(new FetchAnswer())
-    val branch       = Input(Bool())
-    val target       = Input(UInt(XLEN.W))
-    val signal       = Input(new Signals())
-    val fetchrequest = Decoupled(UInt(XLEN.W))
+    val decodeStage = new FetchUnitDecodeUnit()
+    val branch      = Input(Bool())
+    val target      = Input(UInt(XLEN.W))
+    val signal      = Input(new Signals())
+    val icache_req  = Decoupled(UInt(XLEN.W))                    // 请求地址发给 icache
+    val icache_resp = Flipped(Valid(UInt((FETCH_WIDTH * 32).W))) // icache 返回的数据
   })
 
+  // 初始化 PC 和启动控制
   val pc       = RegInit(0.U(XLEN.W))
   val canStart = RegNext(!reset.asBool) && (!reset.asBool)
 
-  when(canStart && (pc === 0.U)) {
+  when(canStart && pc === 0.U) {
     pc := PC_INIT
   }
 
-  val sIdle :: sWait :: Nil = Enum(2)
-  val state                 = RegInit(sIdle)
-
-  val reqPC = Reg(UInt(XLEN.W))
-
-  val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
+  // 状态机定义
+  val sIdle :: sWaitCache :: Nil = Enum(2)
+  val state                      = RegInit(sIdle)
+  val reqPC                      = Reg(UInt(XLEN.W))
+  val ifid_reg                   = RegInit(0.U.asTypeOf(new IfIdData()))
 
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
 
-  io.fetchrequest.valid := (state === sIdle) && !stall && RegNext(canStart)
-  io.fetchrequest.bits  := pc
-
+  // 默认输出
   io.decodeStage.data := 0.U.asTypeOf(new IfIdData())
+  io.icache_req.valid := false.B
+  io.icache_req.bits  := pc
 
+  // 分支跳转优先处理
+  when(io.branch) {
+    pc             := io.target
+    state          := sIdle
+    ifid_reg.valid := false.B
+  }
+
+  // 主状态机逻辑
   switch(state) {
     is(sIdle) {
-      when(io.branch) {
-        pc := io.target
-      }
-      when(canStart === false.B) {
-        state := sIdle
-      }.elsewhen(io.fetchrequest.valid && io.fetchrequest.ready) {
-        reqPC := pc
-        state := sWait
+      when(canStart && !stall) {
+        io.icache_req.valid := true.B
+        when(io.icache_req.valid && io.icache_req.ready) {
+          reqPC := pc
+          state := sWaitCache
+        }
       }
     }
-    is(sWait) {
-      val answerMatches = true.B
-      // val answerMatches = (io.fetchanswer.pc === reqPC)
-      when(io.branch) {
-        pc    := io.target
-        state := sIdle
-      }.elsewhen(io.fetchanswer.valid && answerMatches) {
+
+    is(sWaitCache) {
+      when(io.icache_resp.valid) {
+        val instrs = io.icache_resp.bits.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+        val inst   = instrs(0) // 取第一个指令（可扩展为多发射）
+
         when(decodeReady) {
-          io.decodeStage.data.inst  := io.fetchanswer.data
+          io.decodeStage.data.inst  := inst
           io.decodeStage.data.pc    := reqPC
           io.decodeStage.data.valid := true.B
-          pc                        := Mux(io.branch, io.target, reqPC + 4.U)
+          pc                        := reqPC + 4.U
           state                     := sIdle
         }.otherwise {
-          ifid_reg.inst  := io.fetchanswer.data
+          ifid_reg.inst  := inst
           ifid_reg.pc    := reqPC
           ifid_reg.valid := true.B
         }
@@ -79,10 +83,11 @@ class FetchUnit extends Module {
     }
   }
 
+  // 如果 decode 阶段准备好，输出寄存器中的数据
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
-    pc                  := Mux(io.branch, io.target, ifid_reg.pc + 4.U)
+    pc                  := ifid_reg.pc + 4.U
     state               := sIdle
   }
 }
