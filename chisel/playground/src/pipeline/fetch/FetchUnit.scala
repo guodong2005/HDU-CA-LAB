@@ -58,7 +58,8 @@ class FetchUnit extends Module {
       }
     }
     is(sWait) {
-      val answerMatches = (io.fetchanswer.pc === reqPC)
+      val answerMatches = true.B
+      // val answerMatches = (io.fetchanswer.pc === reqPC)
       when(io.branch) {
         pc    := io.target
         state := sIdle

@@ -35,18 +35,27 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
-  axibridge.io.axi <> io.axi
-  icache.io.axi    <> axibridge.io.icacheInput
-  dcache.io.axi    <> axibridge.io.dcacheInput
+  axibridge.io.axi                      <> io.axi
+  axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
+  axibridge.io.icacheInput.ar.bits.size := 2.U
+  axibridge.io.icacheInput.ar.valid     := icache.io.io_read_req.valid
+  axibridge.io.icacheInput.ar.bits.addr := icache.io.io_read_req.bits.addr
+  icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
+
+  axibridge.io.icacheInput.r.ready := true.B
+  icache.io.io_read_resp.valid     := axibridge.io.icacheInput.r.valid
+  icache.io.io_read_resp.bits.data := axibridge.io.icacheInput.r.bits.data
+  dcache.io.axi                    <> axibridge.io.dcacheInput
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
-  icache.io.fetch_req.valid       := fetchUnit.io.fetchrequest.valid
-  icache.io.fetch_req.addr        := fetchUnit.io.fetchrequest.bits
-  fetchUnit.io.fetchrequest.ready := icache.io.fetch_req.ready
-  fetchUnit.io.fetchanswer.valid  := icache.io.fetch_rsp.valid
-  fetchUnit.io.fetchanswer.data   := icache.io.fetch_rsp.data
-  fetchUnit.io.fetchanswer.pc     := icache.io.fetch_rsp.addr
+  icache.io.icache_req.valid     := fetchUnit.io.fetchrequest.valid
+  icache.io.icache_req.bits.addr := fetchUnit.io.fetchrequest.bits
+
+  fetchUnit.io.fetchrequest.ready := icache.io.icache_req.ready
+  fetchUnit.io.fetchanswer.valid  := icache.io.icache_resp.valid
+  fetchUnit.io.fetchanswer.data   := icache.io.icache_resp.bits.data
+  fetchUnit.io.fetchanswer.pc     := DontCare
 
   dcache.io.req  <> executeUnit.io.dcache.req
   dcache.io.resp <> executeUnit.io.dcache.resp
