@@ -47,6 +47,9 @@ class FetchUnit extends Module {
 
   switch(state) {
     is(sIdle) {
+      when(io.branch) {
+        pc := io.target
+      }
       when(canStart === false.B) {
         state := sIdle
       }.elsewhen(io.fetchrequest.valid && io.fetchrequest.ready) {
@@ -55,7 +58,8 @@ class FetchUnit extends Module {
       }
     }
     is(sWait) {
-      val answerMatches = (io.fetchanswer.pc === reqPC)
+      val answerMatches = true.B
+      // val answerMatches = (io.fetchanswer.pc === reqPC)
       when(io.branch) {
         pc    := io.target
         state := sIdle
