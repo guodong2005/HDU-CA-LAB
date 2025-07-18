@@ -36,8 +36,8 @@ class Core extends Module {
 
   // 取指单元
   dontTouch(fetchUnit.io)
-  dontTouch(axibridge)
-  dontTouch(icache)
+  dontTouch(axibridge.io)
+  dontTouch(icache.io)
   axibridge.io.axi                      <> io.axi
   axibridge.io.icacheInput              := DontCare
   axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
