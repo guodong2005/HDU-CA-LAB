@@ -54,7 +54,8 @@ class Core extends Module {
 
   fetchUnit.io.fetchrequest.ready := icache.io.icache_req.ready
   fetchUnit.io.fetchanswer.valid  := icache.io.icache_resp.valid
-  fetchUnit.io.fetchanswer.data   := icache.io.icache_resp.bits.data
+  fetchUnit.io.fetchanswer.data   := icache.io.icache_resp.bits.data(0)
+  fetchUnit.io.fetchanswer.data   := icache.io.icache_resp.bits.addr(0)
   fetchUnit.io.fetchanswer.pc     := DontCare
 
   dcache.io.req  <> executeUnit.io.dcache.req

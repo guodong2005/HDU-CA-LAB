@@ -25,7 +25,7 @@ trait Constants extends CoreParameter {
   val AREG_NUM     = 32
   val REG_ADDR_WID = 5
   // do not change Icache const
-  val FETCH_WIDTH         = 1
+  val FETCH_WIDTH         = 8
   val ICACHE_DEPTH        = 128
   val ICACHE_OFFSET_WIDTH = log2Up(FETCH_WIDTH * 4)
   val ICACHE_INST_WIDTH   = log2Up(FETCH_WIDTH)
