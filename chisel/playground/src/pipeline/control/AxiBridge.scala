@@ -125,6 +125,7 @@ class Axibridge extends Module {
   io.icacheInput.r.bits.data := DontCare // optional
 
   io.cache_resp := icacheDataBuffer.asUInt
+  printf(p"cache_resp = 0x${Hexadecimal(io.cache_resp)}\n")
 
   // ------------------------------------------------------------
   // Drive AR ready back to the caches.
