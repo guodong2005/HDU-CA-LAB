@@ -38,7 +38,7 @@ class Core extends Module {
   axibridge.io.axi                      <> io.axi
   axibridge.io.icacheInput              := DontCare
   axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
-  axibridge.io.icacheInput.ar.bits.size := 2.U
+  axibridge.io.icacheInput.ar.bits.size := ICACHE_OFFSET_WIDTH.U
   axibridge.io.icacheInput.ar.valid     := icache.io.io_read_req.valid
   axibridge.io.icacheInput.ar.bits.addr := icache.io.io_read_req.bits.addr
   icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
