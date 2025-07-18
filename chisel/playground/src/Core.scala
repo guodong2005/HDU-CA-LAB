@@ -35,6 +35,9 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
+  dontTouch(fetchUnit)
+  dontTouch(axibridge)
+  dontTouch(icache)
   axibridge.io.axi                      <> io.axi
   axibridge.io.icacheInput              := DontCare
   axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache

@@ -255,6 +255,7 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   output         io_axi_ar_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
   output [3:0]   io_axi_ar_bits_id,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
   output [31:0]  io_axi_ar_bits_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
+  output [7:0]   io_axi_ar_bits_len,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
   output [2:0]   io_axi_ar_bits_size,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
   input          io_axi_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
   input  [3:0]   io_axi_r_bits_id,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:31:14
@@ -471,6 +472,7 @@ module Axibridge(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
     DcacheReq_valid
       ? (regDcacheReq_valid ? regDcacheReq_addr : io_dcacheInput_ar_bits_addr)
       : regIcacheReq_valid ? regIcacheReq_addr : io_icacheInput_ar_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :46:29, :47:29, :65:25, :66:25, :71:25, :79:21
+  assign io_axi_ar_bits_len = {5'h0, DcacheReq_valid ? 3'h0 : 3'h7};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/AxiBridge.scala:30:7, :39:18, :65:25, :81:21, :87:23
   assign io_axi_ar_bits_size =
     DcacheReq_valid
       ? (regDcacheReq_valid ? regDcacheReq_size : io_dcacheInput_ar_bits_size)
@@ -3027,6 +3029,7 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
   output        io_axi_ar_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   output [3:0]  io_axi_ar_bits_id,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   output [31:0] io_axi_ar_bits_addr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
+  output [7:0]  io_axi_ar_bits_len,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   output [2:0]  io_axi_ar_bits_size,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   input         io_axi_r_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
   input  [3:0]  io_axi_r_bits_id,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:12:14
@@ -3327,6 +3330,7 @@ module Core(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/Core.scala:11
     .io_axi_ar_valid              (io_axi_ar_valid),
     .io_axi_ar_bits_id            (io_axi_ar_bits_id),
     .io_axi_ar_bits_addr          (io_axi_ar_bits_addr),
+    .io_axi_ar_bits_len           (io_axi_ar_bits_len),
     .io_axi_ar_bits_size          (io_axi_ar_bits_size),
     .io_axi_r_valid               (io_axi_r_valid),
     .io_axi_r_bits_id             (io_axi_r_bits_id),
@@ -4191,6 +4195,7 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
     .io_axi_ar_valid               (io_axi_ar_valid),
     .io_axi_ar_bits_id             (io_axi_ar_bits_id),
     .io_axi_ar_bits_addr           (io_axi_ar_bits_addr),
+    .io_axi_ar_bits_len            (io_axi_ar_bits_len),
     .io_axi_ar_bits_size           (io_axi_ar_bits_size),
     .io_axi_r_valid                (io_axi_r_valid),
     .io_axi_r_bits_id              (io_axi_r_bits_id),
@@ -4265,19 +4270,18 @@ module core_top(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.sc
   );
   assign io_ws_valid = 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_rf_data = 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_axi_ar_bits_len = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_axi_ar_bits_burst = 2'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :37:24
-  assign io_axi_ar_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :39:24
+  assign io_axi_ar_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :38:24
   assign io_axi_ar_bits_cache = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_axi_ar_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :41:24
+  assign io_axi_ar_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :40:24
   assign io_axi_r_ready = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_axi_aw_bits_id = 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :45:24
+  assign io_axi_aw_bits_id = 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :44:24
   assign io_axi_aw_bits_len = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_axi_aw_bits_burst = 2'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :37:24
-  assign io_axi_aw_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :39:24
+  assign io_axi_aw_bits_lock = 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :38:24
   assign io_axi_aw_bits_cache = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
-  assign io_axi_aw_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :41:24
-  assign io_axi_w_bits_id = 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :45:24
+  assign io_axi_aw_bits_prot = 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :40:24
+  assign io_axi_w_bits_id = 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :44:24
   assign io_axi_w_bits_last = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_coreid = 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
   assign io_diffout_instrCommit_index = 8'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/PuaCpu.scala:6:7, :21:20
