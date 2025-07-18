@@ -37,11 +37,6 @@ class ExecuteUnit extends Module {
   when(io.executeStage.data.info.valid) {
     pcReg := io.executeStage.data.pc
   }
-  /*
-  val srcinfo = Mux(io.executeStage.data.info.valid, io.executeStage.data.src_info, srcInfoReg)
-  val info    = Mux(io.executeStage.data.info.valid, io.executeStage.data.info, infoReg)
-  val pc      = Mux(io.executeStage.data.info.valid, io.executeStage.data.pc, pcReg)
-   */
   val srcinfo = Mux(infoReg.valid, srcInfoReg, io.executeStage.data.src_info)
   val info    = Mux(infoReg.valid, infoReg, io.executeStage.data.info)
   val pc      = Mux(infoReg.valid, pcReg, io.executeStage.data.pc)
