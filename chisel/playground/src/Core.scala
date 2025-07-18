@@ -36,6 +36,7 @@ class Core extends Module {
 
   // 取指单元
   axibridge.io.axi                      <> io.axi
+  axibridge.io.icacheInput              := DontCare
   axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
   axibridge.io.icacheInput.ar.bits.size := 2.U
   axibridge.io.icacheInput.ar.valid     := icache.io.io_read_req.valid
