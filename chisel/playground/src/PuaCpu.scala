@@ -35,7 +35,6 @@ class core_top extends Module {
   io.diffout <> core.io.diff
 
   io.axi.ar.bits.burst := 1.U
-  io.axi.ar.bits.len   := 0.U
   io.axi.ar.bits.lock  := 0.U
   io.axi.ar.bits.cache := 0.U
   io.axi.ar.bits.prot  := 0.U
