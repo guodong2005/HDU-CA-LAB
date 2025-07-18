@@ -29,24 +29,23 @@ class wRequest extends Bundle {
  */
 class Axibridge extends Module {
   val io = IO(new Bundle {
-    // External AXI interface.
-    val axi = new AXI()
-    // Read-side interfaces from the caches.
+    val axi         = new AXI()
     val dcacheInput = Flipped(new AXI())
     val icacheInput = Flipped(new AXI())
+    val cache_resp  = Output(UInt((FETCH_WIDTH * 32).W))
   })
 
   dontTouch(io.dcacheInput)
   io.axi         := DontCare
   io.dcacheInput := DontCare
   io.icacheInput := DontCare
+
   // ------------------------------------------------------------
   // Latch incoming AR requests from caches.
   // ------------------------------------------------------------
   val regDcacheReq = RegInit(0.U.asTypeOf(new readRequest))
   val regIcacheReq = RegInit(0.U.asTypeOf(new readRequest))
 
-  // When a cache asserts its AR valid, capture its request.
   when(io.dcacheInput.ar.valid && !regDcacheReq.valid) {
     regDcacheReq.valid := true.B
     regDcacheReq.addr  := io.dcacheInput.ar.bits.addr
@@ -75,23 +74,19 @@ class Axibridge extends Module {
 
   // ------------------------------------------------------------
   // Arbitration for the external AXI AR channel.
-  // Priority: if dcache has a pending request, choose it; otherwise, pick icache.
   // ------------------------------------------------------------
   val selValid = Mux(DcacheReq.valid, true.B, IcacheReq.valid)
   val selAddr  = Mux(DcacheReq.valid, DcacheReq.addr, IcacheReq.addr)
   val selSize  = Mux(DcacheReq.valid, DcacheReq.size, IcacheReq.size)
-  // Encode the cache source in the lowest bit:
-  // For dcache, force LSB = 1; for icache, force LSB = 0.
-  // Upper 3 bits come from the original request’s id.
-  val selId = Mux(DcacheReq.valid, Cat(DcacheReq.id(3, 1), 1.U(1.W)), Cat(IcacheReq.id(3, 1), 0.U(1.W)))
+  val selLen   = Mux(DcacheReq.valid, 0.U, (FETCH_WIDTH - 1).U)
+  val selId    = Mux(DcacheReq.valid, Cat(DcacheReq.id(3, 1), 1.U(1.W)), Cat(IcacheReq.id(3, 1), 0.U(1.W)))
 
-  // Drive the external AXI AR port.
   io.axi.ar.valid     := selValid
   io.axi.ar.bits.addr := selAddr
   io.axi.ar.bits.size := selSize
+  io.axi.ar.bits.len  := selLen
   io.axi.ar.bits.id   := selId
 
-  // When the external AR handshake completes, clear the appropriate request.
   when(io.axi.ar.valid && io.axi.ar.ready) {
     when(DcacheReq.valid) {
       regDcacheReq.valid := false.B
@@ -103,35 +98,43 @@ class Axibridge extends Module {
   // ------------------------------------------------------------
   // Handle the AXI R (read data) channel.
   // ------------------------------------------------------------
-  // Always ready to accept read data.
   io.axi.r.ready := true.B
+  val r_sel = io.axi.r.bits.id(0)
 
-  // Demultiplex the response back to the appropriate cache.
-  // We assume that the slave echoes the AXI id (with our tag in LSB) with the read response.
-  val r_sel = io.axi.r.bits.id(0) // If r_sel is 1: dcache; if 0: icache
+  val icacheDataBuffer  = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
+  val icacheBeatCounter = RegInit(0.U(log2Ceil(FETCH_WIDTH).W))
+  val icacheReceiving   = RegInit(false.B)
 
-  // Pipeline the valid signals by one cycle; initialize with false.
-  io.icacheInput.r.valid     := RegNext((!r_sel) && io.axi.r.valid, init = false.B)
-  io.icacheInput.r.bits.data := io.axi.r.bits.data
-  // If there are other fields (like id, last, etc.) you could forward them similarly.
+  when(io.axi.r.valid && io.axi.r.ready) {
+    when(!r_sel) {
+      icacheDataBuffer(icacheBeatCounter) := io.axi.r.bits.data
+      icacheBeatCounter                   := icacheBeatCounter + 1.U
+      icacheReceiving                     := true.B
 
-  io.dcacheInput.r.valid     := RegNext((r_sel) && io.axi.r.valid, init = false.B)
-  io.dcacheInput.r.bits.data := io.axi.r.bits.data
+      when(io.axi.r.bits.last) {
+        icacheReceiving   := false.B
+        icacheBeatCounter := 0.U
+      }
+    }.otherwise {
+      io.dcacheInput.r.valid     := true.B
+      io.dcacheInput.r.bits.data := io.axi.r.bits.data
+    }
+  }
+
+  io.icacheInput.r.valid     := !icacheReceiving && (icacheBeatCounter === 0.U)
+  io.icacheInput.r.bits.data := DontCare // optional
+
+  io.cache_resp := icacheDataBuffer.asUInt
 
   // ------------------------------------------------------------
   // Drive AR ready back to the caches.
-  // In this simple scheme, we assume the caches can always present a new request,
-  // so we tie their AR ready to true.
   // ------------------------------------------------------------
   io.dcacheInput.ar.ready := true.B
   io.icacheInput.ar.ready := true.B
 
   // ------------------------------------------------------------
   // Write Handshake for dcache write request.
-  // We assume that only dcache issues write transactions.
   // ------------------------------------------------------------
-
-  // Write Address Channel (AW)
   val regDcacheAw = RegInit(0.U.asTypeOf(io.dcacheInput.aw.bits))
   val aw_hold     = RegInit(false.B)
   when(io.dcacheInput.aw.valid && !aw_hold) {
@@ -151,7 +154,6 @@ class Axibridge extends Module {
   io.axi.aw.bits.size     := DcacheAw.size
   io.dcacheInput.aw.ready := io.axi.aw.ready
 
-  // Write Data Channel (W)
   val regDcacheW = RegInit(0.U.asTypeOf(io.dcacheInput.w.bits))
   val w_hold     = RegInit(false.B)
   when(io.dcacheInput.w.valid && !w_hold) {
@@ -172,10 +174,7 @@ class Axibridge extends Module {
 
   io.dcacheInput.w.ready := io.axi.w.ready
 
-  // Write Response Channel (B)
-  // Forward the write response from the external interface back to the dcache.
   io.dcacheInput.b.bits  := io.axi.b.bits
   io.dcacheInput.b.valid := io.axi.b.valid
-  // For simplicity, we assume this bridge is always ready to accept a B-channel response.
-  io.axi.b.ready := io.dcacheInput.b.ready
+  io.axi.b.ready         := io.dcacheInput.b.ready
 }
