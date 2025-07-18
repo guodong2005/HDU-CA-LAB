@@ -17,8 +17,8 @@ import cpu.defines.Const._
  * When the AR handshake completes (i.e. the slave asserts axi.ar.ready), the ICache latches the request address and enters sWait. Once the read data arrives (axi.r.valid), the fetch response is produced and the FSM returns to idle.
  */
 class InstPacket extends Bundle {
-  val data = Vec(FETCH_WIDTH, UInt(32.W))
-  val addr = UInt(32.W)
+  val data = Vec(FETCH_WIDTH, UInt(XLEN.W))
+  val addr = UInt(XLEN.W)
 }
 
 class ICacheReq extends Bundle {
