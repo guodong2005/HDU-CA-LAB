@@ -74,7 +74,7 @@ class ICache extends Module {
   val cache_valid_we   = WireInit(false.B)
 
   io.io_read_req.valid     := false.B
-  io.icache_req.ready      := false.B
+  io.icache_req.ready      := true.B
   io.icache_resp.bits.data := DontCare
   io.icache_resp.valid     := false.B
   cache_en                 := true.B
