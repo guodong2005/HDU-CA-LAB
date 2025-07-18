@@ -3,15 +3,8 @@ package cpu.pipeline
 import chisel3._
 import chisel3.util._
 import cpu.defines.Const._
-import cpu.CpuConfig
 import cpu.defines._
-import cpu.defines.Instructions.NOP
 
-class FetchAnswer extends Bundle {
-  val data  = UInt(XLEN.W)
-  val pc    = UInt(XLEN.W)
-  val valid = Bool()
-}
 class FetchUnit extends Module {
   val io = IO(new Bundle {
     val decodeStage = new FetchUnitDecodeUnit()
@@ -22,68 +15,83 @@ class FetchUnit extends Module {
     val icache_resp = Flipped(Valid(new InstPacket))
   })
 
+  // ========================================================
+  //  PC 和启动控制
+  // ========================================================
   val pc       = RegInit(0.U(XLEN.W))
   val canStart = RegNext(!reset.asBool) && (!reset.asBool)
-
   when(canStart && pc === 0.U) {
     pc := PC_INIT
   }
 
-  val sIdle :: sWaitCache :: Nil = Enum(2)
-  val state                      = RegInit(sIdle)
-  val reqPC                      = Reg(UInt(XLEN.W))
-  val ifid_reg                   = RegInit(0.U.asTypeOf(new IfIdData()))
-
+  // ========================================================
+  //  Pipeline 暂存，用于处理 decode stall
+  // ========================================================
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
+  val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
   val stall       = !decodeReady || ifid_reg.valid
 
-  // 默认输出
+  // ========================================================
+  //  单请求在飞标志
+  // ========================================================
+  val reqActive = RegInit(false.B)
+  val reqPC     = Reg(UInt(XLEN.W))
+
+  // 默认全部信号
   io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
   io.icache_req.valid     := false.B
-  io.icache_req.bits.addr := pc(31, 0) // 发送地址给 ICache
+  io.icache_req.bits.addr := Mux(reqActive, reqPC, pc)
 
-  // 分支跳转优先
+  // ========================================================
+  //  分支优先：遇到跳转，PC 立即跳并取消未完成请求
+  // ========================================================
   when(io.branch) {
     pc             := io.target
-    state          := sIdle
+    reqActive      := false.B
     ifid_reg.valid := false.B
   }
 
-  switch(state) {
-    is(sIdle) {
-      when(canStart && !stall) {
-        io.icache_req.valid := true.B
-        when(io.icache_req.valid && io.icache_req.ready) {
-          reqPC := pc
-          state := sWaitCache
-        }
-      }
-    }
-
-    is(sWaitCache) {
-      when(io.icache_resp.valid) {
-        val inst = io.icache_resp.bits.data(0) // 取第一个指令（可扩展为多发射）
-
-        when(decodeReady) {
-          io.decodeStage.data.inst  := inst
-          io.decodeStage.data.pc    := io.icache_resp.bits.addr
-          io.decodeStage.data.valid := true.B
-          pc                        := io.icache_resp.bits.addr + 4.U
-          state                     := sIdle
-        }.otherwise {
-          ifid_reg.inst  := inst
-          ifid_reg.pc    := io.icache_resp.bits.addr
-          ifid_reg.valid := true.B
-        }
-      }
-    }
+  // ========================================================
+  //  发起请求：未在飞 && 可以启动 && 不 stall && 非分支周期
+  // ========================================================
+  when(!reqActive && canStart && !stall && !io.branch) {
+    reqActive := true.B
+    reqPC     := pc
   }
 
-  // 如果 decode 阶段准备好，输出寄存器中的数据
+  // 持续保持 valid 直到收到 resp
+  io.icache_req.valid := reqActive
+
+  // ========================================================
+  //  响应到达：处理指令并更新 PC
+  // ========================================================
+  when(io.icache_resp.valid) {
+    // 只取第 0 条指令
+    val inst = io.icache_resp.bits.data(0)
+
+    when(decodeReady) {
+      // 直接发给 decodeStage
+      io.decodeStage.data.inst  := inst
+      io.decodeStage.data.pc    := reqPC
+      io.decodeStage.data.valid := true.B
+      // 顺序执行：PC+4
+      pc := reqPC + 4.U
+    }.otherwise {
+      // decode 阶段 busy，暂存
+      ifid_reg.inst  := inst
+      ifid_reg.pc    := reqPC
+      ifid_reg.valid := true.B
+    }
+    // 请求完成，清除 in-flight
+    reqActive := false.B
+  }
+
+  // ========================================================
+  //  如果 decode 阶段空闲且有暂存指令，释放到 decodeStage
+  // ========================================================
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
     pc                  := ifid_reg.pc + 4.U
-    state               := sIdle
   }
 }
