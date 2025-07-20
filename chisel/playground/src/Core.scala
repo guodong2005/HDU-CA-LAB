@@ -47,9 +47,7 @@ class Core extends Module {
   icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
 
   axibridge.io.icacheInput.r.ready := true.B
-  axibridge.io.cache_resp.ready    := DontCare
-  icache.io.io_read_resp.valid     := axibridge.io.cache_resp.valid
-  icache.io.io_read_resp.bits.data := axibridge.io.cache_resp.bits
+  axibridge.io.read_resp <> icache.io.io_read_resp
   dcache.io.axi <> axibridge.io.dcacheInput
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit

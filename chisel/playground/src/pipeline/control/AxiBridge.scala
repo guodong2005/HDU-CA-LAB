@@ -32,7 +32,7 @@ class Axibridge extends Module {
     val axi         = new AXI()
     val dcacheInput = Flipped(new AXI())
     val icacheInput = Flipped(new AXI())
-    val cache_resp  = Decoupled(UInt((FETCH_WIDTH * 32).W))
+    val read_resp   = Decoupled(UInt((FETCH_WIDTH * 32).W))
   })
 
   dontTouch(io.dcacheInput)
@@ -105,7 +105,7 @@ class Axibridge extends Module {
   val icacheBeatCounter = RegInit(0.U(log2Ceil(FETCH_WIDTH).W))
   val icacheReceiving   = RegInit(false.B)
 
-  io.cache_resp.valid := false.B
+  io.read_resp.valid := false.B
   when(io.axi.r.valid && io.axi.r.ready) {
     when(!r_sel) {
       icacheDataBuffer(icacheBeatCounter) := io.axi.r.bits.data
@@ -113,9 +113,9 @@ class Axibridge extends Module {
       icacheReceiving                     := true.B
 
       when(io.axi.r.bits.last) {
-        icacheReceiving     := false.B
-        icacheBeatCounter   := 0.U
-        io.cache_resp.valid := true.B
+        icacheReceiving    := false.B
+        icacheBeatCounter  := 0.U
+        io.read_resp.valid := true.B
       }
     }.otherwise {
       io.dcacheInput.r.valid     := true.B
@@ -126,9 +126,9 @@ class Axibridge extends Module {
   io.icacheInput.r.valid     := !icacheReceiving && (icacheBeatCounter === 0.U)
   io.icacheInput.r.bits.data := DontCare // optional
 
-  io.cache_resp.bits := icacheDataBuffer.asUInt
+  io.read_resp.bits := icacheDataBuffer.asUInt
 
-  // printf(p"cache_resp = 0x${Hexadecimal(io.cache_resp)}\n")
+  // printf(p"read_resp = 0x${Hexadecimal(io.read_resp)}\n")
 
   // ------------------------------------------------------------
   // Drive AR ready back to the caches.
