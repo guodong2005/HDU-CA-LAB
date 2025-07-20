@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
+import cpu.pipeline._
 
 /** A simple read request bundle used inside the AXI‑bridge. */
 class readRequest extends Bundle {
@@ -32,7 +33,7 @@ class Axibridge extends Module {
     val axi         = new AXI()
     val dcacheInput = Flipped(new AXI())
     val icacheInput = Flipped(new AXI())
-    val read_resp   = Decoupled(UInt((FETCH_WIDTH * 32).W))
+    val read_resp   = Decoupled(new ICacheResp())
   })
 
   dontTouch(io.dcacheInput)
