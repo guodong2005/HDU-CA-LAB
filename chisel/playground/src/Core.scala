@@ -38,7 +38,7 @@ class Core extends Module {
   dontTouch(fetchUnit.io)
   dontTouch(axibridge.io)
   dontTouch(icache.io)
-  axibridge.io.axi                      <> io.axi
+  axibridge.io.axi <> io.axi
   axibridge.io.icacheInput              := DontCare
   axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
   axibridge.io.icacheInput.ar.bits.size := ICACHE_OFFSET_WIDTH.U
@@ -47,16 +47,16 @@ class Core extends Module {
   icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
 
   axibridge.io.icacheInput.r.ready := true.B
-  icache.io.io_read_resp.valid     := axibridge.io.icacheInput.r.valid
-  icache.io.io_read_resp.bits.data := axibridge.io.cache_resp
-  dcache.io.axi                    <> axibridge.io.dcacheInput
+  icache.io.io_read_resp.valid     := axibridge.io.cache_resp.valid
+  icache.io.io_read_resp.bits.data := axibridge.io.cache_resp.bits
+  dcache.io.axi <> axibridge.io.dcacheInput
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
-  icache.io.icache_req  <> fetchUnit.io.icache_req
+  icache.io.icache_req <> fetchUnit.io.icache_req
   icache.io.icache_resp <> fetchUnit.io.icache_resp
 
-  dcache.io.req  <> executeUnit.io.dcache.req
+  dcache.io.req <> executeUnit.io.dcache.req
   dcache.io.resp <> executeUnit.io.dcache.resp
 
   controlUnit.io.branch           := executeUnit.io.branch
@@ -66,23 +66,23 @@ class Core extends Module {
   fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
   //
-  decodeUnit.io.decodeStage  <> decodeStage.io.decodeUnit
-  decodeUnit.io.regfile      <> regfile.io.read
+  decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
+  decodeUnit.io.regfile <> regfile.io.read
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
   executeUnit.io.executeStage <> executeStage.io.executeUnit
 
   io.dataSram := DontCare
 
-  executeUnit.io.memoryStage   <> memoryStage.io.executeUnit
-  executeUnit.io.dcache.req    <> dcache.io.req
-  executeUnit.io.dcache.resp   <> dcache.io.resp
-  memoryUnit.io.memoryStage    <> memoryStage.io.memoryUnit
+  executeUnit.io.memoryStage <> memoryStage.io.executeUnit
+  executeUnit.io.dcache.req <> dcache.io.req
+  executeUnit.io.dcache.resp <> dcache.io.resp
+  memoryUnit.io.memoryStage <> memoryStage.io.memoryUnit
   memoryUnit.io.writeBackStage <> writeBackStage.io.memoryUnit
 
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
-  writeBackUnit.io.regfile        <> regfile.io.write
-  writeBackUnit.io.debug          <> io.debug
+  writeBackUnit.io.regfile <> regfile.io.write
+  writeBackUnit.io.debug <> io.debug
 
   controlUnit.io.decodeInfo    := decodeUnit.io.executeStage.data.info
   controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info
@@ -96,7 +96,7 @@ class Core extends Module {
   fetchUnit.io.signal             := controlUnit.io.signals
 
   // difftest:
-  diff.io.debug   <> writeBackUnit.io.debug
+  diff.io.debug <> writeBackUnit.io.debug
   diff.io.info    := writeBackUnit.io.info
   diff.io.regs_in := regfile.io.regs_out
 
