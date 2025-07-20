@@ -127,7 +127,7 @@ class Axibridge extends Module {
   io.icacheInput.r.valid     := !icacheReceiving && (icacheBeatCounter === 0.U)
   io.icacheInput.r.bits.data := DontCare // optional
 
-  io.read_resp.bits := icacheDataBuffer.asUInt
+  io.read_resp.bits.data := icacheDataBuffer.asUInt
 
   // printf(p"read_resp = 0x${Hexadecimal(io.read_resp)}\n")
 
