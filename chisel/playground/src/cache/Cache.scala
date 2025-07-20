@@ -6,16 +6,16 @@ import cpu.defines._
 import cpu.defines.Const._
 
 /**
- * ICache module rewritten with an AXI‑protocol style interface for the fetch unit.
- *
- * The fetch interface now follows an AXI‑like handshake:
- *   - fetch_req: { valid (input), addr (input), ready (output) }
- *   - fetch_rsp: { valid (output), data (output), addr (output) }
- *
- * Internally the module implements a simple two‐state FSM: • sIdle: ICache is idle and fetch_req.ready is high. If fetch_req.valid is high then the module drives an AR transaction on the AXI bus. • sWait: ICache awaits the read data from the AXI slave. During this state fetch_req.ready is false.
- *
- * When the AR handshake completes (i.e. the slave asserts axi.ar.ready), the ICache latches the request address and enters sWait. Once the read data arrives (axi.r.valid), the fetch response is produced and the FSM returns to idle.
- */
+  * ICache module rewritten with an AXI‑protocol style interface for the fetch unit.
+  *
+  * The fetch interface now follows an AXI‑like handshake:
+  *   - fetch_req: { valid (input), addr (input), ready (output) }
+  *   - fetch_rsp: { valid (output), data (output), addr (output) }
+  *
+  * Internally the module implements a simple two‐state FSM: • sIdle: ICache is idle and fetch_req.ready is high. If fetch_req.valid is high then the module drives an AR transaction on the AXI bus. • sWait: ICache awaits the read data from the AXI slave. During this state fetch_req.ready is false.
+  *
+  * When the AR handshake completes (i.e. the slave asserts axi.ar.ready), the ICache latches the request address and enters sWait. Once the read data arrives (axi.r.valid), the fetch response is produced and the FSM returns to idle.
+  */
 class InstPacket extends Bundle {
   val data = Vec(FETCH_WIDTH, UInt(XLEN.W))
   val addr = UInt(XLEN.W)
@@ -85,7 +85,9 @@ class ICache extends Module {
   cache_read_data          := VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W)))
   cache_write_tag          := 0.U(ICACHE_TAG_WIDTH.W)
   cache_write_data         := VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W)))
-  hit_cache                := cache_read_tag === io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH) && cache_valid(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH))
+  hit_cache := cache_read_tag === io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH) && cache_valid(
+    io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  )
   switch(state) {
     is(sIDLE) {
       when(io.icache_req.valid) {
@@ -129,13 +131,28 @@ class ICache extends Module {
   }
   when(cache_en) {
     when(cache_we) {
-      cache_tag.write(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH), cache_write_tag)
-      cache_data.zip(cache_write_data).foreach { case (cache_word, write_word) => cache_word.write(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH), write_word) }
+      cache_tag.write(
+        io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH),
+        cache_write_tag
+      )
+      cache_data.zip(cache_write_data).foreach {
+        case (cache_word, write_word) =>
+          cache_word.write(
+            io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH),
+            write_word
+          )
+      }
       cache_read_tag  := DontCare
       cache_read_data := DontCare
     }.otherwise {
-      cache_read_tag  := cache_tag.read(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH))
-      cache_read_data := VecInit(cache_data.map(i => i.read(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH))))
+      cache_read_tag := cache_tag.read(
+        io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+      )
+      cache_read_data := VecInit(
+        cache_data.map(i =>
+          i.read(io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH))
+        )
+      )
     }
   }.otherwise {
     cache_read_tag  := DontCare
@@ -236,7 +253,7 @@ class DCache extends Module {
       when(io.req.valid) {
         when(io.req.bits.write) {
           state         := sWrite // Begin a write transaction.
-          writeSubState := wIdle  // Initialize the write sub-FSM.
+          writeSubState := wIdle // Initialize the write sub-FSM.
         }.otherwise {
           state := sReadReq // Begin a read transaction.
         }
