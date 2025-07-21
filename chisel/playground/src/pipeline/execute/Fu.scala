@@ -37,9 +37,8 @@ class Fu extends Module with HasInstrType {
   mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.info       := io.data.info
-  lsu.io.src_info   := io.data.src_info
-  lsu.io.info.valid := false.B
+  lsu.io.info     := io.data.info
+  lsu.io.src_info := io.data.src_info
 
   bru.io.info     := io.data.info
   bru.io.src_info := io.data.src_info

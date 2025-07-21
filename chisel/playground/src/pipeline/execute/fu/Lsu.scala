@@ -125,7 +125,8 @@ class Lsu extends Module {
 
   // Default outputs
   io.result := 0.U
-  io.ready  := (state === sIdle)
+//  io.ready  := (state === sIdle)
+  io.ready := (state === sIdle && !reqValidReg)
   // when((!reqValidReg && io.info.valid && (io.info.fusel === FuType.lsu))) { // 进来了一个新的 load 指令，并且我们要处理他
   // io.ready := false.B
   // }
