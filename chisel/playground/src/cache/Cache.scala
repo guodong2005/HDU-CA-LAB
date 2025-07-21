@@ -100,7 +100,7 @@ class ICache extends Module {
     is(sBUSY) {
       when(io.io_read_req.ready) {
         io.io_read_req.valid     := false.B
-        io.icache_resp.valid     := io.icache_req.valid
+        io.icache_resp.valid     := io.io_read_req.valid
         io.icache_resp.bits.data := io_read_data
         io.icache_req.ready      := true.B
 
