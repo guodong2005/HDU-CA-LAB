@@ -448,6 +448,8 @@ module ICache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
   wire         cache_we = state & io_io_read_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:61:38, :81:28, :91:17
   wire         _GEN_0 = state & io_io_read_req_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:61:38, :86:28, :91:17
   wire         _GEN_1 = io_io_read_req_ready | ~io_icache_req_valid | hit_cache;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:61:38, :88:86, :101:34, :111:26, :112:{18,40}, :117:34, :118:29, :124:15
+  wire         io_io_read_req_valid_0 = state ? state & ~_GEN_1 : io_icache_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :76:28, :91:17, :93:33, :101:34, :102:34, :111:26, :112:40, :113:34, :117:34, :118:29, :119:34, :124:15, :126:30
+  wire         _GEN_2 = io_icache_req_valid & hit_cache;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:88:86, :112:40, :115:34, :118:29
   always @(posedge clock) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7
     if (reset) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7
       state <= 1'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38
@@ -1046,10 +1048,9 @@ module ICache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
     .RW0_wdata (_GEN_0 ? io_io_read_resp_bits_data[255:224] : 32'h0),	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:65:65, :85:38, :86:28, :87:28, :91:17
     .RW0_rdata (_cache_data_7_ext_RW0_rdata)
   );
-  assign io_icache_req_ready =
-    ~state | ~state | io_io_read_req_ready | io_icache_req_valid & hit_cache;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :77:28, :88:86, :91:17, :101:34, :112:40, :115:34, :118:29
+  assign io_icache_req_ready = ~state | ~state | io_io_read_req_ready | _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :77:28, :91:17, :101:34, :112:40, :115:34, :118:29
   assign io_icache_resp_valid =
-    state & (io_io_read_req_ready | hit_cache) & io_icache_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :79:28, :88:86, :91:17, :101:34, :103:34, :112:40
+    state & (io_io_read_req_ready ? io_io_read_req_valid_0 : _GEN_2);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :79:28, :91:17, :93:33, :101:34, :103:34, :112:40, :115:34, :118:29
   assign io_icache_resp_bits_data_0 =
     io_io_read_req_ready ? io_io_read_resp_bits_data[31:0] : _cache_data_0_ext_RW0_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :64:64, :65:65, :101:34, :104:34, :112:40
   assign io_icache_resp_bits_data_1 =
@@ -1077,7 +1078,7 @@ module ICache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
       ? io_io_read_resp_bits_data[255:224]
       : _cache_data_7_ext_RW0_rdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :64:64, :65:65, :101:34, :104:34, :112:40
   assign io_icache_resp_bits_addr = io_icache_req_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7
-  assign io_io_read_req_valid = state ? state & ~_GEN_1 : io_icache_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38, :76:28, :91:17, :93:33, :101:34, :102:34, :111:26, :112:40, :113:34, :117:34, :118:29, :119:34, :124:15, :126:30
+  assign io_io_read_req_valid = io_io_read_req_valid_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :91:17, :93:33
   assign io_io_read_req_bits_addr = {io_icache_req_bits_addr[31:5], 5'h0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :165:{34,58}
   assign io_io_read_resp_ready = 1'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7
   assign io_icache_debug_state = state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:47:7, :61:38
