@@ -105,7 +105,9 @@ class Axibridge extends Module {
   val icacheDataBuffer  = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
   val icacheBeatCounter = RegInit(0.U(log2Ceil(FETCH_WIDTH).W))
   val icacheReceiving   = RegInit(false.B)
-  val icacheValid       = RegInit(false.B)
+  val icacheValid       = Wire(Bool())
+
+  icacheValid := false.B
 
   io.read_resp.valid := false.B
   when(io.axi.r.valid && io.axi.r.ready) {
@@ -118,7 +120,6 @@ class Axibridge extends Module {
         icacheReceiving   := false.B
         icacheBeatCounter := 0.U
         icacheValid       := true.B
-        //  io.read_resp.valid := true.B
       }
     }.otherwise {
       io.dcacheInput.r.valid     := true.B
@@ -130,7 +131,8 @@ class Axibridge extends Module {
   io.icacheInput.r.bits.data := DontCare // optional
 
   io.read_resp.bits.data := icacheDataBuffer.asUInt
-  io.read_resp.valid     := icacheValid
+  var tmpValid = RegNext(icacheValid)
+  io.read_resp.valid := tmpValid
 
   // printf(p"read_resp = 0x${Hexadecimal(io.read_resp)}\n")
 
