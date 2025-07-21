@@ -66,8 +66,9 @@ class FetchUnit extends Module {
   //  响应到达：处理指令并更新 PC
   // ========================================================
   when(io.icache_resp.valid) {
-    // 只取第 0 条指令
-    val inst = io.icache_resp.bits.data(0)
+    // 根据 offset 选择指令的条目
+    val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
+    val inst    = io.icache_resp.bits.data(instIdx)
 
     when(decodeReady) {
       // 直接发给 decodeStage
