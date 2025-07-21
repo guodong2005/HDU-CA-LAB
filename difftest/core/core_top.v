@@ -1661,12 +1661,10 @@ module FetchUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:8:7
       automatic logic _GEN_6 = ~_GEN | io_signal_fetchUnitSignal_allow_to_go;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:25:28, :58:{42,57}, :59:23
-      if (_GEN_3)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:72:23
-        pc <= ifid_reg_pc + 32'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:18:26, :25:28, :63:42, :75:40
-      else if (_GEN_2)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:32:23, :58:57, :59:23, :60:33
-        pc <= reqPC + 32'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:18:26, :21:22, :63:42
-      else if (io_branch)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:14
+      if (io_branch)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:14
         pc <= io_target;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:18:26
+      else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:9:14
+        pc <= _GEN_3 ? ifid_reg_pc + 32'h4 : _GEN_2 ? reqPC + 32'h4 : pc;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:18:26, :19:30, :21:22, :25:28, :32:23, :35:19, :36:20, :58:57, :59:23, :60:33, :63:{33,39,68}, :72:23, :75:{31,66}
       reqActive <= ~_GEN & (_GEN_5 | ~io_branch & reqActive);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:20:26, :25:28, :35:19, :38:20, :43:42, :44:15, :49:59, :50:15, :58:{42,57}, :59:23, :69:15
       blockResp <= ~_GEN_4 & (io_branch | blockResp);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:22:26, :35:19, :39:20, :43:{18,42}, :46:15
       if (_GEN_6) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:25:28, :58:57, :59:23
