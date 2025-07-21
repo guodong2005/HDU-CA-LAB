@@ -30,15 +30,16 @@ class Fu extends Module with HasInstrType {
   val lsu = Module(new Lsu())
   val bru = Module(new Bru())
 
-  lsu.io.dcache   <> io.dcache
+  lsu.io.dcache <> io.dcache
   alu.io.info     := io.data.info
   alu.io.src_info := io.data.src_info
 
   mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
 
-  lsu.io.info     := io.data.info
-  lsu.io.src_info := io.data.src_info
+  lsu.io.info       := io.data.info
+  lsu.io.src_info   := io.data.src_info
+  lsu.io.info.valid := false.B
 
   bru.io.info     := io.data.info
   bru.io.src_info := io.data.src_info

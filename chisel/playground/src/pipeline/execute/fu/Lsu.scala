@@ -104,7 +104,6 @@ class Lsu extends Module {
   val state                 = RegInit(sIdle)
 
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
-  io.info.valid := false.B
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
     reqValidReg  := true.B
