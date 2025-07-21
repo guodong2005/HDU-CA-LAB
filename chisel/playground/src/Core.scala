@@ -18,7 +18,8 @@ class Core extends Module {
     val diff      = new DiffOut()
   })
 
-  val icache         = Module(new ICache())
+  val icache = Module(new ICache())
+  icache.io.icache_debug := DontCare
   val dcache         = Module(new DCache)
   val axibridge      = Module(new Axibridge())
   val fetchUnit      = Module(new FetchUnit())
