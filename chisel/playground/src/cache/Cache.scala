@@ -33,7 +33,7 @@ class ICacheDebugIO extends Bundle {
   val hit_cache      = Output(Bool())
   val cache_we       = Output(Bool())
   val cache_read_tag = Output(UInt(ICACHE_TAG_WIDTH.W))
-  val icache_req     = Valid(new ICacheReq)
+  val icache_req     = Flipped(Decoupled((new ICacheReq)))
 }
 
 class ICacheIO extends Bundle {
@@ -74,7 +74,7 @@ class ICache extends Module {
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
   io.icache_resp.bits.addr := io.icache_req.bits.addr
-  io.icache_req.ready      := false.B
+  io.icache_req.ready      := true.B
 
   io.io_read_req.valid     := false.B
   io.io_read_req.bits.addr := Cat(io.icache_req.bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
@@ -92,6 +92,7 @@ class ICache extends Module {
         io.icache_req.ready      := true.B
       }.elsewhen(io.icache_req.valid) {
         io.io_read_req.valid := true.B
+        io.icache_req.ready  := false.B
         req_valid_hold       := true.B
         state                := sWAIT_RESP
       }
@@ -110,6 +111,8 @@ class ICache extends Module {
 
         req_valid_hold := false.B
         state          := sIDLE
+      }.elsewhen(true.B) {
+        io.icache_req.ready := false.B
       }
     }
   }
