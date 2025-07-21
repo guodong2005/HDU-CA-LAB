@@ -65,6 +65,9 @@ class ICache extends Module {
   val index = io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
   val tag   = io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
 
+  cache_write_tag  := 0.U
+  cache_write_data := VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W)))
+
   val read_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
 
   // default assignments
