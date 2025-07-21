@@ -128,14 +128,15 @@ class ICache extends Module {
     cache_valid(index) := true.B
   }
 
+  io.icache_debug := DontCare
   // debug
-  io.icache_debug.state          := state === sWAIT_RESP
-  io.icache_debug.hit_cache      := hit_cache
-  io.icache_debug.cache_we       := cache_we
-  io.icache_debug.cache_read_tag := cache_read_tag
+  // io.icache_debug.state                := state === sWAIT_RESP
+  // io.icache_debug.hit_cache            := hit_cache
+  // io.icache_debug.cache_we             := cache_we
+  // io.icache_debug.cache_read_tag       := cache_read_tag
   // io.icache_debug.icache_req.valid     := io.icache_req.valid
-  io.icache_debug.icache_req.valid     := DontCare
-  io.icache_debug.icache_req.bits.addr := io.icache_req.bits.addr
+  // io.icache_debug.icache_req.valid     := io.icache_req.valid
+  // io.icache_debug.icache_req.bits.addr := io.icache_req.bits.addr
 }
 
 class DCache extends Module {
