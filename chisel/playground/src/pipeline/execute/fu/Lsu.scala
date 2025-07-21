@@ -8,10 +8,10 @@ import cpu.defines.Const._
 /** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is “don’t care.” */
 class DCacheReq extends Bundle {
   val addr  = UInt(XLEN.W)
-  val write = Bool()       // false: load; true: store
+  val write = Bool() // false: load; true: store
   val wdata = UInt(XLEN.W) // valid only if write is true
-  val wstrb = UInt(4.W)    // byte write mask
-  val size  = UInt(2.W)    // 0: byte, 1: half-word, 2: word
+  val wstrb = UInt(4.W) // byte write mask
+  val size  = UInt(2.W) // 0: byte, 1: half-word, 2: word
 }
 
 /** CPU–side response for a memory access. For a load, rdata holds the loaded word. For a store, a dummy value (here 0) is returned. */
@@ -78,7 +78,7 @@ class Lsu extends Module {
     Seq(
       (io.info.op === LSUOpType.sb) -> (1.U(4.W) << addr_low2), // Byte write
       (io.info.op === LSUOpType.sh) -> (3.U(4.W) << addr_low2), // Half-word write (2 bytes)
-      (io.info.op === LSUOpType.sw) -> 15.U(4.W)                // Full-word write (4 bytes, all bits set)
+      (io.info.op === LSUOpType.sw) -> 15.U(4.W) // Full-word write (4 bytes, all bits set)
     )
   )
 
@@ -104,6 +104,7 @@ class Lsu extends Module {
   val state                 = RegInit(sIdle)
 
   // printf(p"dcacheReqReg: ${Hexadecimal(dcacheReqReg.addr)}\n")
+  io.info.valid := false.B
   when((state === sIdle) && io.info.valid && (io.info.fusel === FuType.lsu) && !reqValidReg) {
     dcacheReqReg := newReq
     reqValidReg  := true.B
