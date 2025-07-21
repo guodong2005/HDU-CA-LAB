@@ -29,11 +29,12 @@ class ICacheResp extends Bundle {
 }
 
 class ICacheDebugIO extends Bundle {
-  val state          = Output(Bool())
-  val hit_cache      = Output(Bool())
-  val cache_we       = Output(Bool())
-  val cache_read_tag = Output(UInt(ICACHE_TAG_WIDTH.W))
-  val icache_req     = Flipped(Decoupled((new ICacheReq)))
+
+  // val state          = Output(Bool())
+  // val hit_cache      = Output(Bool())
+  // val cache_we       = Output(Bool())
+  // val cache_read_tag = Output(UInt(ICACHE_TAG_WIDTH.W))
+  // val icache_req     = Flipped(Decoupled((new ICacheReq)))
 }
 
 class ICacheIO extends Bundle {
