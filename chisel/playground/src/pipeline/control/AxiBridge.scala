@@ -140,7 +140,7 @@ class Axibridge extends Module {
   // Drive AR ready back to the caches.
   // ------------------------------------------------------------
   io.dcacheInput.ar.ready := true.B
-  io.icacheInput.ar.ready := true.B
+  io.icacheInput.ar.ready := !icacheReceiving
 
   // ------------------------------------------------------------
   // Write Handshake for dcache write request.
