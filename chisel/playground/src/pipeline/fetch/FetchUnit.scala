@@ -23,14 +23,13 @@ class FetchUnit extends Module {
   val stall       = !decodeReady || ifid_reg.valid
 
   // 是否可以发起新请求（无障碍且 cache 准备好）
-  val allowRequest = !stall && io.icache_req.ready
 
   // 请求地址：使用当前 PC
   io.icache_req.bits.addr := pc
-  io.icache_req.valid     := allowRequest
+  io.icache_req.valid     := true.B
 
   // 发起请求时记录 PC
-  when(allowRequest) {
+  when(true.B) {
     reqPC := pc
   }
 
