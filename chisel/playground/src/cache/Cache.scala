@@ -50,9 +50,9 @@ class ICacheIO extends Bundle {
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
-  val sIDLE :: sWAIT_RESP :: Nil = Enum(2)
-  val state                      = RegInit(sIDLE)
-  val req_valid_hold             = RegInit(false.B)
+  val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
+  val state                                    = RegInit(sIDLE)
+  val req_valid_hold                           = RegInit(false.B)
 
   val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
@@ -68,8 +68,11 @@ class ICache extends Module {
   val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
   val cache_read_tag  = cache_tag.read(index)
   val cache_read_data = VecInit(cache_data.map(_.read(index)))
+
   val hit_cache =
-    cache_read_tag === tag && cache_valid(index) && RegNext(current_req_bits.addr) === current_req_bits.addr
+    cache_read_tag === tag &&
+      cache_valid(index) &&
+      RegNext(current_req_bits.addr) === current_req_bits.addr
 
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
@@ -80,40 +83,46 @@ class ICache extends Module {
   io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
-  // 返回的是 raw 的 addr 而不是对齐后的 addr.
   io.icache_resp.bits.addr := current_req_bits.addr
 
   io.io_read_req.valid     := false.B
   io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
 
-  // 🧠 请求寄存器控制逻辑：
-  // ✅ 保存请求
+  // 请求寄存器控制逻辑
   when(io.icache_req.valid) {
     saved_req.valid := true.B
     saved_req.bits  := io.icache_req.bits
   }
 
-  // ✅ 清空请求（ready 代表可以接受新请求）
   when(io.icache_resp.valid) {
     saved_req.valid := false.B
     saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
   }
+
   when(saved_req.valid) {
     io.icache_req.ready := false.B
   }
 
+  // 状态机逻辑
   switch(state) {
     is(sIDLE) {
-      when(current_req_valid && hit_cache) {
+      when(current_req_valid) {
+        state := sCHECK_HIT
+      }
+    }
+
+    is(sCHECK_HIT) {
+      when(hit_cache) {
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := cache_read_data
-      }.elsewhen(current_req_valid && !hit_cache) {
+        state                    := sIDLE
+      }.otherwise {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
           req_valid_hold := true.B
           state          := sWAIT_RESP
-        }.otherwise {}
+        }
       }
     }
 
@@ -127,7 +136,7 @@ class ICache extends Module {
         cache_valid_we := true.B
         req_valid_hold := false.B
         state          := sIDLE
-      }.otherwise {}
+      }
     }
   }
 
