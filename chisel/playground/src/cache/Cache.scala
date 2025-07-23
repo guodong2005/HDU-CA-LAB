@@ -145,11 +145,12 @@ class ICache extends Module {
 
   // 调试接口
   dontTouch(io.icache_debug)
-  io.icache_debug.state          := state === sWAIT_RESP
-  io.icache_debug.hit_cache      := hit_cache
-  io.icache_debug.cache_we       := cache_we
-  io.icache_debug.cache_read_tag := cache_read_tag
-  io.icache_debug.icache_req     := saved_icache_req.bits
+  io.icache_debug.state            := state === sWAIT_RESP
+  io.icache_debug.hit_cache        := hit_cache
+  io.icache_debug.cache_we         := cache_we
+  io.icache_debug.cache_read_tag   := cache_read_tag
+  io.icache_debug.icache_req.bits  := saved_icache_req.bits
+  io.icache_debug.icache_req.valid := saved_icache_req.valid
 }
 
 class DCache extends Module {
