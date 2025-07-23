@@ -59,8 +59,8 @@ class ICache extends Module {
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  val current_req_valid = Mux(saved_req.valid, saved_req.valid, io.icache_req.valid)
-  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
+  val current_req_valid = saved_req.valid
+  val current_req_bits  = saved_req.bits
 
   val index = current_req_bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
   val tag   = current_req_bits.addr(31, 32 - ICACHE_TAG_WIDTH)
@@ -68,8 +68,7 @@ class ICache extends Module {
   val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
   val cache_read_tag  = cache_tag.read(index)
   val cache_read_data = VecInit(cache_data.map(_.read(index)))
-  val hit_cache       = cache_read_tag === tag && cache_valid(index) && RegNext(current_req_valid)
-  // 保证读的不是空地址
+  val hit_cache       = cache_read_tag === tag && cache_valid(index) && RegNext(saved_req.valid)
 
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
@@ -105,10 +104,10 @@ class ICache extends Module {
 
   switch(state) {
     is(sIDLE) {
-      when(current_req_valid && hit_cache) {
+      when(RegNext(current_req_valid) && hit_cache) {
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := cache_read_data
-      }.elsewhen(current_req_valid && !hit_cache) {
+      }.elsewhen(RegNext(current_req_valid) && !hit_cache) {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
           req_valid_hold := true.B
