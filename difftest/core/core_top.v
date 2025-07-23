@@ -318,9 +318,9 @@ module ICache(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache
   reg          cache_valid_126;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:58:28
   reg          cache_valid_127;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:58:28
   wire         current_req_valid =
-    io_icache_req_valid ? io_icache_req_valid : saved_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:57:28, :62:30
+    saved_req_valid ? saved_req_valid : io_icache_req_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:57:28, :62:30
   wire [31:0]  current_req_bits_addr =
-    io_icache_req_valid ? io_icache_req_bits_addr : saved_req_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:57:28, :63:30
+    saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/Cache.scala:57:28, :63:30
   wire [127:0] _GEN =
     {{cache_valid_127},
      {cache_valid_126},

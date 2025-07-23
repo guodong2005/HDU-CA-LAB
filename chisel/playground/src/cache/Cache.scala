@@ -76,7 +76,7 @@ class ICache extends Module {
   val cache_write_data = read_data
 
   // 默认信号赋值
-  io.icache_req.ready      := (state === sIDLE)
+  io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
   // 返回的是 raw 的 addr 而不是对齐后的 addr.
@@ -94,7 +94,6 @@ class ICache extends Module {
   }
 
   // ✅ 清空请求（ready 代表可以接受新请求）
-  io.icache_req.ready := true.B
   when(io.icache_resp.valid) {
     saved_req.valid := false.B
     saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
@@ -108,16 +107,12 @@ class ICache extends Module {
       when(current_req_valid && hit_cache) {
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := cache_read_data
-        io.icache_req.ready      := true.B
       }.elsewhen(current_req_valid && !hit_cache) {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
-          req_valid_hold      := true.B
-          io.icache_req.ready := false.B
-          state               := sWAIT_RESP
-        }.otherwise {
-          io.icache_req.ready := false.B
-        }
+          req_valid_hold := true.B
+          state          := sWAIT_RESP
+        }.otherwise {}
       }
     }
 
@@ -126,15 +121,12 @@ class ICache extends Module {
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := read_data
         io.icache_resp.bits.addr := current_req_bits.addr
-        io.icache_req.ready      := true.B
 
         cache_we       := true.B
         cache_valid_we := true.B
         req_valid_hold := false.B
         state          := sIDLE
-      }.otherwise {
-        io.icache_req.ready := false.B
-      }
+      }.otherwise {}
     }
   }
 
