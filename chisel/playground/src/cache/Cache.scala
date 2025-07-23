@@ -59,8 +59,8 @@ class ICache extends Module {
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  val current_req_valid = Mux(saved_req.valid, saved_req.valid, io.icache_req.valid)
-  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
+  val current_req_valid = io.icache_req.valid
+  val current_req_bits  = io.icache_req.bits
 
   val index = current_req_bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
   val tag   = current_req_bits.addr(31, 32 - ICACHE_TAG_WIDTH)
