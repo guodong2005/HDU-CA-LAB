@@ -88,7 +88,7 @@ class ICache extends Module {
 
   // 🧠 请求寄存器控制逻辑：
   // ✅ 保存请求
-  when(io.icache_req.valid && !saved_req.valid) {
+  when(io.icache_req.valid) {
     saved_req.valid := true.B
     saved_req.bits  := io.icache_req.bits
   }
