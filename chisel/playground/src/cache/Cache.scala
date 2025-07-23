@@ -93,9 +93,13 @@ class ICache extends Module {
   }
 
   // ✅ 清空请求（ready 代表可以接受新请求）
-  when(io.icache_req.ready) {
+  io.icache_req.ready := true.B
+  when(io.icache_resp.valid) {
     saved_req.valid := false.B
     saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
+  }
+  when(saved_req.valid) {
+    io.icache_req.ready := false.B
   }
 
   switch(state) {
