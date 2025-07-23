@@ -43,6 +43,11 @@ class ICacheIO extends Bundle {
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
   val icache_debug = new ICacheDebugIO
 }
+class DecoupledICacheReq extends Bundle {
+  val valid = Bool()
+  val bits  = new ICacheReq()
+}
+
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
@@ -50,51 +55,66 @@ class ICache extends Module {
   val state                      = RegInit(sIDLE)
   val req_valid_hold             = RegInit(false.B)
 
+  val saved_icache_req = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
+
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  val cache_read_tag   = Wire(UInt(ICACHE_TAG_WIDTH.W))
-  val cache_read_data  = Wire(Vec(FETCH_WIDTH, UInt(32.W)))
+  // 当前请求来源统一封装
+  val current_req_valid = Mux(saved_icache_req.valid, saved_icache_req.valid, io.icache_req.valid)
+  val current_req_bits  = Mux(saved_icache_req.valid, saved_icache_req.bits, io.icache_req.bits)
+
+  val index = current_req_bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  val tag   = current_req_bits.addr(31, 32 - ICACHE_TAG_WIDTH)
+
+  val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+  val cache_read_tag  = cache_tag.read(index)
+  val cache_read_data = VecInit(cache_data.map(_.read(index)))
+  val hit_cache       = cache_read_tag === tag && cache_valid(index)
+
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
-  val cache_write_tag  = Wire(UInt(ICACHE_TAG_WIDTH.W))
-  val cache_write_data = Wire(Vec(FETCH_WIDTH, UInt(32.W)))
-  val hit_cache        = Wire(Bool())
+  val cache_write_tag  = tag
+  val cache_write_data = read_data
 
-  val index = io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
-  val tag   = io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
-
-  cache_write_tag  := 0.U
-  cache_write_data := VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W)))
-
-  val read_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
-
-  // default assignments
+  // 默认信号赋值
+  io.icache_req.ready      := true.B
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
-  io.icache_resp.bits.addr := io.icache_req.bits.addr
-  io.icache_req.ready      := true.B
+  io.icache_resp.bits.addr := current_req_bits.addr
 
   io.io_read_req.valid     := false.B
-  io.io_read_req.bits.addr := Cat(io.icache_req.bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+  io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
 
-  cache_read_tag  := cache_tag.read(index)
-  cache_read_data := VecInit(cache_data.map(_.read(index)))
-  hit_cache       := cache_read_tag === tag && cache_valid(index)
+  // 保存未完成握手的请求（仅在 saved_icache_req 无效时）
+  when(io.icache_req.valid && !saved_icache_req.valid && !io.icache_req.ready) {
+    saved_icache_req.valid := true.B
+    saved_icache_req.bits  := io.icache_req.bits
+  }
+
+  // 清空请求（响应完成或 ready 无效时）
+  when(io.icache_resp.valid || !io.icache_req.ready) {
+    saved_icache_req.valid := false.B
+    saved_icache_req.bits  := 0.U.asTypeOf(new ICacheReq())
+  }
 
   switch(state) {
     is(sIDLE) {
-      when(io.icache_req.valid && hit_cache) {
+      when(current_req_valid && hit_cache) {
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := cache_read_data
         io.icache_req.ready      := true.B
-      }.elsewhen(io.icache_req.valid) {
+      }.elsewhen(current_req_valid && !hit_cache) {
         io.io_read_req.valid := true.B
-        io.icache_req.ready  := false.B
-        req_valid_hold       := true.B
-        state                := sWAIT_RESP
+        when(io.io_read_req.ready) {
+          req_valid_hold      := true.B
+          io.icache_req.ready := false.B
+          state               := sWAIT_RESP
+        }.otherwise {
+          io.icache_req.ready := false.B
+        }
       }
     }
 
@@ -104,14 +124,11 @@ class ICache extends Module {
         io.icache_resp.bits.data := read_data
         io.icache_req.ready      := true.B
 
-        cache_we         := true.B
-        cache_write_tag  := tag
-        cache_write_data := read_data
-        cache_valid_we   := true.B
-
+        cache_we       := true.B
+        cache_valid_we := true.B
         req_valid_hold := false.B
         state          := sIDLE
-      }.elsewhen(true.B) {
+      }.otherwise {
         io.icache_req.ready := false.B
       }
     }
@@ -119,22 +136,20 @@ class ICache extends Module {
 
   when(cache_we) {
     cache_tag.write(index, cache_write_tag)
-    cache_data.zip(cache_write_data).foreach {
-      case (mem, data) => mem.write(index, data)
-    }
+    cache_data.zip(cache_write_data).foreach { case (mem, data) => mem.write(index, data) }
   }
 
   when(cache_valid_we) {
     cache_valid(index) := true.B
   }
 
-  // debug
+  // 调试接口
   dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
   io.icache_debug.hit_cache      := hit_cache
   io.icache_debug.cache_we       := cache_we
   io.icache_debug.cache_read_tag := cache_read_tag
-  io.icache_debug.icache_req     := DontCare
+  io.icache_debug.icache_req     := saved_icache_req.bits
 }
 
 class DCache extends Module {

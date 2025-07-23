@@ -139,8 +139,21 @@ class Axibridge extends Module {
   // ------------------------------------------------------------
   // Drive AR ready back to the caches.
   // ------------------------------------------------------------
+  val icacheActive = RegInit(false.B)
+
+// 当发起读取请求时激活
+  when(io.icacheInput.ar.fire) {
+    icacheActive := true.B
+  }
+
+// 当数据接收完成时关闭
+  when(icacheValid) {
+    icacheActive := false.B
+  }
+
+// 控制 ready 信号
+  io.icacheInput.ar.ready := !icacheActive
   io.dcacheInput.ar.ready := true.B
-  io.icacheInput.ar.ready := !icacheReceiving
 
   // ------------------------------------------------------------
   // Write Handshake for dcache write request.
