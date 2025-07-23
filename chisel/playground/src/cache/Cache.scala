@@ -68,7 +68,7 @@ class ICache extends Module {
   val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
   val cache_read_tag  = cache_tag.read(index)
   val cache_read_data = VecInit(cache_data.map(_.read(index)))
-  val hit_cache       = cache_read_tag === tag && cache_valid(index) && RegNext(current_req_valid)
+  val hit_cache       = cache_read_tag === tag && cache_valid(index)
 
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
