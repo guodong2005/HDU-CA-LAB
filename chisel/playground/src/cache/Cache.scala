@@ -27,13 +27,16 @@ class ICacheReq extends Bundle {
 class ICacheResp extends Bundle {
   val data = UInt((FETCH_WIDTH * 32).W)
 }
-
+class DecoupledICacheReq extends Bundle {
+  val valid = Bool()
+  val bits  = new ICacheReq()
+}
 class ICacheDebugIO extends Bundle {
   val state          = Output(Bool())
   val hit_cache      = Output(Bool())
   val cache_we       = Output(Bool())
   val cache_read_tag = Output(UInt(ICACHE_TAG_WIDTH.W))
-  val icache_req     = Flipped(Decoupled((new ICacheReq)))
+  val icache_req     = new DecoupledICacheReq()
 }
 
 class ICacheIO extends Bundle {
@@ -43,10 +46,6 @@ class ICacheIO extends Bundle {
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
   val icache_debug = new ICacheDebugIO
 }
-class DecoupledICacheReq extends Bundle {
-  val valid = Bool()
-  val bits  = new ICacheReq()
-}
 
 class ICache extends Module {
   val io = IO(new ICacheIO)
@@ -55,15 +54,13 @@ class ICache extends Module {
   val state                      = RegInit(sIDLE)
   val req_valid_hold             = RegInit(false.B)
 
-  val saved_icache_req = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
-
+  val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  // 当前请求来源统一封装
-  val current_req_valid = Mux(saved_icache_req.valid, saved_icache_req.valid, io.icache_req.valid)
-  val current_req_bits  = Mux(saved_icache_req.valid, saved_icache_req.bits, io.icache_req.bits)
+  val current_req_valid = saved_req.valid
+  val current_req_bits  = saved_req.bits
 
   val index = current_req_bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
   val tag   = current_req_bits.addr(31, 32 - ICACHE_TAG_WIDTH)
@@ -79,7 +76,7 @@ class ICache extends Module {
   val cache_write_data = read_data
 
   // 默认信号赋值
-  io.icache_req.ready      := true.B
+  io.icache_req.ready      := state === sIDLE
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
   io.icache_resp.bits.addr := current_req_bits.addr
@@ -88,16 +85,17 @@ class ICache extends Module {
   io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
 
-  // 保存未完成握手的请求（仅在 saved_icache_req 无效时）
-  when(io.icache_req.valid && !saved_icache_req.valid && !io.icache_req.ready) {
-    saved_icache_req.valid := true.B
-    saved_icache_req.bits  := io.icache_req.bits
+  // 🧠 请求寄存器控制逻辑：
+  // ✅ 保存请求
+  when(io.icache_req.valid && !saved_req.valid) {
+    saved_req.valid := true.B
+    saved_req.bits  := io.icache_req.bits
   }
 
-  // 清空请求（响应完成或 ready 无效时）
-  when(io.icache_resp.valid || !io.icache_req.ready) {
-    saved_icache_req.valid := false.B
-    saved_icache_req.bits  := 0.U.asTypeOf(new ICacheReq())
+  // ✅ 清空请求（ready 代表可以接受新请求）
+  when(io.icache_req.ready) {
+    saved_req.valid := false.B
+    saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
   }
 
   switch(state) {
@@ -143,13 +141,13 @@ class ICache extends Module {
     cache_valid(index) := true.B
   }
 
-  // 调试接口
+  // 🐞 debug
   dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
   io.icache_debug.hit_cache      := hit_cache
   io.icache_debug.cache_we       := cache_we
   io.icache_debug.cache_read_tag := cache_read_tag
-  io.icache_debug.icache_req     := DontCare
+  io.icache_debug.icache_req     := saved_req
 }
 
 class DCache extends Module {
