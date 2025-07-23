@@ -79,6 +79,7 @@ class ICache extends Module {
   io.icache_req.ready      := state === sIDLE
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
+  // 返回的是 raw 的 addr 而不是对齐后的 addr.
   io.icache_resp.bits.addr := current_req_bits.addr
 
   io.io_read_req.valid     := false.B
