@@ -68,7 +68,7 @@ class ICache extends Module {
   val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
   val cache_read_tag  = cache_tag.read(index)
   val cache_read_data = VecInit(cache_data.map(_.read(index)))
-  val hit_cache       = cache_read_tag === tag && cache_valid(index)
+  val hit_cache       = cache_read_tag === tag && cache_valid(index) && RegNext(current_req_valid)
 
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
@@ -76,7 +76,7 @@ class ICache extends Module {
   val cache_write_data = read_data
 
   // 默认信号赋值
-  io.icache_req.ready      := state === sIDLE
+  io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
   // 返回的是 raw 的 addr 而不是对齐后的 addr.

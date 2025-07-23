@@ -53,7 +53,7 @@ class FetchUnit extends Module {
       io.decodeStage.data.inst  := inst
       io.decodeStage.data.pc    := reqPC
       io.decodeStage.data.valid := true.B
-      pc                        := reqPC + 4.U
+      pc                        := Mux(io.branch, io.target, reqPC + 4.U)
     }.otherwise {
       ifid_reg.inst  := inst
       ifid_reg.pc    := reqPC
@@ -65,6 +65,6 @@ class FetchUnit extends Module {
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
-    pc                  := ifid_reg.pc + 4.U
+    pc                  := Mux(io.branch, io.target, reqPC + 4.U)
   }
 }
