@@ -7,91 +7,78 @@ import cpu.defines._
 class FetchUnit extends Module {
   val io = IO(new Bundle {
     val decodeStage = new FetchUnitDecodeUnit()
+    val icache_resp = Flipped(Valid(new InstPacket))
     val branch      = Input(Bool())
     val target      = Input(UInt(XLEN.W))
     val signal      = Input(new Signals())
     val icache_req  = Decoupled(new ICacheReq)
-    val icache_resp = Flipped(Valid(new InstPacket))
+    val canStart    = Output(Bool())
   })
 
-  // -----------------------------
-  // 状态定义
-  // -----------------------------
-  val sIdle :: sRequest :: sWaitResp :: Nil = Enum(3)
-  val state                                 = RegInit(sIdle)
+  val pc    = RegInit(0.U(XLEN.W))
+  val reqPC = Reg(UInt(XLEN.W))
+  val state = RegInit(0.U(2.W)) // sIdle :: sWait
+  val sIdle = 0.U
+  val sWait = 1.U
 
-  // -----------------------------
-  // 控制寄存器
-  // -----------------------------
-  val pc          = RegInit(PC_INIT)
-  val reqPC       = RegInit(PC_INIT)
   val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
 
-  // -----------------------------
-  // 输出默认值
-  // -----------------------------
-  io.icache_req.valid     := false.B
-  io.icache_req.bits.addr := reqPC
+  val alignedPC = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
+  val instIdx   = pc(ICACHE_OFFSET_WIDTH - 1, 2)
+
+  // ✅ 启动条件
+  val canStartInternal = !reset.asBool
+  val canStart         = RegNext(canStartInternal) && canStartInternal
+  io.canStart := state === sIdle && !stall && RegNext(canStart)
+
+  // ✅ 默认输出
+  io.icache_req.bits.addr := pc
+  io.icache_req.valid     := io.canStart
   io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
 
-  // -----------------------------
-  // 状态切换逻辑
-  // -----------------------------
   switch(state) {
     is(sIdle) {
+      when(canStart && pc === 0.U) {
+        pc := PC_INIT
+      }
+
+      when(io.canStart && io.icache_req.ready) {
+        reqPC := pc
+        state := sWait
+      }
+    }
+
+    is(sWait) {
+      val respLineAddr = io.icache_resp.bits.addr
+      val reqLineAddr  = reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
+      val inst         = io.icache_resp.bits.data(reqPC(ICACHE_OFFSET_WIDTH - 1, 2))
+      val matchAddr    = respLineAddr === reqPC
+
       when(io.branch) {
         pc    := io.target
-        reqPC := io.target
-      }.otherwise {
-        reqPC := pc
-      }
-
-      when(!stall) {
-        io.icache_req.valid := true.B
-        when(io.icache_req.ready) {
-          state := sWaitResp
-        }.otherwise {
-          state := sRequest
-        }
-      }
-    }
-
-    is(sRequest) {
-      io.icache_req.valid := true.B
-      when(io.icache_req.ready) {
-        state := sWaitResp
-      }
-    }
-
-    is(sWaitResp) {
-      val reqLineAddr = reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
-      val instIdx     = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
-      val inst        = io.icache_resp.bits.data(instIdx)
-
-      when(io.icache_resp.valid && io.icache_resp.bits.addr === reqPC) {
+        state := sIdle
+      }.elsewhen(io.icache_resp.valid && matchAddr) {
         when(decodeReady) {
           io.decodeStage.data.inst  := inst
           io.decodeStage.data.pc    := reqPC
           io.decodeStage.data.valid := true.B
-          pc                        := reqPC + 4.U
+          pc                        := Mux(io.branch, io.target, reqPC + 4.U)
+          state                     := sIdle
         }.otherwise {
           ifid_reg.inst  := inst
           ifid_reg.pc    := reqPC
           ifid_reg.valid := true.B
         }
-        state := sIdle
       }
     }
   }
 
-  // -----------------------------
-  // Pipeline 回填
-  // -----------------------------
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
-    pc                  := ifid_reg.pc + 4.U
+    pc                  := Mux(io.branch, io.target, ifid_reg.pc + 4.U)
+    state               := sIdle
   }
 }
