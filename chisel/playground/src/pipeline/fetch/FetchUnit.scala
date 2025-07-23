@@ -68,6 +68,12 @@ class FetchUnit extends Module {
     }
     reqActive := false.B
   }
+  when(blockResp) {
+    io.decodeStage.data.inst  := 0.U
+    io.decodeStage.data.pc    := 0.U
+    io.decodeStage.data.valid := false.B
+
+  }
 
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
