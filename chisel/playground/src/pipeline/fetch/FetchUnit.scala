@@ -23,13 +23,14 @@ class FetchUnit extends Module {
   val stall       = !decodeReady || ifid_reg.valid
 
   // 是否可以发起新请求（无障碍且 cache 准备好）
+  val allowRequest = !stall && io.icache_req.ready
 
   // 请求地址：使用当前 PC
   io.icache_req.bits.addr := pc
-  io.icache_req.valid     := true.B
+  io.icache_req.valid     := allowRequest
 
   // 发起请求时记录 PC
-  when(true.B) {
+  when(allowRequest) {
     reqPC := pc
   }
 
@@ -52,7 +53,7 @@ class FetchUnit extends Module {
       io.decodeStage.data.inst  := inst
       io.decodeStage.data.pc    := reqPC
       io.decodeStage.data.valid := true.B
-      pc                        := Mux(io.branch, io.target, reqPC + 4.U)
+      pc                        := reqPC + 4.U
     }.otherwise {
       ifid_reg.inst  := inst
       ifid_reg.pc    := reqPC
@@ -64,6 +65,6 @@ class FetchUnit extends Module {
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
-    pc                  := Mux(io.branch, io.target, reqPC + 4.U)
+    pc                  := ifid_reg.pc + 4.U
   }
 }
