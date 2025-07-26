@@ -32,6 +32,7 @@ class Lsu extends Module {
     }
   })
 
+  val isLsu                                     = (io.info.fusel === FuType.lsu) && io.info.valid
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
 
@@ -40,8 +41,8 @@ class Lsu extends Module {
   writeBuffer.io.bypassAddr   := false.B
   writeBuffer.io.bypassEnable := false.B
 
-  val isStore       = LSUOpType.isStore(io.info.op)
-  val isLoad        = !isStore
+  val isStore       = isLsu && LSUOpType.isStore(io.info.op)
+  val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
   val addr_low2 = effectiveAddr(1, 0)
