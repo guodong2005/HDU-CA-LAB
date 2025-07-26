@@ -25,7 +25,7 @@ class Lsu extends Module {
     val result   = Output(UInt(XLEN.W))
     val ready    = Output(Bool())
     val valid    = Output(Bool())
-    val flush    = Input(Bool())
+//    val flush    = Input(Bool())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -36,7 +36,7 @@ class Lsu extends Module {
   val state                                     = RegInit(sIdle)
 
   val writeBuffer = Module(new WriteBuffer(depth = 4))
-  writeBuffer.io.flush := io.flush
+  writeBuffer.io.flush := false.B
 
   val isStore       = LSUOpType.isStore(io.info.op)
   val isLoad        = !isStore
