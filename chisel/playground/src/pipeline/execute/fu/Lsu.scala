@@ -93,6 +93,7 @@ class Lsu extends Module {
   // Store enqueuing
   writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
   writeBuffer.io.enq.bits  := newReq
+  writeBuffer.io.deq.ready := true.B
 
   val drainReq   = writeBuffer.io.deq
   val loadReqReg = Reg(new DCacheReq)
