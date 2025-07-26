@@ -58,7 +58,7 @@ class Fu extends Module with HasInstrType {
   val state                    = RegInit(sIdle)
 
   // LSU 完成信号
-  val lsuDone = lsu.io.valid && lsu.io.ready
+  val lsuDone = lsu.io.ready
 
   // 状态机更新
   switch(state) {
