@@ -20,42 +20,72 @@ class Fu extends Module with HasInstrType {
       val valid    = Output(Bool())
     }
     val dcache = new Bundle {
-      val req  = (Decoupled(new DCacheReq))
+      val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
 
+  // 功能单元
   val alu = Module(new Alu())
   val mdu = Module(new Mdu())
   val lsu = Module(new Lsu())
   val bru = Module(new Bru())
 
+  // LSU 和 DCache 连接
   lsu.io.dcache <> io.dcache
+
+  // 信息传递
   alu.io.info     := io.data.info
   alu.io.src_info := io.data.src_info
-
   mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
-
   lsu.io.info     := io.data.info
   lsu.io.src_info := io.data.src_info
-
   bru.io.info     := io.data.info
   bru.io.src_info := io.data.src_info
   bru.io.pc       := io.data.pc
 
+  // 寄存器记录 info 和 fusel 类型
   val fuselReg = RegInit(0.U.asTypeOf(new Info()))
   when(io.data.info.valid) {
     fuselReg := io.data.info
   }
+
   val fusel = Mux(io.data.info.valid, io.data.info.fusel, fuselReg.fusel)
-  val valid = LookupTree(
-    fusel,
-    Seq(
-      FuType.alu -> alu.io.valid,
-      FuType.mdu -> mdu.io.valid,
-      FuType.bru -> bru.io.valid,
-      FuType.lsu -> lsu.io.valid
+
+  // 状态机定义
+  val sIdle :: sWaitLsu :: Nil = Enum(2)
+  val state                    = RegInit(sIdle)
+
+  // LSU 完成信号
+  val lsuDone = lsu.io.valid && lsu.io.ready
+
+  // 状态机更新
+  switch(state) {
+    is(sIdle) {
+      when(io.data.info.valid && fusel === FuType.lsu) {
+        state := sWaitLsu
+      }
+    }
+    is(sWaitLsu) {
+      when(lsuDone) {
+        state := sIdle
+      }
+    }
+  }
+
+  // 有效信号和结果选择
+  val valid = Mux(
+    state === sWaitLsu,
+    false.B,
+    LookupTree(
+      fusel,
+      Seq(
+        FuType.alu -> alu.io.valid,
+        FuType.mdu -> mdu.io.valid,
+        FuType.bru -> bru.io.valid,
+        FuType.lsu -> lsu.io.valid
+      )
     )
   )
 
@@ -68,12 +98,12 @@ class Fu extends Module with HasInstrType {
       FuType.lsu -> lsu.io.result
     )
   )
+
+  // 输出赋值
   io.data.rd_info.wdata := result
   io.data.diffout       := DontCare
-
-  io.data.branch := bru.io.branch
-  io.data.target := bru.io.target
-  io.data.ready  := lsu.io.ready
-  io.data.valid  := valid
-
+  io.data.branch        := bru.io.branch
+  io.data.target        := bru.io.target
+  io.data.valid         := valid
+  io.data.ready         := Mux(fusel === FuType.lsu, state === sIdle, true.B)
 }
