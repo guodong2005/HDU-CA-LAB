@@ -89,6 +89,7 @@ class Fu extends Module with HasInstrType {
     )
   )
 
+  valid := Mux(io.data.info.valid, valid, false.B)
   val result = LookupTree(
     fusel,
     Seq(

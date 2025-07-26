@@ -3261,7 +3261,7 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
       if (io_data_info_valid)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:14
         fuselReg_fusel <= io_data_info_fusel;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:49:25
       if (state)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:58:41
-        state <= ~(state & _lsu_io_valid & _lsu_io_ready) & state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:31:19, :58:41, :64:17, :71:21, :72:15
+        state <= ~(state & _lsu_io_ready) & state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:31:19, :58:41, :64:17, :71:21, :72:15
       else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:58:41
         state <= io_data_info_valid & fusel == 3'h2 | state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:54:18, :58:41, :66:{31,40,56}, :67:15
     end

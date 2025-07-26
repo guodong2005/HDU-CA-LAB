@@ -81,7 +81,7 @@ class Lsu extends Module {
   newReq.size  := size
 
   // Default
-  io.valid             := false.B
+  io.valid             := Mux(isStore, true.B, false.B)
   io.result            := 0.U
   io.dcache.req.valid  := false.B
   io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
