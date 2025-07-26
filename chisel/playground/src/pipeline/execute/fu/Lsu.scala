@@ -24,25 +24,25 @@ class Lsu extends Module {
     val src_info = Input(new SrcInfo())
     val result   = Output(UInt(XLEN.W))
     val ready    = Output(Bool())
-    val diffout  = Output(new DiffOut())
     val valid    = Output(Bool())
-//    val enableLoadBypass = Input(Bool()) // 控制是否打开 bypass
+    val flush    = Input(Bool())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
 
-  val writeBuffer = Module(new WriteBuffer(4))
+  val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
+  val state                                     = RegInit(sIdle)
 
-  val sIdle :: sWaitingResp :: Nil = Enum(2)
-  val state                        = RegInit(sIdle)
+  val writeBuffer = Module(new WriteBuffer(depth = 4))
+  writeBuffer.io.flush := io.flush
 
-  val isStore = LSUOpType.isStore(io.info.op)
-  val isLoad  = !isStore
-
+  val isStore       = LSUOpType.isStore(io.info.op)
+  val isLoad        = !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
-  val addrLow2      = effectiveAddr(1, 0)
+
+  val addr_low2 = effectiveAddr(1, 0)
   val size = LookupTree(
     io.info.op,
     Seq(
@@ -54,8 +54,8 @@ class Lsu extends Module {
   val strb = LookupTree(
     io.info.op,
     Seq(
-      LSUOpType.sb -> (1.U << addrLow2),
-      LSUOpType.sh -> (3.U << addrLow2),
+      LSUOpType.sb -> (1.U << addr_low2),
+      LSUOpType.sh -> (3.U << addr_low2),
       LSUOpType.sw -> 15.U
     )
   )
@@ -77,77 +77,73 @@ class Lsu extends Module {
   newReq.wstrb := strb
   newReq.size  := size
 
-  // Enqueue into WriteBuffer
-  val canAcceptReq = writeBuffer.io.enq.ready
-  io.ready                 := (state === sIdle) && canAcceptReq
-  writeBuffer.io.enq.valid := io.info.valid && (state === sIdle)
+  // Default
+  io.valid             := false.B
+  io.result            := 0.U
+  io.dcache.req.valid  := false.B
+  io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
+  io.dcache.resp.ready := true.B
+
+  // 默认接受指令
+  val canEnqueue = writeBuffer.io.enq.ready
+  io.ready := (state === sIdle) && (isStore && canEnqueue || isLoad)
+
+  // Store enqueuing
+  writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
   writeBuffer.io.enq.bits  := newReq
 
-  // Query load bypass
-  writeBuffer.io.bypassAddr   := effectiveAddr
-  writeBuffer.io.bypassEnable := isLoad && false.B
-  val bypassHit  = writeBuffer.io.bypassHit
-  val bypassData = writeBuffer.io.bypassData
-
-  // Issue store
-  val issueReq       = writeBuffer.io.deq
-  val isIssuingStore = issueReq.valid && issueReq.bits.write
-  issueReq.ready := false.B // default
-
-  io.dcache.req.valid := false.B
-  io.dcache.req.bits  := 0.U.asTypeOf(new DCacheReq)
-
-  val currentReq = Reg(new DCacheReq)
-  val currentOp  = Reg(UInt(4.W))
+  val drainReq   = writeBuffer.io.deq
+  val loadReqReg = Reg(new DCacheReq)
+  val loadOpReg  = Reg(UInt(4.W))
 
   switch(state) {
     is(sIdle) {
-      when(isIssuingStore) {
-        io.dcache.req.valid := true.B
-        io.dcache.req.bits  := issueReq.bits
-        issueReq.ready      := io.dcache.req.ready
-        when(io.dcache.req.ready) {
-          state := sWaitingResp
-        }
+      when(io.info.valid && isLoad) {
+        // 收到 load 请求，进入 drain 状态
+        loadReqReg := newReq
+        loadOpReg  := io.info.op
+        state      := sDrainStores
       }
-        .elsewhen(issueReq.valid && !issueReq.bits.write && writeBuffer.io.deq.ready) {
-          // Load logic: wait until writeBuffer empty
-          io.dcache.req.valid := true.B
-          io.dcache.req.bits  := issueReq.bits
-          issueReq.ready      := io.dcache.req.ready
-          when(io.dcache.req.ready) {
-            currentReq := issueReq.bits
-            currentOp  := io.info.op
-            state      := sWaitingResp
-          }
-        }
+      when(drainReq.valid && drainReq.bits.write) {
+        io.dcache.req.valid := true.B
+        io.dcache.req.bits  := drainReq.bits
+        drainReq.ready      := io.dcache.req.ready
+      }
     }
 
-    is(sWaitingResp) {
-      io.dcache.req.valid := false.B
-      when(io.dcache.resp.valid) {
-        state    := sIdle
-        io.valid := true.B
-        when(!currentReq.write) {
-          val res = LookupTree(
-            currentOp,
-            Seq(
-              LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
-              LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
-              LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
-              LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
-              LSUOpType.lw  -> io.dcache.resp.bits.rdata
-            )
-          )
-
-          io.result := Mux(bypassHit, bypassData, res)
-        }.otherwise {
-          io.result := 0.U
+    is(sDrainStores) {
+      when(drainReq.valid && drainReq.bits.write) {
+        io.dcache.req.valid := true.B
+        io.dcache.req.bits  := drainReq.bits
+        drainReq.ready      := io.dcache.req.ready
+      }
+      when(!drainReq.valid) {
+        // 队列清空，可以发 load
+        io.dcache.req.valid := true.B
+        io.dcache.req.bits  := loadReqReg
+        when(io.dcache.req.ready) {
+          state := sWaitResp
         }
+      }
+    }
+
+    is(sWaitResp) {
+      when(io.dcache.resp.valid) {
+        val res = LookupTree(
+          loadOpReg,
+          Seq(
+            LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
+            LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
+            LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
+            LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
+            LSUOpType.lw  -> io.dcache.resp.bits.rdata
+          )
+        )
+
+        io.result := res
+        io.valid  := true.B
+        state     := sIdle
       }
     }
   }
-
-  io.dcache.resp.ready := true.B
-  io.diffout           := DontCare
 }

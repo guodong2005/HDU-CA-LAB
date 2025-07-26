@@ -31,7 +31,6 @@ class WriteBuffer(depth: Int = 4) extends Module {
   io.enq.ready := valids.count(_ === true.B) < depth.U
   io.deq.valid := valids.reduce(_ || _)
   io.deq.bits  := buffer(deqIdx).req
-  io.deq.ready := false.B // 由外部 LSU 控制是否真正发出
 
   when(io.enq.fire) {
     buffer(enqIdx).req := io.enq.bits
