@@ -89,7 +89,7 @@ class Lsu extends Module {
 
   // 默认接受指令
   val canEnqueue = writeBuffer.io.enq.ready
-  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu)) || ((state =/= sIdle && isLoad))
+  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu))
 
   // Store enqueuing
   writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
@@ -143,7 +143,7 @@ class Lsu extends Module {
             LSUOpType.lw  -> io.dcache.resp.bits.rdata
           )
         )
-
+        io.ready  := true.B
         io.result := res
         io.valid  := true.B
         state     := sIdle

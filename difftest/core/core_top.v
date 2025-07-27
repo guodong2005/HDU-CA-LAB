@@ -3153,7 +3153,7 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
         | (loadOpReg == 4'h5 ? {16'h0, io_dcache_resp_bits_rdata[15:0]} : 32'h0)
         | (loadOpReg == 4'h2 ? io_dcache_resp_bits_rdata : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :60:28, :85:24, :87:39, :101:23, :103:17, :135:34, :139:68, :141:68, :147:19, src/main/scala/chisel3/util/Mux.scala:30:73
   assign io_ready =
-    ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu) & ~(~(|state) & isLoad);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :35:82, :37:58, :39:27, :44:29, :45:29, :92:{23,47,62,65,74,78,96}
+    ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu) | (|state) & isLoad;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :35:82, :37:58, :39:27, :44:29, :45:29, :92:{23,34,47,62,65,74,85,95}
   assign io_valid = ~_GEN_7 & _GEN_6 | isStore;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :44:29, :84:24, :85:24, :103:17, :135:34, :147:19
   assign io_dcache_req_valid =
     (|state) ? _GEN_5 & (~_writeBuffer_io_deq_valid | _GEN) : _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :37:58, :39:27, :86:24, :92:23, :103:17, :111:{27,51}, :119:51, :124:{12,29}, :126:29
