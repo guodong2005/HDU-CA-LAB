@@ -2692,13 +2692,13 @@ module ExecuteStage(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipel
         & (io_ready
              ? io_controlSignal_decodeUnitSignal_allow_to_go
                & io_decodeUnit_data_info_valid
-             : data_info_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:28:21, :31:30, :32:10, :33:73, :34:10, :36:10, :40:63, :41:10
+             : data_info_valid);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:28:21, :31:30, :32:10, :33:73, :34:10, :36:10, :39:63, :40:10
       data_info_reg_wen <=
         ~io_controlSignal_decodeUnitSignal_do_flush
         & (io_ready
              ? io_controlSignal_decodeUnitSignal_allow_to_go
                & io_decodeUnit_data_info_reg_wen
-             : data_info_reg_wen);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:28:21, :31:30, :32:10, :33:73, :34:10, :36:10, :40:63, :41:10
+             : data_info_reg_wen);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:28:21, :31:30, :32:10, :33:73, :34:10, :36:10, :39:63, :40:10
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/ExecuteStage.scala:19:7
