@@ -38,6 +38,7 @@ class FetchUnit extends Module {
   io.icache_req.valid     := io.canStart
   io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
 
+  pc := Mux(io.branch, io.target, pc)
   switch(state) {
     is(sIdle) {
       when(canStart && pc === 0.U) {
