@@ -3378,7 +3378,7 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
   assign io_data_rd_info_wdata =
     (_result_T ? _alu_io_result : 32'h0) | (_result_T_1 ? _mdu_io_result : 32'h0)
     | (_result_T_2 ? _bru_io_result : 32'h0) | (_result_T_3 ? _lsu_io_result : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :29:19, :30:19, :31:19, :32:19, :49:38, src/main/scala/chisel3/util/Mux.scala:30:73
-  assign io_data_ready = fusel != 3'h2 | ~state;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :54:18, :58:41, :66:40, :108:{31,38,60}
+  assign io_data_ready = fusel != 3'h2 | _lsu_io_ready;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:9:7, :31:19, :54:18, :66:40, :108:{31,38}
   assign io_data_valid =
     io_data_info_valid & ~state
     & (_result_T & _alu_io_valid | _result_T_1 & _mdu_io_valid | _result_T_2
