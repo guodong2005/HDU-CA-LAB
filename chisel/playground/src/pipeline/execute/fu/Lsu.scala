@@ -153,6 +153,7 @@ class Lsu extends Module {
       }
     }
   }
+  io.diffout                       := DontCare
   io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
   io.diffout.storeEvent.storePAddr := drainReq.bits.addr.asUInt
   io.diffout.storeEvent.storeVAddr := drainReq.bits.addr.asUInt
