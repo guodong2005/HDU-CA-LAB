@@ -16,7 +16,7 @@ class DecodeUnitExecuteUnit extends Bundle {
   val data = new IdExeData()
 }
 
-class ExecuteStageFSM extends Module {
+class ExecuteStage extends Module {
   val io = IO(new Bundle {
     val decodeUnit    = Input(new DecodeUnitExecuteUnit())
     val controlSignal = Input(new Signals())
