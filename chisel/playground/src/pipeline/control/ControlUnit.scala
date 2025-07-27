@@ -116,7 +116,7 @@ class ControlUnit extends Module {
   io.signals.memoryUnitSignal.allow_to_go  := true.B
 
   io.signals.fetchUnitSignal.do_flush   := io.branch
-  io.signals.decodeUnitSignal.do_flush  := io.branch
+  io.signals.decodeUnitSignal.do_flush  := false.B
   io.signals.executeUnitSignal.do_flush := false.B
   io.signals.memoryUnitSignal.do_flush  := false.B
 }
