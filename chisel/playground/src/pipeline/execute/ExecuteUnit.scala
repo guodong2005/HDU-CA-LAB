@@ -16,6 +16,7 @@ class ExecuteUnit extends Module {
       val req  = (Decoupled(new DCacheReq))
       val resp = Flipped(Decoupled(new DCacheResp))
     }
+    val result = Output(UInt(XLEN.W))
   })
 
   val fu = Module(new Fu())
@@ -24,6 +25,7 @@ class ExecuteUnit extends Module {
   fu.io.data.pc       := io.executeStage.data.pc
   fu.io.data.info     := io.executeStage.data.info
   fu.io.data.src_info := io.executeStage.data.src_info
+  io.result           := fu.io.data.rd_info.wdata
 
   io.ready                         := fu.io.data.ready
   io.memoryStage.data.pc           := io.executeStage.data.pc

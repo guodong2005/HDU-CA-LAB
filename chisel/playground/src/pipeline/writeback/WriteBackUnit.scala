@@ -12,6 +12,7 @@ class WriteBackUnit extends Module {
     val regfile        = Output(new RegWrite())
     val debug          = new DEBUG()
     val info           = Output(new Info())
+    val result         = Output(UInt(XLEN.W))
   })
   // Register Destination info
 
@@ -20,8 +21,8 @@ class WriteBackUnit extends Module {
   val canStart = RegNext(reset.asBool) & (!reset.asBool)
   // Write to the register file
   io.regfile.wen   := validData.info.reg_wen & validData.info.valid // Enable register write based on control signal
-  io.regfile.waddr := validData.info.reg_waddr                      // Write to the destination register
-  io.regfile.wdata := validData.rd_info.wdata                       // Write the computed or memory-loaded value
+  io.regfile.waddr := validData.info.reg_waddr // Write to the destination register
+  io.regfile.wdata := validData.rd_info.wdata // Write the computed or memory-loaded value
 
   io.info           := io.writeBackStage.data.info
   io.info.reg_wen   := io.regfile.wen

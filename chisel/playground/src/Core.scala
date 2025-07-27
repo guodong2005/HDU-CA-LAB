@@ -47,6 +47,10 @@ class Core extends Module {
   axibridge.io.icacheInput.ar.bits.addr := icache.io.io_read_req.bits.addr
   icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
 
+  controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
+  controlUnit.io.memoryResult    := memoryUnit.io.result // MEM只是数据传递，实际上就是EX结果
+  controlUnit.io.writeBackResult := writeBackUnit.io.result
+
   axibridge.io.icacheInput.r.ready := true.B
   axibridge.io.read_resp <> icache.io.io_read_resp
   dcache.io.axi <> axibridge.io.dcacheInput
@@ -61,11 +65,14 @@ class Core extends Module {
 
   controlUnit.io.branch           := decodeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
-  // executeUnit.fu.lsu.busy         := decodeUnit.io.islsu
+  controlUnit.io.executeResult    := executeUnit.io.result // EX阶段完成所有计算（包括load）
+  controlUnit.io.memoryResult     := memoryUnit.io.result // MEM只是数据传递，实际上就是EX结果
+  controlUnit.io.writeBackResult  := writeBackUnit.io.result
 
   fetchUnit.io.branch := decodeUnit.io.branch
   fetchUnit.io.target := decodeUnit.io.target
   //
+  decodeUnit.io.bypassData := controlUnit.io.signals.bypassData
   decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
   decodeUnit.io.regfile <> regfile.io.read
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit

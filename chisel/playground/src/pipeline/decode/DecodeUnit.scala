@@ -10,13 +10,20 @@ class DecodeUnit extends Module with HasInstrType {
     // 输入
     val decodeStage = Flipped(new FetchUnitDecodeUnit())
     val regfile     = new Src12Read()
+
+    // 新增：来自ControlUnit的前递数据
+    val bypassData = Input(new Bundle {
+      val src1_bypass = Bool() // src1是否需要前递
+      val src2_bypass = Bool() // src2是否需要前递
+      val src1_data   = UInt(XLEN.W) // src1前递的数据
+      val src2_data   = UInt(XLEN.W) // src2前递的数据
+    })
+
     // 输出
     val executeStage = Output(new DecodeUnitExecuteUnit())
     val islsu        = Output(Bool())
-
-    val branch = Output(Bool())
-    val target = Output(UInt(XLEN.W))
-
+    val branch       = Output(Bool())
+    val target       = Output(UInt(XLEN.W))
   })
 
   val decoder = Module(new Decoder())
@@ -25,8 +32,8 @@ class DecodeUnit extends Module with HasInstrType {
   val pc     = io.decodeStage.data.pc
   val info   = Wire(new Info())
   val is_lui = decoder.io.out.info.instr(31, 25) === "b0001010".U // is lu12i
+  val inst   = decoder.io.out.info.instr
 
-  val inst = decoder.io.out.info.instr
   val instrType :: fuType :: fuOpType :: Nil =
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
 
@@ -52,25 +59,32 @@ class DecodeUnit extends Module with HasInstrType {
   io.regfile.src1.raddr := decoder.io.out.info.src1_raddr
   io.regfile.src2.raddr := decoder.io.out.info.src2_raddr
 
+  // ========== 前递逻辑 ==========
+
+  // 使用ControlUnit提供的前递信号和数据
+  // 重写src1_data的取值逻辑
+  val src1_data_raw   = Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
+  val src1_data_final = Mux(io.bypassData.src1_bypass, io.bypassData.src1_data, src1_data_raw)
+
+  // 重写src2_data的取值逻辑
+  val src2_data_raw   = Mux(info.src2_ren, io.regfile.src2.rdata, imm)
+  val src2_data_final = Mux(io.bypassData.src2_bypass, io.bypassData.src2_data, src2_data_raw)
+
+  // 输出到executeStage
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info
-  io.executeStage.data.src_info.src1_data := Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
-  io.executeStage.data.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
+  io.executeStage.data.src_info.src1_data := src1_data_final
+  io.executeStage.data.src_info.src2_data := src2_data_final
 
   io.islsu := decoder.io.out.info.fusel === FuType.lsu
 
+  // BRU也需要使用前递后的数据
   val bru = Module(new MiniBru())
   bru.io.info               := info
   bru.io.pc                 := pc
-  bru.io.src_info.src1_data := Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
-  bru.io.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
+  bru.io.src_info.src1_data := src1_data_final // 使用前递后的数据
+  bru.io.src_info.src2_data := src2_data_final // 使用前递后的数据
 
   io.target := bru.io.target
   io.branch := Mux(bru.io.valid, bru.io.branch, false.B)
-  // why doesnt need op type ?
-
-  // io.executeStage.data.info               :=
-  // io.executeStage.data.src_info.src1_data :=
-  // io.executeStage.data.src_info.src2_data :=
-
 }

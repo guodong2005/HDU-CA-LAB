@@ -1593,7 +1593,7 @@ module FetchUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
     ~(|state) & ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid)
     & io_canStart_REG;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:20:22, :24:28, :26:{21,34}, :34:{24,37,44,54}
   wire             _GEN = state == 2'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:20:22, :49:19, :56:17
-  wire             _GEN_0 = io_icache_resp_valid & io_icache_resp_bits_addr == 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:24:41, :63:41, :65:35
+  wire             _GEN_0 = io_icache_resp_valid & io_icache_resp_bits_addr == reqPC;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/fetch/FetchUnit.scala:19:18, :63:41, :65:35
   wire [7:0][31:0] _GEN_1 =
     {{io_icache_resp_bits_data_7},
      {io_icache_resp_bits_data_6},
