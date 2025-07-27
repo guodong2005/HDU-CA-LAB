@@ -16,28 +16,51 @@ class DecodeUnitExecuteUnit extends Bundle {
   val data = new IdExeData()
 }
 
-class ExecuteStage extends Module {
+class ExecuteStageFSM extends Module {
   val io = IO(new Bundle {
     val decodeUnit    = Input(new DecodeUnitExecuteUnit())
     val controlSignal = Input(new Signals())
-    val ready         = Input(Bool())
+    val ready         = Input(Bool()) // 下游 ready，相当于 AXI 的 ready
     val executeUnit   = Output(new DecodeUnitExecuteUnit())
   })
 
-  // Register to hold data
+  // 状态定义
+  val sIdle :: sExec :: sFlush :: Nil = Enum(3)
+  val state                           = RegInit(sIdle)
+
+  // 数据寄存器
   val data = RegInit(0.U.asTypeOf(new IdExeData()))
 
-  // Stall logic: Keep the previous data if both units' allow_to_go signals are 0
-  when(io.ready === false.B) {
-    data := data
-  }.elsewhen(io.controlSignal.decodeUnitSignal.allow_to_go === false.B) {
-    data := 0.U.asTypeOf(new IdExeData())
-  }.otherwise {
-    data := io.decodeUnit.data // Update data if units are allowed to proceed
-  }
-  io.controlSignal.executeUnitSignal.allow_to_go === true.B
-  when(io.controlSignal.decodeUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new IdExeData())
-  }
+  // 默认输出
   io.executeUnit.data := data
+
+  // 状态跳转逻辑
+  switch(state) {
+    is(sIdle) {
+      // 输入有效，进入执行态
+      when(io.controlSignal.decodeUnitSignal.allow_to_go && io.ready) {
+        data  := io.decodeUnit.data
+        state := sExec
+      }
+    }
+
+    is(sExec) {
+      when(io.controlSignal.decodeUnitSignal.do_flush) {
+        data  := 0.U.asTypeOf(new IdExeData())
+        state := sFlush
+      }.elsewhen(io.controlSignal.decodeUnitSignal.allow_to_go && io.ready) {
+        data := io.decodeUnit.data
+        // 保持执行状态，继续处理下一个数据
+        state := sExec
+      }.otherwise {
+        // 等待 valid/ready 对齐
+        state := sExec
+      }
+    }
+
+    is(sFlush) {
+      // flush后回到空闲状态
+      state := sIdle
+    }
+  }
 }
