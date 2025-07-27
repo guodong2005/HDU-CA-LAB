@@ -46,20 +46,22 @@ class Lsu extends Module {
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
   val addr_low2 = effectiveAddr(1, 0)
-  val size = LookupTree(
-    io.info.op,
+  val size = MuxCase(
+    2.U(2.W),
     Seq(
-      LSUOpType.lb -> 0.U,
-      LSUOpType.lh -> 1.U,
-      LSUOpType.lw -> 2.U
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lb)) -> 0.U(2.W),
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lh)) -> 1.U(2.W),
+      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lw)) -> 2.U(2.W)
     )
   )
-  val strb = LookupTree(
-    io.info.op,
+
+// Generate write strobe (`strb`) based on the operation and address alignment
+  val strb = MuxCase(
+    0.U(4.W),
     Seq(
-      LSUOpType.sb -> (1.U << addr_low2),
-      LSUOpType.sh -> (3.U << addr_low2),
-      LSUOpType.sw -> 15.U
+      (io.info.op === LSUOpType.sb) -> (1.U(4.W) << addr_low2), // Byte write
+      (io.info.op === LSUOpType.sh) -> (3.U(4.W) << addr_low2), // Half-word write (2 bytes)
+      (io.info.op === LSUOpType.sw) -> 15.U(4.W) // Full-word write (4 bytes, all bits set)
     )
   )
 
