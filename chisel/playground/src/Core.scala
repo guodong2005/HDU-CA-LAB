@@ -71,6 +71,7 @@ class Core extends Module {
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
   executeUnit.io.executeStage <> executeStage.io.executeUnit
+  executeStage.io.ready := executeUnit.io.ready
 
   io.dataSram := DontCare
 

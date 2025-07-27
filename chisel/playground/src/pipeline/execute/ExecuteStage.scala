@@ -20,6 +20,7 @@ class ExecuteStage extends Module {
   val io = IO(new Bundle {
     val decodeUnit    = Input(new DecodeUnitExecuteUnit())
     val controlSignal = Input(new Signals())
+    val ready         = Input(Bool())
     val executeUnit   = Output(new DecodeUnitExecuteUnit())
   })
 
@@ -27,18 +28,16 @@ class ExecuteStage extends Module {
   val data = RegInit(0.U.asTypeOf(new IdExeData()))
 
   // Stall logic: Keep the previous data if both units' allow_to_go signals are 0
-  when(
-    io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
-      io.controlSignal.executeUnitSignal.allow_to_go === false.B) {
-    data := 0.U.asTypeOf(new IdExeData()) // Retain the previous data
+  when(io.ready === false.B) {
+    data := data
+  }.elsewhen(io.controlSignal.decodeUnitSignal.allow_to_go === false.B) {
+    data := 0.U.asTypeOf(new IdExeData())
   }.otherwise {
     data := io.decodeUnit.data // Update data if units are allowed to proceed
   }
   // flush logic:
-  val stalledge = io.controlSignal.decodeUnitSignal.allow_to_go === false.B &&
-    io.controlSignal.executeUnitSignal.allow_to_go === true.B
-
-  when(io.controlSignal.decodeUnitSignal.do_flush === true.B || stalledge) {
+  io.controlSignal.executeUnitSignal.allow_to_go === true.B
+  when(io.controlSignal.decodeUnitSignal.do_flush === true.B) {
     data := 0.U.asTypeOf(new IdExeData()) // Reset data if flush signal is high
     // data.info := Info.default
   }
