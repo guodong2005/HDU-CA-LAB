@@ -12,8 +12,6 @@ class ExecuteUnit extends Module {
     val executeStage = Input(new DecodeUnitExecuteUnit())
     val memoryStage  = Output(new ExecuteUnitMemoryUnit())
     val ready        = Output(Bool())
-    val branch       = Output(Bool())
-    val target       = Output(UInt(XLEN.W))
     val dcache = new Bundle {
       val req  = (Decoupled(new DCacheReq))
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -27,8 +25,6 @@ class ExecuteUnit extends Module {
   fu.io.data.info     := io.executeStage.data.info
   fu.io.data.src_info := io.executeStage.data.src_info
 
-  io.branch                        := fu.io.data.branch
-  io.target                        := fu.io.data.target
   io.ready                         := fu.io.data.ready
   io.memoryStage.data.pc           := io.executeStage.data.pc
   io.memoryStage.data.info         := io.executeStage.data.info

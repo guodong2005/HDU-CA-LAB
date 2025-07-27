@@ -59,12 +59,12 @@ class Core extends Module {
   dcache.io.req <> executeUnit.io.dcache.req
   dcache.io.resp <> executeUnit.io.dcache.resp
 
-  controlUnit.io.branch           := executeUnit.io.branch
+  controlUnit.io.branch           := decodeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
   // executeUnit.fu.lsu.busy         := decodeUnit.io.islsu
 
-  fetchUnit.io.branch := executeUnit.io.branch
-  fetchUnit.io.target := executeUnit.io.target
+  fetchUnit.io.branch := decodeUnit.io.branch
+  fetchUnit.io.target := decodeUnit.io.target
   //
   decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
   decodeUnit.io.regfile <> regfile.io.read

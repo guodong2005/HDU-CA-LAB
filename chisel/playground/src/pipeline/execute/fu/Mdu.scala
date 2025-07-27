@@ -32,6 +32,7 @@ class Mdu extends Module {
     }
 
     // Division and Remainder Operations
+    /*
     is(MDUOpType.div) {
       val result   = Mux(iszero === 1.U, SignedExtend(1.U, XLEN).asSInt, (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt)) // Signed Division
       val overflow = io.src_info.src2_data.asSInt === neg1_32 && io.src_info.src1_data.asSInt === -(1 << 31).S                          // why not SignedExtend(1.U, XLEN) ?
@@ -58,6 +59,7 @@ class Mdu extends Module {
       val rem      = src1 - quotient * src2
       io.result := Mux(iszero === 1.U, io.src_info.src1_data, rem(31, 0)) // Unsigned Remainder
     }
+     */
 
   }
 }

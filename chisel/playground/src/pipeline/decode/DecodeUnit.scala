@@ -13,6 +13,10 @@ class DecodeUnit extends Module with HasInstrType {
     // 输出
     val executeStage = Output(new DecodeUnitExecuteUnit())
     val islsu        = Output(Bool())
+
+    val branch = Output(Bool())
+    val target = Output(UInt(XLEN.W))
+
   })
 
   val decoder = Module(new Decoder())
@@ -32,9 +36,12 @@ class DecodeUnit extends Module with HasInstrType {
       // inst24 代表 I 指令是否要符号拓展 0 -> s, 1 -> u
       InstrI -> Mux(inst(24), ZeroExtend(inst(21, 10), XLEN), SignedExtend(inst(21, 10), XLEN)),
       InstrS -> SignedExtend(inst(21, 10), XLEN),
-      InstrB -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN),                                                        // 没有压缩指令
+      InstrB -> SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN), // 没有压缩指令
       InstrU -> SignedExtend(Cat(inst(24, 5), 0.U(12.W)), XLEN),
-      InstrJ -> SignedExtend(Cat(Cat(Mux(fuOpType === BRUOpType.jirl, 0.U, inst(9, 0)), inst(25, 10)), 0.U(2.W)), XLEN) // 没有压缩指令
+      InstrJ -> SignedExtend(
+        Cat(Cat(Mux(fuOpType === BRUOpType.jirl, 0.U, inst(9, 0)), inst(25, 10)), 0.U(2.W)),
+        XLEN
+      ) // 没有压缩指令
     )
   )
 
@@ -51,6 +58,15 @@ class DecodeUnit extends Module with HasInstrType {
   io.executeStage.data.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
 
   io.islsu := decoder.io.out.info.fusel === FuType.lsu
+
+  val bru = new MiniBru()
+  bru.io.info               := info
+  bru.io.pc                 := pc
+  bru.io.src_info.src1_data := Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
+  bru.io.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
+
+  io.target := bru.io.target
+  io.branch := bru.io.branch
   // why doesnt need op type ?
 
   // io.executeStage.data.info               :=
