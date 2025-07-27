@@ -105,5 +105,5 @@ class Fu extends Module with HasInstrType {
   io.data.branch        := bru.io.branch
   io.data.target        := bru.io.target
   io.data.valid         := Mux(io.data.info.valid, valid, false.B)
-  io.data.ready         := Mux(fusel === FuType.lsu, state === sIdle, true.B)
+  io.data.ready         := Mux(fusel === FuType.lsu, lsu.io.ready, true.B)
 }
