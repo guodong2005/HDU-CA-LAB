@@ -45,8 +45,9 @@ class ControlUnit extends Module {
   // Generate control signals using modular assignment
   io.signals.fetchUnitSignal.allow_to_go := (!pipeline_stall) & (io.executeUnitReady)
 
-  io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & (io.executeUnitReady)
-  io.signals.executeUnitSignal.allow_to_go := io.executeUnitReady
+  io.signals.decodeUnitSignal.allow_to_go := (!pipeline_stall) & (io.executeUnitReady)
+  //io.signals.executeUnitSignal.allow_to_go := io.executeUnitReady
+  io.signals.executeUnitSignal.allow_to_go := true.B
   // dontTouch(io.signals)
 // icache stall 只会影响 fetchUnit
 
