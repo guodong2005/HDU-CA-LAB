@@ -25,6 +25,7 @@ class Lsu extends Module {
     val result   = Output(UInt(XLEN.W))
     val ready    = Output(Bool())
     val valid    = Output(Bool())
+    val diffout  = Output(new DiffOut())
 //    val flush    = Input(Bool())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
@@ -152,4 +153,12 @@ class Lsu extends Module {
       }
     }
   }
+  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
+  io.diffout.storeEvent.storePAddr := drainReq.bits.addr.asUInt
+  io.diffout.storeEvent.storeVAddr := drainReq.bits.addr.asUInt
+  io.diffout.storeEvent.storeData  := drainReq.bits.wdata
+  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
+  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
+
 }

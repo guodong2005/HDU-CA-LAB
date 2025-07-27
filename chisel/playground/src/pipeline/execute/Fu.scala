@@ -78,7 +78,7 @@ class Fu extends Module with HasInstrType {
 
   // 输出赋值
   io.data.rd_info.wdata := result
-  io.data.diffout       := DontCare
+  io.data.diffout       := lsu.io.diffout
   io.data.branch        := bru.io.branch
   io.data.target        := bru.io.target
   io.data.valid         := Mux(io.data.info.valid, valid, false.B)
