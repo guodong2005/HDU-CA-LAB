@@ -24,6 +24,7 @@ class WriteBackUnit extends Module {
   io.regfile.waddr := validData.info.reg_waddr // Write to the destination register
   io.regfile.wdata := validData.rd_info.wdata // Write the computed or memory-loaded value
 
+  io.result         := validData.rd_info.wdata
   io.info           := io.writeBackStage.data.info
   io.info.reg_wen   := io.regfile.wen
   io.info.reg_waddr := io.regfile.waddr
