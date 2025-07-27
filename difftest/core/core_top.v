@@ -3169,9 +3169,9 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   assign io_ready = _GEN_9 | ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :36:82, :38:58, :40:27, :45:29, :95:{12,23,34,47,62,65}, :106:17
   assign io_valid = io_valid_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :87:24, :106:17
   assign io_diffout_storeEvent_valid = {7'h0, isStore & isLsu & io_valid_0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :36:82, :45:29, :87:24, :106:17, :157:{36,56}
-  assign io_diffout_storeEvent_storePAddr = _writeBuffer_io_deq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :40:27
-  assign io_diffout_storeEvent_storeVAddr = _writeBuffer_io_deq_bits_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :40:27
-  assign io_diffout_storeEvent_storeData = _writeBuffer_io_deq_bits_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :40:27
+  assign io_diffout_storeEvent_storePAddr = newReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :80:22
+  assign io_diffout_storeEvent_storeVAddr = newReq_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :80:22
+  assign io_diffout_storeEvent_storeData = newReq_wdata;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :82:22
   assign io_diffout_loadEvent_valid = {7'h0, isLoad & isLsu & io_valid_0};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :36:82, :46:29, :87:24, :106:17, :157:36, :161:{36,55}
   assign io_diffout_loadEvent_paddr = loadReqReg_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :103:23
   assign io_diffout_loadEvent_vaddr = loadReqReg_addr;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :103:23

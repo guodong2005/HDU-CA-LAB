@@ -109,9 +109,14 @@ class Axibridge extends Module {
 
   icacheValid := false.B
 
-  io.read_resp.valid := false.B
+  // 默认状态设置
+  io.dcacheInput.r.valid := false.B
+  io.dcacheInput.r.bits  := DontCare
+  io.read_resp.valid     := false.B
+
   when(io.axi.r.valid && io.axi.r.ready) {
-    when(!r_sel) {
+    when(r_sel === 0.U) {
+      // icache 响应 (ID最低位为0)
       icacheDataBuffer(icacheBeatCounter) := io.axi.r.bits.data
       icacheBeatCounter                   := icacheBeatCounter + 1.U
       icacheReceiving                     := true.B
@@ -121,17 +126,23 @@ class Axibridge extends Module {
         icacheBeatCounter := 0.U
         icacheValid       := true.B
       }
-    }.otherwise {
+    }.elsewhen(r_sel === 1.U) {
+      // dcache 响应 (ID最低位为1)
       io.dcacheInput.r.valid     := true.B
       io.dcacheInput.r.bits.data := io.axi.r.bits.data
+      io.dcacheInput.r.bits.id   := Cat(io.axi.r.bits.id(3, 1), 0.U(1.W)) // 恢复原始ID
+      io.dcacheInput.r.bits.resp := io.axi.r.bits.resp
+      io.dcacheInput.r.bits.last := io.axi.r.bits.last
     }
   }
 
+  // icache R 通道响应处理
   io.icacheInput.r.valid     := !icacheReceiving && (icacheBeatCounter === 0.U)
   io.icacheInput.r.bits.data := DontCare // optional
 
+  // read_resp 输出处理
   io.read_resp.bits.data := icacheDataBuffer.asUInt
-  var tmpValid = RegNext(icacheValid)
+  val tmpValid = RegNext(icacheValid)
   io.read_resp.valid := tmpValid
 
   // printf(p"read_resp = 0x${Hexadecimal(io.read_resp)}\n")
@@ -141,17 +152,17 @@ class Axibridge extends Module {
   // ------------------------------------------------------------
   val icacheActive = RegInit(false.B)
 
-// 当发起读取请求时激活
+  // 当发起读取请求时激活
   when(io.icacheInput.ar.fire) {
     icacheActive := true.B
   }
 
-// 当数据接收完成时关闭
+  // 当数据接收完成时关闭
   when(icacheValid) {
     icacheActive := false.B
   }
 
-// 控制 ready 信号
+  // 控制 ready 信号
   io.icacheInput.ar.ready := !icacheActive
   io.dcacheInput.ar.ready := true.B
 
