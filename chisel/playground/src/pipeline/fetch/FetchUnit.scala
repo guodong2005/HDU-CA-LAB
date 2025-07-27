@@ -60,7 +60,7 @@ class FetchUnit extends Module {
         val respLineAddr = io.icache_resp.bits.addr
         val reqLineAddr  = reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
         val inst         = io.icache_resp.bits.data(reqPC(ICACHE_OFFSET_WIDTH - 1, 2))
-        val matchAddr    = respLineAddr === reqLineAddr // 修复：应该比较line地址
+        val matchAddr    = respLineAddr === reqPC // 修复：应该比较line地址
 
         when(io.icache_resp.valid && matchAddr) {
           when(decodeReady) {
