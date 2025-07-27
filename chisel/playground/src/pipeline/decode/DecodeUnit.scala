@@ -59,14 +59,14 @@ class DecodeUnit extends Module with HasInstrType {
 
   io.islsu := decoder.io.out.info.fusel === FuType.lsu
 
-  val bru = new MiniBru()
+  val bru = Module(new MiniBru())
   bru.io.info               := info
   bru.io.pc                 := pc
   bru.io.src_info.src1_data := Mux(info.src1_ren, io.regfile.src1.rdata, Mux(is_lui, 0.U, pc))
   bru.io.src_info.src2_data := Mux(info.src2_ren, io.regfile.src2.rdata, imm)
 
   io.target := bru.io.target
-  io.branch := bru.io.branch
+  io.branch := Mux(bru.io.valid, bru.io.branch, false.B)
   // why doesnt need op type ?
 
   // io.executeStage.data.info               :=
