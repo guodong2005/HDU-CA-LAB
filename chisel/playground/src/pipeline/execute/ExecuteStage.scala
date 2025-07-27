@@ -20,7 +20,7 @@ class ExecuteStage extends Module {
   val io = IO(new Bundle {
     val decodeUnit    = Input(new DecodeUnitExecuteUnit())
     val controlSignal = Input(new Signals())
-    val ready         = Input(Bool())
+    val ready         = Input(Bool()) // 下游 ready，相当于 AXI 的 ready
     val executeUnit   = Output(new DecodeUnitExecuteUnit())
   })
 
@@ -31,26 +31,16 @@ class ExecuteStage extends Module {
   // 数据寄存器
   val data = RegInit(0.U.asTypeOf(new IdExeData()))
 
-  // 加入握手锁存机制
-  val validReg   = RegInit(false.B) // 是否有待处理数据
-  val latchData  = Reg(new IdExeData()) // 预锁存的数据
-  val latchValid = io.controlSignal.decodeUnitSignal.allow_to_go && io.ready
-
-  when(latchValid) {
-    latchData := io.decodeUnit.data
-    validReg  := true.B
-  }
-
   // 默认输出
   io.executeUnit.data := data
 
-  // 状态转移逻辑（只依赖 validReg）
+  // 状态跳转逻辑
   switch(state) {
     is(sIdle) {
-      when(validReg) {
-        data     := latchData
-        state    := sExec
-        validReg := false.B
+      // 输入有效，进入执行态
+      when(io.controlSignal.decodeUnitSignal.allow_to_go && io.ready) {
+        data  := io.decodeUnit.data
+        state := sExec
       }
     }
 
@@ -58,16 +48,18 @@ class ExecuteStage extends Module {
       when(io.controlSignal.decodeUnitSignal.do_flush) {
         data  := 0.U.asTypeOf(new IdExeData())
         state := sFlush
-      }.elsewhen(validReg) {
-        data     := latchData
-        validReg := false.B
-        state    := sExec
+      }.elsewhen(io.controlSignal.decodeUnitSignal.allow_to_go && io.ready) {
+        data := io.decodeUnit.data
+        // 保持执行状态，继续处理下一个数据
+        state := sExec
       }.otherwise {
+        // 等待 valid/ready 对齐
         state := sExec
       }
     }
 
     is(sFlush) {
+      // flush后回到空闲状态
       state := sIdle
     }
   }

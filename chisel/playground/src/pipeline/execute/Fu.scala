@@ -54,31 +54,8 @@ class Fu extends Module with HasInstrType {
 
   val fusel = Mux(io.data.info.valid, io.data.info.fusel, fuselReg.fusel)
 
-  // 状态机定义
-  val sIdle :: sWaitLsu :: Nil = Enum(2)
-  val state                    = RegInit(sIdle)
-
-  // LSU 完成信号
-  val lsuDone = lsu.io.ready
-
-  // 状态机更新
-  switch(state) {
-    is(sIdle) {
-      when(io.data.info.valid && fusel === FuType.lsu) {
-        state := sWaitLsu
-      }
-    }
-    is(sWaitLsu) {
-      when(lsuDone) {
-        state := sIdle
-      }
-    }
-  }
-
   // 有效信号和结果选择
-  val valid = Mux(
-    state === sWaitLsu,
-    false.B,
+  val valid =
     LookupTree(
       fusel,
       Seq(
@@ -88,7 +65,6 @@ class Fu extends Module with HasInstrType {
         FuType.lsu -> lsu.io.valid
       )
     )
-  )
 
   val result = LookupTree(
     fusel,
@@ -106,5 +82,5 @@ class Fu extends Module with HasInstrType {
   io.data.branch        := bru.io.branch
   io.data.target        := bru.io.target
   io.data.valid         := Mux(io.data.info.valid, valid, false.B)
-  io.data.ready         := Mux(fusel === FuType.lsu, state === sIdle, true.B)
+  io.data.ready         := Mux(fusel === FuType.lsu, lsu.io.ready, true.B)
 }
