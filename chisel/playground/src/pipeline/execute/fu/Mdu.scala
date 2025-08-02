@@ -35,17 +35,29 @@ class Mdu extends Module {
   val stage2_src1 = RegInit(0.U(XLEN.W))
   val stage2_src2 = RegInit(0.U(XLEN.W))
 
+  // 忙状态寄存器 - 用于控制ready信号
+  val busy = RegInit(false.B)
+
   val isMdu = io.info.valid && (io.info.fusel === FuType.mdu)
 
   // 零值检测
   val iszero  = io.src_info.src2_data === 0.U
   val neg1_32 = (-1).S(32.W)
 
-  // 总是准备好接受新指令（流水线特性）
-  io.ready := true.B
+  // ready逻辑修改：只有在空闲状态下才能接受新指令
+  io.ready := !busy
+
+  // 忙状态控制
+  when(isMdu && !busy) {
+    // 新指令进入，设置忙状态
+    busy := true.B
+  }.elsewhen(stage3_valid) {
+    // 第三级输出有效时，清除忙状态
+    busy := false.B
+  }
 
   // 第一级：开始计算
-  when(isMdu) {
+  when(isMdu && !busy) {
     stage1_src1  := io.src_info.src1_data
     stage1_src2  := io.src_info.src2_data
     stage1_op    := io.info.op
@@ -93,7 +105,8 @@ class Mdu extends Module {
         stage1_result := quotient
       }
     }
-  }.otherwise {
+  }.elsewhen(!isMdu && !busy) {
+    // 非MDU指令且不忙时，清除第一级有效信号
     stage1_valid := false.B
   }
 
