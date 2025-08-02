@@ -14,20 +14,17 @@ class Mdu extends Module {
     val ready    = Output(Bool())
   })
 
-  // 3级流水线寄存器
+  // 2级流水线寄存器（第三级变为组合逻辑）
   val stage1_result = RegInit(0.U(64.W))
   val stage2_result = RegInit(0.U(64.W))
-  val stage3_result = Wire(0.U(64.W))
 
   // 操作类型流水线
   val stage1_op = RegInit(0.U(4.W))
   val stage2_op = RegInit(0.U(4.W))
-  val stage3_op = RegInit(0.U(4.W))
 
   // 有效信号流水线
   val stage1_valid = RegInit(false.B)
   val stage2_valid = RegInit(false.B)
-  val stage3_valid = Wire(false.B)
 
   // 源操作数流水线（用于除法余数计算）
   val stage1_src1 = RegInit(0.U(XLEN.W))
@@ -35,7 +32,7 @@ class Mdu extends Module {
   val stage2_src1 = RegInit(0.U(XLEN.W))
   val stage2_src2 = RegInit(0.U(XLEN.W))
 
-  // 忙状态寄存器 - 用于控制ready信号
+  // 忙状态寄存器
   val busy = RegInit(false.B)
 
   val isMdu = io.info.valid && (io.info.fusel === FuType.mdu)
@@ -44,16 +41,48 @@ class Mdu extends Module {
   val iszero  = io.src_info.src2_data === 0.U
   val neg1_32 = (-1).S(32.W)
 
-  // 修正后的ready逻辑：参考LSU的组合逻辑实现
-  // 当前拍有MDU指令且不忙时才能接受，这样在指令到达的当拍就能正确置为false
-  io.ready := !busy && !isMdu
+  // 组合逻辑：第三级输出选择
+  val stage3_result = Wire(UInt(XLEN.W))
+  val stage3_valid  = Wire(Bool())
+
+  stage3_valid  := stage2_valid
+  stage3_result := 0.U // 默认值
+
+  when(stage2_valid) {
+    switch(stage2_op) {
+      is(MDUOpType.mul) {
+        stage3_result := stage2_result(31, 0) // 低32位
+      }
+      is(MDUOpType.mulh) {
+        stage3_result := stage2_result(63, 32) // 高32位，有符号
+      }
+      is(MDUOpType.mulhu) {
+        stage3_result := stage2_result(63, 32) // 高32位，无符号
+      }
+      is(MDUOpType.div) {
+        stage3_result := stage2_result(31, 0)
+      }
+      is(MDUOpType.divu) {
+        stage3_result := stage2_result(31, 0)
+      }
+      is(MDUOpType.rem) {
+        stage3_result := stage2_result(31, 0)
+      }
+      is(MDUOpType.remu) {
+        stage3_result := stage2_result(31, 0)
+      }
+    }
+  }
+
+  // Ready逻辑：当有结果输出时立即变为ready，或者在空闲状态
+  io.ready := !busy || stage3_valid
 
   // 忙状态控制
   when(isMdu && !busy) {
     // 新指令进入，设置忙状态
     busy := true.B
   }.elsewhen(stage3_valid) {
-    // 第三级输出有效时，清除忙状态
+    // 第三级输出有效时，清除忙状态（组合逻辑）
     busy := false.B
   }
 
@@ -135,40 +164,7 @@ class Mdu extends Module {
     }
   }
 
-  // 第三级：最终输出选择
-  stage3_op    := stage2_op
-  stage3_valid := stage2_valid
-
-  when(stage2_valid) {
-    switch(stage2_op) {
-      is(MDUOpType.mul) {
-        stage3_result := stage2_result(31, 0) // 低32位
-      }
-      is(MDUOpType.mulh) {
-        stage3_result := stage2_result(63, 32) // 高32位，有符号
-      }
-      is(MDUOpType.mulhu) {
-        stage3_result := stage2_result(63, 32) // 高32位，无符号
-      }
-      is(MDUOpType.div) {
-        stage3_result := stage2_result(31, 0)
-      }
-      is(MDUOpType.divu) {
-        stage3_result := stage2_result(31, 0)
-      }
-      is(MDUOpType.rem) {
-        stage3_result := stage2_result(31, 0)
-      }
-      is(MDUOpType.remu) {
-        stage3_result := stage2_result(31, 0)
-      }
-    }
-    io.ready  := true.B
-    io.result := stage3_result
-    io.valid  := stage3_valid
-  }.otherwise {
-    stage3_result := 0.U
-  }
-
-  // 输出赋值
+  // 输出赋值（组合逻辑）
+  io.result := stage3_result
+  io.valid  := stage3_valid
 }
