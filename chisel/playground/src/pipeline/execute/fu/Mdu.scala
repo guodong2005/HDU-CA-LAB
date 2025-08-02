@@ -44,8 +44,9 @@ class Mdu extends Module {
   val iszero  = io.src_info.src2_data === 0.U
   val neg1_32 = (-1).S(32.W)
 
-  // ready逻辑修改：只有在空闲状态下才能接受新指令
-  io.ready := !busy
+  // 修正后的ready逻辑：参考LSU的组合逻辑实现
+  // 当前拍有MDU指令且不忙时才能接受，这样在指令到达的当拍就能正确置为false
+  io.ready := !busy && !isMdu
 
   // 忙状态控制
   when(isMdu && !busy) {
