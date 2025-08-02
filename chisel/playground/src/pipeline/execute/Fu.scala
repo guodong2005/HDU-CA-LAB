@@ -36,10 +36,13 @@ class Fu extends Module with HasInstrType {
   // 信息传递
   alu.io.info     := io.data.info
   alu.io.src_info := io.data.src_info
+
   mdu.io.info     := io.data.info
   mdu.io.src_info := io.data.src_info
+
   lsu.io.info     := io.data.info
   lsu.io.src_info := io.data.src_info
+
   bru.io.info     := io.data.info
   bru.io.src_info := io.data.src_info
   bru.io.pc       := io.data.pc
@@ -49,20 +52,18 @@ class Fu extends Module with HasInstrType {
   when(io.data.info.valid) {
     fuselReg := io.data.info
   }
-
   val fusel = Mux(io.data.info.valid, io.data.info.fusel, fuselReg.fusel)
 
   // 有效信号和结果选择
-  val valid =
-    LookupTree(
-      fusel,
-      Seq(
-        FuType.alu -> alu.io.valid,
-        FuType.mdu -> mdu.io.valid,
-        FuType.bru -> bru.io.valid,
-        FuType.lsu -> lsu.io.valid
-      )
+  val valid = LookupTree(
+    fusel,
+    Seq(
+      FuType.alu -> alu.io.valid,
+      FuType.mdu -> mdu.io.valid,
+      FuType.bru -> bru.io.valid,
+      FuType.lsu -> lsu.io.valid
     )
+  )
 
   val result = LookupTree(
     fusel,
@@ -74,10 +75,20 @@ class Fu extends Module with HasInstrType {
     )
   )
 
-  // 输出赋值
+  // Ready信号选择 - 现在MDU和LSU都可能不ready
+  val ready = LookupTree(
+    fusel,
+    Seq(
+      FuType.alu -> true.B, // ALU总是ready
+      FuType.mdu -> mdu.io.ready, // MDU现在有ready信号
+      FuType.bru -> true.B, // BRU总是ready
+      FuType.lsu -> lsu.io.ready // LSU可能不ready
+    )
+  )
 
+  // 输出赋值
   io.data.rd_info.wdata := result
   io.data.diffout       := lsu.io.diffout
   io.data.valid         := Mux(io.data.info.valid, valid, false.B)
-  io.data.ready         := Mux(fusel === FuType.lsu, lsu.io.ready, true.B)
+  io.data.ready         := ready // 简化ready逻辑，统一处理
 }
