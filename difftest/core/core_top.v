@@ -2892,11 +2892,11 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     end
     else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7
       automatic logic        _GEN;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:81:14
-      automatic logic [63:0] _GEN_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:156:69
-      automatic logic [63:0] _GEN_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:161:73
+      automatic logic [63:0] _GEN_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:147:69
+      automatic logic [63:0] _GEN_1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:152:73
       _GEN = isMdu & ~busy;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:36:21, :38:29, :81:{14,17}
-      _GEN_0 = {{32{stage1_src1[31]}}, stage1_src1};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :156:69
-      _GEN_1 = {32'h0, stage1_src1};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :161:73
+      _GEN_0 = {{32{stage1_src1[31]}}, stage1_src1};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :147:69
+      _GEN_1 = {32'h0, stage1_src1};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :152:73
       if (_GEN) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:81:14
         automatic logic [63:0] _GEN_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:99:48
         automatic logic [63:0] _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:99:48
@@ -2911,30 +2911,30 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
         else if (io_info_op == 5'h3)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
           stage1_result <= _GEN_2 * _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :99:48, :105:48
         else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
-          automatic logic        iszero;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:41:39
-          automatic logic [32:0] _GEN_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:118:43
-          automatic logic [32:0] _GEN_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:118:43
-          iszero = io_src_info_src2_data == 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :41:39
-          _GEN_4 = {io_src_info_src1_data[31], io_src_info_src1_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:102:56, :118:43
-          _GEN_5 = {io_src_info_src2_data[31], io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:102:56, :118:43
-          if (io_info_op == 5'h4)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
-            stage1_result <=
-              iszero
-                ? 64'hFFFFFFFFFFFFFFFF
-                : {31'h0,
-                   (&io_src_info_src2_data) & io_src_info_src1_data == 32'h80000000
-                     ? {1'h0, io_src_info_src1_data}
-                     : $signed(_GEN_4) / $signed(_GEN_5)};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :26:29, :41:39, :110:{46,53,65}, :111:{40,44}, :112:29, :115:14, :118:43
-          else if (io_info_op == 5'h5)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
-            stage1_result <=
-              iszero
-                ? 64'hFFFFFFFFFFFFFFFF
-                : {32'h0, io_src_info_src1_data / io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :30:28, :41:39, :112:29, :124:{29,82}
-          else if (io_info_op == 5'h6)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
-            stage1_result <= {31'h0, iszero ? 33'h0 : $signed(_GEN_4) / $signed(_GEN_5)};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :41:39, :112:29, :118:43, :130:{27,71}, :131:23
-          else if (io_info_op == 5'h7)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
-            stage1_result <=
-              {32'h0, iszero ? 32'h0 : io_src_info_src1_data / io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :30:28, :41:39, :134:{27,64}, :135:23
+          automatic logic [32:0] _GEN_4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:111:41
+          automatic logic [32:0] _GEN_5;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:111:41
+          _GEN_4 = {io_src_info_src1_data[31], io_src_info_src1_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:102:56, :111:41
+          _GEN_5 = {io_src_info_src2_data[31], io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:102:56, :111:41
+          if (io_info_op == 5'h4) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
+            automatic logic [32:0] _div_result_T_2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:111:41
+            _div_result_T_2 = $signed(_GEN_4) / $signed(_GEN_5);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:111:41
+            stage1_result <= {32'h0, _div_result_T_2[31:0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :30:28, :111:{41,73,79}, :112:23
+          end
+          else begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
+            automatic logic iszero;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:41:39
+            iszero = io_src_info_src2_data == 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28, :41:39
+            if (io_info_op == 5'h5)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
+              stage1_result <=
+                iszero
+                  ? 64'hFFFFFFFFFFFFFFFF
+                  : {32'h0, io_src_info_src1_data / io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :30:28, :41:39, :115:{29,82}
+            else if (io_info_op == 5'h6)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
+              stage1_result <=
+                {31'h0, iszero ? 33'h0 : $signed(_GEN_4) / $signed(_GEN_5)};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :41:39, :111:41, :121:{27,71}, :122:23
+            else if (io_info_op == 5'h7)	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:96:24
+              stage1_result <=
+                {32'h0, iszero ? 32'h0 : io_src_info_src1_data / io_src_info_src2_data};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:18:30, :30:28, :41:39, :125:{27,64}, :126:23
+          end
         end
         stage1_op <= io_info_op[3:0];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:22:26, :93:18
         stage1_src1 <= io_src_info_src1_data;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:30:28
@@ -2951,9 +2951,9 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
                         ? _GEN_1 - stage1_result * {32'h0, stage1_src2}
                         : _GEN_1)
                    : stage1_result)
-          : stage1_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :18:30, :19:30, :22:26, :26:29, :30:28, :31:28, :144:17, :151:22, :152:23, :154:41, :156:{14,69,92}, :157:23, :161:{32,73,89}, :162:23
+          : stage1_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :18:30, :19:30, :22:26, :26:29, :30:28, :31:28, :135:17, :142:22, :143:23, :145:41, :147:{14,69,92}, :148:23, :152:{32,73,89}, :153:23
       stage2_op <= stage1_op;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:22:26, :23:26
-      stage1_valid <= _GEN | ~(~isMdu & ~busy) & stage1_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:26:29, :36:21, :38:29, :78:15, :81:{14,17}, :90:24, :94:18, :138:{21,31}, :140:18
+      stage1_valid <= _GEN | ~(~isMdu & ~busy) & stage1_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:26:29, :36:21, :38:29, :78:15, :81:{14,17}, :90:24, :94:18, :129:{21,31}, :131:18
       stage2_valid <= stage1_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:26:29, :27:29
       busy <= _GEN | ~stage2_valid & busy;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:27:29, :36:21, :81:{14,24}, :83:10, :84:28, :86:10
     end
