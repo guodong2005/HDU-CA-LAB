@@ -107,17 +107,8 @@ class Mdu extends Module {
 
       // 除法操作
       is(MDUOpType.div) {
-        val overflow = io.src_info.src2_data.asSInt === neg1_32 &&
-          io.src_info.src1_data.asSInt === -(1 << 31).S
-        val div_result = Mux(
-          iszero,
-          (-1).S(64.W).asUInt,
-          Mux(
-            overflow,
-            io.src_info.src1_data.asUInt,
-            (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt).asUInt
-          )
-        )
+        val div_result =
+          (io.src_info.src1_data.asSInt / io.src_info.src2_data.asSInt).asUInt(31, 0)
         stage1_result := div_result
       }
       is(MDUOpType.divu) {
