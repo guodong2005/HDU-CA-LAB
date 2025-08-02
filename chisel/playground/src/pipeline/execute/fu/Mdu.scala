@@ -17,7 +17,7 @@ class Mdu extends Module {
   // 3级流水线寄存器
   val stage1_result = RegInit(0.U(64.W))
   val stage2_result = RegInit(0.U(64.W))
-  val stage3_result = Wire(0.U(XLEN.W))
+  val stage3_result = Wire(0.U(64.W))
 
   // 操作类型流水线
   val stage1_op = RegInit(0.U(4.W))
