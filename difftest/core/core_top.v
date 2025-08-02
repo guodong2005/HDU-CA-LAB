@@ -3272,6 +3272,7 @@ endmodule
 module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7
   input         io_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
   input  [4:0]  io_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
+                io_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
   input  [2:0]  io_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
   input  [31:0] io_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
   output        io_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:9:14
@@ -3282,7 +3283,9 @@ module Bru(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   assign io_result =
     io_info_op == 5'h8
       ? 32'h0
-      : io_info_op == 5'hA ? io_pc + 32'h4 : io_info_op == 5'hB ? io_pc + 32'h4 : 32'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :34:19, :37:17, :41:{17,23}, :46:{17,23}
+      : io_info_op == 5'hA
+          ? io_pc + 32'h4
+          : io_info_op != 5'hB | io_info_reg_waddr == 5'h0 ? 32'h0 : io_pc + 32'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Bru.scala:8:7, :34:19, :37:17, :41:{17,23}, :46:{17,42,59}
 endmodule
 
 module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:10:7
@@ -3291,6 +3294,7 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
   input  [31:0] io_data_pc,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
   input         io_data_info_valid,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
   input  [4:0]  io_data_info_op,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
+                io_data_info_reg_waddr,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
   input  [31:0] io_data_info_imm,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
   input  [2:0]  io_data_info_fusel,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
   input  [31:0] io_data_src_info_src1_data,	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:11:14
@@ -3404,12 +3408,13 @@ module Fu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execut
     .io_dcache_resp_bits_rdata        (io_dcache_resp_bits_rdata)
   );
   Bru bru (	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/Fu.scala:31:19
-    .io_info_valid (io_data_info_valid),
-    .io_info_op    (io_data_info_op),
-    .io_info_fusel (io_data_info_fusel),
-    .io_pc         (io_data_pc),
-    .io_valid      (_bru_io_valid),
-    .io_result     (_bru_io_result)
+    .io_info_valid     (io_data_info_valid),
+    .io_info_op        (io_data_info_op),
+    .io_info_reg_waddr (io_data_info_reg_waddr),
+    .io_info_fusel     (io_data_info_fusel),
+    .io_pc             (io_data_pc),
+    .io_valid          (_bru_io_valid),
+    .io_result         (_bru_io_result)
   );
   assign io_data_rd_info_wdata =
     (_result_T ? _alu_io_result : 32'h0) | (_result_T_1 ? _mdu_io_result : 32'h0)
@@ -3467,6 +3472,7 @@ module ExecuteUnit(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeli
     .io_data_pc                            (io_executeStage_data_pc),
     .io_data_info_valid                    (io_executeStage_data_info_valid),
     .io_data_info_op                       (io_executeStage_data_info_op),
+    .io_data_info_reg_waddr                (io_executeStage_data_info_reg_waddr),
     .io_data_info_imm                      (io_executeStage_data_info_imm),
     .io_data_info_fusel                    (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data            (io_executeStage_data_src_info_src1_data),

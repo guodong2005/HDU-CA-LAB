@@ -140,10 +140,10 @@ class Lsu extends Module {
         val res = LookupTree(
           loadOpReg,
           Seq(
-            LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
-            LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(7, 0), XLEN),
-            LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
-            LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(15, 0), XLEN),
+            LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(31, 24), XLEN),
+            LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(31, 24), XLEN),
+            LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(31, 16), XLEN),
+            LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(31, 16), XLEN),
             LSUOpType.lw  -> io.dcache.resp.bits.rdata
           )
         )
