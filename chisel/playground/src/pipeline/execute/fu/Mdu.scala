@@ -17,7 +17,7 @@ class Mdu extends Module {
   // 3级流水线寄存器
   val stage1_result = RegInit(0.U(64.W))
   val stage2_result = RegInit(0.U(64.W))
-  val stage3_result = RegInit(0.U(XLEN.W))
+  val stage3_result = Wire(0.U(XLEN.W))
 
   // 操作类型流水线
   val stage1_op = RegInit(0.U(4.W))
@@ -27,7 +27,7 @@ class Mdu extends Module {
   // 有效信号流水线
   val stage1_valid = RegInit(false.B)
   val stage2_valid = RegInit(false.B)
-  val stage3_valid = RegInit(false.B)
+  val stage3_valid = Wire(false.B)
 
   // 源操作数流水线（用于除法余数计算）
   val stage1_src1 = RegInit(0.U(XLEN.W))
@@ -163,12 +163,12 @@ class Mdu extends Module {
         stage3_result := stage2_result(31, 0)
       }
     }
-    io.ready := true.B
+    io.ready  := true.B
+    io.result := stage3_result
+    io.valid  := stage3_valid
   }.otherwise {
     stage3_result := 0.U
   }
 
   // 输出赋值
-  io.result := stage3_result
-  io.valid  := stage3_valid
 }

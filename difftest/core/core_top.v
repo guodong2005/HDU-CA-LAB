@@ -3013,7 +3013,7 @@ module Mdu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
   `endif // ENABLE_INITIAL_REG_
   assign io_result = stage3_result;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :20:30
   assign io_valid = stage3_valid;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :30:29
-  assign io_ready = ~busy & ~isMdu;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :39:21, :41:29, :49:{15,21,24}
+  assign io_ready = stage2_valid | ~busy & ~isMdu;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Mdu.scala:8:7, :29:29, :39:21, :41:29, :49:{12,15,21,24}, :142:22, :166:14
 endmodule
 
 module WriteBuffer(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/cache/WriteBuffer.scala:12:7
