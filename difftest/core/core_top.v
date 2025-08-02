@@ -3230,13 +3230,13 @@ module Lsu(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execu
     _GEN_8 | ~_GEN_7
       ? 32'h0
       : (loadOpReg == 4'h0
-           ? {{24{io_dcache_resp_bits_rdata[7]}}, io_dcache_resp_bits_rdata[7:0]}
+           ? {{24{io_dcache_resp_bits_rdata[31]}}, io_dcache_resp_bits_rdata[31:24]}
            : 32'h0)
-        | (loadOpReg == 4'h4 ? {24'h0, io_dcache_resp_bits_rdata[7:0]} : 32'h0)
+        | (loadOpReg == 4'h4 ? {24'h0, io_dcache_resp_bits_rdata[31:24]} : 32'h0)
         | (loadOpReg == 4'h1
-             ? {{16{io_dcache_resp_bits_rdata[15]}}, io_dcache_resp_bits_rdata[15:0]}
+             ? {{16{io_dcache_resp_bits_rdata[31]}}, io_dcache_resp_bits_rdata[31:16]}
              : 32'h0)
-        | (loadOpReg == 4'h5 ? {16'h0, io_dcache_resp_bits_rdata[15:0]} : 32'h0)
+        | (loadOpReg == 4'h5 ? {16'h0, io_dcache_resp_bits_rdata[31:16]} : 32'h0)
         | (loadOpReg == 4'h2 ? io_dcache_resp_bits_rdata : 32'h0);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/defines/Util.scala:9:20, :10:{44,49}, :17:44, :22:34, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :89:24, :91:39, :96:12, :105:23, :107:17, :139:34, :143:68, :145:68, :150:19, src/main/scala/chisel3/util/Mux.scala:30:73, :126:16
   assign io_ready = _GEN_9 | ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu);	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :36:82, :38:58, :40:27, :44:29, :96:{12,23,34,47,62,65}, :107:17
   assign io_valid = io_valid_0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/execute/fu/Lsu.scala:21:7, :88:24, :107:17

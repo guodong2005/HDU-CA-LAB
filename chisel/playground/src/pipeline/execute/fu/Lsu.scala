@@ -5,7 +5,7 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
-/** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is “don’t care.” */
+/** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is "don't care." */
 class DCacheReq extends Bundle {
   val addr  = UInt(XLEN.W)
   val write = Bool() // false: load; true: store
@@ -18,6 +18,7 @@ class DCacheReq extends Bundle {
 class DCacheResp extends Bundle {
   val rdata = UInt(XLEN.W)
 }
+
 class Lsu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
@@ -48,32 +49,45 @@ class Lsu extends Module {
   writeBuffer.io.bypassAddr := effectiveAddr
 
   val addr_low2 = effectiveAddr(1, 0)
-  val size = MuxCase(
-    2.U(2.W),
+
+  // 改进的size计算，模仿第一份代码的逻辑
+  val size = LookupTree(
+    io.info.op,
     Seq(
-      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lb)) -> 0.U(2.W),
-      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lh)) -> 1.U(2.W),
-      (!LSUOpType.isStore(io.info.op) && (io.info.op === LSUOpType.lw)) -> 2.U(2.W)
+      LSUOpType.lb  -> 0.U(2.W),
+      LSUOpType.lbu -> 0.U(2.W),
+      LSUOpType.lh  -> 1.U(2.W),
+      LSUOpType.lhu -> 1.U(2.W),
+      LSUOpType.lw  -> 2.U(2.W),
+      LSUOpType.sb  -> 0.U(2.W),
+      LSUOpType.sh  -> 1.U(2.W),
+      LSUOpType.sw  -> 2.U(2.W)
     )
   )
 
-// Generate write strobe (`strb`) based on the operation and address alignment
+  // 改进的写掩码生成，模仿第一份代码的逻辑
   val strb = MuxCase(
     0.U(4.W),
     Seq(
-      (io.info.op === LSUOpType.sb) -> (1.U(4.W) << addr_low2), // Byte write
-      (io.info.op === LSUOpType.sh) -> (3.U(4.W) << addr_low2), // Half-word write (2 bytes)
-      (io.info.op === LSUOpType.sw) -> 15.U(4.W) // Full-word write (4 bytes, all bits set)
+      (io.info.op === LSUOpType.sb && addr_low2 === "b00".U(2.W))   -> "b0001".U(4.W),
+      (io.info.op === LSUOpType.sb && addr_low2 === "b01".U(2.W))   -> "b0010".U(4.W),
+      (io.info.op === LSUOpType.sb && addr_low2 === "b10".U(2.W))   -> "b0100".U(4.W),
+      (io.info.op === LSUOpType.sb && addr_low2 === "b11".U(2.W))   -> "b1000".U(4.W),
+      (io.info.op === LSUOpType.sh && addr_low2(0) === "b0".U(1.W)) -> "b0011".U(4.W),
+      (io.info.op === LSUOpType.sh && addr_low2(0) === "b1".U(1.W)) -> "b1100".U(4.W),
+      (io.info.op === LSUOpType.sw)                                 -> "b1111".U(4.W)
     )
   )
 
   val storeAddr = effectiveAddr(31, 2) << 2
+
+  // 改进的写数据生成，模仿第一份代码的逻辑
   val storeWdata = LookupTree(
     io.info.op,
     Seq(
       LSUOpType.sb -> Fill(4, io.src_info.src2_data(7, 0)),
       LSUOpType.sh -> Fill(2, io.src_info.src2_data(15, 0)),
-      LSUOpType.sw -> io.src_info.src2_data(31, 0)
+      LSUOpType.sw -> io.src_info.src2_data
     )
   )
 
@@ -103,6 +117,30 @@ class Lsu extends Module {
   val drainReq   = writeBuffer.io.deq
   val loadReqReg = Reg(new DCacheReq)
   val loadOpReg  = Reg(UInt(4.W))
+
+  // 改进的load数据处理函数，模仿第一份代码的逻辑
+  def gen_load_data(data: UInt, mem_addr: UInt, op: UInt): UInt = {
+    val addr_low2 = mem_addr(1, 0)
+
+    // 根据地址低2位选择正确的字节
+    val byte_data = (0 until 4).map(i => Mux(addr_low2 === i.U(2.W), data(i * 8 + 7, i * 8), 0.U(8.W))).reduce(_ | _)
+
+    // 根据地址低1位选择正确的半字
+    val half_data =
+      (0 until 2).map(i => Mux(addr_low2(1) === i.U(1.W), data(i * 16 + 15, i * 16), 0.U(16.W))).reduce(_ | _)
+
+    val final_data = LookupTree(
+      op,
+      Seq(
+        LSUOpType.lb  -> Cat(Fill(24, byte_data(7)), byte_data),
+        LSUOpType.lbu -> Cat(Fill(24, 0.U(1.W)), byte_data),
+        LSUOpType.lh  -> Cat(Fill(16, half_data(15)), half_data),
+        LSUOpType.lhu -> Cat(Fill(16, 0.U(1.W)), half_data),
+        LSUOpType.lw  -> data
+      )
+    )
+    final_data
+  }
 
   switch(state) {
     is(sIdle) {
@@ -137,16 +175,8 @@ class Lsu extends Module {
 
     is(sWaitResp) {
       when(io.dcache.resp.valid) {
-        val res = LookupTree(
-          loadOpReg,
-          Seq(
-            LSUOpType.lb  -> SignedExtend(io.dcache.resp.bits.rdata(31, 24), XLEN),
-            LSUOpType.lbu -> ZeroExtend(io.dcache.resp.bits.rdata(31, 24), XLEN),
-            LSUOpType.lh  -> SignedExtend(io.dcache.resp.bits.rdata(31, 16), XLEN),
-            LSUOpType.lhu -> ZeroExtend(io.dcache.resp.bits.rdata(31, 16), XLEN),
-            LSUOpType.lw  -> io.dcache.resp.bits.rdata
-          )
-        )
+        // 使用改进的load数据处理函数
+        val res = gen_load_data(io.dcache.resp.bits.rdata, loadReqReg.addr, loadOpReg)
         io.ready  := true.B
         io.result := res
         io.valid  := true.B
@@ -154,6 +184,7 @@ class Lsu extends Module {
       }
     }
   }
+
   io.diffout                       := DontCare
   io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
   io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
@@ -162,5 +193,4 @@ class Lsu extends Module {
   io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
   io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
   io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
-
 }
