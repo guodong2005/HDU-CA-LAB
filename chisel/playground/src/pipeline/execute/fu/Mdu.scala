@@ -163,6 +163,7 @@ class Mdu extends Module {
         stage3_result := stage2_result(31, 0)
       }
     }
+    io.ready := true.B
   }.otherwise {
     stage3_result := 0.U
   }
