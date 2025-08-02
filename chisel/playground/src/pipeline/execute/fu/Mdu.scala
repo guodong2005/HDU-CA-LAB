@@ -75,7 +75,7 @@ class Mdu extends Module {
   }
 
   // Ready逻辑：当有结果输出时立即变为ready，或者在空闲状态
-  io.ready := !busy || stage3_valid
+  io.ready := !isMdu || stage3_valid
 
   // 忙状态控制
   when(isMdu && !busy) {
