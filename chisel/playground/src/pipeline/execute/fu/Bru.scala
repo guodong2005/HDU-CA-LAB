@@ -43,7 +43,8 @@ class Bru extends Module {
 
     // JALR (Jump and Link Register)
     is(BRUOpType.jirl) {
-      io.result := pc + 4.U // Return address (PC + 4)
+      io.result := Mux(io.info.reg_waddr === 0.U, 0.U, pc + 4.U)
+
     }
 
     // BEQ (Branch if Equal)
