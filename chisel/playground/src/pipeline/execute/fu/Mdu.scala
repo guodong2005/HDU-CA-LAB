@@ -109,7 +109,8 @@ class Mdu extends Module {
     switch(stage1_op) {
       is(MDUOpType.rem) {
         val iszero_stage1 = stage1_src2 === 0.U
-        val remainder     = Mux(iszero_stage1, stage1_src1, stage1_src1.asSInt - stage1_result.asSInt * stage1_src2.asSInt)
+        val remainder =
+          Mux(iszero_stage1, stage1_src1.asSInt, stage1_src1.asSInt - stage1_result.asSInt * stage1_src2.asSInt)
         stage2_result := remainder.asUInt
       }
       is(MDUOpType.remu) {
