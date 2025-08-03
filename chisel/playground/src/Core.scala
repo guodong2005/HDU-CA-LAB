@@ -11,17 +11,17 @@ import dataclass.data
 class Core extends Module {
   val io = IO(new Bundle {
     // val interrupt = Input(new ExtInterrupt())
-    val interrupt = Input(UInt(8.W))
-    val axi       = new AXI()
-    val debug     = new DEBUG()
-    val dataSram  = new DataSram()
-    val diff      = new DiffOut()
+    val base_ram_ctrl = new SramCtrlIO
+    val ext_ram_ctrl  = new SramCtrlIO
+    val rxd           = new RxDIO
+    val txd           = new TxDIO
+    val diff          = new DiffOut()
   })
 
-  val icache = Module(new ICache())
+  val iocontrol = Module(new IoControl());
+  val icache    = Module(new ICache())
   icache.io.icache_debug := DontCare
   val dcache         = Module(new DCache)
-  val axibridge      = Module(new Axibridge())
   val fetchUnit      = Module(new FetchUnit())
   val decodeStage    = Module(new DecodeStage())
   val decodeUnit     = Module(new DecodeUnit())
@@ -37,23 +37,34 @@ class Core extends Module {
 
   // 取指单元
   dontTouch(fetchUnit.io)
-  dontTouch(axibridge.io)
   dontTouch(icache.io)
-  axibridge.io.axi <> io.axi
-  axibridge.io.icacheInput              := DontCare
-  axibridge.io.icacheInput.ar.bits.id   := 0.U // AXI ID for icache
-  axibridge.io.icacheInput.ar.bits.size := ICACHE_OFFSET_WIDTH.U
-  axibridge.io.icacheInput.ar.valid     := icache.io.io_read_req.valid
-  axibridge.io.icacheInput.ar.bits.addr := icache.io.io_read_req.bits.addr
-  icache.io.io_read_req.ready           := axibridge.io.icacheInput.ar.ready
 
   controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.memoryResult    := memoryUnit.io.result // MEM只是数据传递，实际上就是EX结果
   controlUnit.io.writeBackResult := writeBackUnit.io.result
+  // ============================================================================
+  // IoControl 外部接口连接
+  // ============================================================================
 
-  axibridge.io.icacheInput.r.ready := true.B
-  axibridge.io.read_resp <> icache.io.io_read_resp
-  dcache.io.axi <> axibridge.io.dcacheInput
+  // 连接SRAM控制信号
+  io.base_ram_ctrl <> iocontrol.io.base_ram_ctrl
+  io.ext_ram_ctrl <> iocontrol.io.ext_ram_ctrl
+
+  // 连接UART信号
+  io.rxd <> iocontrol.io.rxd
+  io.txd <> iocontrol.io.txd
+
+  iocontrol.io.dcache_read_req <> dcache.io.io_read_req
+  iocontrol.io.dcache_read_resp <> dcache.io.io_read_resp
+  iocontrol.io.dcache_write_req <> dcache.io.io_write_req
+
+  // ============================================================================
+  // ICache 连接 (去掉AXI，直接连接IoControl)
+  // ============================================================================
+
+  // ICache 与 IoControl 的连接
+  iocontrol.io.icache_read_req <> icache.io.io_read_req
+  iocontrol.io.icache_read_resp <> icache.io.io_read_resp
 
   fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
@@ -80,8 +91,6 @@ class Core extends Module {
   executeUnit.io.executeStage <> executeStage.io.executeUnit
   executeStage.io.ready := executeUnit.io.ready
 
-  io.dataSram := DontCare
-
   executeUnit.io.memoryStage <> memoryStage.io.executeUnit
   executeUnit.io.dcache.req <> dcache.io.req
   executeUnit.io.dcache.resp <> dcache.io.resp
@@ -90,7 +99,6 @@ class Core extends Module {
 
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
   writeBackUnit.io.regfile <> regfile.io.write
-  writeBackUnit.io.debug <> io.debug
 
   controlUnit.io.decodeInfo    := decodeUnit.io.executeStage.data.info
   controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info

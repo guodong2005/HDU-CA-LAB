@@ -5,32 +5,57 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
-/**
-  * ICache module rewritten with an AXI‑protocol style interface for the fetch unit.
-  *
-  * The fetch interface now follows an AXI‑like handshake:
-  *   - fetch_req: { valid (input), addr (input), ready (output) }
-  *   - fetch_rsp: { valid (output), data (output), addr (output) }
-  *
-  * Internally the module implements a simple two‐state FSM: • sIdle: ICache is idle and fetch_req.ready is high. If fetch_req.valid is high then the module drives an AR transaction on the AXI bus. • sWait: ICache awaits the read data from the AXI slave. During this state fetch_req.ready is false.
-  *
-  * When the AR handshake completes (i.e. the slave asserts axi.ar.ready), the ICache latches the request address and enters sWait. Once the read data arrives (axi.r.valid), the fetch response is produced and the FSM returns to idle.
-  */
-class InstPacket extends Bundle {
-  val data = Vec(FETCH_WIDTH, UInt(XLEN.W))
-  val addr = UInt(XLEN.W)
-}
+import chisel3._
+import chisel3.util._
+
+// ============================================================================
+// Bundle Definitions
+// ============================================================================
 
 class ICacheReq extends Bundle {
   val addr = UInt(32.W)
 }
+
 class ICacheResp extends Bundle {
   val data = UInt((FETCH_WIDTH * 32).W)
 }
+
+class InstPacket extends Bundle {
+  val data = UInt((FETCH_WIDTH * 32).W)
+  val addr = UInt(32.W)
+}
+
+class DCacheReq extends Bundle {
+  val addr  = UInt(32.W)
+  val write = Bool()
+  val wdata = UInt(32.W)
+  val wstrb = UInt(4.W)
+  val size  = UInt(3.W)
+}
+
+class DCacheReadReq extends Bundle {
+  val addr = UInt(32.W)
+}
+
+class DCacheWriteReq extends Bundle {
+  val addr      = UInt(32.W)
+  val data      = UInt(32.W)
+  val byte_mask = UInt(4.W)
+}
+
+class DCacheResp extends Bundle {
+  val data = UInt(32.W)
+}
+
+// ============================================================================
+// ICache Module (Simplified)
+// ============================================================================
+
 class DecoupledICacheReq extends Bundle {
   val valid = Bool()
   val bits  = new ICacheReq()
 }
+
 class ICacheDebugIO extends Bundle {
   val state          = Output(Bool())
   val hit_cache      = Output(Bool())
@@ -52,7 +77,6 @@ class ICache extends Module {
 
   val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
   val state                                    = RegInit(sIDLE)
-  val req_valid_hold                           = RegInit(false.B)
 
   val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
@@ -69,17 +93,15 @@ class ICache extends Module {
   val cache_read_tag  = cache_tag.read(index)
   val cache_read_data = VecInit(cache_data.map(_.read(index)))
 
-  val hit_cache =
-    cache_read_tag === tag &&
-      cache_valid(index) &&
-      RegNext(current_req_bits.addr) === current_req_bits.addr
+  val hit_cache = cache_read_tag === tag && cache_valid(index) &&
+    RegNext(current_req_bits.addr) === current_req_bits.addr
 
   val cache_we         = WireInit(false.B)
   val cache_valid_we   = WireInit(false.B)
   val cache_write_tag  = tag
   val cache_write_data = read_data
 
-  // 默认信号赋值
+  // Default assignments
   io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
@@ -89,7 +111,7 @@ class ICache extends Module {
   io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
 
-  // 请求寄存器控制逻辑
+  // Request register control
   when(io.icache_req.valid && !saved_req.valid) {
     saved_req.valid := true.B
     saved_req.bits  := io.icache_req.bits
@@ -104,7 +126,7 @@ class ICache extends Module {
     io.icache_req.ready := false.B
   }
 
-  // 状态机逻辑
+  // State machine
   switch(state) {
     is(sIDLE) {
       when(current_req_valid) {
@@ -115,13 +137,12 @@ class ICache extends Module {
     is(sCHECK_HIT) {
       when(hit_cache) {
         io.icache_resp.valid     := true.B
-        io.icache_resp.bits.data := cache_read_data
+        io.icache_resp.bits.data := cache_read_data.asUInt
         state                    := sIDLE
       }.otherwise {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
-          req_valid_hold := true.B
-          state          := sWAIT_RESP
+          state := sWAIT_RESP
         }
       }
     }
@@ -129,12 +150,11 @@ class ICache extends Module {
     is(sWAIT_RESP) {
       when(io.io_read_resp.valid) {
         io.icache_resp.valid     := true.B
-        io.icache_resp.bits.data := read_data
+        io.icache_resp.bits.data := read_data.asUInt
         io.icache_resp.bits.addr := current_req_bits.addr
 
         cache_we       := true.B
         cache_valid_we := true.B
-        req_valid_hold := false.B
         state          := sIDLE
       }
     }
@@ -149,7 +169,7 @@ class ICache extends Module {
     cache_valid(index) := true.B
   }
 
-  // 🐞 debug
+  // Debug
   dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
   io.icache_debug.hit_cache      := hit_cache
@@ -158,166 +178,97 @@ class ICache extends Module {
   io.icache_debug.icache_req     := saved_req
 }
 
+// ============================================================================
+// DCache Module (Simplified)
+// ============================================================================
+
+class DCacheIO extends Bundle {
+  // CPU-side interface
+  val req  = Flipped(Decoupled(new DCacheReq))
+  val resp = Decoupled(new DCacheResp)
+
+  // IoControl interface
+  val io_read_req  = Decoupled(new DCacheReadReq)
+  val io_read_resp = Flipped(Decoupled(new DCacheResp))
+  val io_write_req = Decoupled(new DCacheWriteReq)
+}
+
 class DCache extends Module {
-  val io = IO(new Bundle {
-    // CPU–side interface.
-    val req  = Flipped(Decoupled(new DCacheReq))
-    val resp = Decoupled(new DCacheResp)
+  val io = IO(new DCacheIO)
 
-    // AXI interface – acting as master.
-    val axi = new AXI()
-  })
+  val sIdle :: sReadReq :: sReadWait :: sWriteReq :: sWriteWait :: Nil = Enum(5)
+  val state                                                            = RegInit(sIdle)
 
-  io.axi            := DontCare
-  io.axi.ar.valid   := false.B
-  io.axi.ar.bits.id := 1.U
-
-  io.axi.aw.valid   := false.B
-  io.axi.aw.bits.id := 1.U
-
-  io.axi.w.valid   := false.B
-  io.axi.w.bits.id := 1.U
-
-  io.axi.r.ready := true.B
-  io.axi.b.ready := true.B
-
-  val sIdle :: sReadReq :: sReadWait :: sWrite :: sWriteResp :: Nil = Enum(5)
-  val state                                                         = RegInit(sIdle)
-
-  // Latch the incoming CPU request.
+  // Latch the incoming CPU request
   val reqReg    = Reg(new DCacheReq)
   val reqStored = RegInit(false.B)
+
   when(io.req.valid && !reqStored) {
     reqStored := true.B
     reqReg    := io.req.bits
   }
 
-  val req = Wire(Decoupled(new DCacheReq))
+  val current_req = Wire(new DCacheReq)
+  current_req := Mux(reqStored, reqReg, io.req.bits)
+  val current_valid = Mux(reqStored, reqStored, io.req.valid)
 
-  req.valid := Mux(reqStored, reqStored, io.req.valid)
-  req.bits  := Mux(reqStored, reqReg, io.req.bits)
-  req.ready := DontCare
-  // The CPU request interface is ready when idle.
-  io.req.ready := (state === sIdle)
+  // Default assignments
+  io.req.ready      := (state === sIdle && !reqStored)
+  io.resp.valid     := false.B
+  io.resp.bits.data := 0.U
 
-  // Default CPU response assignments.
-  io.resp.valid       := false.B
-  io.resp.bits.rdata  := 0.U
-  io.axi.ar.bits.size := req.bits.size
+  io.io_read_req.valid     := false.B
+  io.io_read_req.bits.addr := current_req.addr
+  io.io_read_resp.ready    := true.B
 
-  // ------------------------------------------------------------
-  // Write Sub-FSM (active only in global state sWrite).
-  // ------------------------------------------------------------
-  // Enumerate the sub-states:
-  //   wIdle:      Neither AW nor W handshake has occurred.
-  //   wAWDone:    AW handshake has completed; waiting for W handshake.
-  //   wWDone:     W handshake has completed; waiting for AW handshake.
-  //   wComplete:  Both AW and W handshakes have completed.
-  val wIdle :: wAWDone :: wWDone :: wComplete :: Nil = Enum(4)
-  val writeSubState                                  = RegInit(wIdle)
+  io.io_write_req.valid          := false.B
+  io.io_write_req.bits.addr      := current_req.addr
+  io.io_write_req.bits.data      := current_req.wdata
+  io.io_write_req.bits.byte_mask := current_req.wstrb
 
-  // ------------------------------------------------------------
-  // Global FSM Implementation
-  // ------------------------------------------------------------
-  io.axi.aw.bits.addr := req.bits.addr
-  io.axi.aw.bits.size := 2.U
-  io.axi.aw.bits.id   := 0.U
-
-  // Set up W channel signals.
-  io.axi.w.bits.data  := req.bits.wdata
-  io.axi.w.bits.strb  := req.bits.wstrb // For a full 32-bit write.
-  io.axi.ar.bits.addr := req.bits.addr
-
-  io.axi.b.ready := false.B // write response may be very fast
   switch(state) {
     is(sIdle) {
-      // When a CPU request arrives, latch it.
-      when(io.req.valid) {
-        when(io.req.bits.write) {
-          state         := sWrite // Begin a write transaction.
-          writeSubState := wIdle // Initialize the write sub-FSM.
+      when(current_valid) {
+        when(current_req.write) {
+          state := sWriteReq
         }.otherwise {
-          state := sReadReq // Begin a read transaction.
+          state := sReadReq
         }
       }
     }
+
     is(sReadReq) {
-      // Issue the AXI AR transaction (read address).
-      io.axi.ar.valid := true.B
-      when(io.axi.ar.ready) {
+      io.io_read_req.valid := true.B
+      when(io.io_read_req.ready) {
         state := sReadWait
       }
     }
+
     is(sReadWait) {
-      // Wait for the AXI R channel to return the read data.
-      when(io.axi.r.valid) {
-        io.resp.valid      := true.B
-        io.resp.bits.rdata := io.axi.r.bits.data
+      when(io.io_read_resp.valid) {
+        io.resp.valid     := true.B
+        io.resp.bits.data := io.io_read_resp.bits.data
         when(io.resp.ready) {
           reqStored := false.B
           state     := sIdle
         }
       }
     }
-    is(sWrite) {
-      // In the write state, a sub-FSM manages the handshakes on both AW and W channels.
-      // Set up AW channel signals.
 
-      // Sub-FSM implementation:
-      switch(writeSubState) {
-        is(wIdle) {
-          // In this state, drive valid on both AW and W channels.
-          io.axi.aw.valid := true.B
-          io.axi.w.valid  := true.B
-          when(io.axi.aw.ready && io.axi.w.ready) {
-            // Both handshakes succeed in the same cycle.
-            writeSubState := wComplete
-          }.elsewhen(io.axi.aw.ready && !io.axi.w.ready) {
-            // AW handshake occurs first; wait for W handshake.
-            writeSubState := wAWDone
-          }.elsewhen(!io.axi.aw.ready && io.axi.w.ready) {
-            // W handshake occurs first; wait for AW handshake.
-            writeSubState := wWDone
-          }
-        }
-        is(wAWDone) {
-          // AW handshake is done. Stop driving AW while continuing to drive W.
-          io.axi.aw.valid := false.B
-          io.axi.w.valid  := true.B
-          when(io.axi.w.ready) {
-            writeSubState := wComplete
-          }
-        }
-        is(wWDone) {
-          // W handshake is done. Stop driving W while continuing to drive AW.
-          io.axi.aw.valid := true.B
-          io.axi.w.valid  := false.B
-          when(io.axi.aw.ready) {
-            writeSubState := wComplete
-          }
-        }
-        is(wComplete) {
-          // Both handshakes are complete: deassert valid signals.
-          io.axi.aw.valid := false.B
-          io.axi.w.valid  := false.B
-          // Transition the global FSM to wait for the write response (B channel).
-          state := sWriteResp
-          // Reset sub-FSM for future write transactions.
-          writeSubState  := wIdle
-          io.axi.b.ready := true.B
-        }
+    is(sWriteReq) {
+      io.io_write_req.valid := true.B
+      when(io.io_write_req.ready) {
+        state := sWriteWait
       }
     }
-    is(sWriteResp) {
-      // Wait for the write response on the AXI B channel.
-      when(io.axi.b.valid) {
-        io.resp.valid      := true.B
-        io.resp.bits.rdata := 0.U // For store operations, a dummy data response.
-        when(io.resp.ready) {
-          reqStored      := false.B
-          state          := sIdle
-          io.axi.b.ready := false.B // Acknowledge the write response.
-        }
+
+    is(sWriteWait) {
+      // For write operations, we can immediately respond once IoControl accepts
+      io.resp.valid     := true.B
+      io.resp.bits.data := 0.U // Dummy data for write response
+      when(io.resp.ready) {
+        reqStored := false.B
+        state     := sIdle
       }
     }
   }

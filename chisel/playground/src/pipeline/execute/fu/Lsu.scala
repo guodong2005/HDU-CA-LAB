@@ -6,18 +6,6 @@ import cpu.defines._
 import cpu.defines.Const._
 
 /** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is "don't care." */
-class DCacheReq extends Bundle {
-  val addr  = UInt(XLEN.W)
-  val write = Bool() // false: load; true: store
-  val wdata = UInt(XLEN.W) // valid only if write is true
-  val wstrb = UInt(4.W) // byte write mask
-  val size  = UInt(2.W) // 0: byte, 1: half-word, 2: word
-}
-
-/** CPU–side response for a memory access. For a load, rdata holds the loaded word. For a store, a dummy value (here 0) is returned. */
-class DCacheResp extends Bundle {
-  val rdata = UInt(XLEN.W)
-}
 
 class Lsu extends Module {
   val io = IO(new Bundle {
@@ -40,7 +28,7 @@ class Lsu extends Module {
 
   val writeBuffer = Module(new WriteBuffer(depth = 4))
   writeBuffer.io.flush        := false.B
-  writeBuffer.io.bypassEnable := true.B
+  writeBuffer.io.bypassEnable := false.B
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
@@ -176,7 +164,7 @@ class Lsu extends Module {
     is(sWaitResp) {
       when(io.dcache.resp.valid) {
         // 使用改进的load数据处理函数
-        val res = gen_load_data(io.dcache.resp.bits.rdata, loadReqReg.addr, loadOpReg)
+        val res = gen_load_data(io.dcache.resp.bits.data, loadReqReg.addr, loadOpReg)
         io.ready  := true.B
         io.result := res
         io.valid  := true.B
