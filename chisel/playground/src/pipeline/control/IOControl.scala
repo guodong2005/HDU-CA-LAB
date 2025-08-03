@@ -37,6 +37,8 @@ class IoControlDebugIO extends Bundle {
   val icache_read_addr  = Output(UInt(20.W))
   val dcache_read_addr  = Output(UInt(20.W))
   val dcache_write_addr = Output(UInt(20.W))
+  val unified_state     = Output(UInt(4.W))
+  val delay_counter     = Output(UInt(8.W))
 }
 
 class RxDIO extends Bundle {
@@ -85,16 +87,34 @@ class IoControl extends Module {
 
   val io = IO(new IoControlIO)
 
+  // SRAM_DELAY parameter (you can adjust this)
+  val SRAM_DELAY = 2
+
+  // 统一状态机
+  val sIdle :: sSetup :: sWait :: sCapture :: sDone :: Nil = Enum(5)
+  val state                                                = RegInit(sIdle)
+
+  // 延迟计数器
+  val delay_counter = RegInit(0.U(8.W))
+
+  // 请求类型
+  val reqNone :: reqIRead :: reqDRead :: reqDWrite :: Nil = Enum(4)
+  val current_req                                         = RegInit(reqNone)
+
+  // 当前操作的RAM
+  val ramNone :: ramBase :: ramExt :: Nil = Enum(3)
+  val current_ram                         = RegInit(ramNone)
+
   // SRAM控制寄存器
   val base_ram_addr_r = RegInit(0.U(20.W))
-  val base_ram_be_n_r = RegInit(0.U(4.W))
+  val base_ram_be_n_r = RegInit("hF".U(4.W))
   val base_ram_ce_n_r = RegInit(true.B)
   val base_ram_oe_n_r = RegInit(true.B)
   val base_ram_we_n_r = RegInit(true.B)
   val base_ram_data_r = RegInit(0.U(32.W))
 
   val ext_ram_addr_r = RegInit(0.U(20.W))
-  val ext_ram_be_n_r = RegInit(0.U(4.W))
+  val ext_ram_be_n_r = RegInit("hF".U(4.W))
   val ext_ram_ce_n_r = RegInit(true.B)
   val ext_ram_oe_n_r = RegInit(true.B)
   val ext_ram_we_n_r = RegInit(true.B)
@@ -113,37 +133,31 @@ class IoControl extends Module {
   io.ext_ram_ctrl.ctrl.oe_n := ext_ram_oe_n_r
   io.ext_ram_ctrl.ctrl.we_n := ext_ram_we_n_r
 
-  // 三态门控制：只有写使能时才驱动数据线
+  // 三态门控制
   io.base_ram_ctrl.data.data_out := base_ram_data_r
   io.base_ram_ctrl.data.data_en  := !base_ram_we_n_r
 
   io.ext_ram_ctrl.data.data_out := ext_ram_data_r
   io.ext_ram_ctrl.data.data_en  := !ext_ram_we_n_r
 
-  // 状态机定义（使用独热码）
-  val STAGE_WD = 12
-  val stage_i  = RegInit(1.U(STAGE_WD.W))
-  val stage_d  = RegInit(1.U(STAGE_WD.W))
+  // 请求缓存
+  val icache_addr_r   = Reg(UInt(32.W))
+  val dcache_addr_r   = Reg(UInt(32.W))
+  val dcache_data_r   = Reg(UInt(32.W))
+  val dcache_wstrb_r  = Reg(UInt(4.W))
+  val dcache_is_write = RegInit(false.B)
 
-  // 请求寄存器
-  val ird_req_r = RegInit(false.B)
-  val drd_req_r = RegInit(false.B)
-  val dwr_req_r = RegInit(false.B)
-
-  val ird_addr_r  = Reg(UInt(32.W))
-  val drd_addr_r  = Reg(UInt(32.W))
-  val dwr_addr_r  = Reg(UInt(32.W))
-  val dwr_data_r  = Reg(UInt(32.W))
-  val dwr_wstrb_r = Reg(UInt(4.W))
-
-  // 偏移量寄存器
-  val icache_offset = RegInit(0.U(4.W))
+  // ICache burst读取控制
+  val icache_offset       = RegInit(0.U(4.W))
+  val icache_burst_active = RegInit(false.B)
 
   // 响应数据
-  val icacheline_new = RegInit(VecInit(Seq.fill(8)(0.U(32.W))))
-  val ireload        = RegInit(false.B)
-  val drd_data       = RegInit(0.U(32.W))
-  val dreload        = RegInit(false.B)
+  val icacheline_new   = RegInit(VecInit(Seq.fill(8)(0.U(32.W))))
+  val dcache_resp_data = RegInit(0.U(32.W))
+
+  // 响应valid信号
+  val icache_resp_valid = RegInit(false.B)
+  val dcache_resp_valid = RegInit(false.B)
 
   // 地址解析
   def isBaseAddr(addr:      UInt): Bool = addr(31, 22) === "b1000_0000_00".U(10.W)
@@ -151,215 +165,215 @@ class IoControl extends Module {
   def isUartDataAddr(addr:  UInt): Bool = addr === "hBFD003F8".U(32.W)
   def isUartStateAddr(addr: UInt): Bool = addr === "hBFD003FC".U(32.W)
 
-  // Ready信号
-  io.icache_read_req.ready := stage_i(0) && !ird_req_r && (
-    (io.icache_read_req.valid && isBaseAddr(io.icache_read_req.bits.addr)) ||
-      (io.icache_read_req.valid && isExtAddr(io.icache_read_req.bits.addr)) ||
-      (io.icache_read_req.valid && !isBaseAddr(io.icache_read_req.bits.addr) && !isExtAddr(
-        io.icache_read_req.bits.addr
-      ))
-  )
+  // 等待中的请求标志
+  val icache_pending = RegInit(false.B)
+  val dcache_pending = RegInit(false.B)
 
-  io.dcache_read_req.ready := stage_d(0) && !drd_req_r && !dwr_req_r && (
-    (io.dcache_read_req.valid && isBaseAddr(io.dcache_read_req.bits.addr)) ||
-      (io.dcache_read_req.valid && isExtAddr(io.dcache_read_req.bits.addr)) ||
-      (io.dcache_read_req.valid && (isUartDataAddr(io.dcache_read_req.bits.addr) || isUartStateAddr(
-        io.dcache_read_req.bits.addr
-      ))) ||
-      (io.dcache_read_req.valid && !isBaseAddr(io.dcache_read_req.bits.addr) && !isExtAddr(
-        io.dcache_read_req.bits.addr
-      ) &&
-        !isUartDataAddr(io.dcache_read_req.bits.addr) && !isUartStateAddr(io.dcache_read_req.bits.addr))
-  )
+  // Ready信号 - 只在空闲状态且没有正在进行的burst时才接受新请求
+  io.icache_read_req.ready := state === sIdle && !icache_pending && !icache_burst_active
+  io.dcache_read_req.ready := state === sIdle && !dcache_pending && !icache_burst_active &&
+    !(io.dcache_read_req.valid && isUartDataAddr(io.dcache_read_req.bits.addr)) &&
+    !(io.dcache_read_req.valid && isUartStateAddr(io.dcache_read_req.bits.addr))
+  io.dcache_write_req.ready := state === sIdle && !dcache_pending && !icache_burst_active &&
+    !(io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && io.txd.uart_busy)
 
-  io.dcache_write_req.ready := stage_d(0) && !drd_req_r && !dwr_req_r && (
-    (io.dcache_write_req.valid && isBaseAddr(io.dcache_write_req.bits.addr)) ||
-      (io.dcache_write_req.valid && isExtAddr(io.dcache_write_req.bits.addr)) ||
-      (io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && !io.txd.uart_busy) ||
-      (io.dcache_write_req.valid && !isBaseAddr(io.dcache_write_req.bits.addr) && !isExtAddr(
-        io.dcache_write_req.bits.addr
-      ) &&
-        !isUartDataAddr(io.dcache_write_req.bits.addr))
-  )
+  // 接收请求
+  when(io.icache_read_req.fire) {
+    icache_pending := true.B
+    icache_addr_r  := io.icache_read_req.bits.addr
+  }
 
-  // 响应信号
-  io.icache_read_resp.valid     := ireload
+  when(io.dcache_read_req.fire) {
+    dcache_pending  := true.B
+    dcache_addr_r   := io.dcache_read_req.bits.addr
+    dcache_is_write := false.B
+  }
+
+  when(io.dcache_write_req.fire) {
+    dcache_pending  := true.B
+    dcache_addr_r   := io.dcache_write_req.bits.addr
+    dcache_data_r   := io.dcache_write_req.bits.data
+    dcache_wstrb_r  := io.dcache_write_req.bits.byte_mask
+    dcache_is_write := true.B
+  }
+
+  // 响应接口
+  io.icache_read_resp.valid     := icache_resp_valid
   io.icache_read_resp.bits.data := icacheline_new.asUInt
-  io.dcache_read_resp.valid     := dreload
-  io.dcache_read_resp.bits.data := drd_data
+  io.dcache_read_resp.valid     := dcache_resp_valid
+  io.dcache_read_resp.bits.data := dcache_resp_data
 
-  // 清除响应
   when(io.icache_read_resp.fire) {
-    ireload := false.B
+    icache_resp_valid := false.B
   }
   when(io.dcache_read_resp.fire) {
-    dreload := false.B
+    dcache_resp_valid := false.B
   }
 
-  // Debug信号
-  io.debug.base_state        := stage_i
-  io.debug.ext_state         := stage_d
-  io.debug.icache_read_base  := ird_req_r && isBaseAddr(ird_addr_r)
-  io.debug.icache_read_ext   := ird_req_r && isExtAddr(ird_addr_r)
-  io.debug.dcache_read_base  := drd_req_r && isBaseAddr(drd_addr_r)
-  io.debug.dcache_read_ext   := drd_req_r && isExtAddr(drd_addr_r)
-  io.debug.dcache_write_base := dwr_req_r && isBaseAddr(dwr_addr_r)
-  io.debug.dcache_write_ext  := dwr_req_r && isExtAddr(dwr_addr_r)
-  io.debug.icache_read_addr  := ird_addr_r(21, 2)
-  io.debug.dcache_read_addr  := drd_addr_r(21, 2)
-  io.debug.dcache_write_addr := dwr_addr_r(21, 2)
+  // 统一状态机
+  switch(state) {
+    is(sIdle) {
+      // 优先级：dcache > icache (除非icache正在burst)
+      when(dcache_pending) {
+        when(isBaseAddr(dcache_addr_r)) {
+          current_req := Mux(dcache_is_write, reqDWrite, reqDRead)
+          current_ram := ramBase
+          state       := sSetup
+        }.elsewhen(isExtAddr(dcache_addr_r)) {
+          current_req := Mux(dcache_is_write, reqDWrite, reqDRead)
+          current_ram := ramExt
+          state       := sSetup
+        }.otherwise {
+          // 非SRAM地址，直接响应
+          dcache_resp_data  := 0.U
+          dcache_resp_valid := true.B
+          dcache_pending    := false.B
+        }
+      }.elsewhen(icache_pending) {
+        when(isBaseAddr(icache_addr_r)) {
+          current_req         := reqIRead
+          current_ram         := ramBase
+          icache_offset       := 0.U
+          icache_burst_active := true.B
+          state               := sSetup
+        }.elsewhen(isExtAddr(icache_addr_r)) {
+          current_req         := reqIRead
+          current_ram         := ramExt
+          icache_offset       := 0.U
+          icache_burst_active := true.B
+          state               := sSetup
+        }.otherwise {
+          // 非SRAM地址，直接响应
+          icacheline_new.foreach(_ := 0.U)
+          icache_resp_valid        := true.B
+          icache_pending           := false.B
+        }
+      }
+    }
 
-  // Base RAM状态机（处理icache）
-  when(stage_i(0)) {
-    ireload                  := false.B
-    icacheline_new.foreach(_ := 0.U)
-    ird_req_r                := io.icache_read_req.fire && isBaseAddr(io.icache_read_req.bits.addr)
-    when(io.icache_read_req.fire && isBaseAddr(io.icache_read_req.bits.addr)) {
-      ird_addr_r    := io.icache_read_req.bits.addr
-      stage_i       := stage_i << 1
-      icache_offset := 0.U
+    is(sSetup) {
+      // 设置SRAM控制信号
+      when(current_ram === ramBase) {
+        when(current_req === reqIRead) {
+          base_ram_addr_r := icache_addr_r(21, 2) + icache_offset
+          base_ram_be_n_r := 0.U
+          base_ram_ce_n_r := false.B
+          base_ram_oe_n_r := false.B
+          base_ram_we_n_r := true.B
+        }.elsewhen(current_req === reqDRead) {
+          base_ram_addr_r := dcache_addr_r(21, 2)
+          base_ram_be_n_r := 0.U
+          base_ram_ce_n_r := false.B
+          base_ram_oe_n_r := false.B
+          base_ram_we_n_r := true.B
+        }.elsewhen(current_req === reqDWrite) {
+          base_ram_addr_r := dcache_addr_r(21, 2)
+          base_ram_be_n_r := ~dcache_wstrb_r
+          base_ram_ce_n_r := false.B
+          base_ram_oe_n_r := true.B
+          base_ram_we_n_r := false.B
+          base_ram_data_r := EndianConvert(dcache_data_r)
+        }
+      }.elsewhen(current_ram === ramExt) {
+        when(current_req === reqIRead) {
+          ext_ram_addr_r := icache_addr_r(21, 2) + icache_offset
+          ext_ram_be_n_r := 0.U
+          ext_ram_ce_n_r := false.B
+          ext_ram_oe_n_r := false.B
+          ext_ram_we_n_r := true.B
+        }.elsewhen(current_req === reqDRead) {
+          ext_ram_addr_r := dcache_addr_r(21, 2)
+          ext_ram_be_n_r := 0.U
+          ext_ram_ce_n_r := false.B
+          ext_ram_oe_n_r := false.B
+          ext_ram_we_n_r := true.B
+        }.elsewhen(current_req === reqDWrite) {
+          ext_ram_addr_r := dcache_addr_r(21, 2)
+          ext_ram_be_n_r := ~dcache_wstrb_r
+          ext_ram_ce_n_r := false.B
+          ext_ram_oe_n_r := true.B
+          ext_ram_we_n_r := false.B
+          ext_ram_data_r := EndianConvert(dcache_data_r)
+        }
+      }
+
+      delay_counter := 0.U
+      state         := sWait
     }
-  }.elsewhen(stage_i(1)) {
-    base_ram_addr_r := ird_addr_r(21, 2) + icache_offset
-    base_ram_be_n_r := 0.U
-    base_ram_ce_n_r := false.B
-    base_ram_oe_n_r := false.B
-    base_ram_we_n_r := true.B
-    base_ram_data_r := 0.U
-    stage_i         := stage_i << 1
-  }.elsewhen(stage_i(2)) {
-    stage_i := stage_i << 1
-  }.elsewhen(stage_i(3)) {
-    icacheline_new(icache_offset) := EndianConvert(io.base_ram_ctrl.data.data_in)
-    when(icache_offset === 7.U) {
-      base_ram_addr_r := 0.U
-      base_ram_be_n_r := 0.U
-      base_ram_ce_n_r := true.B
-      base_ram_oe_n_r := true.B
-      base_ram_we_n_r := true.B
-      base_ram_data_r := 0.U
-      stage_i         := stage_i << 1
-    }.otherwise {
-      base_ram_addr_r := ird_addr_r(21, 2) + icache_offset + 1.U
-      icache_offset   := icache_offset + 1.U
-      stage_i         := stage_i >> 1
+
+    is(sWait) {
+      // 等待SRAM_DELAY周期
+      when(delay_counter < SRAM_DELAY.U) {
+        delay_counter := delay_counter + 1.U
+      }.otherwise {
+        state := sCapture
+      }
     }
-  }.elsewhen(stage_i(4)) {
-    stage_i := stage_i << 3
-  }.elsewhen(stage_i(7)) {
-    when(ird_req_r) {
-      ireload := true.B
+
+    is(sCapture) {
+      // 捕获读数据
+      when(current_req === reqIRead) {
+        when(current_ram === ramBase) {
+          icacheline_new(icache_offset) := EndianConvert(io.base_ram_ctrl.data.data_in)
+        }.elsewhen(current_ram === ramExt) {
+          icacheline_new(icache_offset) := EndianConvert(io.ext_ram_ctrl.data.data_in)
+        }
+      }.elsewhen(current_req === reqDRead) {
+        when(current_ram === ramBase) {
+          dcache_resp_data := EndianConvert(io.base_ram_ctrl.data.data_in)
+        }.elsewhen(current_ram === ramExt) {
+          dcache_resp_data := EndianConvert(io.ext_ram_ctrl.data.data_in)
+        }
+      }
+
+      state := sDone
     }
-    stage_i := 1.U
-  }.otherwise {
-    stage_i := 1.U
-    ireload := false.B
+
+    is(sDone) {
+      // 清除控制信号
+      when(current_ram === ramBase) {
+        base_ram_addr_r := 0.U
+        base_ram_be_n_r := "hF".U
+        base_ram_ce_n_r := true.B
+        base_ram_oe_n_r := true.B
+        base_ram_we_n_r := true.B
+        base_ram_data_r := 0.U
+      }.elsewhen(current_ram === ramExt) {
+        ext_ram_addr_r := 0.U
+        ext_ram_be_n_r := "hF".U
+        ext_ram_ce_n_r := true.B
+        ext_ram_oe_n_r := true.B
+        ext_ram_we_n_r := true.B
+        ext_ram_data_r := 0.U
+      }
+
+      // 处理响应
+      when(current_req === reqIRead) {
+        when(icache_offset === 7.U) {
+          // ICache burst完成
+          icache_resp_valid   := true.B
+          icache_pending      := false.B
+          icache_burst_active := false.B
+          current_req         := reqNone
+          current_ram         := ramNone
+          state               := sIdle
+        }.otherwise {
+          // 继续burst读取
+          icache_offset := icache_offset + 1.U
+          state         := sSetup
+        }
+      }.otherwise {
+        // DCache请求完成
+        dcache_resp_valid := true.B
+        dcache_pending    := false.B
+        current_req       := reqNone
+        current_ram       := ramNone
+        state             := sIdle
+      }
+    }
   }
 
-  // Ext RAM状态机（处理dcache）
-  when(stage_d(0)) {
-    dreload  := false.B
-    drd_data := 0.U
-    drd_req_r := io.dcache_read_req.fire && (isExtAddr(io.dcache_read_req.bits.addr) || isBaseAddr(
-      io.dcache_read_req.bits.addr
-    ))
-    dwr_req_r := io.dcache_write_req.fire && (isExtAddr(io.dcache_write_req.bits.addr) || isBaseAddr(
-      io.dcache_write_req.bits.addr
-    ))
-
-    when(io.dcache_read_req.fire) {
-      drd_addr_r := io.dcache_read_req.bits.addr
-    }
-    when(io.dcache_write_req.fire) {
-      dwr_addr_r  := io.dcache_write_req.bits.addr
-      dwr_data_r  := io.dcache_write_req.bits.data
-      dwr_wstrb_r := io.dcache_write_req.bits.byte_mask
-    }
-
-    when(
-      (io.dcache_read_req.fire || io.dcache_write_req.fire) &&
-        ((isExtAddr(io.dcache_read_req.bits.addr) || isExtAddr(io.dcache_write_req.bits.addr)) ||
-          (isBaseAddr(io.dcache_read_req.bits.addr) || isBaseAddr(io.dcache_write_req.bits.addr)))
-    ) {
-      stage_d := stage_d << 1
-    }
-  }.elsewhen(stage_d(1)) {
-    // 根据地址选择操作Base RAM还是Ext RAM
-    val use_base = (drd_req_r && isBaseAddr(drd_addr_r)) || (dwr_req_r && isBaseAddr(dwr_addr_r))
-    val use_ext  = (drd_req_r && isExtAddr(drd_addr_r)) || (dwr_req_r && isExtAddr(dwr_addr_r))
-
-    when(use_ext) {
-      ext_ram_addr_r := Mux(drd_req_r, drd_addr_r(21, 2), dwr_addr_r(21, 2))
-      ext_ram_be_n_r := Mux(dwr_req_r, ~dwr_wstrb_r, 0.U)
-      ext_ram_ce_n_r := false.B
-      ext_ram_oe_n_r := !drd_req_r
-      ext_ram_we_n_r := !dwr_req_r
-      ext_ram_data_r := EndianConvert(dwr_data_r)
-    }.elsewhen(use_base) {
-      base_ram_addr_r := Mux(drd_req_r, drd_addr_r(21, 2), dwr_addr_r(21, 2))
-      base_ram_be_n_r := Mux(dwr_req_r, ~dwr_wstrb_r, 0.U)
-      base_ram_ce_n_r := false.B
-      base_ram_oe_n_r := !drd_req_r
-      base_ram_we_n_r := !dwr_req_r
-      base_ram_data_r := EndianConvert(dwr_data_r)
-    }
-    stage_d := stage_d << 1
-  }.elsewhen(stage_d(2)) {
-    stage_d := stage_d << 1
-  }.elsewhen(stage_d(3)) {
-    val use_base = drd_req_r && isBaseAddr(drd_addr_r)
-    val use_ext  = drd_req_r && isExtAddr(drd_addr_r)
-
-    when(use_ext) {
-      drd_data := EndianConvert(io.ext_ram_ctrl.data.data_in)
-    }.elsewhen(use_base) {
-      drd_data := EndianConvert(io.base_ram_ctrl.data.data_in)
-    }
-
-    when(drd_req_r || dwr_req_r) {
-      dreload := true.B
-    }
-
-    // 清除控制信号
-    when(isBaseAddr(drd_addr_r) || isBaseAddr(dwr_addr_r)) {
-      base_ram_addr_r := 0.U
-      base_ram_be_n_r := 0.U
-      base_ram_ce_n_r := true.B
-      base_ram_oe_n_r := true.B
-      base_ram_we_n_r := true.B
-      base_ram_data_r := 0.U
-    }
-    when(isExtAddr(drd_addr_r) || isExtAddr(dwr_addr_r)) {
-      ext_ram_addr_r := 0.U
-      ext_ram_be_n_r := 0.U
-      ext_ram_ce_n_r := true.B
-      ext_ram_oe_n_r := true.B
-      ext_ram_we_n_r := true.B
-      ext_ram_data_r := 0.U
-    }
-
-    stage_d := 1.U
-  }.otherwise {
-    stage_d := 1.U
-    dreload := false.B
-  }
-
-  // 处理其他地址请求
-  when(
-    io.icache_read_req.fire && !isBaseAddr(io.icache_read_req.bits.addr) && !isExtAddr(io.icache_read_req.bits.addr)
-  ) {
-    icacheline_new.foreach(_ := 0.U)
-    ireload                  := true.B
-  }
-
-  when(
-    io.dcache_read_req.fire && !isBaseAddr(io.dcache_read_req.bits.addr) && !isExtAddr(io.dcache_read_req.bits.addr)
-  ) {
-    drd_data := 0.U
-    dreload  := true.B
-  }
-
-  // UART部分
+  // UART处理（独立于SRAM访问）
   val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
   val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
@@ -379,25 +393,32 @@ class IoControl extends Module {
     io.rxd.uart_clear := false.B
   }
 
-  // UART读取
+  // UART读取（特殊处理）
+  io.dcache_read_req.ready := io.dcache_read_req.ready ||
+    (io.dcache_read_req.valid && (isUartDataAddr(io.dcache_read_req.bits.addr) || isUartStateAddr(
+      io.dcache_read_req.bits.addr
+    )))
+
   when(io.dcache_read_req.fire && isUartDataAddr(io.dcache_read_req.bits.addr)) {
     when(!uart_empty) {
-      drd_data   := Cat(0.U(24.W), uart_buffer(head_idx).data)
-      uart_head  := leftRotate(uart_head, 1)
-      maybe_full := false.B
+      dcache_resp_data := Cat(0.U(24.W), uart_buffer(head_idx).data)
+      uart_head        := leftRotate(uart_head, 1)
+      maybe_full       := false.B
     }.otherwise {
-      drd_data := 0.U(32.W)
+      dcache_resp_data := 0.U(32.W)
     }
-    dreload := true.B
+    dcache_resp_valid := true.B
   }
 
-  // UART状态读取
   when(io.dcache_read_req.fire && isUartStateAddr(io.dcache_read_req.bits.addr)) {
-    drd_data := Cat(0.U(30.W), !uart_empty, !io.txd.uart_busy)
-    dreload  := true.B
+    dcache_resp_data  := Cat(0.U(30.W), !uart_empty, !io.txd.uart_busy)
+    dcache_resp_valid := true.B
   }
 
-  // UART写入
+  // UART写入（特殊处理）
+  io.dcache_write_req.ready := io.dcache_write_req.ready ||
+    (io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && !io.txd.uart_busy)
+
   val txd_start_reg = RegInit(false.B)
   io.txd.uart_start := txd_start_reg
   io.txd.uart_data  := io.dcache_write_req.bits.data(7, 0)
@@ -408,16 +429,32 @@ class IoControl extends Module {
     txd_start_reg := false.B
   }
 
+  // Debug信号
+  io.debug.base_state        := 0.U // 兼容旧接口
+  io.debug.ext_state         := 0.U // 兼容旧接口
+  io.debug.unified_state     := state.asUInt
+  io.debug.delay_counter     := delay_counter
+  io.debug.icache_read_base  := current_req === reqIRead && current_ram === ramBase
+  io.debug.icache_read_ext   := current_req === reqIRead && current_ram === ramExt
+  io.debug.dcache_read_base  := current_req === reqDRead && current_ram === ramBase
+  io.debug.dcache_read_ext   := current_req === reqDRead && current_ram === ramExt
+  io.debug.dcache_write_base := current_req === reqDWrite && current_ram === ramBase
+  io.debug.dcache_write_ext  := current_req === reqDWrite && current_ram === ramExt
+  io.debug.icache_read_addr  := icache_addr_r(21, 2)
+  io.debug.dcache_read_addr  := dcache_addr_r(21, 2)
+  io.debug.dcache_write_addr := dcache_addr_r(21, 2)
+
   // 复位
   when(reset.asBool) {
-    stage_i       := 1.U
-    stage_d       := 1.U
-    ird_req_r     := false.B
-    drd_req_r     := false.B
-    dwr_req_r     := false.B
-    icache_offset := 0.U
-    ireload       := false.B
-    dreload       := false.B
+    state               := sIdle
+    delay_counter       := 0.U
+    current_req         := reqNone
+    current_ram         := ramNone
+    icache_pending      := false.B
+    dcache_pending      := false.B
+    icache_burst_active := false.B
+    icache_resp_valid   := false.B
+    dcache_resp_valid   := false.B
     uart_buffer.foreach(i => {
       i.data := 0.U
     })
