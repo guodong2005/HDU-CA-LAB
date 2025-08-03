@@ -42,6 +42,8 @@ class IoControlDebugIO extends Bundle {
   val dcache_captured_data = Output(UInt(32.W))
   val current_req_type     = Output(UInt(3.W))
   val current_ram_type     = Output(UInt(2.W))
+  val sram_data_in         = Output(UInt(32.W))
+  val data_valid_flag      = Output(Bool())
 }
 
 class RxDIO extends Bundle {
@@ -93,9 +95,9 @@ class IoControl extends Module {
   // SRAM_DELAY parameter (you can adjust this)
   val SRAM_DELAY = 2
 
-  // 统一状态机 - 添加了sHold状态
-  val sIdle :: sSetup :: sWait :: sCapture :: sHold :: sDone :: Nil = Enum(6)
-  val state                                                         = RegInit(sIdle)
+  // 统一状态机 - 重新设计状态
+  val sIdle :: sSetup :: sWait :: sCapture :: sDone :: Nil = Enum(5)
+  val state                                                = RegInit(sIdle)
 
   // 延迟计数器
   val delay_counter = RegInit(0.U(8.W))
@@ -158,6 +160,10 @@ class IoControl extends Module {
   val icacheline_new   = RegInit(VecInit(Seq.fill(8)(0.U(32.W))))
   val dcache_resp_data = RegInit(0.U(32.W))
 
+  // 专门的数据捕获寄存器
+  val dcache_captured_data = RegInit(0.U(32.W))
+  val data_capture_valid   = RegInit(false.B)
+
   // 响应valid信号
   val icache_resp_valid = RegInit(false.B)
   val dcache_resp_valid = RegInit(false.B)
@@ -197,7 +203,7 @@ class IoControl extends Module {
     dcache_is_write := true.B
   }
 
-  // 响应接口
+  // 响应接口 - 使用捕获的数据
   io.icache_read_resp.valid     := icache_resp_valid
   io.icache_read_resp.bits.data := icacheline_new.asUInt
   io.dcache_read_resp.valid     := dcache_resp_valid
@@ -231,10 +237,11 @@ class IoControl extends Module {
     io.rxd.uart_clear := false.B
   }
 
-  // UART发送
-  io.txd.uart_start := state === sIdle && dcache_pending && isUartDataAddr(dcache_addr_r) &&
+  // UART发送（移到状态机外处理）
+  val uart_tx_request = state === sIdle && dcache_pending && isUartDataAddr(dcache_addr_r) &&
     dcache_is_write && !io.txd.uart_busy
-  io.txd.uart_data := dcache_data_r(7, 0)
+  io.txd.uart_start := uart_tx_request
+  io.txd.uart_data  := dcache_data_r(7, 0)
 
   // Debug信号
   io.debug.base_state           := 0.U // 兼容旧接口
@@ -250,13 +257,18 @@ class IoControl extends Module {
   io.debug.icache_read_addr     := icache_addr_r(21, 2)
   io.debug.dcache_read_addr     := dcache_addr_r(21, 2)
   io.debug.dcache_write_addr    := dcache_addr_r(21, 2)
-  io.debug.dcache_captured_data := dcache_resp_data
+  io.debug.dcache_captured_data := dcache_captured_data
   io.debug.current_req_type     := current_req
   io.debug.current_ram_type     := current_ram
+  io.debug.sram_data_in         := Mux(current_ram === ramBase, io.base_ram_ctrl.data.data_in, io.ext_ram_ctrl.data.data_in)
+  io.debug.data_valid_flag      := data_capture_valid
 
   // 统一状态机
   switch(state) {
     is(sIdle) {
+      // 清除捕获标志
+      data_capture_valid := false.B
+
       // 优先级：dcache > icache (除非icache正在burst)
       when(dcache_pending) {
         when(isBaseAddr(dcache_addr_r)) {
@@ -285,9 +297,7 @@ class IoControl extends Module {
           dcache_pending    := false.B
         }.elsewhen(isUartDataAddr(dcache_addr_r) && dcache_is_write) {
           // UART写入
-          when(!io.txd.uart_busy) {
-            io.txd.uart_start := true.B
-            io.txd.uart_data  := dcache_data_r(7, 0)
+          when(uart_tx_request) {
             dcache_resp_valid := true.B
             dcache_pending    := false.B
           }
@@ -378,7 +388,7 @@ class IoControl extends Module {
     }
 
     is(sCapture) {
-      // 捕获读数据
+      // 捕获读数据到专门的寄存器
       when(current_req === reqIRead) {
         when(current_ram === ramBase) {
           icacheline_new(icache_offset) := EndianConvert(io.base_ram_ctrl.data.data_in)
@@ -387,19 +397,14 @@ class IoControl extends Module {
         }
       }.elsewhen(current_req === reqDRead) {
         when(current_ram === ramBase) {
-          dcache_resp_data := EndianConvert(io.base_ram_ctrl.data.data_in)
+          dcache_captured_data := EndianConvert(io.base_ram_ctrl.data.data_in)
         }.elsewhen(current_ram === ramExt) {
-          dcache_resp_data := EndianConvert(io.ext_ram_ctrl.data.data_in)
+          dcache_captured_data := EndianConvert(io.ext_ram_ctrl.data.data_in)
         }
+        data_capture_valid := true.B
       }
 
-      // 转到sHold状态，让寄存器有时间更新
-      state := sHold
-    }
-
-    is(sHold) {
-      // 额外的周期确保寄存器更新
-      // 这个状态不做任何操作，只是等待一个周期
+      // 直接进入sDone
       state := sDone
     }
 
@@ -436,28 +441,39 @@ class IoControl extends Module {
           icache_offset := icache_offset + 1.U
           state         := sSetup
         }
-      }.otherwise {
+      }.elsewhen(current_req === reqDRead || current_req === reqDWrite) {
         // DCache请求完成
+        when(current_req === reqDRead && data_capture_valid) {
+          dcache_resp_data := dcache_captured_data
+        }
         dcache_resp_valid := true.B
         dcache_pending    := false.B
         current_req       := reqNone
         current_ram       := ramNone
         state             := sIdle
+      }.otherwise {
+        // 异常情况，返回idle
+        current_req := reqNone
+        current_ram := ramNone
+        state       := sIdle
       }
     }
   }
 
   // 复位
   when(reset.asBool) {
-    state               := sIdle
-    delay_counter       := 0.U
-    current_req         := reqNone
-    current_ram         := ramNone
-    icache_pending      := false.B
-    dcache_pending      := false.B
-    icache_burst_active := false.B
-    icache_resp_valid   := false.B
-    dcache_resp_valid   := false.B
+    state                := sIdle
+    delay_counter        := 0.U
+    current_req          := reqNone
+    current_ram          := ramNone
+    icache_pending       := false.B
+    dcache_pending       := false.B
+    icache_burst_active  := false.B
+    icache_resp_valid    := false.B
+    dcache_resp_valid    := false.B
+    dcache_resp_data     := 0.U
+    dcache_captured_data := 0.U
+    data_capture_valid   := false.B
     uart_buffer.foreach(i => {
       i.data := 0.U
     })

@@ -256,8 +256,8 @@ module IoControl(
       _GEN_20 = state == 3'h1;
       _GEN_21 = state == 3'h2;
       _GEN_22 = state == 3'h3;
-      _GEN_23 = state == 3'h4;
-      _GEN_24 = _GEN_21 | _GEN_22;
+      _GEN_23 = state == 3'h5;
+      _GEN_24 = _GEN_21 | _GEN_22 | state == 3'h4;
       _GEN_25 = icache_offset == 4'h7;
       _GEN_26 = _GEN_23 & _io_debug_icache_read_ext_T & _GEN_25;
       _GEN_27 = _GEN_20 | _GEN_24;
@@ -269,24 +269,23 @@ module IoControl(
         current_ram <= 2'h0;
       end
       else if (|state) begin
-        if (_GEN_20) begin
-          state <= 3'h2;
+        automatic logic            _GEN_29;
+        automatic logic [7:0][2:0] _GEN_30;
+        _GEN_29 = delay_counter < 8'h2;
+        _GEN_30 =
+          {{state},
+           {state},
+           {_io_debug_icache_read_ext_T ? {2'h0, ~_GEN_25} : 3'h0},
+           {3'h5},
+           {3'h4},
+           {_GEN_29 ? state : 3'h3},
+           {3'h2},
+           {state}};
+        state <= _GEN_30[state];
+        if (_GEN_20)
           delay_counter <= 8'h0;
-        end
-        else begin
-          automatic logic _GEN_29;
-          _GEN_29 = delay_counter < 8'h2;
-          if (_GEN_21) begin
-            if (~_GEN_29)
-              state <= 3'h3;
-          end
-          else if (_GEN_22)
-            state <= 3'h4;
-          else if (_GEN_23)
-            state <= _io_debug_icache_read_ext_T ? {2'h0, ~_GEN_25} : 3'h0;
-          if (_GEN_21 & _GEN_29)
-            delay_counter <= delay_counter + 8'h1;
-        end
+        else if (_GEN_21 & _GEN_29)
+          delay_counter <= delay_counter + 8'h1;
         if (_GEN_27 | ~(_GEN_23 & (~_io_debug_icache_read_ext_T | _GEN_25))) begin
         end
         else begin
@@ -322,110 +321,110 @@ module IoControl(
         automatic logic _io_debug_dcache_write_base_T_1;
         automatic logic _io_debug_dcache_write_ext_T_1;
         automatic logic _io_debug_dcache_read_ext_T;
-        automatic logic _GEN_30;
+        automatic logic _GEN_31;
         _io_debug_dcache_write_base_T_1 = current_ram == 2'h1;
         _io_debug_dcache_write_ext_T_1 = current_ram == 2'h2;
         _io_debug_dcache_read_ext_T = current_req == 2'h2;
-        _GEN_30 = _GEN_20 | _GEN_21;
+        _GEN_31 = _GEN_20 | _GEN_21;
         if (_GEN_20) begin
-          automatic logic [19:0] _GEN_31;
-          automatic logic        _GEN_32;
+          automatic logic [19:0] _GEN_32;
           automatic logic        _GEN_33;
           automatic logic        _GEN_34;
-          _GEN_31 = {16'h0, icache_offset};
-          _GEN_32 = _io_debug_icache_read_ext_T | _io_debug_dcache_read_ext_T;
-          _GEN_33 =
+          automatic logic        _GEN_35;
+          _GEN_32 = {16'h0, icache_offset};
+          _GEN_33 = _io_debug_icache_read_ext_T | _io_debug_dcache_read_ext_T;
+          _GEN_34 =
             _io_debug_icache_read_ext_T | _io_debug_dcache_read_ext_T | (&current_req);
-          _GEN_34 = _io_debug_dcache_write_base_T_1 | ~_io_debug_dcache_write_ext_T_1;
+          _GEN_35 = _io_debug_dcache_write_base_T_1 | ~_io_debug_dcache_write_ext_T_1;
           if (_io_debug_dcache_write_base_T_1) begin
-            automatic logic [3:0][19:0] _GEN_35;
-            _GEN_35 =
-              {{dcache_addr_r[21:2]},
-               {dcache_addr_r[21:2]},
-               {icache_addr_r[21:2] + _GEN_31},
-               {base_ram_addr_r}};
-            base_ram_addr_r <= _GEN_35[current_req];
-            if (_GEN_32)
-              base_ram_be_n_r <= 4'h0;
-            else if (&current_req)
-              base_ram_be_n_r <= ~dcache_wstrb_r;
-            base_ram_oe_n_r <= ~_GEN_32 & ((&current_req) | base_ram_oe_n_r);
-            base_ram_we_n_r <= _GEN_32 | ~(&current_req) & base_ram_we_n_r;
-          end
-          base_ram_ce_n_r <=
-            ~(_io_debug_dcache_write_base_T_1 & _GEN_33) & base_ram_ce_n_r;
-          if (~_io_debug_dcache_write_base_T_1 | _GEN_32 | ~(&current_req)) begin
-          end
-          else
-            base_ram_data_r <= dcache_data_r;
-          if (_GEN_34) begin
-          end
-          else begin
             automatic logic [3:0][19:0] _GEN_36;
             _GEN_36 =
               {{dcache_addr_r[21:2]},
                {dcache_addr_r[21:2]},
-               {icache_addr_r[21:2] + _GEN_31},
+               {icache_addr_r[21:2] + _GEN_32},
+               {base_ram_addr_r}};
+            base_ram_addr_r <= _GEN_36[current_req];
+            if (_GEN_33)
+              base_ram_be_n_r <= 4'h0;
+            else if (&current_req)
+              base_ram_be_n_r <= ~dcache_wstrb_r;
+            base_ram_oe_n_r <= ~_GEN_33 & ((&current_req) | base_ram_oe_n_r);
+            base_ram_we_n_r <= _GEN_33 | ~(&current_req) & base_ram_we_n_r;
+          end
+          base_ram_ce_n_r <=
+            ~(_io_debug_dcache_write_base_T_1 & _GEN_34) & base_ram_ce_n_r;
+          if (~_io_debug_dcache_write_base_T_1 | _GEN_33 | ~(&current_req)) begin
+          end
+          else
+            base_ram_data_r <= dcache_data_r;
+          if (_GEN_35) begin
+          end
+          else begin
+            automatic logic [3:0][19:0] _GEN_37;
+            _GEN_37 =
+              {{dcache_addr_r[21:2]},
+               {dcache_addr_r[21:2]},
+               {icache_addr_r[21:2] + _GEN_32},
                {ext_ram_addr_r}};
-            ext_ram_addr_r <= _GEN_36[current_req];
-            if (_GEN_32)
+            ext_ram_addr_r <= _GEN_37[current_req];
+            if (_GEN_33)
               ext_ram_be_n_r <= 4'h0;
             else if (&current_req)
               ext_ram_be_n_r <= ~dcache_wstrb_r;
           end
           ext_ram_ce_n_r <=
             (_io_debug_dcache_write_base_T_1
-             | ~(_io_debug_dcache_write_ext_T_1 & _GEN_33)) & ext_ram_ce_n_r;
-          if (_GEN_34) begin
+             | ~(_io_debug_dcache_write_ext_T_1 & _GEN_34)) & ext_ram_ce_n_r;
+          if (_GEN_35) begin
           end
           else begin
-            ext_ram_oe_n_r <= ~_GEN_32 & ((&current_req) | ext_ram_oe_n_r);
-            ext_ram_we_n_r <= _GEN_32 | ~(&current_req) & ext_ram_we_n_r;
+            ext_ram_oe_n_r <= ~_GEN_33 & ((&current_req) | ext_ram_oe_n_r);
+            ext_ram_we_n_r <= _GEN_33 | ~(&current_req) & ext_ram_we_n_r;
           end
-          if (_io_debug_dcache_write_base_T_1 | ~_io_debug_dcache_write_ext_T_1 | _GEN_32
+          if (_io_debug_dcache_write_base_T_1 | ~_io_debug_dcache_write_ext_T_1 | _GEN_33
               | ~(&current_req)) begin
           end
           else
             ext_ram_data_r <= dcache_data_r;
         end
         else begin
-          automatic logic _GEN_37;
           automatic logic _GEN_38;
           automatic logic _GEN_39;
           automatic logic _GEN_40;
           automatic logic _GEN_41;
-          _GEN_37 = _GEN_23 & _io_debug_dcache_write_base_T_1;
-          _GEN_38 = _GEN_24 | ~_GEN_37;
-          _GEN_39 = ~_GEN_24 & _GEN_37;
-          _GEN_40 =
+          automatic logic _GEN_42;
+          _GEN_38 = _GEN_23 & _io_debug_dcache_write_base_T_1;
+          _GEN_39 = _GEN_24 | ~_GEN_38;
+          _GEN_40 = ~_GEN_24 & _GEN_38;
+          _GEN_41 =
             _GEN_24 | ~_GEN_23 | _io_debug_dcache_write_base_T_1
             | ~_io_debug_dcache_write_ext_T_1;
-          _GEN_41 =
+          _GEN_42 =
             ~_GEN_24 & _GEN_23 & ~_io_debug_dcache_write_base_T_1
             & _io_debug_dcache_write_ext_T_1;
-          if (_GEN_38) begin
+          if (_GEN_39) begin
           end
           else begin
             base_ram_addr_r <= 20'h0;
             base_ram_be_n_r <= 4'hF;
           end
-          base_ram_ce_n_r <= _GEN_39 | base_ram_ce_n_r;
-          base_ram_oe_n_r <= _GEN_39 | base_ram_oe_n_r;
-          base_ram_we_n_r <= _GEN_39 | base_ram_we_n_r;
-          if (_GEN_38) begin
+          base_ram_ce_n_r <= _GEN_40 | base_ram_ce_n_r;
+          base_ram_oe_n_r <= _GEN_40 | base_ram_oe_n_r;
+          base_ram_we_n_r <= _GEN_40 | base_ram_we_n_r;
+          if (_GEN_39) begin
           end
           else
             base_ram_data_r <= 32'h0;
-          if (_GEN_40) begin
+          if (_GEN_41) begin
           end
           else begin
             ext_ram_addr_r <= 20'h0;
             ext_ram_be_n_r <= 4'hF;
           end
-          ext_ram_ce_n_r <= _GEN_41 | ext_ram_ce_n_r;
-          ext_ram_oe_n_r <= _GEN_41 | ext_ram_oe_n_r;
-          ext_ram_we_n_r <= _GEN_41 | ext_ram_we_n_r;
-          if (_GEN_40) begin
+          ext_ram_ce_n_r <= _GEN_42 | ext_ram_ce_n_r;
+          ext_ram_oe_n_r <= _GEN_42 | ext_ram_oe_n_r;
+          ext_ram_we_n_r <= _GEN_42 | ext_ram_we_n_r;
+          if (_GEN_41) begin
           end
           else
             ext_ram_data_r <= 32'h0;
@@ -434,61 +433,61 @@ module IoControl(
         end
         else
           icache_offset <= icache_offset + 4'h1;
-        if (_GEN_30 | ~(_GEN_22 & _io_debug_icache_read_ext_T)) begin
+        if (_GEN_31 | ~(_GEN_22 & _io_debug_icache_read_ext_T)) begin
         end
         else begin
-          automatic logic _GEN_42;
           automatic logic _GEN_43;
           automatic logic _GEN_44;
           automatic logic _GEN_45;
           automatic logic _GEN_46;
           automatic logic _GEN_47;
           automatic logic _GEN_48;
-          _GEN_42 = icache_offset[2:0] == 3'h0;
-          _GEN_43 = icache_offset[2:0] == 3'h1;
-          _GEN_44 = icache_offset[2:0] == 3'h2;
-          _GEN_45 = icache_offset[2:0] == 3'h3;
-          _GEN_46 = icache_offset[2:0] == 3'h4;
-          _GEN_47 = icache_offset[2:0] == 3'h5;
-          _GEN_48 = icache_offset[2:0] == 3'h6;
+          automatic logic _GEN_49;
+          _GEN_43 = icache_offset[2:0] == 3'h0;
+          _GEN_44 = icache_offset[2:0] == 3'h1;
+          _GEN_45 = icache_offset[2:0] == 3'h2;
+          _GEN_46 = icache_offset[2:0] == 3'h3;
+          _GEN_47 = icache_offset[2:0] == 3'h4;
+          _GEN_48 = icache_offset[2:0] == 3'h5;
+          _GEN_49 = icache_offset[2:0] == 3'h6;
           if (_io_debug_dcache_write_base_T_1) begin
-            if (_GEN_42)
-              icacheline_new_0 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_43)
-              icacheline_new_1 <= io_base_ram_ctrl_data_data_in;
+              icacheline_new_0 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_44)
-              icacheline_new_2 <= io_base_ram_ctrl_data_data_in;
+              icacheline_new_1 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_45)
-              icacheline_new_3 <= io_base_ram_ctrl_data_data_in;
+              icacheline_new_2 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_46)
-              icacheline_new_4 <= io_base_ram_ctrl_data_data_in;
+              icacheline_new_3 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_47)
-              icacheline_new_5 <= io_base_ram_ctrl_data_data_in;
+              icacheline_new_4 <= io_base_ram_ctrl_data_data_in;
             if (_GEN_48)
+              icacheline_new_5 <= io_base_ram_ctrl_data_data_in;
+            if (_GEN_49)
               icacheline_new_6 <= io_base_ram_ctrl_data_data_in;
             if (&(icache_offset[2:0]))
               icacheline_new_7 <= io_base_ram_ctrl_data_data_in;
           end
           else begin
-            if (_io_debug_dcache_write_ext_T_1 & _GEN_42)
-              icacheline_new_0 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_43)
-              icacheline_new_1 <= io_ext_ram_ctrl_data_data_in;
+              icacheline_new_0 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_44)
-              icacheline_new_2 <= io_ext_ram_ctrl_data_data_in;
+              icacheline_new_1 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_45)
-              icacheline_new_3 <= io_ext_ram_ctrl_data_data_in;
+              icacheline_new_2 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_46)
-              icacheline_new_4 <= io_ext_ram_ctrl_data_data_in;
+              icacheline_new_3 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_47)
-              icacheline_new_5 <= io_ext_ram_ctrl_data_data_in;
+              icacheline_new_4 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & _GEN_48)
+              icacheline_new_5 <= io_ext_ram_ctrl_data_data_in;
+            if (_io_debug_dcache_write_ext_T_1 & _GEN_49)
               icacheline_new_6 <= io_ext_ram_ctrl_data_data_in;
             if (_io_debug_dcache_write_ext_T_1 & (&(icache_offset[2:0])))
               icacheline_new_7 <= io_ext_ram_ctrl_data_data_in;
           end
         end
-        if (_GEN_30 | ~_GEN_22 | _io_debug_icache_read_ext_T
+        if (_GEN_31 | ~_GEN_22 | _io_debug_icache_read_ext_T
             | ~_io_debug_dcache_read_ext_T) begin
         end
         else if (_io_debug_dcache_write_base_T_1)
@@ -517,9 +516,9 @@ module IoControl(
         end
         else if (_GEN_1) begin
           automatic logic [2:0]      _head_idx_T_1;
-          automatic logic [7:0][7:0] _GEN_49;
+          automatic logic [7:0][7:0] _GEN_50;
           _head_idx_T_1 = uart_head[7:5] | uart_head[3:1];
-          _GEN_49 =
+          _GEN_50 =
             {{uart_buffer_7_data},
              {uart_buffer_6_data},
              {uart_buffer_5_data},
@@ -532,7 +531,7 @@ module IoControl(
             uart_empty
               ? 32'h0
               : {24'h0,
-                 _GEN_49[{|(uart_head[7:4]),
+                 _GEN_50[{|(uart_head[7:4]),
                           |(_head_idx_T_1[2:1]),
                           _head_idx_T_1[2] | _head_idx_T_1[0]}]};
         end
