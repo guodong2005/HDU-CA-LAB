@@ -170,12 +170,9 @@ class IoControl extends Module {
   val dcache_pending = RegInit(false.B)
 
   // Ready信号 - 只在空闲状态且没有正在进行的burst时才接受新请求
-  io.icache_read_req.ready := state === sIdle && !icache_pending && !icache_burst_active
-  io.dcache_read_req.ready := state === sIdle && !dcache_pending && !icache_burst_active &&
-    !(io.dcache_read_req.valid && isUartDataAddr(io.dcache_read_req.bits.addr)) &&
-    !(io.dcache_read_req.valid && isUartStateAddr(io.dcache_read_req.bits.addr))
-  io.dcache_write_req.ready := state === sIdle && !dcache_pending && !icache_burst_active &&
-    !(io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && io.txd.uart_busy)
+  io.icache_read_req.ready  := state === sIdle && !icache_pending && !icache_burst_active
+  io.dcache_read_req.ready  := state === sIdle && !dcache_pending && !icache_burst_active
+  io.dcache_write_req.ready := state === sIdle && !dcache_pending && !icache_burst_active
 
   // 接收请求
   when(io.icache_read_req.fire) {
@@ -223,6 +220,30 @@ class IoControl extends Module {
           current_req := Mux(dcache_is_write, reqDWrite, reqDRead)
           current_ram := ramExt
           state       := sSetup
+        }.elsewhen(isUartDataAddr(dcache_addr_r) && !dcache_is_write) {
+          // UART读取
+          when(!uart_empty) {
+            dcache_resp_data := Cat(0.U(24.W), uart_buffer(head_idx).data)
+            uart_head        := leftRotate(uart_head, 1)
+            maybe_full       := false.B
+          }.otherwise {
+            dcache_resp_data := 0.U(32.W)
+          }
+          dcache_resp_valid := true.B
+          dcache_pending    := false.B
+        }.elsewhen(isUartStateAddr(dcache_addr_r) && !dcache_is_write) {
+          // UART状态读取
+          dcache_resp_data  := Cat(0.U(30.W), !uart_empty, !io.txd.uart_busy)
+          dcache_resp_valid := true.B
+          dcache_pending    := false.B
+        }.elsewhen(isUartDataAddr(dcache_addr_r) && dcache_is_write) {
+          // UART写入
+          when(!io.txd.uart_busy) {
+            io.txd.uart_start := true.B
+            io.txd.uart_data  := dcache_data_r(7, 0)
+            dcache_resp_valid := true.B
+            dcache_pending    := false.B
+          }
         }.otherwise {
           // 非SRAM地址，直接响应
           dcache_resp_data  := 0.U
@@ -393,41 +414,10 @@ class IoControl extends Module {
     io.rxd.uart_clear := false.B
   }
 
-  // UART读取（特殊处理）
-  io.dcache_read_req.ready := io.dcache_read_req.ready ||
-    (io.dcache_read_req.valid && (isUartDataAddr(io.dcache_read_req.bits.addr) || isUartStateAddr(
-      io.dcache_read_req.bits.addr
-    )))
-
-  when(io.dcache_read_req.fire && isUartDataAddr(io.dcache_read_req.bits.addr)) {
-    when(!uart_empty) {
-      dcache_resp_data := Cat(0.U(24.W), uart_buffer(head_idx).data)
-      uart_head        := leftRotate(uart_head, 1)
-      maybe_full       := false.B
-    }.otherwise {
-      dcache_resp_data := 0.U(32.W)
-    }
-    dcache_resp_valid := true.B
-  }
-
-  when(io.dcache_read_req.fire && isUartStateAddr(io.dcache_read_req.bits.addr)) {
-    dcache_resp_data  := Cat(0.U(30.W), !uart_empty, !io.txd.uart_busy)
-    dcache_resp_valid := true.B
-  }
-
-  // UART写入（特殊处理）
-  io.dcache_write_req.ready := io.dcache_write_req.ready ||
-    (io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && !io.txd.uart_busy)
-
-  val txd_start_reg = RegInit(false.B)
-  io.txd.uart_start := txd_start_reg
-  io.txd.uart_data  := io.dcache_write_req.bits.data(7, 0)
-
-  when(io.dcache_write_req.fire && isUartDataAddr(io.dcache_write_req.bits.addr) && !io.txd.uart_busy) {
-    txd_start_reg := true.B
-  }.otherwise {
-    txd_start_reg := false.B
-  }
+  // UART发送
+  io.txd.uart_start := state === sIdle && dcache_pending && isUartDataAddr(dcache_addr_r) &&
+    dcache_is_write && !io.txd.uart_busy
+  io.txd.uart_data := dcache_data_r(7, 0)
 
   // Debug信号
   io.debug.base_state        := 0.U // 兼容旧接口
