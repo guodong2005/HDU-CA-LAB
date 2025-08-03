@@ -113,11 +113,11 @@ class IoControl extends Module {
 
   val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
   val base_state                                                 = RegInit(sIDLE)
-  val base_clock_counter                                         = RegInit(0.U(4.W))
-  val base_wait_counter                                          = RegInit(0.U(4.W))
+  val base_clock_counter                                         = Reg(0.U(4.W))
+  val base_wait_counter                                          = Reg(0.U(4.W))
   val ext_state                                                  = RegInit(sIDLE)
-  val ext_clock_counter                                          = RegInit(0.U(4.W))
-  val ext_wait_counter                                           = RegInit(0.U(4.W))
+  val ext_clock_counter                                          = Reg(0.U(4.W))
+  val ext_wait_counter                                           = Reg(0.U(4.W))
   val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil                 = Enum(4)
   val other_state                                                = RegInit(oIDLE)
 
@@ -431,8 +431,8 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
-  val txd_uart_start = RegInit(false.B)
-  val txd_uart_data  = RegInit(0.U(8.W))
+  val txd_uart_start = Reg(false.B)
+  val txd_uart_data  = Reg(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
