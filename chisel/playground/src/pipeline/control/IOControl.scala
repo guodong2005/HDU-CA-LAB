@@ -106,7 +106,9 @@ class IoControl extends Module {
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
 
   val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
   val base_state                                                 = RegInit(sIDLE)
@@ -115,6 +117,8 @@ class IoControl extends Module {
   val ext_state                                                  = RegInit(sIDLE)
   val ext_clock_counter                                          = RegInit(0.U(4.W))
   val ext_wait_counter                                           = RegInit(0.U(4.W))
+  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil                 = Enum(4)
+  val other_state                                                = RegInit(oIDLE)
 
   // 添加请求存储寄存器
   val icache_req_addr  = Reg(UInt(32.W))
@@ -203,9 +207,6 @@ class IoControl extends Module {
     dcache_write_req_byte_mask := io.dcache_write_req.bits.byte_mask
     dcache_write_req_valid     := true.B
   }
-
-  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
-  val other_state                                = RegInit(oIDLE)
 
   switch(other_state) {
     is(oIDLE) {
@@ -430,10 +431,8 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
-  val txd_uart_start                  = RegInit(false.B)
-  val txd_uart_data                   = RegInit(0.U(8.W))
+  val txd_uart_start = RegInit(false.B)
+  val txd_uart_data  = RegInit(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
