@@ -1,5 +1,4 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines._
@@ -39,6 +38,10 @@ class IoControlDebugIO extends Bundle {
   val dcache_write_addr = Output(UInt(20.W))
   val unified_state     = Output(UInt(4.W))
   val delay_counter     = Output(UInt(8.W))
+  // 新增调试信号
+  val dcache_captured_data = Output(UInt(32.W))
+  val current_req_type     = Output(UInt(3.W))
+  val current_ram_type     = Output(UInt(2.W))
 }
 
 class RxDIO extends Bundle {
@@ -90,9 +93,9 @@ class IoControl extends Module {
   // SRAM_DELAY parameter (you can adjust this)
   val SRAM_DELAY = 2
 
-  // 统一状态机
-  val sIdle :: sSetup :: sWait :: sCapture :: sDone :: Nil = Enum(5)
-  val state                                                = RegInit(sIdle)
+  // 统一状态机 - 添加了sHold状态
+  val sIdle :: sSetup :: sWait :: sCapture :: sHold :: sDone :: Nil = Enum(6)
+  val state                                                         = RegInit(sIdle)
 
   // 延迟计数器
   val delay_counter = RegInit(0.U(8.W))
@@ -203,9 +206,53 @@ class IoControl extends Module {
   when(io.icache_read_resp.fire) {
     icache_resp_valid := false.B
   }
+
   when(io.dcache_read_resp.fire) {
     dcache_resp_valid := false.B
   }
+
+  // UART处理（独立于SRAM访问）
+  val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
+  val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
+  val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val tail_idx    = OHToUInt(uart_tail)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
+  val maybe_full  = RegInit(false.B)
+  val uart_full   = uart_head === uart_tail && maybe_full
+  val uart_empty  = uart_head === uart_tail && !maybe_full
+
+  // UART接收
+  when(io.rxd.uart_ready && !uart_full) {
+    uart_buffer(tail_idx).data := io.rxd.uart_data
+    uart_tail                  := leftRotate(uart_tail, 1)
+    maybe_full                 := true.B
+    io.rxd.uart_clear          := true.B
+  }.otherwise {
+    io.rxd.uart_clear := false.B
+  }
+
+  // UART发送
+  io.txd.uart_start := state === sIdle && dcache_pending && isUartDataAddr(dcache_addr_r) &&
+    dcache_is_write && !io.txd.uart_busy
+  io.txd.uart_data := dcache_data_r(7, 0)
+
+  // Debug信号
+  io.debug.base_state           := 0.U // 兼容旧接口
+  io.debug.ext_state            := 0.U // 兼容旧接口
+  io.debug.unified_state        := state.asUInt
+  io.debug.delay_counter        := delay_counter
+  io.debug.icache_read_base     := current_req === reqIRead && current_ram === ramBase
+  io.debug.icache_read_ext      := current_req === reqIRead && current_ram === ramExt
+  io.debug.dcache_read_base     := current_req === reqDRead && current_ram === ramBase
+  io.debug.dcache_read_ext      := current_req === reqDRead && current_ram === ramExt
+  io.debug.dcache_write_base    := current_req === reqDWrite && current_ram === ramBase
+  io.debug.dcache_write_ext     := current_req === reqDWrite && current_ram === ramExt
+  io.debug.icache_read_addr     := icache_addr_r(21, 2)
+  io.debug.dcache_read_addr     := dcache_addr_r(21, 2)
+  io.debug.dcache_write_addr    := dcache_addr_r(21, 2)
+  io.debug.dcache_captured_data := dcache_resp_data
+  io.debug.current_req_type     := current_req
+  io.debug.current_ram_type     := current_ram
 
   // 统一状态机
   switch(state) {
@@ -317,7 +364,6 @@ class IoControl extends Module {
           ext_ram_data_r := EndianConvert(dcache_data_r)
         }
       }
-
       delay_counter := 0.U
       state         := sWait
     }
@@ -347,6 +393,13 @@ class IoControl extends Module {
         }
       }
 
+      // 转到sHold状态，让寄存器有时间更新
+      state := sHold
+    }
+
+    is(sHold) {
+      // 额外的周期确保寄存器更新
+      // 这个状态不做任何操作，只是等待一个周期
       state := sDone
     }
 
@@ -393,46 +446,6 @@ class IoControl extends Module {
       }
     }
   }
-
-  // UART处理（独立于SRAM访问）
-  val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
-  val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
-  val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val tail_idx    = OHToUInt(uart_tail)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
-  val maybe_full  = RegInit(false.B)
-  val uart_full   = uart_head === uart_tail && maybe_full
-  val uart_empty  = uart_head === uart_tail && !maybe_full
-
-  // UART接收
-  when(io.rxd.uart_ready && !uart_full) {
-    uart_buffer(tail_idx).data := io.rxd.uart_data
-    uart_tail                  := leftRotate(uart_tail, 1)
-    maybe_full                 := true.B
-    io.rxd.uart_clear          := true.B
-  }.otherwise {
-    io.rxd.uart_clear := false.B
-  }
-
-  // UART发送
-  io.txd.uart_start := state === sIdle && dcache_pending && isUartDataAddr(dcache_addr_r) &&
-    dcache_is_write && !io.txd.uart_busy
-  io.txd.uart_data := dcache_data_r(7, 0)
-
-  // Debug信号
-  io.debug.base_state        := 0.U // 兼容旧接口
-  io.debug.ext_state         := 0.U // 兼容旧接口
-  io.debug.unified_state     := state.asUInt
-  io.debug.delay_counter     := delay_counter
-  io.debug.icache_read_base  := current_req === reqIRead && current_ram === ramBase
-  io.debug.icache_read_ext   := current_req === reqIRead && current_ram === ramExt
-  io.debug.dcache_read_base  := current_req === reqDRead && current_ram === ramBase
-  io.debug.dcache_read_ext   := current_req === reqDRead && current_ram === ramExt
-  io.debug.dcache_write_base := current_req === reqDWrite && current_ram === ramBase
-  io.debug.dcache_write_ext  := current_req === reqDWrite && current_ram === ramExt
-  io.debug.icache_read_addr  := icache_addr_r(21, 2)
-  io.debug.dcache_read_addr  := dcache_addr_r(21, 2)
-  io.debug.dcache_write_addr := dcache_addr_r(21, 2)
 
   // 复位
   when(reset.asBool) {
