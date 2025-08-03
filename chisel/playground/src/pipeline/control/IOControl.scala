@@ -14,9 +14,10 @@ class SramCtrlInfo extends Bundle {
 }
 
 class SramDataIO extends Bundle {
-  val data_out = Output(UInt(32.W)) // 写入SRAM的数据
-  val data_in  = Input(UInt(32.W)) // 从SRAM读取的数据
-  val data_en  = Output(Bool()) // 数据输出使能（模拟三态门）
+  val data_out      = Output(UInt(32.W)) // 写入SRAM的数据
+  val data_in       = Input(UInt(32.W)) // 从SRAM读取的数据
+  val data_en       = Output(Bool()) // 数据输出使能（模拟三态门）
+  val data_tristate = Output(UInt(32.W)) // 三态输出，包含高阻态
 }
 
 class SramCtrlIO extends Bundle {
@@ -115,13 +116,16 @@ class IoControl extends Module {
   io.ext_ram_ctrl.ctrl.oe_n := ext_ram_oe_n_r
   io.ext_ram_ctrl.ctrl.we_n := ext_ram_we_n_r
 
-  // 三态门控制 - 修正为高阻态逻辑
-  // 当data_en为false时，data_out应为高阻态（用DontCare表示）
+  // 三态门控制 - 显式生成高阻态
   io.base_ram_ctrl.data.data_en  := !base_ram_we_n_r && !base_ram_ce_n_r
-  io.base_ram_ctrl.data.data_out := Mux(io.base_ram_ctrl.data.data_en, base_ram_data_r, DontCare)
+  io.base_ram_ctrl.data.data_out := base_ram_data_r
+  // 显式生成高阻态：当data_en为false时输出32'hZZZZZZZZ
+  io.base_ram_ctrl.data.data_tristate := Mux(io.base_ram_ctrl.data.data_en, base_ram_data_r, "hZZZZZZZZ".U(32.W))
 
   io.ext_ram_ctrl.data.data_en  := !ext_ram_we_n_r && !ext_ram_ce_n_r
-  io.ext_ram_ctrl.data.data_out := Mux(io.ext_ram_ctrl.data.data_en, ext_ram_data_r, DontCare)
+  io.ext_ram_ctrl.data.data_out := ext_ram_data_r
+  // 显式生成高阻态：当data_en为false时输出32'hZZZZZZZZ
+  io.ext_ram_ctrl.data.data_tristate := Mux(io.ext_ram_ctrl.data.data_en, ext_ram_data_r, "hZZZZZZZZ".U(32.W))
 
   // 请求缓存
   val icache_addr_r   = Reg(UInt(32.W))
