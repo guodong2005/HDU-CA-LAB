@@ -171,8 +171,8 @@ class IoControl extends Module {
   io.dcache_write_req.ready := (base_state === sIDLE) && (ext_state === sIDLE) &&
     (other_state === oIDLE) && (uart_state === uIDLE) && !io.txd.uart_busy
 
-  val other_state                                = RegInit(oIDLE)
   val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
+  val other_state                                = RegInit(oIDLE)
 
   switch(other_state) {
     is(oIDLE) {
