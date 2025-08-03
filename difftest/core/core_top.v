@@ -124,9 +124,9 @@ module IoControl(
   reg  [3:0]  dcache_write_req_byte_mask;
   reg         dcache_write_req_valid;
   wire        dcache_read_uart =
-    dcache_read_req_addr == 32'hBFD003F8 & dcache_read_req_valid;
+    io_dcache_read_req_bits_addr == 32'hBFD003F8 & io_dcache_read_req_valid;
   wire        dcache_write_uart =
-    dcache_write_req_addr == 32'hBFD003F8 & dcache_write_req_valid;
+    io_dcache_write_req_bits_addr == 32'hBFD003F8 & io_dcache_write_req_valid;
   reg  [31:0] icache_buffer_0;
   reg  [31:0] icache_buffer_1;
   reg  [31:0] icache_buffer_2;
@@ -269,14 +269,20 @@ module IoControl(
       automatic logic       uart_deq;
       automatic logic       _GEN_36;
       automatic logic       _GEN_37;
-      icache_read_base = icache_req_addr[31:22] == 10'h70 & icache_req_valid;
-      icache_read_ext = icache_req_addr[31:22] == 10'h71 & icache_req_valid;
-      dcache_read_base = dcache_read_req_addr[31:22] == 10'h70 & dcache_read_req_valid;
-      dcache_read_ext = dcache_read_req_addr[31:22] == 10'h71 & dcache_read_req_valid;
-      dcache_write_base = dcache_write_req_addr[31:22] == 10'h70 & dcache_write_req_valid;
-      dcache_write_ext = dcache_write_req_addr[31:22] == 10'h71 & dcache_write_req_valid;
+      icache_read_base =
+        io_icache_read_req_bits_addr[31:22] == 10'h200 & io_icache_read_req_valid;
+      icache_read_ext =
+        io_icache_read_req_bits_addr[31:22] == 10'h201 & io_icache_read_req_valid;
+      dcache_read_base =
+        io_dcache_read_req_bits_addr[31:22] == 10'h200 & io_dcache_read_req_valid;
+      dcache_read_ext =
+        io_dcache_read_req_bits_addr[31:22] == 10'h201 & io_dcache_read_req_valid;
+      dcache_write_base =
+        io_dcache_write_req_bits_addr[31:22] == 10'h200 & io_dcache_write_req_valid;
+      dcache_write_ext =
+        io_dcache_write_req_bits_addr[31:22] == 10'h201 & io_dcache_write_req_valid;
       dcache_read_uart_state =
-        dcache_read_req_addr == 32'hBFD003FC & dcache_read_req_valid;
+        io_dcache_read_req_bits_addr == 32'hBFD003FC & io_dcache_read_req_valid;
       icache_read_other = ~icache_read_base & ~icache_read_ext & icache_req_valid;
       dcache_read_other =
         ~dcache_read_base & ~dcache_read_ext & ~dcache_read_uart & ~dcache_read_uart_state
@@ -1963,7 +1969,7 @@ module FetchUnit(
     canStart = canStart_REG & ~reset;
     _GEN_6 = io_canStart_0 & io_icache_req_ready;
     if (reset) begin
-      pc <= 32'h1C000000;
+      pc <= 32'h80000000;
       state <= 2'h0;
       ifid_reg_inst <= 32'h0;
       ifid_reg_valid <= 1'h0;
@@ -1984,7 +1990,7 @@ module FetchUnit(
             pc <= reqPC + 32'h4;
         end
         else if (canStart & pc == 32'h0)
-          pc <= 32'h1C000000;
+          pc <= 32'h80000000;
         if (|state) begin
           if (_GEN_4)
             state <= 2'h0;

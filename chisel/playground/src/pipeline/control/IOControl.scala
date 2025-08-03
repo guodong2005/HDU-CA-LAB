@@ -103,8 +103,8 @@ class IoControl extends Module {
   }
 
   val io            = IO(new IoControlIO)
-  val base_ram_ctrl = Reg(new SramCtrlInfo)
-  val ext_ram_ctrl  = Reg(new SramCtrlInfo)
+  val base_ram_ctrl = RegInit(new SramCtrlInfo)
+  val ext_ram_ctrl  = RegInit(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
   io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
   val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
@@ -121,15 +121,15 @@ class IoControl extends Module {
   val other_state                                                = RegInit(oIDLE)
 
   // 添加请求存储寄存器
-  val icache_req_addr  = Reg(UInt(32.W))
+  val icache_req_addr  = RegInit(UInt(32.W))
   val icache_req_valid = RegInit(false.B)
 
-  val dcache_read_req_addr  = Reg(UInt(32.W))
+  val dcache_read_req_addr  = RegInit(UInt(32.W))
   val dcache_read_req_valid = RegInit(false.B)
 
-  val dcache_write_req_addr      = Reg(UInt(32.W))
-  val dcache_write_req_data      = Reg(UInt(32.W))
-  val dcache_write_req_byte_mask = Reg(UInt(4.W))
+  val dcache_write_req_addr      = RegInit(UInt(32.W))
+  val dcache_write_req_data      = RegInit(UInt(32.W))
+  val dcache_write_req_byte_mask = RegInit(UInt(4.W))
   val dcache_write_req_valid     = RegInit(false.B)
 
   // 解析存储的地址，而不是直接从输入端口
@@ -395,7 +395,7 @@ class IoControl extends Module {
   }
 
   // UART 部分保持不变，但也需要清除相应的请求
-  val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
+  val uart_buffer = RegInit(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
   val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
   val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
