@@ -111,13 +111,11 @@ class IoControl extends Module {
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
   io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
 
-  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
-  val base_state                                                 = RegInit(sIDLE)
-  val base_clock_counter                                         = RegInit(0.U(4.W))
-  val base_wait_counter                                          = RegInit(0.U(4.W))
-  val ext_state                                                  = RegInit(sIDLE)
-  val ext_clock_counter                                          = RegInit(0.U(4.W))
-  val ext_wait_counter                                           = RegInit(0.U(4.W))
+  val base_clock_counter = RegInit(0.U(4.W))
+  val base_wait_counter  = RegInit(0.U(4.W))
+  val ext_state          = RegInit(sIDLE)
+  val ext_clock_counter  = RegInit(0.U(4.W))
+  val ext_wait_counter   = RegInit(0.U(4.W))
 
   val icache_read_base       = io.icache_read_req.bits.addr(31, 22) === "h70".U(10.W) && io.icache_read_req.valid
   val icache_read_ext        = io.icache_read_req.bits.addr(31, 22) === "h71".U(10.W) && io.icache_read_req.valid
@@ -147,6 +145,16 @@ class IoControl extends Module {
   io.debug.icache_read_addr  := icache_read_addr
   io.debug.dcache_read_addr  := dcache_read_addr
   io.debug.dcache_write_addr := dcache_write_addr
+  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
+  val other_state                                = RegInit(oIDLE)
+
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+  val txd_uart_start                  = RegInit(false.B)
+  val txd_uart_data                   = RegInit(0.U(8.W))
+
+  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
+  val base_state                                                 = RegInit(sIDLE)
 
   //pipe stage
   val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
@@ -170,9 +178,6 @@ class IoControl extends Module {
   // 修改: dcache write ready 信号 - 当所有可能处理 dcache write 的状态机都空闲时
   io.dcache_write_req.ready := (base_state === sIDLE) && (ext_state === sIDLE) &&
     (other_state === oIDLE) && (uart_state === uIDLE) && !io.txd.uart_busy
-
-  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
-  val other_state                                = RegInit(oIDLE)
 
   switch(other_state) {
     is(oIDLE) {
@@ -418,10 +423,6 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
-  val txd_uart_start                  = RegInit(false.B)
-  val txd_uart_data                   = RegInit(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
