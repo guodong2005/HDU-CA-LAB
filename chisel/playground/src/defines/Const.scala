@@ -37,7 +37,7 @@ trait Constants extends CoreParameter {
   val WRITE_BUFFER_DEPTH = 4
   val LOAD_QUEUE_DEPTH   = 8
   val DISPATCH_WIDTH     = 5
-  val SRAM_DELAY         = 3
+  val SRAM_DELAY         = 5
 
   val UART_BUFFER_DEPTH = 8
 }

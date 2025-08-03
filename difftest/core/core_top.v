@@ -63,7 +63,6 @@ module IoControl(
   input  [31:0]  io_icache_read_req_bits_addr,
   output         io_icache_read_resp_valid,
   output [255:0] io_icache_read_resp_bits_data,
-  output         io_dcache_read_req_ready,
   input          io_dcache_read_req_valid,
   input  [31:0]  io_dcache_read_req_bits_addr,
   output         io_dcache_read_resp_valid,
@@ -140,9 +139,6 @@ module IoControl(
     ~icache_req_valid & ~(|base_state) & ~(|ext_state) & ~(|other_state);
   reg  [31:0] dcache_buffer;
   reg         dcache_data_valid;
-  wire        io_dcache_read_req_ready_0 =
-    ~dcache_read_req_valid & ~(|base_state) & ~(|ext_state) & ~(|other_state)
-    & ~(|uart_state);
   wire        io_dcache_write_req_ready_0 =
     ~dcache_write_req_valid & ~(|base_state) & ~(|ext_state) & ~(|other_state)
     & ~(|uart_state) & ~io_txd_uart_busy;
@@ -170,7 +166,9 @@ module IoControl(
     automatic logic _GEN_2;
     automatic logic _GEN_3;
     _GEN_1 = io_icache_read_req_valid & io_icache_read_req_ready_0;
-    _GEN_2 = io_dcache_read_req_valid & io_dcache_read_req_ready_0;
+    _GEN_2 =
+      io_dcache_read_req_valid & ~dcache_read_req_valid & ~(|base_state) & ~(|ext_state)
+      & ~(|other_state) & ~(|uart_state);
     _GEN_3 = io_dcache_write_req_valid & io_dcache_write_req_ready_0;
     if (reset) begin
       base_ram_ctrl_data_out <= 32'h0;
@@ -794,7 +792,6 @@ module IoControl(
      icache_buffer_2,
      icache_buffer_1,
      icache_buffer_0};
-  assign io_dcache_read_req_ready = io_dcache_read_req_ready_0;
   assign io_dcache_read_resp_valid = dcache_data_valid;
   assign io_dcache_read_resp_bits_data = dcache_buffer;
   assign io_dcache_write_req_ready = io_dcache_write_req_ready_0;
@@ -1799,7 +1796,6 @@ module DCache(
   input  [3:0]  io_req_bits_wstrb,
   output        io_resp_valid,
   output [31:0] io_resp_bits_data,
-  input         io_io_read_req_ready,
   output        io_io_read_req_valid,
   output [31:0] io_io_read_req_bits_addr,
   input         io_io_read_resp_valid,
@@ -1811,56 +1807,28 @@ module DCache(
   output [3:0]  io_io_write_req_bits_byte_mask
 );
 
-  reg  [2:0]  state;
+  reg  [1:0]  state;
   reg  [31:0] reqReg_addr;
-  reg         reqReg_write;
   reg  [31:0] reqReg_wdata;
   reg  [3:0]  reqReg_wstrb;
-  reg         reqStored;
-  wire [31:0] current_req_addr = reqStored ? reqReg_addr : io_req_bits_addr;
-  wire        _GEN = state == 3'h1;
-  wire        _GEN_0 = state == 3'h2;
-  wire        _GEN_1 = state == 3'h3;
-  wire        _GEN_2 = state == 3'h4;
-  wire        _GEN_3 = ~(|state) | _GEN;
+  wire        _GEN = state == 2'h1;
+  wire        _GEN_0 = state == 2'h2;
   always @(posedge clock) begin
-    automatic logic _GEN_4;
-    _GEN_4 = io_req_valid & ~reqStored;
-    if (reset) begin
-      state <= 3'h0;
-      reqStored <= 1'h0;
+    if (reset)
+      state <= 2'h0;
+    else if (|state) begin
+      automatic logic [3:0][1:0] _GEN_1;
+      _GEN_1 =
+        {{2'h0},
+         {io_io_write_req_ready ? 2'h3 : state},
+         {io_io_read_resp_valid ? 2'h0 : state},
+         {state}};
+      state <= _GEN_1[state];
     end
-    else begin
-      automatic logic _GEN_5;
-      _GEN_5 = _GEN_4 | reqStored;
-      if (|state) begin
-        if (_GEN) begin
-          if (io_io_read_req_ready)
-            state <= 3'h2;
-        end
-        else if (_GEN_0) begin
-          if (io_io_read_resp_valid)
-            state <= 3'h0;
-        end
-        else if (_GEN_1) begin
-          if (io_io_write_req_ready)
-            state <= 3'h4;
-        end
-        else if (_GEN_2)
-          state <= 3'h0;
-      end
-      else if (reqStored ? reqStored : io_req_valid)
-        state <= {1'h0, reqStored ? reqReg_write : io_req_bits_write, 1'h1};
-      if (_GEN_3)
-        reqStored <= _GEN_5;
-      else if (_GEN_0)
-        reqStored <= ~io_io_read_resp_valid & _GEN_5;
-      else
-        reqStored <= (_GEN_1 | ~_GEN_2) & _GEN_5;
-    end
-    if (_GEN_4) begin
+    else if (io_req_valid)
+      state <= io_req_bits_write ? 2'h2 : 2'h1;
+    if (~(|state) & io_req_valid) begin
       reqReg_addr <= io_req_bits_addr;
-      reqReg_write <= io_req_bits_write;
       reqReg_wdata <= io_req_bits_wdata;
       reqReg_wstrb <= io_req_bits_wstrb;
     end
@@ -1878,28 +1846,26 @@ module DCache(
         for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[2'h0][2:0];
-        reqReg_addr = {_RANDOM[2'h0][31:3], _RANDOM[2'h1][2:0]};
-        reqReg_write = _RANDOM[2'h1][3];
-        reqReg_wdata = {_RANDOM[2'h1][31:4], _RANDOM[2'h2][3:0]};
-        reqReg_wstrb = _RANDOM[2'h2][7:4];
-        reqStored = _RANDOM[2'h2][11];
+        state = _RANDOM[2'h0][1:0];
+        reqReg_addr = {_RANDOM[2'h0][31:2], _RANDOM[2'h1][1:0]};
+        reqReg_wdata = {_RANDOM[2'h1][31:3], _RANDOM[2'h2][2:0]};
+        reqReg_wstrb = _RANDOM[2'h2][6:3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_req_ready = ~(|state) & ~reqStored;
-  assign io_resp_valid = ~_GEN_3 & (_GEN_0 ? io_io_read_resp_valid : ~_GEN_1 & _GEN_2);
+  assign io_req_ready = ~(|state);
+  assign io_resp_valid = (|state) & (_GEN ? io_io_read_resp_valid : ~_GEN_0 & (&state));
   assign io_resp_bits_data =
-    _GEN_3 | ~(_GEN_0 & io_io_read_resp_valid) ? 32'h0 : io_io_read_resp_bits_data;
+    (|state) & _GEN & io_io_read_resp_valid ? io_io_read_resp_bits_data : 32'h0;
   assign io_io_read_req_valid = (|state) & _GEN;
-  assign io_io_read_req_bits_addr = current_req_addr;
-  assign io_io_write_req_valid = ~(~(|state) | _GEN | _GEN_0) & _GEN_1;
-  assign io_io_write_req_bits_addr = current_req_addr;
-  assign io_io_write_req_bits_data = reqStored ? reqReg_wdata : io_req_bits_wdata;
-  assign io_io_write_req_bits_byte_mask = reqStored ? reqReg_wstrb : io_req_bits_wstrb;
+  assign io_io_read_req_bits_addr = reqReg_addr;
+  assign io_io_write_req_valid = ~(~(|state) | _GEN) & _GEN_0;
+  assign io_io_write_req_bits_addr = reqReg_addr;
+  assign io_io_write_req_bits_data = reqReg_wdata;
+  assign io_io_write_req_bits_byte_mask = reqReg_wstrb;
 endmodule
 
 module FetchUnit(
@@ -4984,7 +4950,6 @@ module Core(
   wire         _iocontrol_io_icache_read_req_ready;
   wire         _iocontrol_io_icache_read_resp_valid;
   wire [255:0] _iocontrol_io_icache_read_resp_bits_data;
-  wire         _iocontrol_io_dcache_read_req_ready;
   wire         _iocontrol_io_dcache_read_resp_valid;
   wire [31:0]  _iocontrol_io_dcache_read_resp_bits_data;
   wire         _iocontrol_io_dcache_write_req_ready;
@@ -4996,7 +4961,6 @@ module Core(
     .io_icache_read_req_bits_addr       (_icache_io_io_read_req_bits_addr),
     .io_icache_read_resp_valid          (_iocontrol_io_icache_read_resp_valid),
     .io_icache_read_resp_bits_data      (_iocontrol_io_icache_read_resp_bits_data),
-    .io_dcache_read_req_ready           (_iocontrol_io_dcache_read_req_ready),
     .io_dcache_read_req_valid           (_dcache_io_io_read_req_valid),
     .io_dcache_read_req_bits_addr       (_dcache_io_io_read_req_bits_addr),
     .io_dcache_read_resp_valid          (_iocontrol_io_dcache_read_resp_valid),
@@ -5060,7 +5024,6 @@ module Core(
     .io_req_bits_wstrb              (_executeUnit_io_dcache_req_bits_wstrb),
     .io_resp_valid                  (_dcache_io_resp_valid),
     .io_resp_bits_data              (_dcache_io_resp_bits_data),
-    .io_io_read_req_ready           (_iocontrol_io_dcache_read_req_ready),
     .io_io_read_req_valid           (_dcache_io_io_read_req_valid),
     .io_io_read_req_bits_addr       (_dcache_io_io_read_req_bits_addr),
     .io_io_read_resp_valid          (_iocontrol_io_dcache_read_resp_valid),
