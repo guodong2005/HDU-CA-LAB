@@ -102,50 +102,47 @@ class IoControl extends Module {
     }
   }
 
-  val io = IO(new IoControlIO)
-
+  val io            = IO(new IoControlIO)
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
   io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
 
   val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
   val base_state                                                 = RegInit(sIDLE)
-  val base_clock_counter                                         = Reg(0.U(4.W))
-  val base_wait_counter                                          = Reg(0.U(4.W))
+  val base_clock_counter                                         = RegInit(0.U(4.W))
+  val base_wait_counter                                          = RegInit(0.U(4.W))
   val ext_state                                                  = RegInit(sIDLE)
-  val ext_clock_counter                                          = Reg(0.U(4.W))
-  val ext_wait_counter                                           = Reg(0.U(4.W))
-  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil                 = Enum(4)
-  val other_state                                                = RegInit(oIDLE)
+  val ext_clock_counter                                          = RegInit(0.U(4.W))
+  val ext_wait_counter                                           = RegInit(0.U(4.W))
 
   // 添加请求存储寄存器
-  val icache_req_addr  = RegInit(UInt(32.W))
+  val icache_req_addr  = Reg(UInt(32.W))
   val icache_req_valid = RegInit(false.B)
 
-  val dcache_read_req_addr  = RegInit(UInt(32.W))
+  val dcache_read_req_addr  = Reg(UInt(32.W))
   val dcache_read_req_valid = RegInit(false.B)
 
-  val dcache_write_req_addr      = RegInit(UInt(32.W))
-  val dcache_write_req_data      = RegInit(UInt(32.W))
-  val dcache_write_req_byte_mask = RegInit(UInt(4.W))
+  val dcache_write_req_addr      = Reg(UInt(32.W))
+  val dcache_write_req_data      = Reg(UInt(32.W))
+  val dcache_write_req_byte_mask = Reg(UInt(4.W))
   val dcache_write_req_valid     = RegInit(false.B)
 
   // 解析存储的地址，而不是直接从输入端口
-  val icache_read_base       = icache_req_addr(31, 22) === "b1000_0000_00".U(10.W) && icache_req_valid
-  val icache_read_ext        = icache_req_addr(31, 22) === "b1000_0000_01".U(10.W) && icache_req_valid
-  val dcache_read_base       = dcache_read_req_addr(31, 22) === "b1000_0000_00".U(10.W) && dcache_read_req_valid
-  val dcache_read_ext        = dcache_read_req_addr(31, 22) === "b1000_0000_01".U(10.W) && dcache_read_req_valid
-  val dcache_write_base      = dcache_write_req_addr(31, 22) === "b1000_0000_00".U(10.W) && dcache_write_req_valid
-  val dcache_write_ext       = dcache_write_req_addr(31, 22) === "b1000_0000_01".U(10.W) && dcache_write_req_valid
+  val icache_read_base  = icache_req_addr(31, 22) === "b1000_0000_00".U(10.W) && icache_req_valid
+  val icache_read_ext   = icache_req_addr(31, 22) === "b1000_0000_01".U(10.W) && icache_req_valid
+  val dcache_read_base  = dcache_read_req_addr(31, 22) === "b1000_0000_00".U(10.W) && dcache_read_req_valid
+  val dcache_read_ext   = dcache_read_req_addr(31, 22) === "b1000_0000_01".U(10.W) && dcache_read_req_valid
+  val dcache_write_base = dcache_write_req_addr(31, 22) === "b1000_0000_00".U(10.W) && dcache_write_req_valid
+  val dcache_write_ext  = dcache_write_req_addr(31, 22) === "b1000_0000_01".U(10.W) && dcache_write_req_valid
+
   val dcache_read_uart       = dcache_read_req_addr === "hBFD003F8".U(32.W) && dcache_read_req_valid
   val dcache_write_uart      = dcache_write_req_addr === "hBFD003F8".U(32.W) && dcache_write_req_valid
   val dcache_read_uart_state = dcache_read_req_addr === "hBFD003FC".U(32.W) && dcache_read_req_valid
-  val icache_read_addr       = icache_req_addr(21, 2)
-  val dcache_read_addr       = dcache_read_req_addr(21, 2)
-  val dcache_write_addr      = dcache_write_req_addr(21, 2)
+
+  val icache_read_addr  = icache_req_addr(21, 2)
+  val dcache_read_addr  = dcache_read_req_addr(21, 2)
+  val dcache_write_addr = dcache_write_req_addr(21, 2)
 
   val icache_read_other = !icache_read_base && !icache_read_ext && icache_req_valid
   val dcache_read_other = !dcache_read_base && !dcache_read_ext && !dcache_read_uart &&
@@ -153,7 +150,7 @@ class IoControl extends Module {
   val dcache_write_other = !dcache_write_base && !dcache_write_ext && !dcache_write_uart &&
     dcache_write_req_valid
 
-  // debug
+  //debug
   io.debug.base_state        := base_state
   io.debug.icache_read_base  := icache_read_base
   io.debug.icache_read_ext   := icache_read_ext
@@ -165,7 +162,7 @@ class IoControl extends Module {
   io.debug.dcache_read_addr  := dcache_read_addr
   io.debug.dcache_write_addr := dcache_write_addr
 
-  // pipe stage
+  //pipe stage
   val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
   val icache_data_valid = RegInit(false.B)
 
@@ -208,6 +205,9 @@ class IoControl extends Module {
     dcache_write_req_valid     := true.B
   }
 
+  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
+  val other_state                                = RegInit(oIDLE)
+
   switch(other_state) {
     is(oIDLE) {
       when(icache_read_other) {
@@ -240,7 +240,7 @@ class IoControl extends Module {
     }
   }
 
-  // base_ram
+  //base_ram
   switch(base_state) {
     is(sIDLE) {
       when(dcache_write_base) {
@@ -317,7 +317,7 @@ class IoControl extends Module {
     }
   }
 
-  // ext_ram
+  //ext_ram
   switch(ext_state) {
     is(sIDLE) {
       when(dcache_read_ext) {
@@ -395,7 +395,7 @@ class IoControl extends Module {
   }
 
   // UART 部分保持不变，但也需要清除相应的请求
-  val uart_buffer = RegInit(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
+  val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
   val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
   val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
@@ -431,8 +431,10 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
-  val txd_uart_start = Reg(false.B)
-  val txd_uart_data  = Reg(0.U(8.W))
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+  val txd_uart_start                  = RegInit(false.B)
+  val txd_uart_data                   = RegInit(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
