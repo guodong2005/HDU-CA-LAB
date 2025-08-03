@@ -299,7 +299,7 @@ module IoControl(
         if (|state) begin
           automatic logic            _GEN_36;
           automatic logic [7:0][2:0] _GEN_37;
-          _GEN_36 = delay_counter < 8'h3;
+          _GEN_36 = delay_counter < 8'h5;
           _GEN_37 =
             {{state},
              {state},
