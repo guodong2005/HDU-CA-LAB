@@ -103,7 +103,7 @@ class IoControl extends Module {
   val wait_counter                                                             = RegInit(0.U(4.W))
   val icache_offset                                                            = RegInit(0.U(3.W))
 
-  // 请求缓存寄存器
+  // 请求缓存寄存器 - 确保初始值为false/0
   val icache_req_valid = RegInit(false.B)
   val icache_req_addr  = RegInit(0.U(32.W))
 
@@ -124,35 +124,41 @@ class IoControl extends Module {
   val current_ram                         = RegInit(ramNone)
 
   // Ready信号逻辑：
-  // 1. icache: 没有pending的icache请求，或者当前没有正在进行的icache burst
+  // 1. icache: 没有pending的icache请求，且当前没有正在进行的icache burst
   // 2. dcache read: 没有pending的dcache read请求
   // 3. dcache write: 没有pending的dcache write请求
   val icache_burst_active = state === iREAD || state === iWait
+
+  // 移除system_busy限制，允许在非IDLE状态也能接收请求
   io.icache_read_req.ready  := !icache_req_valid && !icache_burst_active
   io.dcache_read_req.ready  := !dcache_read_req_valid
   io.dcache_write_req.ready := !dcache_write_req_valid
 
-  // 捕获请求（valid只持续一拍）
-  when(io.icache_read_req.fire) {
+  // 捕获请求（valid只持续一拍）- 添加条件检查
+  when(io.icache_read_req.fire && !icache_req_valid) { // 只在没有pending请求时捕获
     icache_req_valid := true.B
     icache_req_addr  := io.icache_read_req.bits.addr
+    // printf("ICache request captured: addr=%x at cycle %d\n", io.icache_read_req.bits.addr, GTimer())
   }
 
-  when(io.dcache_read_req.fire) {
+  when(io.dcache_read_req.fire && !dcache_read_req_valid) {
     dcache_read_req_valid := true.B
     dcache_read_req_addr  := io.dcache_read_req.bits.addr
+    // printf("DCache read request captured: addr=%x at cycle %d\n", io.dcache_read_req.bits.addr, GTimer())
   }
 
-  when(io.dcache_write_req.fire) {
+  when(io.dcache_write_req.fire && !dcache_write_req_valid) {
     dcache_write_req_valid := true.B
     dcache_write_req_addr  := io.dcache_write_req.bits.addr
     dcache_write_req_data  := io.dcache_write_req.bits.data
     dcache_write_req_mask  := io.dcache_write_req.bits.byte_mask
+    // printf("DCache write request captured: addr=%x, data=%x at cycle %d\n",
+    //        io.dcache_write_req.bits.addr, io.dcache_write_req.bits.data, GTimer())
   }
 
-  // 地址解析函数
-  def isBaseAddr(addr:      UInt): Bool = addr(31, 22) === "b1000_0000_00".U(10.W)
-  def isExtAddr(addr:       UInt): Bool = addr(31, 22) === "b1000_0000_01".U(10.W)
+  // 地址解析函数 - 使用十六进制更清晰
+  def isBaseAddr(addr:      UInt): Bool = addr(31, 22) === "h200".U(10.W) // 0x80000000>>22 = 0x200
+  def isExtAddr(addr:       UInt): Bool = addr(31, 22) === "h201".U(10.W) // 0x80400000>>22 = 0x201
   def isUartDataAddr(addr:  UInt): Bool = addr === "hBFD003F8".U(32.W)
   def isUartStateAddr(addr: UInt): Bool = addr === "hBFD003FC".U(32.W)
 
@@ -202,8 +208,8 @@ class IoControl extends Module {
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
-  // 仲裁逻辑：dcache_write > dcache_read > icache (除非icache正在burst)
-  val next_req = Wire(UInt(2.W))
+  // 仲裁逻辑：dcache_write > dcache_read > icache
+  val next_req = Wire(UInt(3.W))
   next_req := reqNone
   when(dcache_write_req_valid) {
     next_req := reqDcacheWrite
@@ -216,8 +222,20 @@ class IoControl extends Module {
   // 统一状态机
   switch(state) {
     is(sIDLE) {
-      // 根据仲裁结果选择下一个请求
-      when(next_req === reqDcacheWrite) {
+      // 详细调试信息
+      when(dcache_write_req_valid) {
+        val addr_upper = dcache_write_req_addr(31, 22)
+        val is_base    = addr_upper === "h200".U
+        val is_ext     = addr_upper === "h201".U
+        // printf("DCache write: addr=%x, addr[31:22]=%x, expect_ext=h201, is_ext=%d\n",
+        //        dcache_write_req_addr, addr_upper, is_ext)
+      }
+      when(icache_req_valid) {
+        // printf("ICache req valid at same time! addr=%x\n", icache_req_addr)
+      }
+
+      // 严格按照优先级处理：dcache_write > dcache_read > icache
+      when(dcache_write_req_valid) { // 暂时移除system_ready检查
         when(isBaseAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramBase
@@ -228,6 +246,7 @@ class IoControl extends Module {
           )
           wait_counter := 0.U
           state        := dWrite
+          // printf("Going to dWrite for base RAM\n")
         }.elsewhen(isExtAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramExt
@@ -238,6 +257,7 @@ class IoControl extends Module {
           )
           wait_counter := 0.U
           state        := dWrite
+          // printf("Going to dWrite for ext RAM\n")
         }.elsewhen(isUartDataAddr(dcache_write_req_addr)) {
           when(!io.txd.uart_busy) {
             txd_uart_start         := true.B
@@ -248,11 +268,12 @@ class IoControl extends Module {
           }
         }.otherwise {
           // 非法地址，直接响应
+          // printf("DCache write to invalid address: %x\n", dcache_write_req_addr)
           dcache_data_valid      := true.B
           dcache_write_req_valid := false.B
           state                  := dWait
         }
-      }.elsewhen(next_req === reqDcacheRead) {
+      }.elsewhen(dcache_read_req_valid) {
         when(isBaseAddr(dcache_read_req_addr)) {
           current_req_type := reqDcacheRead
           current_ram      := ramBase
@@ -423,5 +444,10 @@ class IoControl extends Module {
     icache_req_valid       := false.B
     dcache_read_req_valid  := false.B
     dcache_write_req_valid := false.B
+    icache_req_addr        := 0.U
+    dcache_read_req_addr   := 0.U
+    dcache_write_req_addr  := 0.U
+    dcache_write_req_data  := 0.U
+    dcache_write_req_mask  := 0.U
   }
 }
