@@ -103,27 +103,9 @@ class IoControl extends Module {
   }
 
   val io = IO(new IoControlIO)
-  val base_ram_ctrl = RegInit({
-    val init = Wire(new SramCtrlInfo)
-    init.data_out := 0.U
-    init.addr     := 0.U
-    init.be_n     := "b1111".U
-    init.ce_n     := true.B
-    init.oe_n     := true.B
-    init.we_n     := true.B
-    init
-  })
 
-  val ext_ram_ctrl = RegInit({
-    val init = Wire(new SramCtrlInfo)
-    init.data_out := 0.U
-    init.addr     := 0.U
-    init.be_n     := "b1111".U
-    init.ce_n     := true.B
-    init.oe_n     := true.B
-    init.we_n     := true.B
-    init
-  })
+  val base_ram_ctrl = Reg(new SramCtrlInfo)
+  val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
   io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
   val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
