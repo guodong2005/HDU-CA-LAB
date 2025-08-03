@@ -24,28 +24,6 @@ class SramCtrlIO extends Bundle {
   val ctrl = Output(new SramCtrlInfo)
 }
 
-class IoControlDebugIO extends Bundle {
-  val base_state        = Output(UInt(12.W))
-  val ext_state         = Output(UInt(12.W))
-  val icache_read_base  = Output(Bool())
-  val icache_read_ext   = Output(Bool())
-  val dcache_read_base  = Output(Bool())
-  val dcache_read_ext   = Output(Bool())
-  val dcache_write_base = Output(Bool())
-  val dcache_write_ext  = Output(Bool())
-  val icache_read_addr  = Output(UInt(20.W))
-  val dcache_read_addr  = Output(UInt(20.W))
-  val dcache_write_addr = Output(UInt(20.W))
-  val unified_state     = Output(UInt(4.W))
-  val delay_counter     = Output(UInt(8.W))
-  // 新增调试信号
-  val dcache_captured_data = Output(UInt(32.W))
-  val current_req_type     = Output(UInt(3.W))
-  val current_ram_type     = Output(UInt(2.W))
-  val sram_data_in         = Output(UInt(32.W))
-  val data_valid_flag      = Output(Bool())
-}
-
 class RxDIO extends Bundle {
   val uart_ready = Input(Bool())
   val uart_clear = Output(Bool())
@@ -72,7 +50,6 @@ class IoControlIO extends Bundle {
   val ext_ram_ctrl     = new SramCtrlIO
   val rxd              = new RxDIO
   val txd              = new TxDIO
-  val debug            = new IoControlDebugIO
 }
 
 class IoControl extends Module {
@@ -138,12 +115,13 @@ class IoControl extends Module {
   io.ext_ram_ctrl.ctrl.oe_n := ext_ram_oe_n_r
   io.ext_ram_ctrl.ctrl.we_n := ext_ram_we_n_r
 
-  // 三态门控制
-  io.base_ram_ctrl.data.data_out := base_ram_data_r
-  io.base_ram_ctrl.data.data_en  := !base_ram_we_n_r
+  // 三态门控制 - 修正为高阻态逻辑
+  // 当data_en为false时，data_out应为高阻态（用DontCare表示）
+  io.base_ram_ctrl.data.data_en  := !base_ram_we_n_r && !base_ram_ce_n_r
+  io.base_ram_ctrl.data.data_out := Mux(io.base_ram_ctrl.data.data_en, base_ram_data_r, DontCare)
 
-  io.ext_ram_ctrl.data.data_out := ext_ram_data_r
-  io.ext_ram_ctrl.data.data_en  := !ext_ram_we_n_r
+  io.ext_ram_ctrl.data.data_en  := !ext_ram_we_n_r && !ext_ram_ce_n_r
+  io.ext_ram_ctrl.data.data_out := Mux(io.ext_ram_ctrl.data.data_en, ext_ram_data_r, DontCare)
 
   // 请求缓存
   val icache_addr_r   = Reg(UInt(32.W))
@@ -242,26 +220,6 @@ class IoControl extends Module {
     dcache_is_write && !io.txd.uart_busy
   io.txd.uart_start := uart_tx_request
   io.txd.uart_data  := dcache_data_r(7, 0)
-
-  // Debug信号
-  io.debug.base_state           := 0.U // 兼容旧接口
-  io.debug.ext_state            := 0.U // 兼容旧接口
-  io.debug.unified_state        := state.asUInt
-  io.debug.delay_counter        := delay_counter
-  io.debug.icache_read_base     := current_req === reqIRead && current_ram === ramBase
-  io.debug.icache_read_ext      := current_req === reqIRead && current_ram === ramExt
-  io.debug.dcache_read_base     := current_req === reqDRead && current_ram === ramBase
-  io.debug.dcache_read_ext      := current_req === reqDRead && current_ram === ramExt
-  io.debug.dcache_write_base    := current_req === reqDWrite && current_ram === ramBase
-  io.debug.dcache_write_ext     := current_req === reqDWrite && current_ram === ramExt
-  io.debug.icache_read_addr     := icache_addr_r(21, 2)
-  io.debug.dcache_read_addr     := dcache_addr_r(21, 2)
-  io.debug.dcache_write_addr    := dcache_addr_r(21, 2)
-  io.debug.dcache_captured_data := dcache_captured_data
-  io.debug.current_req_type     := current_req
-  io.debug.current_ram_type     := current_ram
-  io.debug.sram_data_in         := Mux(current_ram === ramBase, io.base_ram_ctrl.data.data_in, io.ext_ram_ctrl.data.data_in)
-  io.debug.data_valid_flag      := data_capture_valid
 
   // 统一状态机
   switch(state) {
