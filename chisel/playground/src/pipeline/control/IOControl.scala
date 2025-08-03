@@ -103,8 +103,8 @@ class IoControl extends Module {
   }
 
   val io            = IO(new IoControlIO)
-  val base_ram_ctrl = RegInit(new SramCtrlInfo)
-  val ext_ram_ctrl  = RegInit(new SramCtrlInfo)
+  val base_ram_ctrl = Reg(new SramCtrlInfo)
+  val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
   io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
   val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
