@@ -106,7 +106,7 @@ class IoControl extends Module {
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
   val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
   val uart_state                      = RegInit(uIDLE)
 
@@ -133,15 +133,15 @@ class IoControl extends Module {
   val dcache_write_req_valid     = RegInit(false.B)
 
   // 解析存储的地址，而不是直接从输入端口
-  val icache_read_base       = icache_req_addr(31, 22) === "h70".U(10.W) && icache_req_valid
-  val icache_read_ext        = icache_req_addr(31, 22) === "h71".U(10.W) && icache_req_valid
-  val dcache_read_base       = dcache_read_req_addr(31, 22) === "h70".U(10.W) && dcache_read_req_valid
-  val dcache_read_ext        = dcache_read_req_addr(31, 22) === "h71".U(10.W) && dcache_read_req_valid
-  val dcache_write_base      = dcache_write_req_addr(31, 22) === "h70".U(10.W) && dcache_write_req_valid
-  val dcache_write_ext       = dcache_write_req_addr(31, 22) === "h71".U(10.W) && dcache_write_req_valid
-  val dcache_read_uart       = dcache_read_req_addr === "hBFD003F8".U(32.W) && dcache_read_req_valid
-  val dcache_write_uart      = dcache_write_req_addr === "hBFD003F8".U(32.W) && dcache_write_req_valid
-  val dcache_read_uart_state = dcache_read_req_addr === "hBFD003FC".U(32.W) && dcache_read_req_valid
+  val icache_read_base       = io.icache_read_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.icache_read_req.valid
+  val icache_read_ext        = io.icache_read_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.icache_read_req.valid
+  val dcache_read_base       = io.dcache_read_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.dcache_read_req.valid
+  val dcache_read_ext        = io.dcache_read_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.dcache_read_req.valid
+  val dcache_write_base      = io.dcache_write_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.dcache_write_req.valid
+  val dcache_write_ext       = io.dcache_write_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.dcache_write_req.valid
+  val dcache_read_uart       = io.dcache_read_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_read_req.valid
+  val dcache_write_uart      = io.dcache_write_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_write_req.valid
+  val dcache_read_uart_state = io.dcache_read_req.bits.addr === "hBFD003FC".U(32.W) && io.dcache_read_req.valid
 
   val icache_read_addr  = icache_req_addr(21, 2)
   val dcache_read_addr  = dcache_read_req_addr(21, 2)
