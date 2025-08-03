@@ -164,7 +164,7 @@ class IoControl extends Module {
 
   // 响应接口
   io.icache_read_resp.valid     := icache_data_valid
-  io.icache_read_resp.bits.data := icache_buffer.asUInt()
+  io.icache_read_resp.bits.data := icache_buffer.asUInt
   io.dcache_read_resp.valid     := dcache_data_valid
   io.dcache_read_resp.bits.data := dcache_buffer
 
@@ -402,7 +402,7 @@ class IoControl extends Module {
   }
 
   // 复位处理
-  when(reset.asBool()) {
+  when(reset.asBool) {
     base_ram_ctrl.idle()
     ext_ram_ctrl.idle()
     uart_buffer.foreach(i => {
