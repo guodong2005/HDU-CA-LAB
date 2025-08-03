@@ -155,7 +155,6 @@ class IoControl extends Module {
   when(io.icache_read_resp.valid) {
     iValid := false.B
   }
-  io.dcache_read_req.ready := dcache_read_ready
   //pipe stage
   val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
   val icache_data_valid = RegInit(false.B)
@@ -164,6 +163,7 @@ class IoControl extends Module {
   val dcache_buffer     = RegInit(0.U(32.W))
   val dcache_data_valid = RegInit(false.B)
   val dcache_read_ready = WireInit(false.B)
+  io.dcache_read_req.ready      := dcache_read_ready
   io.dcache_read_resp.valid     := dcache_data_valid
   io.dcache_read_resp.bits.data := dcache_buffer.asUInt
   val dcache_write_complete = WireInit(false.B)
