@@ -6,6 +6,23 @@ import cpu.defines._
 import cpu.defines.Const._
 import cpu.pipeline._
 
+class DCacheReadReq extends Bundle {
+  val addr = UInt(32.W)
+  def init(): Unit = {
+    addr := 0.U(32.W)
+  }
+}
+
+class DCacheWriteReq extends Bundle {
+  val addr      = UInt(32.W)
+  val data      = UInt(32.W)
+  val byte_mask = UInt(4.W)
+}
+
+class DCacheResp extends Bundle {
+  val data = UInt(32.W)
+}
+
 class SramCtrlInfo extends Bundle {
   def idle(): Unit = {
     data_out := 0.U
@@ -380,9 +397,9 @@ class IoControl extends Module {
 
   val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val head_idx    = OHToUInt(uart_head)
+  val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
   val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val tail_idx    = OHToUInt(uart_tail)
+  val tail_idx    = OHToUInt(uart_tail)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
   val maybe_full  = RegInit(false.B)
   val uart_full   = uart_head === uart_tail && maybe_full
   val uart_empty  = uart_head === uart_tail && !maybe_full
