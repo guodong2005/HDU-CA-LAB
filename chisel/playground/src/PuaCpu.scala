@@ -19,8 +19,8 @@ class core_top extends Module {
   dontTouch(io)
   io.diffout <> core.io.diff
   io.base_ram_ctrl <> core.io.base_ram_ctrl
-  io.ext_ram_ctrl <> io.ext_ram_ctrl
-  io.rxd <> io.rxd
-  io.txd <> io.txd
+  io.ext_ram_ctrl <> core.io.ext_ram_ctrl
+  io.rxd <> core.io.rxd
+  io.txd <> core.io.txd
 
 }
