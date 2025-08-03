@@ -69,7 +69,7 @@ class IoControl extends Module {
   val io = IO(new IoControlIO)
 
   // SRAM_DELAY parameter (you can adjust this)
-  val SRAM_DELAY = 3 // 减少延迟避免读写冲突
+  val SRAM_DELAY = 5 // 减少延迟避免读写冲突
 
   // 统一状态机 - 串行执行避免冲突
   val sIdle :: sSetup :: sWait :: sCapture :: sDone :: sCleanup :: Nil = Enum(6)
