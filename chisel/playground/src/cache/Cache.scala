@@ -200,15 +200,16 @@ class DCache extends Module {
   val sIDLE :: sWAIT_READ_RESP :: sWAIT_WRITE_RESP :: Nil = Enum(3)
   val state                                               = RegInit(sIDLE)
 
-  // Saved request register - 模仿ICache的saved_req
-  val saved_req = RegInit(0.U.asTypeOf(Decoupled(new DCacheReq)))
+  // Saved request register - 分开存储bits和valid
+  val saved_req_valid = RegInit(false.B)
+  val saved_req_bits  = Reg(new DCacheReq)
 
   // Current request selection
-  val current_req_valid = Mux(saved_req.valid, saved_req.valid, io.req.valid)
-  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.req.bits)
+  val current_req_valid = Mux(saved_req_valid, saved_req_valid, io.req.valid)
+  val current_req_bits  = Mux(saved_req_valid, saved_req_bits, io.req.bits)
 
   // Default assignments
-  io.req.ready      := (state === sIDLE && !saved_req.valid)
+  io.req.ready      := (state === sIDLE && !saved_req_valid)
   io.resp.valid     := false.B
   io.resp.bits.data := 0.U
 
@@ -223,15 +224,15 @@ class DCache extends Module {
   io.io_write_req.bits.data      := current_req_bits.wdata
   io.io_write_req.bits.byte_mask := current_req_bits.wstrb
 
-  // Request register control - 模仿ICache的握手逻辑
-  when(io.req.valid && io.req.ready && !saved_req.valid) {
-    saved_req.valid := true.B
-    saved_req.bits  := io.req.bits
+  // Request register control - 分开管理bits和valid
+  when(io.req.valid && io.req.ready && !saved_req_valid) {
+    saved_req_valid := true.B
+    saved_req_bits  := io.req.bits
   }
 
   when(io.resp.valid && io.resp.ready) {
-    saved_req.valid := false.B
-    saved_req.bits  := 0.U.asTypeOf(new DCacheReq())
+    saved_req_valid := false.B
+    saved_req_bits  := 0.U.asTypeOf(new DCacheReq())
   }
 
   // State machine
