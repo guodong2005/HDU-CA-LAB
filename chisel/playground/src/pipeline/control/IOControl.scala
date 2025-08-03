@@ -90,9 +90,6 @@ class IoControlIO extends Bundle {
 
 class IoControl extends Module {
   def EndianConvert(data: UInt) = {
-    //val w = data.getWidth
-    //VecInit((0 until w / 8).map(i => data(i * 8 + 7, i * 8)).reverse).asUInt()
-
     // do nothing
     data
   }
@@ -104,47 +101,55 @@ class IoControl extends Module {
       i
     }
   }
-  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
-  val other_state                                = RegInit(oIDLE)
-
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
-  val txd_uart_start                  = RegInit(false.B)
-  val txd_uart_data                   = RegInit(0.U(8.W))
-
-  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
-  val base_state                                                 = RegInit(sIDLE)
 
   val io            = IO(new IoControlIO)
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
 
-  val base_clock_counter = RegInit(0.U(4.W))
-  val base_wait_counter  = RegInit(0.U(4.W))
-  val ext_state          = RegInit(sIDLE)
-  val ext_clock_counter  = RegInit(0.U(4.W))
-  val ext_wait_counter   = RegInit(0.U(4.W))
+  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
+  val base_state                                                 = RegInit(sIDLE)
+  val base_clock_counter                                         = RegInit(0.U(4.W))
+  val base_wait_counter                                          = RegInit(0.U(4.W))
+  val ext_state                                                  = RegInit(sIDLE)
+  val ext_clock_counter                                          = RegInit(0.U(4.W))
+  val ext_wait_counter                                           = RegInit(0.U(4.W))
 
-  val icache_read_base       = io.icache_read_req.bits.addr(31, 22) === "h70".U(10.W) && io.icache_read_req.valid
-  val icache_read_ext        = io.icache_read_req.bits.addr(31, 22) === "h71".U(10.W) && io.icache_read_req.valid
-  val dcache_read_base       = io.dcache_read_req.bits.addr(31, 22) === "h70".U(10.W) && io.dcache_read_req.valid
-  val dcache_read_ext        = io.dcache_read_req.bits.addr(31, 22) === "h71".U(10.W) && io.dcache_read_req.valid
-  val dcache_write_base      = io.dcache_write_req.bits.addr(31, 22) === "h70".U(10.W) && io.dcache_write_req.valid
-  val dcache_write_ext       = io.dcache_write_req.bits.addr(31, 22) === "h71".U(10.W) && io.dcache_write_req.valid
-  val dcache_read_uart       = io.dcache_read_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_read_req.valid
-  val dcache_write_uart      = io.dcache_write_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_write_req.valid
-  val dcache_read_uart_state = io.dcache_read_req.bits.addr === "hBFD003FC".U(32.W) && io.dcache_read_req.valid
+  // 添加请求存储寄存器
+  val icache_req_addr  = Reg(UInt(32.W))
+  val icache_req_valid = RegInit(false.B)
 
-  val icache_read_addr  = io.icache_read_req.bits.addr(21, 2)
-  val dcache_read_addr  = io.dcache_read_req.bits.addr(21, 2)
-  val dcache_write_addr = io.dcache_write_req.bits.addr(21, 2)
-  val icache_read_other = !icache_read_base && !icache_read_ext && io.icache_read_req.valid
-  val dcache_read_other =
-    !dcache_read_base && !dcache_read_ext && !dcache_read_uart && !dcache_read_uart_state && io.dcache_read_req.valid
-  val dcache_write_other = !dcache_write_base && !dcache_write_ext && !dcache_write_uart && io.dcache_write_req.valid
-  //debug
+  val dcache_read_req_addr  = Reg(UInt(32.W))
+  val dcache_read_req_valid = RegInit(false.B)
+
+  val dcache_write_req_addr      = Reg(UInt(32.W))
+  val dcache_write_req_data      = Reg(UInt(32.W))
+  val dcache_write_req_byte_mask = Reg(UInt(4.W))
+  val dcache_write_req_valid     = RegInit(false.B)
+
+  // 解析存储的地址，而不是直接从输入端口
+  val icache_read_base       = icache_req_addr(31, 22) === "h70".U(10.W) && icache_req_valid
+  val icache_read_ext        = icache_req_addr(31, 22) === "h71".U(10.W) && icache_req_valid
+  val dcache_read_base       = dcache_read_req_addr(31, 22) === "h70".U(10.W) && dcache_read_req_valid
+  val dcache_read_ext        = dcache_read_req_addr(31, 22) === "h71".U(10.W) && dcache_read_req_valid
+  val dcache_write_base      = dcache_write_req_addr(31, 22) === "h70".U(10.W) && dcache_write_req_valid
+  val dcache_write_ext       = dcache_write_req_addr(31, 22) === "h71".U(10.W) && dcache_write_req_valid
+  val dcache_read_uart       = dcache_read_req_addr === "hBFD003F8".U(32.W) && dcache_read_req_valid
+  val dcache_write_uart      = dcache_write_req_addr === "hBFD003F8".U(32.W) && dcache_write_req_valid
+  val dcache_read_uart_state = dcache_read_req_addr === "hBFD003FC".U(32.W) && dcache_read_req_valid
+
+  val icache_read_addr  = icache_req_addr(21, 2)
+  val dcache_read_addr  = dcache_read_req_addr(21, 2)
+  val dcache_write_addr = dcache_write_req_addr(21, 2)
+
+  val icache_read_other = !icache_read_base && !icache_read_ext && icache_req_valid
+  val dcache_read_other = !dcache_read_base && !dcache_read_ext && !dcache_read_uart &&
+    !dcache_read_uart_state && dcache_read_req_valid
+  val dcache_write_other = !dcache_write_base && !dcache_write_ext && !dcache_write_uart &&
+    dcache_write_req_valid
+
+  // debug
   io.debug.base_state        := base_state
   io.debug.icache_read_base  := icache_read_base
   io.debug.icache_read_ext   := icache_read_ext
@@ -155,28 +160,52 @@ class IoControl extends Module {
   io.debug.icache_read_addr  := icache_read_addr
   io.debug.dcache_read_addr  := dcache_read_addr
   io.debug.dcache_write_addr := dcache_write_addr
-  //pipe stage
+
+  // pipe stage
   val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
   val icache_data_valid = RegInit(false.B)
 
-  // 修改: icache ready 信号 - 当 base 和 ext 都空闲，且 other_state 空闲时
-  io.icache_read_req.ready := (base_state === sIDLE) && (ext_state === sIDLE) && (other_state === oIDLE)
+  // ready 信号：当没有正在处理的请求且状态机空闲时
+  io.icache_read_req.ready := !icache_req_valid && (base_state === sIDLE) &&
+    (ext_state === sIDLE) && (other_state === oIDLE)
 
   io.icache_read_resp.valid     := icache_data_valid
   io.icache_read_resp.bits.data := icache_buffer.asUInt
+
   val dcache_buffer     = RegInit(0.U(32.W))
   val dcache_data_valid = RegInit(false.B)
 
-  // 修改: dcache read ready 信号 - 当所有可能处理 dcache read 的状态机都空闲时
-  io.dcache_read_req.ready := (base_state === sIDLE) && (ext_state === sIDLE) &&
-    (other_state === oIDLE) && (uart_state === uIDLE)
+  io.dcache_read_req.ready := !dcache_read_req_valid && (base_state === sIDLE) &&
+    (ext_state === sIDLE) && (other_state === oIDLE) &&
+    (uart_state === uIDLE)
 
   io.dcache_read_resp.valid     := dcache_data_valid
   io.dcache_read_resp.bits.data := dcache_buffer.asUInt
 
-  // 修改: dcache write ready 信号 - 当所有可能处理 dcache write 的状态机都空闲时
-  io.dcache_write_req.ready := (base_state === sIDLE) && (ext_state === sIDLE) &&
-    (other_state === oIDLE) && (uart_state === uIDLE) && !io.txd.uart_busy
+  io.dcache_write_req.ready := !dcache_write_req_valid && (base_state === sIDLE) &&
+    (ext_state === sIDLE) && (other_state === oIDLE) &&
+    (uart_state === uIDLE) && !io.txd.uart_busy
+
+  // 捕获请求信息
+  when(io.icache_read_req.valid && io.icache_read_req.ready) {
+    icache_req_addr  := io.icache_read_req.bits.addr
+    icache_req_valid := true.B
+  }
+
+  when(io.dcache_read_req.valid && io.dcache_read_req.ready) {
+    dcache_read_req_addr  := io.dcache_read_req.bits.addr
+    dcache_read_req_valid := true.B
+  }
+
+  when(io.dcache_write_req.valid && io.dcache_write_req.ready) {
+    dcache_write_req_addr      := io.dcache_write_req.bits.addr
+    dcache_write_req_data      := io.dcache_write_req.bits.data
+    dcache_write_req_byte_mask := io.dcache_write_req.bits.byte_mask
+    dcache_write_req_valid     := true.B
+  }
+
+  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
+  val other_state                                = RegInit(oIDLE)
 
   switch(other_state) {
     is(oIDLE) {
@@ -196,27 +225,29 @@ class IoControl extends Module {
     }
     is(oiWAIT) {
       icache_data_valid := false.B
+      icache_req_valid  := false.B // 清除请求
       other_state       := oIDLE
     }
     is(odWAIT) {
-      dcache_data_valid := false.B
-      other_state       := oIDLE
+      dcache_data_valid     := false.B
+      dcache_read_req_valid := false.B // 清除请求
+      other_state           := oIDLE
     }
     is(owWAIT) {
-      other_state := oIDLE
+      dcache_write_req_valid := false.B // 清除请求
+      other_state            := oIDLE
     }
   }
 
-  //base_ram
+  // base_ram
   switch(base_state) {
     is(sIDLE) {
       when(dcache_write_base) {
         base_state := dWrite
-        //TODO byte_mask Endian need convert?
         base_ram_ctrl.write(
           dcache_write_addr,
-          EndianConvert(io.dcache_write_req.bits.data),
-          io.dcache_write_req.bits.byte_mask.do_unary_~
+          EndianConvert(dcache_write_req_data),
+          dcache_write_req_byte_mask.do_unary_~
         )
         base_clock_counter := 0.U
         base_wait_counter  := 0.U
@@ -233,12 +264,7 @@ class IoControl extends Module {
       }
     }
     is(iREAD) {
-      when(!icache_read_base) {
-        base_ram_ctrl.idle()
-        base_state         := sIDLE
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
-      }.elsewhen(base_clock_counter === (FETCH_WIDTH - 1).U) {
+      when(base_clock_counter === (FETCH_WIDTH - 1).U) {
         when(base_wait_counter === SRAM_DELAY.U) {
           icache_buffer(base_clock_counter) := EndianConvert(io.base_ram_ctrl.data_in)
           base_ram_ctrl.idle()
@@ -262,14 +288,10 @@ class IoControl extends Module {
     is(iWait) {
       base_state        := sIDLE
       icache_data_valid := false.B
+      icache_req_valid  := false.B // 清除请求
     }
     is(dREAD) {
-      when(!dcache_read_base) {
-        base_ram_ctrl.idle()
-        base_state         := sIDLE
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
-      }.elsewhen(base_wait_counter === SRAM_DELAY.U) {
+      when(base_wait_counter === SRAM_DELAY.U) {
         base_state := dWait
         base_ram_ctrl.idle()
         dcache_buffer     := EndianConvert(io.base_ram_ctrl.data_in)
@@ -279,24 +301,22 @@ class IoControl extends Module {
       }
     }
     is(dWait) {
-      base_state        := sIDLE
-      dcache_data_valid := false.B
+      base_state            := sIDLE
+      dcache_data_valid     := false.B
+      dcache_read_req_valid := false.B // 清除请求
     }
     is(dWrite) {
-      when(!dcache_write_base) {
-        base_ram_ctrl.idle()
-        base_state         := sIDLE
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
-      }.elsewhen(base_wait_counter === SRAM_DELAY.U) {
+      when(base_wait_counter === SRAM_DELAY.U) {
         base_state := sIDLE
         base_ram_ctrl.idle()
+        dcache_write_req_valid := false.B // 清除请求
       }.otherwise {
         base_wait_counter := base_wait_counter + 1.U
       }
     }
   }
-  //ext_ram
+
+  // ext_ram
   switch(ext_state) {
     is(sIDLE) {
       when(dcache_read_ext) {
@@ -306,11 +326,10 @@ class IoControl extends Module {
         ext_wait_counter  := 0.U
       }.elsewhen(dcache_write_ext) {
         ext_state := dWrite
-        //TODO byte_mask Endian need convert?
         ext_ram_ctrl.write(
           dcache_write_addr,
-          EndianConvert(io.dcache_write_req.bits.data),
-          io.dcache_write_req.bits.byte_mask.do_unary_~
+          EndianConvert(dcache_write_req_data),
+          dcache_write_req_byte_mask.do_unary_~
         )
         ext_clock_counter := 0.U
         ext_wait_counter  := 0.U
@@ -322,12 +341,7 @@ class IoControl extends Module {
       }
     }
     is(iREAD) {
-      when(!icache_read_ext) {
-        ext_ram_ctrl.idle()
-        ext_state         := sIDLE
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
-      }.elsewhen(ext_clock_counter === (FETCH_WIDTH - 1).U) {
+      when(ext_clock_counter === (FETCH_WIDTH - 1).U) {
         when(ext_wait_counter === SRAM_DELAY.U) {
           icache_buffer(ext_clock_counter) := EndianConvert(io.ext_ram_ctrl.data_in)
           ext_ram_ctrl.idle()
@@ -351,14 +365,10 @@ class IoControl extends Module {
     is(iWait) {
       ext_state         := sIDLE
       icache_data_valid := false.B
+      icache_req_valid  := false.B // 清除请求
     }
     is(dREAD) {
-      when(!dcache_read_ext) {
-        ext_ram_ctrl.idle()
-        ext_state         := sIDLE
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
-      }.elsewhen(ext_wait_counter === SRAM_DELAY.U) {
+      when(ext_wait_counter === SRAM_DELAY.U) {
         ext_state := dWait
         ext_ram_ctrl.idle()
         dcache_buffer     := EndianConvert(io.ext_ram_ctrl.data_in)
@@ -368,24 +378,22 @@ class IoControl extends Module {
       }
     }
     is(dWait) {
-      ext_state         := sIDLE
-      dcache_data_valid := false.B
+      ext_state             := sIDLE
+      dcache_data_valid     := false.B
+      dcache_read_req_valid := false.B // 清除请求
     }
     is(dWrite) {
-      when(!dcache_write_ext) {
-        ext_ram_ctrl.idle()
-        ext_state         := sIDLE
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
-      }.elsewhen(ext_wait_counter === SRAM_DELAY.U) {
+      when(ext_wait_counter === SRAM_DELAY.U) {
         ext_state := sIDLE
         ext_ram_ctrl.idle()
+        dcache_write_req_valid := false.B // 清除请求
       }.otherwise {
         ext_wait_counter := ext_wait_counter + 1.U
       }
     }
   }
 
+  // UART 部分保持不变，但也需要清除相应的请求
   val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
   val head_idx    = OHToUInt(uart_head)(log2Ceil(UART_BUFFER_DEPTH) - 1, 0).asUInt
@@ -422,6 +430,10 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+  val txd_uart_start                  = RegInit(false.B)
+  val txd_uart_data                   = RegInit(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
@@ -439,7 +451,7 @@ class IoControl extends Module {
     is(uIDLE) {
       when(dcache_write_uart && !io.txd.uart_busy) {
         txd_uart_start := true.B
-        txd_uart_data  := io.dcache_write_req.bits.data(7, 0)
+        txd_uart_data  := dcache_write_req_data(7, 0)
         uart_state     := uWRITE
       }.elsewhen(dcache_read_uart && read_valid) {
         dcache_buffer     := Cat(0.U(24.W), read_data)
@@ -453,12 +465,14 @@ class IoControl extends Module {
       }
     }
     is(uWRITE) {
-      txd_uart_start := false.B
-      uart_state     := uIDLE
+      txd_uart_start         := false.B
+      dcache_write_req_valid := false.B // 清除写请求
+      uart_state             := uIDLE
     }
     is(uREAD) {
-      dcache_data_valid := false.B
-      uart_state        := uIDLE
+      dcache_data_valid     := false.B
+      dcache_read_req_valid := false.B // 清除读请求
+      uart_state            := uIDLE
     }
   }
 
@@ -468,6 +482,8 @@ class IoControl extends Module {
     uart_buffer.foreach(i => {
       i.data := 0.U
     })
+    icache_req_valid       := false.B
+    dcache_read_req_valid  := false.B
+    dcache_write_req_valid := false.B
   }
-
 }
