@@ -115,9 +115,11 @@ class IoControl extends Module {
   val base_state                      = RegInit(sIDLE)
   val ext_state                       = RegInit(sIDLE)
 
-  // 计数器
-  val base_counter = RegInit(0.U(4.W))
-  val ext_counter  = RegInit(0.U(4.W))
+  // 计数器和字索引
+  val base_counter  = RegInit(0.U(4.W))
+  val ext_counter   = RegInit(0.U(4.W))
+  val base_word_idx = RegInit(0.U(log2Ceil(FETCH_WIDTH).W))
+  val ext_word_idx  = RegInit(0.U(log2Ceil(FETCH_WIDTH).W))
 
   // 请求存储寄存器
   val icache_req_addr  = Reg(UInt(32.W))
@@ -271,8 +273,9 @@ class IoControl extends Module {
         base_counter := 0.U
         base_ram_ctrl.read(dcache_read_req_addr(21, 2))
       }.elsewhen(icache_read_base) {
-        base_state   := sREAD
-        base_counter := 0.U
+        base_state    := sREAD
+        base_counter  := 0.U
+        base_word_idx := 0.U
         base_ram_ctrl.read(icache_req_addr(21, 2))
       }
     }
@@ -284,17 +287,18 @@ class IoControl extends Module {
         // 判断是icache还是dcache的读请求
         when(icache_read_base) {
           // icache读取多个字
-          val word_idx = (base_counter - SRAM_DELAY.U)(log2Ceil(FETCH_WIDTH) - 1, 0)
-          icache_buffer(word_idx) := EndianConvert(io.base_ram_ctrl.data_in)
+          icache_buffer(base_word_idx) := EndianConvert(io.base_ram_ctrl.data_in)
 
-          when(word_idx === (FETCH_WIDTH - 1).U) {
+          when(base_word_idx === (FETCH_WIDTH - 1).U) {
             base_ram_ctrl.idle()
             icache_data_valid := true.B
             icache_req_valid  := false.B // 清除请求
             base_state        := sIDLE
+            base_counter      := 0.U // 重置计数器
           }.otherwise {
             base_ram_ctrl.read(base_ram_ctrl.addr + 1.U)
-            base_counter := SRAM_DELAY.U // 重置计数器等待下一个字
+            base_counter  := 0.U // 重置计数器，重新等待SRAM_DELAY
+            base_word_idx := base_word_idx + 1.U
           }
         }.otherwise {
           // dcache读取单个字
@@ -302,7 +306,8 @@ class IoControl extends Module {
           dcache_data_valid     := true.B
           dcache_read_req_valid := false.B // 清除请求
           base_ram_ctrl.idle()
-          base_state := sIDLE
+          base_state   := sIDLE
+          base_counter := 0.U // 重置计数器
         }
       }
     }
@@ -314,6 +319,7 @@ class IoControl extends Module {
         base_ram_ctrl.idle()
         dcache_write_req_valid := false.B // 清除请求
         base_state             := sIDLE
+        base_counter           := 0.U // 重置计数器
       }
     }
   }
@@ -334,8 +340,9 @@ class IoControl extends Module {
         ext_counter := 0.U
         ext_ram_ctrl.read(dcache_read_req_addr(21, 2))
       }.elsewhen(icache_read_ext) {
-        ext_state   := sREAD
-        ext_counter := 0.U
+        ext_state    := sREAD
+        ext_counter  := 0.U
+        ext_word_idx := 0.U
         ext_ram_ctrl.read(icache_req_addr(21, 2))
       }
     }
@@ -345,24 +352,26 @@ class IoControl extends Module {
         ext_counter := ext_counter + 1.U
       }.otherwise {
         when(icache_read_ext) {
-          val word_idx = (ext_counter - SRAM_DELAY.U)(log2Ceil(FETCH_WIDTH) - 1, 0)
-          icache_buffer(word_idx) := EndianConvert(io.ext_ram_ctrl.data_in)
+          icache_buffer(ext_word_idx) := EndianConvert(io.ext_ram_ctrl.data_in)
 
-          when(word_idx === (FETCH_WIDTH - 1).U) {
+          when(ext_word_idx === (FETCH_WIDTH - 1).U) {
             ext_ram_ctrl.idle()
             icache_data_valid := true.B
             icache_req_valid  := false.B
             ext_state         := sIDLE
+            ext_counter       := 0.U // 重置计数器
           }.otherwise {
             ext_ram_ctrl.read(ext_ram_ctrl.addr + 1.U)
-            ext_counter := SRAM_DELAY.U
+            ext_counter  := 0.U // 重置计数器，重新等待SRAM_DELAY
+            ext_word_idx := ext_word_idx + 1.U
           }
         }.otherwise {
           dcache_buffer         := EndianConvert(io.ext_ram_ctrl.data_in)
           dcache_data_valid     := true.B
           dcache_read_req_valid := false.B
           ext_ram_ctrl.idle()
-          ext_state := sIDLE
+          ext_state   := sIDLE
+          ext_counter := 0.U // 重置计数器
         }
       }
     }
@@ -374,6 +383,7 @@ class IoControl extends Module {
         ext_ram_ctrl.idle()
         dcache_write_req_valid := false.B
         ext_state              := sIDLE
+        ext_counter            := 0.U // 重置计数器
       }
     }
   }
@@ -440,5 +450,9 @@ class IoControl extends Module {
     icache_req_valid       := false.B
     dcache_read_req_valid  := false.B
     dcache_write_req_valid := false.B
+    base_counter           := 0.U
+    ext_counter            := 0.U
+    base_word_idx          := 0.U
+    ext_word_idx           := 0.U
   }
 }
