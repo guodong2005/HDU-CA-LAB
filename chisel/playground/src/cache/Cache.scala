@@ -142,18 +142,7 @@ class ICache extends Module {
       }.otherwise {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
-          when(io.io_read_resp.valid) {
-            io.icache_resp.valid     := true.B
-            io.icache_resp.bits.data := read_data.asUInt
-            io.icache_resp.bits.addr := current_req_bits.addr
-
-            cache_we       := true.B
-            cache_valid_we := true.B
-            state          := sIDLE
-          }
-
-//          state := sWAIT_RESP
-
+          state := sWAIT_RESP
         }
       }
     }
