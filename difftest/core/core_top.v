@@ -108,13 +108,13 @@ module IoControl(
   reg         ext_ram_ctrl_oe_n;
   reg         ext_ram_ctrl_we_n;
   reg  [1:0]  uart_state;
+  reg  [1:0]  other_state;
   reg  [2:0]  base_state;
   reg  [3:0]  base_clock_counter;
   reg  [3:0]  base_wait_counter;
   reg  [2:0]  ext_state;
   reg  [3:0]  ext_clock_counter;
   reg  [3:0]  ext_wait_counter;
-  reg  [1:0]  other_state;
   reg  [31:0] icache_req_addr;
   reg         icache_req_valid;
   reg  [31:0] dcache_read_req_addr;
@@ -124,9 +124,9 @@ module IoControl(
   reg  [3:0]  dcache_write_req_byte_mask;
   reg         dcache_write_req_valid;
   wire        dcache_read_uart =
-    io_dcache_read_req_bits_addr == 32'hBFD003F8 & io_dcache_read_req_valid;
+    dcache_read_req_addr == 32'hBFD003F8 & dcache_read_req_valid;
   wire        dcache_write_uart =
-    io_dcache_write_req_bits_addr == 32'hBFD003F8 & io_dcache_write_req_valid;
+    dcache_write_req_addr == 32'hBFD003F8 & dcache_write_req_valid;
   reg  [31:0] icache_buffer_0;
   reg  [31:0] icache_buffer_1;
   reg  [31:0] icache_buffer_2;
@@ -186,13 +186,13 @@ module IoControl(
       ext_ram_ctrl_oe_n <= 1'h1;
       ext_ram_ctrl_we_n <= 1'h1;
       uart_state <= 2'h0;
+      other_state <= 2'h0;
       base_state <= 3'h0;
       base_clock_counter <= 4'h0;
       base_wait_counter <= 4'h0;
       ext_state <= 3'h0;
       ext_clock_counter <= 4'h0;
       ext_wait_counter <= 4'h0;
-      other_state <= 2'h0;
       icache_req_valid <= 1'h0;
       dcache_read_req_valid <= 1'h0;
       dcache_write_req_valid <= 1'h0;
@@ -269,20 +269,15 @@ module IoControl(
       automatic logic       uart_deq;
       automatic logic       _GEN_36;
       automatic logic       _GEN_37;
-      icache_read_base =
-        io_icache_read_req_bits_addr[31:22] == 10'h200 & io_icache_read_req_valid;
-      icache_read_ext =
-        io_icache_read_req_bits_addr[31:22] == 10'h201 & io_icache_read_req_valid;
-      dcache_read_base =
-        io_dcache_read_req_bits_addr[31:22] == 10'h200 & io_dcache_read_req_valid;
-      dcache_read_ext =
-        io_dcache_read_req_bits_addr[31:22] == 10'h201 & io_dcache_read_req_valid;
+      icache_read_base = icache_req_addr[31:22] == 10'h200 & icache_req_valid;
+      icache_read_ext = icache_req_addr[31:22] == 10'h201 & icache_req_valid;
+      dcache_read_base = dcache_read_req_addr[31:22] == 10'h200 & dcache_read_req_valid;
+      dcache_read_ext = dcache_read_req_addr[31:22] == 10'h201 & dcache_read_req_valid;
       dcache_write_base =
-        io_dcache_write_req_bits_addr[31:22] == 10'h200 & io_dcache_write_req_valid;
-      dcache_write_ext =
-        io_dcache_write_req_bits_addr[31:22] == 10'h201 & io_dcache_write_req_valid;
+        dcache_write_req_addr[31:22] == 10'h200 & dcache_write_req_valid;
+      dcache_write_ext = dcache_write_req_addr[31:22] == 10'h201 & dcache_write_req_valid;
       dcache_read_uart_state =
-        io_dcache_read_req_bits_addr == 32'hBFD003FC & io_dcache_read_req_valid;
+        dcache_read_req_addr == 32'hBFD003FC & dcache_read_req_valid;
       icache_read_other = ~icache_read_base & ~icache_read_ext & icache_req_valid;
       dcache_read_other =
         ~dcache_read_base & ~dcache_read_ext & ~dcache_read_uart & ~dcache_read_uart_state
@@ -743,13 +738,13 @@ module IoControl(
         ext_ram_ctrl_oe_n = _RANDOM[5'h3][20];
         ext_ram_ctrl_we_n = _RANDOM[5'h3][21];
         uart_state = _RANDOM[5'h3][23:22];
-        base_state = _RANDOM[5'h3][26:24];
-        base_clock_counter = _RANDOM[5'h3][30:27];
-        base_wait_counter = {_RANDOM[5'h3][31], _RANDOM[5'h4][2:0]};
-        ext_state = _RANDOM[5'h4][5:3];
-        ext_clock_counter = _RANDOM[5'h4][9:6];
-        ext_wait_counter = _RANDOM[5'h4][13:10];
-        other_state = _RANDOM[5'h4][15:14];
+        other_state = _RANDOM[5'h3][25:24];
+        base_state = _RANDOM[5'h3][28:26];
+        base_clock_counter = {_RANDOM[5'h3][31:29], _RANDOM[5'h4][0]};
+        base_wait_counter = _RANDOM[5'h4][4:1];
+        ext_state = _RANDOM[5'h4][7:5];
+        ext_clock_counter = _RANDOM[5'h4][11:8];
+        ext_wait_counter = _RANDOM[5'h4][15:12];
         icache_req_addr = {_RANDOM[5'h4][31:16], _RANDOM[5'h5][15:0]};
         icache_req_valid = _RANDOM[5'h5][16];
         dcache_read_req_addr = {_RANDOM[5'h5][31:17], _RANDOM[5'h6][16:0]};
