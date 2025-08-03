@@ -14,10 +14,8 @@ class SramCtrlInfo extends Bundle {
 }
 
 class SramDataIO extends Bundle {
-  val data_out      = Output(UInt(32.W)) // 写入SRAM的数据
-  val data_in       = Input(UInt(32.W)) // 从SRAM读取的数据
-  val data_en       = Output(Bool()) // 数据输出使能（模拟三态门）
-  val data_tristate = Output(UInt(32.W)) // 三态输出，包含高阻态
+  val data_out = Output(UInt(32.W)) // 写入SRAM的数据
+  val data_in  = Input(UInt(32.W)) // 从SRAM读取的数据
 }
 
 class SramCtrlIO extends Bundle {
@@ -71,11 +69,11 @@ class IoControl extends Module {
   val io = IO(new IoControlIO)
 
   // SRAM_DELAY parameter (you can adjust this)
-  val SRAM_DELAY = 2
+  val SRAM_DELAY = 3 // 减少延迟避免读写冲突
 
-  // 统一状态机 - 重新设计状态
-  val sIdle :: sSetup :: sWait :: sCapture :: sDone :: Nil = Enum(5)
-  val state                                                = RegInit(sIdle)
+  // 统一状态机 - 串行执行避免冲突
+  val sIdle :: sSetup :: sWait :: sCapture :: sDone :: sCleanup :: Nil = Enum(6)
+  val state                                                            = RegInit(sIdle)
 
   // 延迟计数器
   val delay_counter = RegInit(0.U(8.W))
@@ -116,16 +114,10 @@ class IoControl extends Module {
   io.ext_ram_ctrl.ctrl.oe_n := ext_ram_oe_n_r
   io.ext_ram_ctrl.ctrl.we_n := ext_ram_we_n_r
 
-  // 三态门控制 - 显式生成高阻态
-  io.base_ram_ctrl.data.data_en  := !base_ram_we_n_r && !base_ram_ce_n_r
+  // 三态门控制 - 类似参考代码的方式
+  // 在顶层用 assign base_ram_data = ~base_ram_we_n ? base_ram_data_out : 32'bz;
   io.base_ram_ctrl.data.data_out := base_ram_data_r
-  // 显式生成高阻态：当data_en为false时输出32'hZZZZZZZZ
-  io.base_ram_ctrl.data.data_tristate := Mux(io.base_ram_ctrl.data.data_en, base_ram_data_r, "hZZZZZZZZ".U(32.W))
-
-  io.ext_ram_ctrl.data.data_en  := !ext_ram_we_n_r && !ext_ram_ce_n_r
-  io.ext_ram_ctrl.data.data_out := ext_ram_data_r
-  // 显式生成高阻态：当data_en为false时输出32'hZZZZZZZZ
-  io.ext_ram_ctrl.data.data_tristate := Mux(io.ext_ram_ctrl.data.data_en, ext_ram_data_r, "hZZZZZZZZ".U(32.W))
+  io.ext_ram_ctrl.data.data_out  := ext_ram_data_r
 
   // 请求缓存
   val icache_addr_r   = Reg(UInt(32.W))
@@ -371,23 +363,23 @@ class IoControl extends Module {
     }
 
     is(sDone) {
-      // 清除控制信号
+      // 清除控制信号到安全状态
       when(current_ram === ramBase) {
-        base_ram_addr_r := 0.U
-        base_ram_be_n_r := "hF".U
         base_ram_ce_n_r := true.B
         base_ram_oe_n_r := true.B
         base_ram_we_n_r := true.B
-        base_ram_data_r := 0.U
+        base_ram_be_n_r := "hF".U
       }.elsewhen(current_ram === ramExt) {
-        ext_ram_addr_r := 0.U
-        ext_ram_be_n_r := "hF".U
         ext_ram_ce_n_r := true.B
         ext_ram_oe_n_r := true.B
         ext_ram_we_n_r := true.B
-        ext_ram_data_r := 0.U
+        ext_ram_be_n_r := "hF".U
       }
+      state := sCleanup
+    }
 
+    is(sCleanup) {
+      // 等待一个周期确保信号稳定
       // 处理响应
       when(current_req === reqIRead) {
         when(icache_offset === 7.U) {
