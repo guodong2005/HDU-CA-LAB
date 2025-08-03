@@ -119,21 +119,22 @@ class IoControl extends Module {
   val ext_clock_counter                                          = RegInit(0.U(4.W))
   val ext_wait_counter                                           = RegInit(0.U(4.W))
 
-  val icache_read_base       = io.icache_read_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.icache_read_req.valid
-  val icache_read_ext        = io.icache_read_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.icache_read_req.valid
-  val dcache_read_base       = io.dcache_read_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.dcache_read_req.valid
-  val dcache_read_ext        = io.dcache_read_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.dcache_read_req.valid
-  val dcache_write_base      = io.dcache_write_req.bits.addr(31, 22) === "b1000_0000_00".U(10.W) && io.dcache_write_req.valid
-  val dcache_write_ext       = io.dcache_write_req.bits.addr(31, 22) === "b1000_0000_01".U(10.W) && io.dcache_write_req.valid
+  val icache_read_base       = io.icache_read_req.bits.addr(31, 22) === "h70".U(10.W) && io.icache_read_req.valid
+  val icache_read_ext        = io.icache_read_req.bits.addr(31, 22) === "h71".U(10.W) && io.icache_read_req.valid
+  val dcache_read_base       = io.dcache_read_req.bits.addr(31, 22) === "h70".U(10.W) && io.dcache_read_req.valid
+  val dcache_read_ext        = io.dcache_read_req.bits.addr(31, 22) === "h71".U(10.W) && io.dcache_read_req.valid
+  val dcache_write_base      = io.dcache_write_req.bits.addr(31, 22) === "h70".U(10.W) && io.dcache_write_req.valid
+  val dcache_write_ext       = io.dcache_write_req.bits.addr(31, 22) === "h71".U(10.W) && io.dcache_write_req.valid
   val dcache_read_uart       = io.dcache_read_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_read_req.valid
   val dcache_write_uart      = io.dcache_write_req.bits.addr === "hBFD003F8".U(32.W) && io.dcache_write_req.valid
   val dcache_read_uart_state = io.dcache_read_req.bits.addr === "hBFD003FC".U(32.W) && io.dcache_read_req.valid
-  val icache_read_addr       = io.icache_read_req.bits.addr(21, 2)
-  val dcache_read_addr       = io.dcache_read_req.bits.addr(21, 2)
-  val dcache_write_addr      = io.dcache_write_req.bits.addr(21, 2)
-  val icache_read_other      = !icache_read_base && !icache_read_ext && io.icache_read_req.valid
-  val dcache_read_other      = !dcache_read_base && !dcache_read_ext && !dcache_read_uart && io.dcache_read_req.valid
-  val dcache_write_other     = !dcache_write_base && !dcache_write_ext && !dcache_write_uart && io.dcache_write_req.valid
+
+  val icache_read_addr   = io.icache_read_req.bits.addr(21, 2)
+  val dcache_read_addr   = io.dcache_read_req.bits.addr(21, 2)
+  val dcache_write_addr  = io.dcache_write_req.bits.addr(21, 2)
+  val icache_read_other  = !icache_read_base && !icache_read_ext && io.icache_read_req.valid
+  val dcache_read_other  = !dcache_read_base && !dcache_read_ext && !dcache_read_uart && io.dcache_read_req.valid
+  val dcache_write_other = !dcache_write_base && !dcache_write_ext && !dcache_write_uart && io.dcache_write_req.valid
   //debug
   io.debug.base_state        := base_state
   io.debug.icache_read_base  := icache_read_base

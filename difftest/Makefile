@@ -16,7 +16,8 @@ verilog:
 	cp $(CHISEL_DIR)/build/core_top.v  /home/guodong/CPU/chiplab/guodong-cpu/core_top.v
 	sh ${CHIPLAB_HOME}/guodong-cpu/addDiff.sh
 	cp  /home/guodong/CPU/chiplab/guodong-cpu/core_top.v /home/guodong/CPU/chiplab/IP/myCPU/core_top.v
-	$(MAKE) -C ${CHIPLAB_HOME}/sims/verilator/run_prog
+	cp  /home/guodong/CPU/chiplab/guodong-cpu/core_top.v /home/guodong/Downloads/longxin/2025_nscscc_个人赛模版工程_la32r/thinpad_top.srcs/sources_1/new/core_top.sv
+#	$(MAKE) -C ${CHIPLAB_HOME}/sims/verilator/run_prog
 
 
 trace: obj_dir/V$(TOP_NAME)
