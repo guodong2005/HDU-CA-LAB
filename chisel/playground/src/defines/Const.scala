@@ -34,15 +34,11 @@ trait Constants extends CoreParameter {
 
   val FETCH_BUFFER_DEPTH = 17
 
-  val COMMIT_WIDTH       = 2
-  val ISSUE_WIDTH        = 2
   val WRITE_BUFFER_DEPTH = 4
   val LOAD_QUEUE_DEPTH   = 8
   val DISPATCH_WIDTH     = 5
-  val SRAM_DELAY         = 1
+  val SRAM_DELAY         = 3
 
-  val ROB_DEPTH         = 16
-  val ROB_IDX_WIDTH     = log2Up(ROB_DEPTH)
   val UART_BUFFER_DEPTH = 8
 }
 
