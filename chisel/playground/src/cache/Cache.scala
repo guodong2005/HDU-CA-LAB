@@ -196,70 +196,81 @@ class DCacheIO extends Bundle {
 class DCache extends Module {
   val io = IO(new DCacheIO)
 
-  val sIdle :: sRead :: sWrite :: sWriteWait :: Nil = Enum(4)
-  val state                                         = RegInit(sIdle)
+  // State definitions
+  val sIDLE :: sWAIT_READ_RESP :: sWAIT_WRITE_RESP :: Nil = Enum(3)
+  val state                                               = RegInit(sIDLE)
 
-  // Latch the incoming request when we accept it
-  val reqReg = Reg(new DCacheReq)
+  // Saved request register - 模仿ICache的saved_req
+  val saved_req = RegInit(0.U.asTypeOf(Decoupled(new DCacheReq)))
+
+  // Current request selection
+  val current_req_valid = Mux(saved_req.valid, saved_req.valid, io.req.valid)
+  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.req.bits)
 
   // Default assignments
-  io.req.ready      := (state === sIdle)
+  io.req.ready      := (state === sIDLE && !saved_req.valid)
   io.resp.valid     := false.B
   io.resp.bits.data := 0.U
 
+  // IO read interface
   io.io_read_req.valid     := false.B
-  io.io_read_req.bits.addr := reqReg.addr
-  io.io_read_resp.ready    := (state === sRead)
+  io.io_read_req.bits.addr := current_req_bits.addr
+  io.io_read_resp.ready    := true.B
 
+  // IO write interface
   io.io_write_req.valid          := false.B
-  io.io_write_req.bits.addr      := reqReg.addr
-  io.io_write_req.bits.data      := reqReg.wdata
-  io.io_write_req.bits.byte_mask := reqReg.wstrb
+  io.io_write_req.bits.addr      := current_req_bits.addr
+  io.io_write_req.bits.data      := current_req_bits.wdata
+  io.io_write_req.bits.byte_mask := current_req_bits.wstrb
 
+  // Request register control - 模仿ICache的握手逻辑
+  when(io.req.valid && io.req.ready && !saved_req.valid) {
+    saved_req.valid := true.B
+    saved_req.bits  := io.req.bits
+  }
+
+  when(io.resp.valid && io.resp.ready) {
+    saved_req.valid := false.B
+    saved_req.bits  := 0.U.asTypeOf(new DCacheReq())
+  }
+
+  // State machine
   switch(state) {
-    is(sIdle) {
-      when(io.req.valid) {
-        // Latch the request and transition to appropriate state
-        reqReg := io.req.bits
-        when(io.req.bits.write) {
-          state := sWrite
+    is(sIDLE) {
+      when(current_req_valid) {
+        when(current_req_bits.write) {
+          // Write request
+          io.io_write_req.valid := true.B
+          when(io.io_write_req.ready) {
+            state := sWAIT_WRITE_RESP
+          }
         }.otherwise {
-          state := sRead
+          // Read request
+          io.io_read_req.valid := true.B
+          when(io.io_read_req.ready) {
+            state := sWAIT_READ_RESP
+          }
         }
       }
     }
 
-    is(sRead) {
-      // Send read request to IO controller
-      io.io_read_req.valid := true.B
-
-      // Wait for response from IO controller
+    is(sWAIT_READ_RESP) {
       when(io.io_read_resp.valid) {
         io.resp.valid     := true.B
         io.resp.bits.data := io.io_read_resp.bits.data
         when(io.resp.ready) {
-          state := sIdle
+          state := sIDLE
         }
       }
     }
 
-    is(sWrite) {
-      // Send write request to IO controller
-      io.io_write_req.valid := true.B
-
-      when(io.io_write_req.ready) {
-        // Write request accepted, wait for completion
-        state := sWriteWait
-      }
-    }
-
-    is(sWriteWait) {
-      // Wait one more cycle to ensure write is fully complete
-      // This guarantees any subsequent read will see the written value
+    is(sWAIT_WRITE_RESP) {
+      // For write, we can immediately respond or wait for write completion
+      // Here we immediately respond for simplicity
       io.resp.valid     := true.B
-      io.resp.bits.data := 0.U // Dummy data for write response
+      io.resp.bits.data := 0.U // Write response doesn't need data
       when(io.resp.ready) {
-        state := sIdle
+        state := sIDLE
       }
     }
   }
