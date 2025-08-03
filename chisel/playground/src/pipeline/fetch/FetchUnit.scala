@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import cpu.defines.Const._
 import cpu.defines._
+
 class FetchUnit extends Module {
   val io = IO(new Bundle {
     val decodeStage = new FetchUnitDecodeUnit()
@@ -15,18 +16,16 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  val pc    = RegInit(PC_INIT)
-  val reqPC = Reg(UInt(XLEN.W))
-  val state = RegInit(0.U(2.W)) // sIdle :: sWait
-  val sIdle = 0.U
-  val sWait = 1.U
-
+  val pc          = RegInit(PC_INIT)
+  val reqPC       = Reg(UInt(XLEN.W))
+  val state       = RegInit(0.U(2.W)) // sIdle :: sWait
+  val sIdle       = 0.U
+  val sWait       = 1.U
   val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
-
-  val alignedPC = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
-  val instIdx   = pc(ICACHE_OFFSET_WIDTH - 1, 2)
+  val alignedPC   = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
+  val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
 
   // ✅ 启动条件
   val canStartInternal = !reset.asBool
@@ -39,7 +38,6 @@ class FetchUnit extends Module {
   io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
 
   // ========== 修复后的逻辑 ==========
-
   // 分支处理：统一的PC更新逻辑
   when(io.branch) {
     pc             := io.target
@@ -58,8 +56,27 @@ class FetchUnit extends Module {
       }
       is(sWait) {
         val respLineAddr = io.icache_resp.bits.addr
-        val inst         = io.icache_resp.bits.data(reqPC(ICACHE_OFFSET_WIDTH - 1, 2))
-        val matchAddr    = respLineAddr === reqPC
+
+        // 修复：正确从缓存行中提取指令
+        // 方法1：使用移位操作
+        val shiftAmount = reqPC(ICACHE_OFFSET_WIDTH - 1, 2) << 5 // 乘以32（位）
+        val shiftedData = io.icache_resp.bits.data >> shiftAmount
+        val inst        = shiftedData(31, 0)
+
+        // 方法2：使用 MuxLookup（更清晰，推荐）
+        // val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
+        // val inst = MuxLookup(instIdx, 0.U)(Seq(
+        //   0.U -> io.icache_resp.bits.data(31, 0),
+        //   1.U -> io.icache_resp.bits.data(63, 32),
+        //   2.U -> io.icache_resp.bits.data(95, 64),
+        //   3.U -> io.icache_resp.bits.data(127, 96),
+        //   4.U -> io.icache_resp.bits.data(159, 128),
+        //   5.U -> io.icache_resp.bits.data(191, 160),
+        //   6.U -> io.icache_resp.bits.data(223, 192),
+        //   7.U -> io.icache_resp.bits.data(255, 224)
+        // ))
+
+        val matchAddr = respLineAddr === (reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U)
 
         when(io.icache_resp.valid && matchAddr) {
           when(decodeReady) {
