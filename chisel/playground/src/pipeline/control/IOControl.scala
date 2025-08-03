@@ -6,23 +6,6 @@ import cpu.defines._
 import cpu.defines.Const._
 import cpu.pipeline._
 
-class DCacheReadReq extends Bundle {
-  val addr = UInt(32.W)
-  def init(): Unit = {
-    addr := 0.U(32.W)
-  }
-}
-
-class DCacheWriteReq extends Bundle {
-  val addr      = UInt(32.W)
-  val data      = UInt(32.W)
-  val byte_mask = UInt(4.W)
-}
-
-class DCacheResp extends Bundle {
-  val data = UInt(32.W)
-}
-
 class SramCtrlInfo extends Bundle {
   def idle(): Unit = {
     data_out := 0.U
