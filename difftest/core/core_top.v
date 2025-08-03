@@ -2021,18 +2021,17 @@ module FetchUnit(
     ~(|state) & ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid)
     & io_canStart_REG;
   wire         _GEN = state == 2'h1;
-  wire [255:0] _inst_T_1 = io_icache_resp_bits_data >> reqPC[4:2];
-  wire         _GEN_0 = io_icache_resp_valid & io_icache_resp_bits_addr == reqPC;
-  wire [31:0]  _GEN_1 = {31'h0, _inst_T_1[0]};
-  wire         _GEN_2 = _GEN & _GEN_0 & io_signal_fetchUnitSignal_allow_to_go;
-  wire         _GEN_3 = (|state) & _GEN_2;
-  wire         _GEN_4 = _GEN & _GEN_0;
-  wire         _GEN_5 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
+  wire [255:0] shiftedData = io_icache_resp_bits_data >> {248'h0, reqPC[4:2], 5'h0};
+  wire         _GEN_0 = io_icache_resp_valid & io_icache_resp_bits_addr == 32'h0;
+  wire         _GEN_1 = _GEN & _GEN_0 & io_signal_fetchUnitSignal_allow_to_go;
+  wire         _GEN_2 = (|state) & _GEN_1;
+  wire         _GEN_3 = _GEN & _GEN_0;
+  wire         _GEN_4 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
   always @(posedge clock) begin
     automatic logic canStart;
-    automatic logic _GEN_6;
+    automatic logic _GEN_5;
     canStart = canStart_REG & ~reset;
-    _GEN_6 = io_canStart_0 & io_icache_req_ready;
+    _GEN_5 = io_canStart_0 & io_icache_req_ready;
     if (reset) begin
       pc <= 32'h1C000000;
       state <= 2'h0;
@@ -2041,41 +2040,41 @@ module FetchUnit(
       ifid_reg_pc <= 32'h0;
     end
     else begin
-      automatic logic _GEN_7;
-      _GEN_7 = io_branch | ~(|state) | ~_GEN_4 | io_signal_fetchUnitSignal_allow_to_go;
+      automatic logic _GEN_6;
+      _GEN_6 = io_branch | ~(|state) | ~_GEN_3 | io_signal_fetchUnitSignal_allow_to_go;
       if (io_branch) begin
         pc <= io_target;
         state <= 2'h0;
       end
       else begin
-        if (_GEN_5)
+        if (_GEN_4)
           pc <= ifid_reg_pc + 32'h4;
         else if (|state) begin
-          if (_GEN_2)
+          if (_GEN_1)
             pc <= reqPC + 32'h4;
         end
         else if (canStart & pc == 32'h0)
           pc <= 32'h1C000000;
         if (|state) begin
-          if (_GEN_4)
+          if (_GEN_3)
             state <= 2'h0;
         end
-        else if (_GEN_6)
+        else if (_GEN_5)
           state <= 2'h1;
       end
-      if (_GEN_7) begin
+      if (_GEN_6) begin
       end
       else
-        ifid_reg_inst <= _GEN_1;
+        ifid_reg_inst <= shiftedData[31:0];
       ifid_reg_valid <=
-        ~(io_branch | _GEN_5)
-        & ((|state) & _GEN_4 & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
-      if (_GEN_7) begin
+        ~(io_branch | _GEN_4)
+        & ((|state) & _GEN_3 & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
+      if (_GEN_6) begin
       end
       else
         ifid_reg_pc <= reqPC;
     end
-    if (io_branch | ~(~(|state) & _GEN_6)) begin
+    if (io_branch | ~(~(|state) & _GEN_5)) begin
     end
     else
       reqPC <= pc;
@@ -2110,14 +2109,14 @@ module FetchUnit(
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
   assign io_decodeStage_data_inst =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_inst : _GEN_3 ? _GEN_1 : 32'h0;
+    io_branch ? 32'h0 : _GEN_4 ? ifid_reg_inst : _GEN_2 ? shiftedData[31:0] : 32'h0;
   assign io_decodeStage_data_valid =
     ~io_branch
-    & (_GEN_5
+    & (_GEN_4
          ? ifid_reg_valid
-         : (|state) & _GEN_4 & io_signal_fetchUnitSignal_allow_to_go);
+         : (|state) & _GEN_3 & io_signal_fetchUnitSignal_allow_to_go);
   assign io_decodeStage_data_pc =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
+    io_branch ? 32'h0 : _GEN_4 ? ifid_reg_pc : _GEN_2 ? reqPC : 32'h0;
   assign io_icache_req_valid = io_branch | io_canStart_0;
   assign io_icache_req_bits_addr = io_branch ? io_target : pc;
   assign io_canStart = io_canStart_0;

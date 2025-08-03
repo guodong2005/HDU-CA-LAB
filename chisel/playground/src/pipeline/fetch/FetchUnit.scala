@@ -57,26 +57,20 @@ class FetchUnit extends Module {
       is(sWait) {
         val respLineAddr = io.icache_resp.bits.addr
 
-        // 修复：正确从缓存行中提取指令
-        // 方法1：使用移位操作
-        val shiftAmount = reqPC(ICACHE_OFFSET_WIDTH - 1, 2) << 5 // 乘以32（位）
-        val shiftedData = io.icache_resp.bits.data >> shiftAmount
-        val inst        = shiftedData(31, 0)
+        val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
+        val inst = MuxLookup(instIdx, 0.U)(
+          Seq(
+            0.U -> io.icache_resp.bits.data(31, 0),
+            1.U -> io.icache_resp.bits.data(63, 32),
+            2.U -> io.icache_resp.bits.data(95, 64),
+            3.U -> io.icache_resp.bits.data(127, 96),
+            4.U -> io.icache_resp.bits.data(159, 128),
+            5.U -> io.icache_resp.bits.data(191, 160),
+            6.U -> io.icache_resp.bits.data(223, 192),
+            7.U -> io.icache_resp.bits.data(255, 224)
+          ))
 
-        // 方法2：使用 MuxLookup（更清晰，推荐）
-        // val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
-        // val inst = MuxLookup(instIdx, 0.U)(Seq(
-        //   0.U -> io.icache_resp.bits.data(31, 0),
-        //   1.U -> io.icache_resp.bits.data(63, 32),
-        //   2.U -> io.icache_resp.bits.data(95, 64),
-        //   3.U -> io.icache_resp.bits.data(127, 96),
-        //   4.U -> io.icache_resp.bits.data(159, 128),
-        //   5.U -> io.icache_resp.bits.data(191, 160),
-        //   6.U -> io.icache_resp.bits.data(223, 192),
-        //   7.U -> io.icache_resp.bits.data(255, 224)
-        // ))
-
-        val matchAddr = respLineAddr === (reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U)
+        val matchAddr = respLineAddr === (reqPC)
 
         when(io.icache_resp.valid && matchAddr) {
           when(decodeReady) {
