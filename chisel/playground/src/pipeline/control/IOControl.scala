@@ -104,6 +104,16 @@ class IoControl extends Module {
       i
     }
   }
+  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
+  val other_state                                = RegInit(oIDLE)
+
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+  val txd_uart_start                  = RegInit(false.B)
+  val txd_uart_data                   = RegInit(0.U(8.W))
+
+  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
+  val base_state                                                 = RegInit(sIDLE)
 
   val io            = IO(new IoControlIO)
   val base_ram_ctrl = Reg(new SramCtrlInfo)
@@ -145,17 +155,6 @@ class IoControl extends Module {
   io.debug.icache_read_addr  := icache_read_addr
   io.debug.dcache_read_addr  := dcache_read_addr
   io.debug.dcache_write_addr := dcache_write_addr
-  val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
-  val other_state                                = RegInit(oIDLE)
-
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
-  val txd_uart_start                  = RegInit(false.B)
-  val txd_uart_data                   = RegInit(0.U(8.W))
-
-  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
-  val base_state                                                 = RegInit(sIDLE)
-
   //pipe stage
   val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
   val icache_data_valid = RegInit(false.B)
