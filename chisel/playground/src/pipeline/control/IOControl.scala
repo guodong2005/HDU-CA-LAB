@@ -135,6 +135,7 @@ class IoControl extends Module {
   val icache_read_other  = !icache_read_base && !icache_read_ext && io.icache_read_req.valid
   val dcache_read_other  = !dcache_read_base && !dcache_read_ext && !dcache_read_uart && io.dcache_read_req.valid
   val dcache_write_other = !dcache_write_base && !dcache_write_ext && !dcache_write_uart && io.dcache_write_req.valid
+
   //debug
   io.debug.base_state        := base_state
   io.debug.icache_read_base  := icache_read_base
@@ -148,22 +149,56 @@ class IoControl extends Module {
   io.debug.dcache_write_addr := dcache_write_addr
 
   //pipe stage
-  val icache_buffer     = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
-  val icache_data_valid = RegInit(false.B)
-  io.icache_read_req.ready      := icache_data_valid
-  io.icache_read_resp.valid     := icache_data_valid
-  io.icache_read_resp.bits.data := icache_buffer.asUInt
-  val dcache_buffer     = RegInit(0.U(32.W))
-  val dcache_data_valid = RegInit(false.B)
-  val dcache_read_ready = WireInit(false.B)
-  io.dcache_read_req.ready      := dcache_read_ready
-  io.dcache_read_resp.valid     := dcache_data_valid
-  io.dcache_read_resp.bits.data := dcache_buffer.asUInt
+  val icache_buffer         = RegInit(VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W))))
+  val icache_data_valid     = RegInit(false.B)
+  val dcache_buffer         = RegInit(0.U(32.W))
+  val dcache_data_valid     = RegInit(false.B)
+  val dcache_read_ready     = WireInit(false.B)
   val dcache_write_complete = WireInit(false.B)
-  io.dcache_write_req.ready := dcache_write_complete
 
   val oIDLE :: oiWAIT :: odWAIT :: owWAIT :: Nil = Enum(4)
   val other_state                                = RegInit(oIDLE)
+
+  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+
+  // reset状态检查
+  val reset_done = RegInit(false.B)
+  when(!reset.asBool) {
+    reset_done := true.B
+  }.elsewhen(reset.asBool) {
+    reset_done := false.B
+  }
+
+  // 更新ready逻辑 - 只依赖于各自模块的状态，允许并行
+  // icache_read_req.ready: 当有空闲的RAM模块或other模块可以处理时为true
+  io.icache_read_req.ready := reset_done && (
+    (icache_read_base && base_state === sIDLE) ||
+      (icache_read_ext && ext_state === sIDLE) ||
+      (icache_read_other && other_state === oIDLE)
+  )
+  io.icache_read_resp.valid     := icache_data_valid
+  io.icache_read_resp.bits.data := icache_buffer.asUInt
+
+  // dcache_read_req.ready: 当目标模块空闲时为true
+  dcache_read_ready := reset_done && (
+    (dcache_read_base && base_state === sIDLE) ||
+      (dcache_read_ext && ext_state === sIDLE) ||
+      (dcache_read_uart && uart_state === uIDLE) ||
+      (dcache_read_uart_state && uart_state === uIDLE) ||
+      (dcache_read_other && other_state === oIDLE)
+  )
+  io.dcache_read_req.ready      := dcache_read_ready
+  io.dcache_read_resp.valid     := dcache_data_valid
+  io.dcache_read_resp.bits.data := dcache_buffer.asUInt
+
+  // dcache_write_req.ready: 当目标模块空闲时为true
+  io.dcache_write_req.ready := reset_done && (
+    (dcache_write_base && base_state === sIDLE) ||
+      (dcache_write_ext && ext_state === sIDLE) ||
+      (dcache_write_uart && uart_state === uIDLE) ||
+      (dcache_write_other && other_state === oIDLE)
+  )
 
   switch(other_state) {
     is(oIDLE) {
@@ -199,26 +234,28 @@ class IoControl extends Module {
   //base_ram
   switch(base_state) {
     is(sIDLE) {
-      when(dcache_write_base) {
-        base_state := dWrite
-        //TODO byte_mask Endian need convert?
-        base_ram_ctrl.write(
-          dcache_write_addr,
-          EndianConvert(io.dcache_write_req.bits.data),
-          io.dcache_write_req.bits.byte_mask.do_unary_~
-        )
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
-      }.elsewhen(dcache_read_base) {
-        base_state := dREAD
-        base_ram_ctrl.read(dcache_read_addr)
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
-      }.elsewhen(icache_read_base) {
-        base_state := iREAD
-        base_ram_ctrl.read(icache_read_addr)
-        base_clock_counter := 0.U
-        base_wait_counter  := 0.U
+      when(reset_done) { // 只需要reset完成即可接受新请求
+        when(dcache_write_base) {
+          base_state := dWrite
+          //TODO byte_mask Endian need convert?
+          base_ram_ctrl.write(
+            dcache_write_addr,
+            EndianConvert(io.dcache_write_req.bits.data),
+            io.dcache_write_req.bits.byte_mask.do_unary_~
+          )
+          base_clock_counter := 0.U
+          base_wait_counter  := 0.U
+        }.elsewhen(dcache_read_base) {
+          base_state := dREAD
+          base_ram_ctrl.read(dcache_read_addr)
+          base_clock_counter := 0.U
+          base_wait_counter  := 0.U
+        }.elsewhen(icache_read_base) {
+          base_state := iREAD
+          base_ram_ctrl.read(icache_read_addr)
+          base_clock_counter := 0.U
+          base_wait_counter  := 0.U
+        }
       }
     }
     is(iREAD) {
@@ -287,29 +324,32 @@ class IoControl extends Module {
       }
     }
   }
+
   //ext_ram
   switch(ext_state) {
     is(sIDLE) {
-      when(dcache_read_ext) {
-        ext_state := dREAD
-        ext_ram_ctrl.read(dcache_read_addr)
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
-      }.elsewhen(dcache_write_ext) {
-        ext_state := dWrite
-        //TODO byte_mask Endian need convert?
-        ext_ram_ctrl.write(
-          dcache_write_addr,
-          EndianConvert(io.dcache_write_req.bits.data),
-          io.dcache_write_req.bits.byte_mask.do_unary_~
-        )
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
-      }.elsewhen(icache_read_ext) {
-        ext_state := iREAD
-        ext_ram_ctrl.read(icache_read_addr)
-        ext_clock_counter := 0.U
-        ext_wait_counter  := 0.U
+      when(reset_done) { // 只需要reset完成即可接受新请求
+        when(dcache_read_ext) {
+          ext_state := dREAD
+          ext_ram_ctrl.read(dcache_read_addr)
+          ext_clock_counter := 0.U
+          ext_wait_counter  := 0.U
+        }.elsewhen(dcache_write_ext) {
+          ext_state := dWrite
+          //TODO byte_mask Endian need convert?
+          ext_ram_ctrl.write(
+            dcache_write_addr,
+            EndianConvert(io.dcache_write_req.bits.data),
+            io.dcache_write_req.bits.byte_mask.do_unary_~
+          )
+          ext_clock_counter := 0.U
+          ext_wait_counter  := 0.U
+        }.elsewhen(icache_read_ext) {
+          ext_state := iREAD
+          ext_ram_ctrl.read(icache_read_addr)
+          ext_clock_counter := 0.U
+          ext_wait_counter  := 0.U
+        }
       }
     }
     is(iREAD) {
@@ -415,10 +455,8 @@ class IoControl extends Module {
     maybe_full := false.B
   }
 
-  val uIDLE :: uREAD :: uWRITE :: Nil = Enum(3)
-  val uart_state                      = RegInit(uIDLE)
-  val txd_uart_start                  = RegInit(false.B)
-  val txd_uart_data                   = RegInit(0.U(8.W))
+  val txd_uart_start = RegInit(false.B)
+  val txd_uart_data  = RegInit(0.U(8.W))
   io.txd.uart_start := txd_uart_start
   io.txd.uart_data  := txd_uart_data
 
@@ -434,22 +472,24 @@ class IoControl extends Module {
 
   switch(uart_state) {
     is(uIDLE) {
-      when(dcache_write_uart && !io.txd.uart_busy) {
-        txd_uart_start        := true.B
-        txd_uart_data         := io.dcache_write_req.bits.data(7, 0)
-        dcache_write_complete := true.B
-        uart_state            := uWRITE
-      }.elsewhen(dcache_read_uart && read_valid) {
-        dcache_buffer     := Cat(0.U(24.W), read_data)
-        dcache_data_valid := true.B
-        dcache_read_ready := true.B
-        read_req          := true.B
-        uart_state        := uREAD
-      }.elsewhen(dcache_read_uart_state) {
-        dcache_buffer     := Cat(0.U(30.W), read_valid, !io.txd.uart_busy)
-        dcache_data_valid := true.B
-        dcache_read_ready := true.B
-        uart_state        := uREAD
+      when(reset_done) { // 只需要reset完成即可接受新请求
+        when(dcache_write_uart && !io.txd.uart_busy) {
+          txd_uart_start        := true.B
+          txd_uart_data         := io.dcache_write_req.bits.data(7, 0)
+          dcache_write_complete := true.B
+          uart_state            := uWRITE
+        }.elsewhen(dcache_read_uart && read_valid) {
+          dcache_buffer     := Cat(0.U(24.W), read_data)
+          dcache_data_valid := true.B
+          dcache_read_ready := true.B
+          read_req          := true.B
+          uart_state        := uREAD
+        }.elsewhen(dcache_read_uart_state) {
+          dcache_buffer     := Cat(0.U(30.W), read_valid, !io.txd.uart_busy)
+          dcache_data_valid := true.B
+          dcache_read_ready := true.B
+          uart_state        := uREAD
+        }
       }
     }
     is(uWRITE) {

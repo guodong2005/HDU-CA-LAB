@@ -147,7 +147,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   wire        _GEN = other_state == 2'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:166:59, :168:23
   wire        _GEN_0 = base_state == 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :200:22
   wire        _GEN_1 = base_state == 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :200:22, :218:20
-  wire        _GEN_2 = base_wait_counter == 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:117:75, :231:32
+  wire        _GEN_2 = base_wait_counter == 4'h3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:117:75, :231:32
   wire        _GEN_3 = base_state == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :200:22, :235:29
   wire        _GEN_4 = base_state == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :200:22, :213:20
   wire        _GEN_5 = _GEN_0 | _GEN_1 | _GEN_3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:168:23, :200:22
@@ -155,7 +155,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
   wire        _GEN_7 = base_state == 3'h3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :200:22, :203:20
   wire        _GEN_8 = ext_state == 3'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :118:75, :291:21
   wire        _GEN_9 = ext_state == 3'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:118:75, :218:20, :291:21
-  wire        _GEN_10 = ext_wait_counter == 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:120:75, :231:32, :322:31
+  wire        _GEN_10 = ext_wait_counter == 4'h3;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:120:75, :231:32, :322:31
   wire        _GEN_11 = ext_state == 3'h4;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:118:75, :235:29, :291:21
   wire        _GEN_12 = ext_state == 3'h2;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:118:75, :213:20, :291:21
   wire        _GEN_13 = _GEN_8 | _GEN_9 | _GEN_11;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:200:22, :291:21
@@ -328,7 +328,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
           ? base_wait_counter
           : dcache_write_base
               ? (_GEN_2 ? base_wait_counter : base_wait_counter + 4'h1)
-              : 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :117:75, :126:88, :200:22, :231:32, :276:32, :280:28, :281:54, :286:{27,48}
+              : 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :117:75, :126:88, :200:22, :231:32, :238:50, :276:32, :280:28, :281:54, :286:{27,48}
       _GEN_45 = dcache_read_ext | dcache_write_ext | icache_read_ext;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:23:14, :32:14, :110:26, :123:87, :125:87, :127:88, :293:29, :298:36, :308:35
       _GEN_46 = ext_clock_counter == 4'h7;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:119:75, :230:37, :321:36
       _GEN_47 = _GEN_46 & _GEN_10;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:200:22, :321:{36,61}, :322:{31,49}, :325:29
@@ -350,7 +350,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
           ? ext_wait_counter
           : dcache_write_ext
               ? (_GEN_10 ? ext_wait_counter : ext_wait_counter + 4'h1)
-              : 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :120:75, :127:88, :231:32, :291:21, :322:31, :367:31, :371:27, :372:53, :377:{26,46}
+              : 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :120:75, :127:88, :238:50, :291:21, :322:31, :367:31, :371:27, :372:53, :377:{26,46}
       _tail_idx_T_1 = uart_tail[7:5] | uart_tail[3:1];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:385:28, src/main/scala/chisel3/util/OneHot.scala:30:18, :31:18, :32:28
       tail_idx =
         {|(uart_tail[7:4]), |(_tail_idx_T_1[2:1]), _tail_idx_T_1[2] | _tail_idx_T_1[0]};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:385:28, src/main/scala/chisel3/util/OneHot.scala:30:18, :31:18, :32:{10,14,28}
@@ -417,7 +417,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
           if (_GEN_30 | ~_GEN_2) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:23:14, :109:26, :116:75, :230:{37,62}, :231:32, :241:50
           end
           else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :230:62, :241:50
-            base_clock_counter <= base_clock_counter + 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :231:32, :244:67
+            base_clock_counter <= base_clock_counter + 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :238:50, :244:67
         end
         else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:122:87
           base_clock_counter <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75
@@ -525,7 +525,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
             if (_GEN_46 | ~_GEN_10) begin	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:23:14, :110:26, :119:75, :321:{36,61}, :322:31, :332:49
             end
             else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:119:75, :321:61, :332:49
-              ext_clock_counter <= ext_clock_counter + 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:119:75, :231:32, :335:65
+              ext_clock_counter <= ext_clock_counter + 4'h1;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:119:75, :238:50, :335:65
           end
           else	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:123:87
             ext_clock_counter <= 4'h0;	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:116:75, :119:75
@@ -602,7 +602,7 @@ module IoControl(	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline
             ? (_GEN_10 ? ext_wait_counter : ext_wait_counter + 4'h1)
             : 4'h0},
          {_GEN_48 ? 4'h0 : _GEN_46 ? ext_wait_counter + 4'h1 : ext_wait_counter + 4'h1},
-         {_GEN_45 ? 4'h0 : ext_wait_counter}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:11:14, :23:14, :32:14, :110:26, :116:75, :120:75, :125:87, :231:32, :291:21, :293:29, :297:27, :298:36, :307:27, :308:35, :312:27, :316:30, :320:27, :321:{36,61}, :322:{31,49}, :327:29, :329:{28,48}, :332:49, :336:44, :338:{28,48}, :347:30, :351:27, :352:53, :359:{26,46}
+         {_GEN_45 ? 4'h0 : ext_wait_counter}};	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:11:14, :23:14, :32:14, :110:26, :116:75, :120:75, :125:87, :238:50, :291:21, :293:29, :297:27, :298:36, :307:27, :308:35, :312:27, :316:30, :320:27, :321:{36,61}, :322:{31,49}, :327:29, :329:{28,48}, :332:49, :336:44, :338:{28,48}, :347:30, :351:27, :352:53, :359:{26,46}
       ext_wait_counter <= _GEN_68[ext_state];	// home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:118:75, :120:75, :291:21, :293:29, :316:30, :347:30
       if (_GEN_8
           | ~(_GEN_9 & icache_read_ext & _GEN_10 & ext_clock_counter[2:0] == 3'h0)) begin	// <stdin>:1212:28, home/guodong/hdu-2025-ca-lab/chisel/playground/src/pipeline/control/IOControl.scala:115:75, :119:75, :123:87, :200:22, :291:21, :316:30, :322:31, :323:44
