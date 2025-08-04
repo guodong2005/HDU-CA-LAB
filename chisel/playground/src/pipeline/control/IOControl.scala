@@ -95,7 +95,7 @@ class IoControl extends Module {
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
 
   // 状态机定义
   val sIDLE :: iREAD :: dREAD :: dWrite :: dWriteWait :: iWait :: dWait :: Nil = Enum(7)
@@ -408,6 +408,14 @@ class IoControl extends Module {
     }
 
     is(dWriteWait) {
+      when(wait_counter === SRAM_DELAY.U) {
+        base_ram_ctrl.idle()
+        ext_ram_ctrl.idle()
+        wait_counter := 0.U
+        state        := dWait
+      }.otherwise {
+        wait_counter := wait_counter + 1.U
+      }
       // 额外等待一个周期确保写入完成
       dcache_data_valid      := true.B
       dcache_write_req_valid := false.B
