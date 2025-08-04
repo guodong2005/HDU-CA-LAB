@@ -279,7 +279,7 @@ module IoControl(
       _GEN_21 = dcache_write_req_valid | dcache_read_req_valid;
       _GEN_22 = _GEN_21 | ~icache_req_valid | _GEN_20;
       _GEN_23 = state == 3'h1;
-      _GEN_24 = wait_counter == 4'h5;
+      _GEN_24 = wait_counter == 4'h4;
       _GEN_25 = (&icache_offset) & _GEN_24;
       _GEN_26 = _GEN_23 & _GEN_25;
       _GEN_27 = state == 3'h5;
@@ -287,9 +287,9 @@ module IoControl(
       _GEN_29 = _GEN_23 | _GEN_27;
       _GEN_30 = _GEN_29 | ~(_GEN_28 & _GEN_24);
       _GEN_31 = state == 3'h3;
-      _GEN_32 = wait_counter < 4'h3;
-      _GEN_33 = wait_counter == 4'h3;
-      _GEN_34 = wait_counter < 4'h5;
+      _GEN_32 = wait_counter < 4'h2;
+      _GEN_33 = wait_counter == 4'h2;
+      _GEN_34 = wait_counter < 4'h4;
       _GEN_35 = _GEN_32 | _GEN_33 | _GEN_34;
       _GEN_36 = state != 3'h6;
       _GEN_37 = _GEN_28 | _GEN_31 | state == 3'h4;
