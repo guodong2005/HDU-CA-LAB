@@ -3224,157 +3224,6 @@ module Alu(
   assign io_valid = io_info_valid;
 endmodule
 
-module Mdu(
-  input         clock,
-                reset,
-                io_info_valid,
-  input  [4:0]  io_info_op,
-  input  [2:0]  io_info_fusel,
-  input  [31:0] io_src_info_src1_data,
-                io_src_info_src2_data,
-  output [31:0] io_result,
-  output        io_valid,
-                io_ready
-);
-
-  reg  [63:0] stage1_result;
-  reg  [63:0] stage2_result;
-  reg  [3:0]  stage1_op;
-  reg  [3:0]  stage2_op;
-  reg         stage1_valid;
-  reg         stage2_valid;
-  reg  [31:0] stage1_src1;
-  reg  [31:0] stage1_src2;
-  reg         busy;
-  wire        isMdu = io_info_valid & io_info_fusel == 3'h1;
-  always @(posedge clock) begin
-    if (reset) begin
-      stage1_result <= 64'h0;
-      stage2_result <= 64'h0;
-      stage1_op <= 4'h0;
-      stage2_op <= 4'h0;
-      stage1_valid <= 1'h0;
-      stage2_valid <= 1'h0;
-      stage1_src1 <= 32'h0;
-      stage1_src2 <= 32'h0;
-      busy <= 1'h0;
-    end
-    else begin
-      automatic logic        _GEN;
-      automatic logic [63:0] _GEN_0;
-      automatic logic [63:0] _GEN_1;
-      _GEN = isMdu & ~busy;
-      _GEN_0 = {{32{stage1_src1[31]}}, stage1_src1};
-      _GEN_1 = {32'h0, stage1_src1};
-      if (_GEN) begin
-        automatic logic [63:0] _GEN_2;
-        automatic logic [63:0] _GEN_3;
-        _GEN_2 = {32'h0, io_src_info_src1_data};
-        _GEN_3 = {32'h0, io_src_info_src2_data};
-        if (io_info_op == 5'h0)
-          stage1_result <= _GEN_2 * _GEN_3;
-        else if (io_info_op == 5'h1)
-          stage1_result <=
-            {{32{io_src_info_src1_data[31]}}, io_src_info_src1_data}
-            * {{32{io_src_info_src2_data[31]}}, io_src_info_src2_data};
-        else if (io_info_op == 5'h3)
-          stage1_result <= _GEN_2 * _GEN_3;
-        else begin
-          automatic logic [32:0] _GEN_4;
-          automatic logic [32:0] _GEN_5;
-          _GEN_4 = {io_src_info_src1_data[31], io_src_info_src1_data};
-          _GEN_5 = {io_src_info_src2_data[31], io_src_info_src2_data};
-          if (io_info_op == 5'h4) begin
-            automatic logic [32:0] _div_result_T_2;
-            _div_result_T_2 = $signed(_GEN_4) / $signed(_GEN_5);
-            stage1_result <= {32'h0, _div_result_T_2[31:0]};
-          end
-          else begin
-            automatic logic iszero;
-            iszero = io_src_info_src2_data == 32'h0;
-            if (io_info_op == 5'h5)
-              stage1_result <=
-                iszero
-                  ? 64'hFFFFFFFFFFFFFFFF
-                  : {32'h0, io_src_info_src1_data / io_src_info_src2_data};
-            else if (io_info_op == 5'h6)
-              stage1_result <=
-                {31'h0, iszero ? 33'h0 : $signed(_GEN_4) / $signed(_GEN_5)};
-            else if (io_info_op == 5'h7)
-              stage1_result <=
-                {32'h0, iszero ? 32'h0 : io_src_info_src1_data / io_src_info_src2_data};
-          end
-        end
-        stage1_op <= io_info_op[3:0];
-        stage1_src1 <= io_src_info_src1_data;
-        stage1_src2 <= io_src_info_src2_data;
-      end
-      stage2_result <=
-        stage1_valid
-          ? (stage1_op == 4'h6
-               ? ((|stage1_src2)
-                    ? _GEN_0 - stage1_result * {{32{stage1_src2[31]}}, stage1_src2}
-                    : _GEN_0)
-               : stage1_op == 4'h7
-                   ? ((|stage1_src2)
-                        ? _GEN_1 - stage1_result * {32'h0, stage1_src2}
-                        : _GEN_1)
-                   : stage1_result)
-          : stage1_result;
-      stage2_op <= stage1_op;
-      stage1_valid <= _GEN | ~(~isMdu & ~busy) & stage1_valid;
-      stage2_valid <= stage1_valid;
-      busy <= _GEN | ~stage2_valid & busy;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:8];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [3:0] i = 4'h0; i < 4'h9; i += 4'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        stage1_result = {_RANDOM[4'h0], _RANDOM[4'h1]};
-        stage2_result = {_RANDOM[4'h2], _RANDOM[4'h3]};
-        stage1_op = _RANDOM[4'h4][3:0];
-        stage2_op = _RANDOM[4'h4][7:4];
-        stage1_valid = _RANDOM[4'h4][8];
-        stage2_valid = _RANDOM[4'h4][9];
-        stage1_src1 = {_RANDOM[4'h4][31:10], _RANDOM[4'h5][9:0]};
-        stage1_src2 = {_RANDOM[4'h5][31:10], _RANDOM[4'h6][9:0]};
-        busy = _RANDOM[4'h8][10];
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_result =
-    stage2_valid
-      ? (stage2_op == 4'h0
-           ? stage2_result[31:0]
-           : stage2_op == 4'h1
-               ? stage2_result[63:32]
-               : stage2_op == 4'h3
-                   ? stage2_result[63:32]
-                   : stage2_op == 4'h4
-                       ? stage2_result[31:0]
-                       : stage2_op == 4'h5
-                           ? stage2_result[31:0]
-                           : stage2_op == 4'h6
-                               ? stage2_result[31:0]
-                               : stage2_op == 4'h7 ? stage2_result[31:0] : 32'h0)
-      : 32'h0;
-  assign io_valid = stage2_valid;
-  assign io_ready = ~isMdu | stage2_valid;
-endmodule
-
 module WriteBuffer(
   input         clock,
                 reset,
@@ -3774,9 +3623,6 @@ module Fu(
   wire [31:0] _lsu_io_result;
   wire        _lsu_io_ready;
   wire        _lsu_io_valid;
-  wire [31:0] _mdu_io_result;
-  wire        _mdu_io_valid;
-  wire        _mdu_io_ready;
   wire [31:0] _alu_io_result;
   wire        _alu_io_valid;
   reg  [2:0]  fuselReg_fusel;
@@ -3819,18 +3665,6 @@ module Fu(
     .io_result             (_alu_io_result),
     .io_valid              (_alu_io_valid)
   );
-  Mdu mdu (
-    .clock                 (clock),
-    .reset                 (reset),
-    .io_info_valid         (io_data_info_valid),
-    .io_info_op            (io_data_info_op),
-    .io_info_fusel         (io_data_info_fusel),
-    .io_src_info_src1_data (io_data_src_info_src1_data),
-    .io_src_info_src2_data (io_data_src_info_src2_data),
-    .io_result             (_mdu_io_result),
-    .io_valid              (_mdu_io_valid),
-    .io_ready              (_mdu_io_ready)
-  );
   Lsu lsu (
     .clock                            (clock),
     .reset                            (reset),
@@ -3869,14 +3703,14 @@ module Fu(
     .io_result         (_bru_io_result)
   );
   assign io_data_rd_info_wdata =
-    (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_1 ? _mdu_io_result : 32'h0)
-    | (_ready_T_6 ? _bru_io_result : 32'h0) | (_ready_T_3 ? _lsu_io_result : 32'h0);
+    (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_6 ? _bru_io_result : 32'h0)
+    | (_ready_T_3 ? _lsu_io_result : 32'h0);
   assign io_data_ready =
-    _ready_T_4 | _ready_T_1 & _mdu_io_ready | _ready_T_6 | _ready_T_3 & _lsu_io_ready;
+    _ready_T_4 | _ready_T_1 | _ready_T_6 | _ready_T_3 & _lsu_io_ready;
   assign io_data_valid =
     io_data_info_valid
-    & (_ready_T_4 & _alu_io_valid | _ready_T_1 & _mdu_io_valid | _ready_T_6
-       & _bru_io_valid | _ready_T_3 & _lsu_io_valid);
+    & (_ready_T_4 & _alu_io_valid | _ready_T_1 | _ready_T_6 & _bru_io_valid | _ready_T_3
+       & _lsu_io_valid);
 endmodule
 
 module ExecuteUnit(
