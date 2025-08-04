@@ -13,6 +13,7 @@ class SramCtrlInfo extends Bundle {
     ce_n     := true.B
     oe_n     := true.B
     we_n     := true.B
+    data_en  := false.B // 数据总线禁用
   }
 
   def read(rAddr: UInt): Unit = {
@@ -22,15 +23,17 @@ class SramCtrlInfo extends Bundle {
     ce_n     := false.B
     oe_n     := false.B
     we_n     := true.B
+    data_en  := false.B // 读操作不驱动数据总线
   }
 
-  def write(wAddr: UInt, wData: UInt, wBe_n: UInt): Unit = {
+  def write(wAddr: UInt, wData: UInt, wBe_n: UInt, weState: Bool = true.B): Unit = {
     data_out := wData
     addr     := wAddr
     be_n     := wBe_n
     ce_n     := false.B
     oe_n     := true.B
-    we_n     := false.B
+    we_n     := weState // 可以控制WE的状态
+    data_en  := true.B // 写操作驱动数据总线
   }
 
   val data_out = UInt(32.W)
@@ -39,6 +42,7 @@ class SramCtrlInfo extends Bundle {
   val ce_n     = Bool()
   val oe_n     = Bool()
   val we_n     = Bool()
+  val data_en  = Bool() // 新增：数据总线使能信号
 }
 
 class SramCtrlIO extends Bundle {
@@ -91,11 +95,14 @@ class IoControl extends Module {
 
   val io = IO(new IoControlIO)
 
+  // SRAM延迟常数调整为3
+  val SRAM_DELAY = 3
+
   // SRAM控制寄存器
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
 
   // 状态机定义
   val sIDLE :: iREAD :: dREAD :: dWrite :: dWriteWait :: iWait :: dWait :: Nil = Enum(7)
@@ -139,13 +146,11 @@ class IoControl extends Module {
   when(io.icache_read_req.fire) {
     icache_req_valid := true.B
     icache_req_addr  := io.icache_read_req.bits.addr
-    // printf("ICache request captured: addr=%x at cycle %d\n", io.icache_read_req.bits.addr, GTimer())
   }
 
   when(io.dcache_read_req.fire) {
     dcache_read_req_valid := true.B
     dcache_read_req_addr  := io.dcache_read_req.bits.addr
-    // printf("DCache read request captured: addr=%x at cycle %d\n", io.dcache_read_req.bits.addr, GTimer())
   }
 
   when(io.dcache_write_req.fire) {
@@ -153,8 +158,6 @@ class IoControl extends Module {
     dcache_write_req_addr  := io.dcache_write_req.bits.addr
     dcache_write_req_data  := io.dcache_write_req.bits.data
     dcache_write_req_mask  := io.dcache_write_req.bits.byte_mask
-    // printf("DCache write request captured: addr=%x, data=%x at cycle %d\n",
-    //        io.dcache_write_req.bits.addr, io.dcache_write_req.bits.data, GTimer())
   }
 
   // 地址解析函数 - 使用十六进制更清晰
@@ -228,20 +231,24 @@ class IoControl extends Module {
         when(isBaseAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramBase
+          // 写操作第一个周期：WE为低
           base_ram_ctrl.write(
             dcache_write_req_addr(21, 2),
             EndianConvert(dcache_write_req_data),
-            dcache_write_req_mask.asUInt.do_unary_~
+            dcache_write_req_mask.asUInt.do_unary_~,
+            false.B // WE为低
           )
           wait_counter := 0.U
           state        := dWrite
         }.elsewhen(isExtAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramExt
+          // 写操作第一个周期：WE为低
           ext_ram_ctrl.write(
             dcache_write_req_addr(21, 2),
             EndianConvert(dcache_write_req_data),
-            dcache_write_req_mask.asUInt.do_unary_~
+            dcache_write_req_mask.asUInt.do_unary_~,
+            false.B // WE为低
           )
           wait_counter := 0.U
           state        := dWrite
@@ -379,33 +386,47 @@ class IoControl extends Module {
     }
 
     is(dWrite) {
-      when(wait_counter === SRAM_DELAY.U) {
+      // 写操作时序控制：
+      // 前2个周期WE为低，第3个周期WE为高
+      when(wait_counter < 2.U) {
+        // 继续保持WE为低
+        wait_counter := wait_counter + 1.U
+      }.elsewhen(wait_counter === 2.U) {
+        // 第3个周期：将WE拉高，但CE和BE继续保持低
+        when(current_ram === ramBase) {
+          base_ram_ctrl.write(
+            base_ram_ctrl.addr,
+            base_ram_ctrl.data_out,
+            base_ram_ctrl.be_n,
+            true.B // WE拉高
+          )
+        }.otherwise {
+          ext_ram_ctrl.write(
+            ext_ram_ctrl.addr,
+            ext_ram_ctrl.data_out,
+            ext_ram_ctrl.be_n,
+            true.B // WE拉高
+          )
+        }
+        wait_counter := wait_counter + 1.U
+      }.elsewhen(wait_counter === SRAM_DELAY.U) {
+        // 写操作完成，转入空闲状态
         when(current_ram === ramBase) {
           base_ram_ctrl.idle()
         }.otherwise {
           ext_ram_ctrl.idle()
         }
-        // 写操作完成后进入额外等待状态
-        wait_counter := 0.U
-        state        := dWriteWait
+        dcache_data_valid      := true.B
+        dcache_write_req_valid := false.B
+        state                  := dWait
       }.otherwise {
         wait_counter := wait_counter + 1.U
       }
     }
 
     is(dWriteWait) {
-      when(wait_counter === SRAM_DELAY.U) {
-        base_ram_ctrl.idle()
-        ext_ram_ctrl.idle()
-        wait_counter := 0.U
-        state        := dWait
-      }.otherwise {
-        wait_counter := wait_counter + 1.U
-      }
-      // 额外等待一个周期确保写入完成
-      dcache_data_valid      := true.B
-      dcache_write_req_valid := false.B
-      state                  := dWait
+      // 这个状态已经不需要了，可以删除
+      state := dWait
     }
 
     is(dWait) {
