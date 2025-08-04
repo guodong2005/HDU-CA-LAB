@@ -112,7 +112,7 @@ class Lsu extends Module {
   // Store enqueuing
   writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
   writeBuffer.io.enq.bits  := newReq
-  writeBuffer.io.deq.ready := true.B
+  writeBuffer.io.deq.ready := io.dcache.req.ready
 
   val drainReq   = writeBuffer.io.deq
   val loadReqReg = Reg(new DCacheReq)
@@ -153,7 +153,7 @@ class Lsu extends Module {
       when(drainReq.valid && drainReq.bits.write) {
         io.dcache.req.valid := true.B
         io.dcache.req.bits  := drainReq.bits
-        drainReq.ready      := io.dcache.req.ready
+        // drainReq.ready      := io.dcache.req.ready
       }
     }
 
