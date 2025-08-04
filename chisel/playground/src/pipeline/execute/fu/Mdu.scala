@@ -13,7 +13,7 @@ class Mdu extends Module {
     val valid    = Output(Bool())
     val ready    = Output(Bool())
   })
-
+  /*
   // 2级流水线寄存器（第三级变为组合逻辑）
   val stage1_result = RegInit(0.U(64.W))
   val stage2_result = RegInit(0.U(64.W))
@@ -157,5 +157,7 @@ class Mdu extends Module {
 
   // 输出赋值（组合逻辑）
   io.result := stage3_result
-  io.valid  := stage3_valid
+  io.valid  := stage3_valid*/
+  io.ready := true.B
+  io.valid := true.B
 }
