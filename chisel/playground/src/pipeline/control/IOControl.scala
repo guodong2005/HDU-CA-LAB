@@ -33,7 +33,7 @@ class SramCtrlInfo extends Bundle {
     ce_n     := false.B
     oe_n     := true.B
     we_n     := weState // 可以控制WE的状态
-    data_en  := true.B // 写操作驱动数据总线
+    data_en  := true.B  // 写操作驱动数据总线
   }
 
   val data_out = UInt(32.W)
@@ -95,14 +95,14 @@ class IoControl extends Module {
 
   val io = IO(new IoControlIO)
 
-  // SRAM延迟常数调整为3
-  val SRAM_DELAY = 3
+  // SRAM延迟常数调整为4
+  val SRAM_DELAY = 4
 
   // SRAM控制寄存器
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
 
   // 状态机定义
   val sIDLE :: iREAD :: dREAD :: dWrite :: dWriteWait :: iWait :: dWait :: Nil = Enum(7)
@@ -387,7 +387,7 @@ class IoControl extends Module {
 
     is(dWrite) {
       // 写操作时序控制：
-      // 前2个周期WE为低，第3个周期WE为高
+      // 前2个周期WE为低，后2个周期WE为高
       when(wait_counter < 2.U) {
         // 继续保持WE为低
         wait_counter := wait_counter + 1.U
@@ -408,6 +408,9 @@ class IoControl extends Module {
             true.B // WE拉高
           )
         }
+        wait_counter := wait_counter + 1.U
+      }.elsewhen(wait_counter < SRAM_DELAY.U) {
+        // 第4个周期：继续保持WE为高
         wait_counter := wait_counter + 1.U
       }.elsewhen(wait_counter === SRAM_DELAY.U) {
         // 写操作完成，转入空闲状态
