@@ -158,6 +158,7 @@ class Mdu extends Module {
   // 输出赋值（组合逻辑）
   io.result := stage3_result
   io.valid  := stage3_valid*/
-  io.ready := true.B
-  io.valid := true.B
+  io.ready  := true.B
+  io.valid  := true.B
+  io.result := false.B
 }
