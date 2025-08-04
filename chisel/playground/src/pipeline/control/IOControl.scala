@@ -123,31 +123,32 @@ class IoControl extends Module {
   val ramNone :: ramBase :: ramExt :: Nil = Enum(3)
   val current_ram                         = RegInit(ramNone)
 
-  // Ready信号逻辑：
-  // 1. icache: 没有pending的icache请求，且当前没有正在进行的icache burst
-  // 2. dcache read: 没有pending的dcache read请求
-  // 3. dcache write: 没有pending的dcache write请求
-  val icache_burst_active = state === iREAD || state === iWait
+  // 共享的ready信号逻辑：
+  // 只有在IDLE状态且没有pending请求时才能接收新请求
+  val system_ready = state === sIDLE &&
+    !icache_req_valid &&
+    !dcache_read_req_valid &&
+    !dcache_write_req_valid
 
-  // 移除system_busy限制，允许在非IDLE状态也能接收请求
-  io.icache_read_req.ready  := !icache_req_valid && !icache_burst_active
-  io.dcache_read_req.ready  := !dcache_read_req_valid
-  io.dcache_write_req.ready := !dcache_write_req_valid
+  // 所有接口共用同一个ready信号
+  io.icache_read_req.ready  := system_ready
+  io.dcache_read_req.ready  := system_ready
+  io.dcache_write_req.ready := system_ready
 
-  // 捕获请求（valid只持续一拍）- 添加条件检查
-  when(io.icache_read_req.fire && !icache_req_valid) { // 只在没有pending请求时捕获
+  // 捕获请求（valid只持续一拍）- 只在system_ready时才捕获
+  when(io.icache_read_req.fire) {
     icache_req_valid := true.B
     icache_req_addr  := io.icache_read_req.bits.addr
     // printf("ICache request captured: addr=%x at cycle %d\n", io.icache_read_req.bits.addr, GTimer())
   }
 
-  when(io.dcache_read_req.fire && !dcache_read_req_valid) {
+  when(io.dcache_read_req.fire) {
     dcache_read_req_valid := true.B
     dcache_read_req_addr  := io.dcache_read_req.bits.addr
     // printf("DCache read request captured: addr=%x at cycle %d\n", io.dcache_read_req.bits.addr, GTimer())
   }
 
-  when(io.dcache_write_req.fire && !dcache_write_req_valid) {
+  when(io.dcache_write_req.fire) {
     dcache_write_req_valid := true.B
     dcache_write_req_addr  := io.dcache_write_req.bits.addr
     dcache_write_req_data  := io.dcache_write_req.bits.data
@@ -215,27 +216,15 @@ class IoControl extends Module {
     next_req := reqDcacheWrite
   }.elsewhen(dcache_read_req_valid) {
     next_req := reqDcacheRead
-  }.elsewhen(icache_req_valid && !icache_burst_active) {
+  }.elsewhen(icache_req_valid) {
     next_req := reqIcache
   }
 
   // 统一状态机
   switch(state) {
     is(sIDLE) {
-      // 详细调试信息
-      when(dcache_write_req_valid) {
-        val addr_upper = dcache_write_req_addr(31, 22)
-        val is_base    = addr_upper === "h200".U
-        val is_ext     = addr_upper === "h201".U
-        // printf("DCache write: addr=%x, addr[31:22]=%x, expect_ext=h201, is_ext=%d\n",
-        //        dcache_write_req_addr, addr_upper, is_ext)
-      }
-      when(icache_req_valid) {
-        // printf("ICache req valid at same time! addr=%x\n", icache_req_addr)
-      }
-
       // 严格按照优先级处理：dcache_write > dcache_read > icache
-      when(dcache_write_req_valid) { // 暂时移除system_ready检查
+      when(dcache_write_req_valid) {
         when(isBaseAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramBase
@@ -246,7 +235,6 @@ class IoControl extends Module {
           )
           wait_counter := 0.U
           state        := dWrite
-          // printf("Going to dWrite for base RAM\n")
         }.elsewhen(isExtAddr(dcache_write_req_addr)) {
           current_req_type := reqDcacheWrite
           current_ram      := ramExt
@@ -257,7 +245,6 @@ class IoControl extends Module {
           )
           wait_counter := 0.U
           state        := dWrite
-          // printf("Going to dWrite for ext RAM\n")
         }.elsewhen(isUartDataAddr(dcache_write_req_addr)) {
           when(!io.txd.uart_busy) {
             txd_uart_start         := true.B
@@ -268,7 +255,6 @@ class IoControl extends Module {
           }
         }.otherwise {
           // 非法地址，直接响应
-          // printf("DCache write to invalid address: %x\n", dcache_write_req_addr)
           dcache_data_valid      := true.B
           dcache_write_req_valid := false.B
           state                  := dWait
@@ -309,7 +295,7 @@ class IoControl extends Module {
           dcache_read_req_valid := false.B
           state                 := dWait
         }
-      }.elsewhen(next_req === reqIcache) {
+      }.elsewhen(icache_req_valid) {
         when(isBaseAddr(icache_req_addr)) {
           current_req_type := reqIcache
           current_ram      := ramBase
