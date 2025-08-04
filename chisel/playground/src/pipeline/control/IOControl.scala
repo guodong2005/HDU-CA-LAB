@@ -33,7 +33,7 @@ class SramCtrlInfo extends Bundle {
     ce_n     := false.B
     oe_n     := true.B
     we_n     := weState // 可以控制WE的状态
-    data_en  := true.B  // 写操作驱动数据总线
+    data_en  := true.B // 写操作驱动数据总线
   }
 
   val data_out = UInt(32.W)
@@ -95,20 +95,20 @@ class IoControl extends Module {
 
   val io = IO(new IoControlIO)
 
-  // SRAM延迟常数保持为4
-  val SRAM_DELAY = 4
+  // SRAM延迟常数调整为3
+  val SRAM_DELAY = 3
 
   // SRAM控制寄存器
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
 
   // 状态机定义
-  val sIDLE :: iREAD :: dREAD :: dWrite :: iWait :: dWait :: Nil = Enum(6)
-  val state                                                      = RegInit(sIDLE)
-  val wait_counter                                               = RegInit(0.U(4.W))
-  val icache_offset                                              = RegInit(0.U(3.W))
+  val sIDLE :: iREAD :: dREAD :: dWrite :: dWriteWait :: iWait :: dWait :: Nil = Enum(7)
+  val state                                                                    = RegInit(sIDLE)
+  val wait_counter                                                             = RegInit(0.U(4.W))
+  val icache_offset                                                            = RegInit(0.U(3.W))
 
   // 请求缓存寄存器 - 确保初始值为false/0
   val icache_req_valid = RegInit(false.B)
@@ -186,42 +186,24 @@ class IoControl extends Module {
     dcache_data_valid := false.B
   }
 
-  // ===== 关键优化：UART缓冲区管理 =====
-  // 使用简单的指针而不是独热编码，减少组合逻辑复杂度
+  // UART缓冲区管理
   val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
+  val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val head_idx    = OHToUInt(uart_head)
+  val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val tail_idx    = OHToUInt(uart_tail)
+  val maybe_full  = RegInit(false.B)
+  val uart_full   = uart_head === uart_tail && maybe_full
+  val uart_empty  = uart_head === uart_tail && !maybe_full
 
-  // 使用普通的二进制计数器而不是独热编码，大幅减少逻辑复杂度
-  val uart_head_ptr = RegInit(0.U(log2Ceil(UART_BUFFER_DEPTH).W))
-  val uart_tail_ptr = RegInit(0.U(log2Ceil(UART_BUFFER_DEPTH).W))
-  val uart_count    = RegInit(0.U((log2Ceil(UART_BUFFER_DEPTH) + 1).W))
-
-  // 简化的满/空判断逻辑
-  val uart_full  = uart_count === UART_BUFFER_DEPTH.U
-  val uart_empty = uart_count === 0.U
-
-  // 预计算下一个指针位置，减少关键路径上的计算
-  val uart_head_next = Mux(uart_head_ptr === (UART_BUFFER_DEPTH - 1).U, 0.U, uart_head_ptr + 1.U)
-  val uart_tail_next = Mux(uart_tail_ptr === (UART_BUFFER_DEPTH - 1).U, 0.U, uart_tail_ptr + 1.U)
-
-  // UART接收处理 - 优化关键路径
-  val uart_rx_enable = io.rxd.uart_ready && !uart_full
-  val uart_clear_reg = RegNext(uart_rx_enable) // 延迟一拍输出clear信号
-  io.rxd.uart_clear := uart_clear_reg
-
-  when(uart_rx_enable) {
-    uart_buffer(uart_tail_ptr).data := io.rxd.uart_data
-    uart_tail_ptr                   := uart_tail_next
-    uart_count                      := uart_count + 1.U
-  }
-
-  // UART读取数据的预取逻辑 - 减少关键路径延迟
-  val uart_read_data_reg = RegNext(uart_buffer(uart_head_ptr).data)
-  val uart_head_update   = Wire(Bool())
-  uart_head_update := false.B
-
-  when(uart_head_update) {
-    uart_head_ptr := uart_head_next
-    uart_count    := uart_count - 1.U
+  // UART接收处理
+  when(io.rxd.uart_ready && !uart_full) {
+    uart_buffer(tail_idx).data := io.rxd.uart_data
+    uart_tail                  := leftRotate(uart_tail, 1)
+    maybe_full                 := true.B
+    io.rxd.uart_clear          := true.B
+  }.otherwise {
+    io.rxd.uart_clear := false.B
   }
 
   // TXD控制
@@ -298,10 +280,10 @@ class IoControl extends Module {
           wait_counter := 0.U
           state        := dREAD
         }.elsewhen(isUartDataAddr(dcache_read_req_addr)) {
-          // 使用预取的数据，减少关键路径
           when(!uart_empty) {
-            dcache_buffer    := Cat(0.U(24.W), uart_read_data_reg)
-            uart_head_update := true.B
+            dcache_buffer := Cat(0.U(24.W), uart_buffer(head_idx).data)
+            uart_head     := leftRotate(uart_head, 1)
+            maybe_full    := false.B
           }.otherwise {
             dcache_buffer := 0.U
           }
@@ -405,14 +387,12 @@ class IoControl extends Module {
 
     is(dWrite) {
       // 写操作时序控制：
-      // 前半部分周期（向上取整）WE为低，后半部分周期（向下取整）WE为高
-      val we_low_cycles = ((SRAM_DELAY + 1) / 2).U // 向上取整
-
-      when(wait_counter < we_low_cycles) {
+      // 前2个周期WE为低，第3个周期WE为高
+      when(wait_counter < 2.U) {
         // 继续保持WE为低
         wait_counter := wait_counter + 1.U
-      }.elsewhen(wait_counter === we_low_cycles) {
-        // 切换时刻：将WE拉高，但CE和BE继续保持低
+      }.elsewhen(wait_counter === 2.U) {
+        // 第3个周期：将WE拉高，但CE和BE继续保持低
         when(current_ram === ramBase) {
           base_ram_ctrl.write(
             base_ram_ctrl.addr,
@@ -429,9 +409,6 @@ class IoControl extends Module {
           )
         }
         wait_counter := wait_counter + 1.U
-      }.elsewhen(wait_counter < SRAM_DELAY.U) {
-        // 继续保持WE为高
-        wait_counter := wait_counter + 1.U
       }.elsewhen(wait_counter === SRAM_DELAY.U) {
         // 写操作完成，转入空闲状态
         when(current_ram === ramBase) {
@@ -445,6 +422,11 @@ class IoControl extends Module {
       }.otherwise {
         wait_counter := wait_counter + 1.U
       }
+    }
+
+    is(dWriteWait) {
+      // 这个状态已经不需要了，可以删除
+      state := dWait
     }
 
     is(dWait) {
@@ -471,9 +453,9 @@ class IoControl extends Module {
     dcache_data_valid      := false.B
     txd_uart_start         := false.B
     txd_uart_data          := 0.U
-    uart_head_ptr          := 0.U
-    uart_tail_ptr          := 0.U
-    uart_count             := 0.U
+    maybe_full             := false.B
+    uart_head              := 1.U(UART_BUFFER_DEPTH.W)
+    uart_tail              := 1.U(UART_BUFFER_DEPTH.W)
     icache_req_valid       := false.B
     dcache_read_req_valid  := false.B
     dcache_write_req_valid := false.B
