@@ -3224,6 +3224,73 @@ module Alu(
   assign io_valid = io_info_valid;
 endmodule
 
+module Mdu(
+  input         clock,
+                reset,
+                io_info_valid,
+  input  [4:0]  io_info_op,
+  input  [2:0]  io_info_fusel,
+  input  [31:0] io_src_info_src1_data,
+                io_src_info_src2_data,
+  output [31:0] io_result,
+  output        io_valid,
+                io_ready
+);
+
+  wire        isMulW = io_info_valid & io_info_fusel == 3'h1 & io_info_op == 5'h0;
+  reg  [31:0] stage1_result;
+  reg  [31:0] stage2_result;
+  reg         stage1_valid;
+  reg         stage2_valid;
+  reg         busy;
+  always @(posedge clock) begin
+    if (reset) begin
+      stage1_result <= 32'h0;
+      stage2_result <= 32'h0;
+      stage1_valid <= 1'h0;
+      stage2_valid <= 1'h0;
+      busy <= 1'h0;
+    end
+    else begin
+      automatic logic _GEN;
+      _GEN = isMulW & ~busy;
+      if (_GEN)
+        stage1_result <= io_src_info_src1_data * io_src_info_src2_data;
+      stage2_result <= stage1_result;
+      stage1_valid <= _GEN | ~(~isMulW & ~busy) & stage1_valid;
+      stage2_valid <= stage1_valid;
+      busy <= _GEN | ~stage2_valid & busy;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:2];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+          _RANDOM[i] = `RANDOM;
+        end
+        stage1_result = _RANDOM[2'h0];
+        stage2_result = _RANDOM[2'h1];
+        stage1_valid = _RANDOM[2'h2][0];
+        stage2_valid = _RANDOM[2'h2][1];
+        busy = _RANDOM[2'h2][2];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_result = stage2_result;
+  assign io_valid = stage2_valid;
+  assign io_ready = ~isMulW | stage2_valid;
+endmodule
+
 module WriteBuffer(
   input         clock,
                 reset,
@@ -3623,6 +3690,9 @@ module Fu(
   wire [31:0] _lsu_io_result;
   wire        _lsu_io_ready;
   wire        _lsu_io_valid;
+  wire [31:0] _mdu_io_result;
+  wire        _mdu_io_valid;
+  wire        _mdu_io_ready;
   wire [31:0] _alu_io_result;
   wire        _alu_io_valid;
   reg  [2:0]  fuselReg_fusel;
@@ -3665,6 +3735,18 @@ module Fu(
     .io_result             (_alu_io_result),
     .io_valid              (_alu_io_valid)
   );
+  Mdu mdu (
+    .clock                 (clock),
+    .reset                 (reset),
+    .io_info_valid         (io_data_info_valid),
+    .io_info_op            (io_data_info_op),
+    .io_info_fusel         (io_data_info_fusel),
+    .io_src_info_src1_data (io_data_src_info_src1_data),
+    .io_src_info_src2_data (io_data_src_info_src2_data),
+    .io_result             (_mdu_io_result),
+    .io_valid              (_mdu_io_valid),
+    .io_ready              (_mdu_io_ready)
+  );
   Lsu lsu (
     .clock                            (clock),
     .reset                            (reset),
@@ -3703,14 +3785,14 @@ module Fu(
     .io_result         (_bru_io_result)
   );
   assign io_data_rd_info_wdata =
-    (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_6 ? _bru_io_result : 32'h0)
-    | (_ready_T_3 ? _lsu_io_result : 32'h0);
+    (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_1 ? _mdu_io_result : 32'h0)
+    | (_ready_T_6 ? _bru_io_result : 32'h0) | (_ready_T_3 ? _lsu_io_result : 32'h0);
   assign io_data_ready =
-    _ready_T_4 | _ready_T_1 | _ready_T_6 | _ready_T_3 & _lsu_io_ready;
+    _ready_T_4 | _ready_T_1 & _mdu_io_ready | _ready_T_6 | _ready_T_3 & _lsu_io_ready;
   assign io_data_valid =
     io_data_info_valid
-    & (_ready_T_4 & _alu_io_valid | _ready_T_1 | _ready_T_6 & _bru_io_valid | _ready_T_3
-       & _lsu_io_valid);
+    & (_ready_T_4 & _alu_io_valid | _ready_T_1 & _mdu_io_valid | _ready_T_6
+       & _bru_io_valid | _ready_T_3 & _lsu_io_valid);
 endmodule
 
 module ExecuteUnit(

@@ -10,84 +10,48 @@ class MiniBru extends Module {
     val info     = Input(new Info())
     val pc       = Input(UInt(XLEN.W))
     val src_info = Input(new SrcInfo())
-    val valid    = Output(Bool())
-    val result   = Output(UInt(XLEN.W))
     val branch   = Output(Bool())
     val target   = Output(UInt(XLEN.W))
+    val valid    = Output(Bool())
   })
 
-  io.valid := true.B && io.info.valid && (io.info.fusel === FuType.bru)
-  val info = io.info
-  val pc   = io.pc
-  val imm  = info.imm.asSInt
+  val src1 = io.src_info.src1_data
+  val src2 = io.src_info.src2_data
+  val imm  = io.info.imm
+  val op   = io.info.op
 
-  // Default output assignments
-  io.result := DontCare
-  io.target := 0.U
-  io.branch := false.B
+  // 并行计算所有可能的比较结果
+  val eq  = src1 === src2
+  val ne  = !eq
+  val lt  = src1.asSInt < src2.asSInt
+  val ge  = !lt
+  val ltu = src1 < src2
+  val geu = !ltu
 
-  // Debugging with printf
+  // 使用简单的Mux选择
+  val takeBranch = MuxCase(
+    false.B,
+    Seq(
+      (op === BRUOpType.beq)  -> eq,
+      (op === BRUOpType.bne)  -> ne,
+      (op === BRUOpType.blt)  -> lt,
+      (op === BRUOpType.bge)  -> ge,
+      (op === BRUOpType.bltu) -> ltu,
+      (op === BRUOpType.bgeu) -> geu,
+      (op === BRUOpType.b)    -> true.B,
+      (op === BRUOpType.bl)   -> true.B,
+      (op === BRUOpType.jirl) -> true.B
+    )
+  )
 
-  // Instruction handling
+  // 并行计算所有可能的目标地址
+  val branchTarget   = io.pc + imm
+  val jumpTarget     = io.pc + imm
+  val indirectTarget = src1 + imm
 
-  /*
-  printf(p"its op: ${Binary(io.info.op)}\n");
-  printf(p"its instr: ${Hexadecimal(io.info.instr)}\n");
-  printf(p"its writeback: ${Hexadecimal(io.info.reg_wen)}\n");
-   */
-  switch(info.op) {
-    // JAL (Jump and Link)
-    is(BRUOpType.b) { // 不写回
-      io.branch := info.valid && (info.fusel === FuType.bru)
-      io.target := (pc.asSInt + imm).asUInt
-      // printf("jal triggered\n");
-    }
-    is(BRUOpType.bl) {
-      io.branch := info.valid && (info.fusel === FuType.bru)
-      io.target := (pc.asSInt + imm).asUInt
-    }
+  // 选择正确的目标地址
+  io.target := Mux(op === BRUOpType.jirl, indirectTarget, Mux(op === BRUOpType.b || op === BRUOpType.bl, jumpTarget, branchTarget))
 
-    // JALR (Jump and Link Register)
-    is(BRUOpType.jirl) {
-      io.branch := info.valid && (info.fusel === FuType.bru)
-      io.target := (io.src_info.src1_data.asSInt + imm).asUInt;
-    }
-
-    // BEQ (Branch if Equal)
-    is(BRUOpType.beq) {
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data === io.src_info.src2_data)
-      io.target := (pc.asSInt + imm).asUInt // Signed addition for target
-    }
-
-    // BNE (Branch if Not Equal)
-    is(BRUOpType.bne) {
-      // printf(p"bne triggered: src1_data = ${Hexadecimal(io.src_info.src1_data)}, src2_data = ${Hexadecimal(io.src_info.src2_data)}, pc = ${Hexadecimal(pc)}\n")
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data =/= io.src_info.src2_data)
-      io.target := (pc.asSInt + imm).asUInt
-    }
-
-    // BLT (Branch if Less Than)
-    is(BRUOpType.blt) {
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt)
-      io.target := (pc.asSInt + imm).asUInt
-    }
-
-    // BGE (Branch if Greater Than or Equal)
-    is(BRUOpType.bge) {
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data.asSInt >= io.src_info.src2_data.asSInt)
-      io.target := (pc.asSInt + imm).asUInt
-    }
-
-    // BLTU (Branch if Less Than Unsigned)
-    is(BRUOpType.bltu) {
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data < io.src_info.src2_data)
-      io.target := (pc.asSInt + imm).asUInt // Unsigned comparison, target still uses signed addition
-    }
-
-    // BGEU (Branch if Greater Than or Equal Unsigned)
-    is(BRUOpType.bgeu) {
-      io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data >= io.src_info.src2_data)
-      io.target := (pc.asSInt + imm).asUInt // Unsigned comparison, target still uses signed addition
-    }
-  }
+  io.branch := takeBranch
+  io.valid  := io.info.fusel === FuType.bru && io.info.valid
 }
