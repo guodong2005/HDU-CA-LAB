@@ -71,10 +71,7 @@ class DecodeUnit extends Module with HasInstrType {
   val stage2_rd     = stage2_inst(4, 0)
   val stage2_opcode = stage2_inst(31, 26)
 
-  // 判断第二级指令是否会写寄存器（简化判断）
-  val stage2_is_b       = stage2_opcode === "b010100".U                                   // B指令不写寄存器
-  val stage2_is_store   = stage2_opcode === "b001010".U && stage2_inst(25, 22)(2) === 1.U // Store指令
-  val stage2_will_write = stage2_valid && stage2_rd.orR && !stage2_is_b && !stage2_is_store
+  val stage2_will_write = true.B
 
   // 检测冲突：第一级BRU要读的寄存器是否是第二级要写的
   val stage1_needs_rj = is_bru && (is_jirl || bru_need_rd) // BRU需要读rj
