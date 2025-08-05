@@ -71,6 +71,7 @@ class ICacheIO extends Bundle {
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
   val icache_debug = new ICacheDebugIO
 }
+
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
@@ -177,9 +178,9 @@ class ICache extends Module {
   io.icache_debug.icache_req     := saved_req
 }
 
-// // ============================================================================
-// // DCache Module (Simplified)
-// // ============================================================================
+// ============================================================================
+// DCache Module (Simplified)
+// ============================================================================
 
 class DCacheIO extends Bundle {
   // CPU-side interface
