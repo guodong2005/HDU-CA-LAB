@@ -25,7 +25,6 @@ class WriteBuffer(depth: Int = 4) extends Module {
       val success = Bool()
     }))
   })
-  io.flush := false.B
   val buffer = Reg(Vec(depth, new WriteBufferEntry))
   val valids = RegInit(VecInit(Seq.fill(depth)(false.B)))
 
