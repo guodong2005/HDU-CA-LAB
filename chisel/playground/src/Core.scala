@@ -66,8 +66,7 @@ class Core extends Module {
   iocontrol.io.icache_read_req  <> icache.io.io_read_req
   iocontrol.io.icache_read_resp <> icache.io.io_read_resp
 
-  fetchUnit.io.decodeStage   <> decodeStage.io.fetchUnit
-  decodeUnit.io.executeready := executeUnit.io.ready
+  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
 
   icache.io.icache_req  <> fetchUnit.io.icache_req
   icache.io.icache_resp <> fetchUnit.io.icache_resp

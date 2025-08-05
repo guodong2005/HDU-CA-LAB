@@ -37,7 +37,6 @@ class DecodeUnit extends Module with HasInstrType {
     val islsu               = Output(Bool())
     val branch              = Output(Bool())
     val target              = Output(UInt(XLEN.W))
-    val executeready        = Input(Bool())
     val decodeInternalStall = Output(Bool())                   // 输出给ControlUnit的解码内部stall信号
     val decodeStage1Stall   = Input(Bool())                    // 来自ControlUnit的第一级stall信号
     val registerInfo        = Output(new DecodeRegisterInfo()) // 发送给ControlUnit的寄存器信息
