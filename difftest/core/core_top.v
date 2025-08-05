@@ -55,6 +55,17 @@
   `endif // not def ENABLE_INITIAL_MEM_
 `endif // not def SYNTHESIS
 
+// Standard header to adapt well known macros for prints and assertions.
+
+// Users can define 'PRINTF_COND' to add an extra gate to prints.
+`ifndef PRINTF_COND_
+  `ifdef PRINTF_COND
+    `define PRINTF_COND_ (`PRINTF_COND)
+  `else  // PRINTF_COND
+    `define PRINTF_COND_ 1
+  `endif // PRINTF_COND
+`endif // not def PRINTF_COND_
+
 module IoControl(
   input          clock,
                  reset,
@@ -2213,6 +2224,7 @@ module DecodeUnit(
   output [31:0] io_target
 );
 
+  wire [13:0] _imm_bru_T = {14{io_decodeStage_data_inst[25]}};
   wire        is_jirl = io_decodeStage_data_inst[31:26] == 6'h13;
   wire        is_b = io_decodeStage_data_inst[31:26] == 6'h14;
   wire        is_bl = io_decodeStage_data_inst[31:26] == 6'h15;
@@ -2233,162 +2245,226 @@ module DecodeUnit(
   wire        eq = src1_data == src2_data;
   wire        lt = $signed(src1_data) < $signed(src2_data);
   wire        ltu = src1_data < src2_data;
-  wire [31:0] _GEN =
-    {{14{io_decodeStage_data_inst[25]}}, io_decodeStage_data_inst[25:10], 2'h0};
+  wire [31:0] _GEN = {_imm_bru_T, io_decodeStage_data_inst[25:10], 2'h0};
+  wire [31:0] _pc_plus_imm_T = io_decodeStage_data_pc + _GEN;
+  wire [31:0] _src1_plus_imm_T = src1_data + _GEN;
+  wire        takeBranch =
+    is_beq & eq | is_bne & ~eq | is_blt & lt | is_bge & ~lt | is_bltu & ltu | is_bgeu
+    & ~ltu | is_b | is_bl | is_jirl;
+  wire [31:0] io_target_0 = is_jirl ? _src1_plus_imm_T : _pc_plus_imm_T;
+  wire        io_branch_0 = is_bru & takeBranch & io_decodeStage_data_valid;
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      automatic logic [31:0] imm_bru;
+      automatic logic        _GEN_0 = is_bru & io_decodeStage_data_valid;
+      automatic logic        _GEN_1 = (`PRINTF_COND_) & _GEN_0 & ~reset;
+      automatic logic        _GEN_2 = (`PRINTF_COND_) & _GEN_0 & is_jirl & ~reset;
+      imm_bru = {_imm_bru_T, io_decodeStage_data_inst[25:10], 2'h0};
+      if (_GEN_1) begin
+        $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
+        $fwrite(32'h80000002, "  PC: 0x%x\n", io_decodeStage_data_pc);
+        $fwrite(32'h80000002, "  Inst: 0x%x\n", io_decodeStage_data_inst);
+        $fwrite(32'h80000002, "  Opcode: 0x%x\n", io_decodeStage_data_inst[31:26]);
+        $fwrite(32'h80000002, "  Instruction type: ");
+      end
+      if (_GEN_2)
+        $fwrite(32'h80000002, "JIRL");
+      if ((`PRINTF_COND_) & _GEN_0 & is_b & ~reset)
+        $fwrite(32'h80000002, "B");
+      if ((`PRINTF_COND_) & _GEN_0 & is_bl & ~reset)
+        $fwrite(32'h80000002, "BL");
+      if ((`PRINTF_COND_) & _GEN_0 & is_beq & ~reset)
+        $fwrite(32'h80000002, "BEQ");
+      if ((`PRINTF_COND_) & _GEN_0 & is_bne & ~reset)
+        $fwrite(32'h80000002, "BNE");
+      if ((`PRINTF_COND_) & _GEN_0 & is_blt & ~reset)
+        $fwrite(32'h80000002, "BLT");
+      if ((`PRINTF_COND_) & _GEN_0 & is_bge & ~reset)
+        $fwrite(32'h80000002, "BGE");
+      if ((`PRINTF_COND_) & _GEN_0 & is_bltu & ~reset)
+        $fwrite(32'h80000002, "BLTU");
+      if ((`PRINTF_COND_) & _GEN_0 & is_bgeu & ~reset)
+        $fwrite(32'h80000002, "BGEU");
+      if (_GEN_1) begin
+        $fwrite(32'h80000002, "\n");
+        $fwrite(32'h80000002, "  rj: %d, rd: %d\n", io_decodeStage_data_inst[9:5],
+                io_decodeStage_data_inst[4:0]);
+        $fwrite(32'h80000002, "  offs: 0x%x, imm_bru: 0x%x\n",
+                {io_decodeStage_data_inst[25:10], 2'h0}, imm_bru);
+        $fwrite(32'h80000002, "  src1_raw: 0x%x, src2_raw: 0x%x\n", io_regfile_src1_rdata,
+                io_regfile_src2_rdata);
+        $fwrite(32'h80000002, "  src1_data: 0x%x, src2_data: 0x%x\n", src1_data,
+                src2_data);
+        $fwrite(32'h80000002, "  Bypass: src1_bypass=%d, src2_bypass=%d\n",
+                io_bypassData_src1_bypass, io_bypassData_src2_bypass);
+        $fwrite(32'h80000002, "  pc_plus_imm: 0x%x\n", _pc_plus_imm_T);
+        $fwrite(32'h80000002, "  src1_plus_imm: 0x%x\n", _src1_plus_imm_T);
+        $fwrite(32'h80000002, "  takeBranch: %d\n", takeBranch);
+        $fwrite(32'h80000002, "  target_bru: 0x%x\n", io_target_0);
+        $fwrite(32'h80000002, "  io.branch: %d, io.target: 0x%x\n", io_branch_0,
+                io_target_0);
+      end
+      if (_GEN_2)
+        $fwrite(32'h80000002, "  [JIRL Debug] src1_data=0x%x + imm_bru=0x%x = 0x%x\n",
+                src1_data, imm_bru, _src1_plus_imm_T);
+      if ((`PRINTF_COND_) & io_branch_0 & ~reset)
+        $fwrite(32'h80000002, "[DecodeUnit] Branch taken! Target: 0x%x\n", io_target_0);
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   reg  [31:0] stage1_reg_pc;
   reg  [31:0] stage1_reg_inst;
   reg         stage1_reg_valid;
-  wire        _GEN_0 = stage1_reg_inst[31:25] == 7'hA;
-  wire        _GEN_1 = stage1_reg_inst[31:25] == 7'hE;
-  wire        _GEN_2 = stage1_reg_inst[31:22] == 10'hA;
-  wire        _GEN_3 = stage1_reg_inst[31:15] == 17'h20;
-  wire        _GEN_4 = stage1_reg_inst[31:15] == 17'h2E;
-  wire        _GEN_5 = stage1_reg_inst[31:22] == 10'h8;
-  wire        _GEN_6 = stage1_reg_inst[31:15] == 17'h24;
-  wire        _GEN_7 = stage1_reg_inst[31:22] == 10'h9;
-  wire        _GEN_8 = stage1_reg_inst[31:15] == 17'h25;
-  wire        _GEN_9 = stage1_reg_inst[31:22] == 10'hF;
-  wire        _GEN_10 = stage1_reg_inst[31:15] == 17'h2B;
-  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h28;
-  wire        _GEN_12 = stage1_reg_inst[31:15] == 17'h81;
-  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h89;
-  wire        _GEN_14 = stage1_reg_inst[31:15] == 17'h2F;
-  wire        _GEN_15 = stage1_reg_inst[31:15] == 17'h91;
-  wire        _GEN_16 = stage1_reg_inst[31:15] == 17'h30;
-  wire        _GEN_17 = stage1_reg_inst[31:22] == 10'hE;
-  wire        _GEN_18 = stage1_reg_inst[31:15] == 17'h2A;
-  wire        _GEN_19 = stage1_reg_inst[31:22] == 10'hD;
-  wire        _GEN_20 = stage1_reg_inst[31:15] == 17'h29;
-  wire        _GEN_21 = stage1_reg_inst[31:15] == 17'h22;
-  wire        _GEN_22 = stage1_reg_inst[31:15] == 17'h38;
-  wire        _GEN_23 = stage1_reg_inst[31:22] == 10'hA0;
-  wire        _GEN_24 = stage1_reg_inst[31:22] == 10'hA8;
-  wire        _GEN_25 = stage1_reg_inst[31:22] == 10'hA1;
-  wire        _GEN_26 = stage1_reg_inst[31:22] == 10'hA9;
-  wire        _GEN_27 = stage1_reg_inst[31:22] == 10'hA2;
-  wire        _GEN_28 = stage1_reg_inst[31:22] == 10'hA4;
-  wire        _GEN_29 = stage1_reg_inst[31:22] == 10'hA5;
-  wire        _GEN_30 = stage1_reg_inst[31:22] == 10'hA6;
-  wire        _GEN_31 = stage1_reg_inst[31:26] == 6'h16;
-  wire        _GEN_32 = stage1_reg_inst[31:26] == 6'h17;
-  wire        _GEN_33 = stage1_reg_inst[31:26] == 6'h18;
-  wire        _GEN_34 = stage1_reg_inst[31:26] == 6'h19;
-  wire        _GEN_35 = stage1_reg_inst[31:26] == 6'h1A;
-  wire        _GEN_36 = stage1_reg_inst[31:26] == 6'h1B;
-  wire        _GEN_37 = stage1_reg_inst[31:26] == 6'h14;
-  wire        _GEN_38 = stage1_reg_inst[31:26] == 6'h15;
-  wire        _GEN_39 = stage1_reg_inst[31:26] == 6'h13;
-  wire        _GEN_40 = _GEN_37 | _GEN_38 | _GEN_39;
-  wire        _GEN_41 = _GEN_28 | _GEN_29 | _GEN_30;
+  wire        _GEN_3 = stage1_reg_inst[31:25] == 7'hA;
+  wire        _GEN_4 = stage1_reg_inst[31:25] == 7'hE;
+  wire        _GEN_5 = stage1_reg_inst[31:22] == 10'hA;
+  wire        _GEN_6 = stage1_reg_inst[31:15] == 17'h20;
+  wire        _GEN_7 = stage1_reg_inst[31:15] == 17'h2E;
+  wire        _GEN_8 = stage1_reg_inst[31:22] == 10'h8;
+  wire        _GEN_9 = stage1_reg_inst[31:15] == 17'h24;
+  wire        _GEN_10 = stage1_reg_inst[31:22] == 10'h9;
+  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h25;
+  wire        _GEN_12 = stage1_reg_inst[31:22] == 10'hF;
+  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h2B;
+  wire        _GEN_14 = stage1_reg_inst[31:15] == 17'h28;
+  wire        _GEN_15 = stage1_reg_inst[31:15] == 17'h81;
+  wire        _GEN_16 = stage1_reg_inst[31:15] == 17'h89;
+  wire        _GEN_17 = stage1_reg_inst[31:15] == 17'h2F;
+  wire        _GEN_18 = stage1_reg_inst[31:15] == 17'h91;
+  wire        _GEN_19 = stage1_reg_inst[31:15] == 17'h30;
+  wire        _GEN_20 = stage1_reg_inst[31:22] == 10'hE;
+  wire        _GEN_21 = stage1_reg_inst[31:15] == 17'h2A;
+  wire        _GEN_22 = stage1_reg_inst[31:22] == 10'hD;
+  wire        _GEN_23 = stage1_reg_inst[31:15] == 17'h29;
+  wire        _GEN_24 = stage1_reg_inst[31:15] == 17'h22;
+  wire        _GEN_25 = stage1_reg_inst[31:15] == 17'h38;
+  wire        _GEN_26 = stage1_reg_inst[31:22] == 10'hA0;
+  wire        _GEN_27 = stage1_reg_inst[31:22] == 10'hA8;
+  wire        _GEN_28 = stage1_reg_inst[31:22] == 10'hA1;
+  wire        _GEN_29 = stage1_reg_inst[31:22] == 10'hA9;
+  wire        _GEN_30 = stage1_reg_inst[31:22] == 10'hA2;
+  wire        _GEN_31 = stage1_reg_inst[31:22] == 10'hA4;
+  wire        _GEN_32 = stage1_reg_inst[31:22] == 10'hA5;
+  wire        _GEN_33 = stage1_reg_inst[31:22] == 10'hA6;
+  wire        _GEN_34 = stage1_reg_inst[31:26] == 6'h16;
+  wire        _GEN_35 = stage1_reg_inst[31:26] == 6'h17;
+  wire        _GEN_36 = stage1_reg_inst[31:26] == 6'h18;
+  wire        _GEN_37 = stage1_reg_inst[31:26] == 6'h19;
+  wire        _GEN_38 = stage1_reg_inst[31:26] == 6'h1A;
+  wire        _GEN_39 = stage1_reg_inst[31:26] == 6'h1B;
+  wire        _GEN_40 = stage1_reg_inst[31:26] == 6'h14;
+  wire        _GEN_41 = stage1_reg_inst[31:26] == 6'h15;
+  wire        _GEN_42 = stage1_reg_inst[31:26] == 6'h13;
+  wire        _GEN_43 = _GEN_40 | _GEN_41 | _GEN_42;
+  wire        _GEN_44 = _GEN_31 | _GEN_32 | _GEN_33;
   wire [2:0]  instrType =
-    _GEN_0 | _GEN_1
+    _GEN_3 | _GEN_4
       ? 3'h6
-      : _GEN_2
+      : _GEN_5
           ? 3'h4
-          : _GEN_3 | _GEN_4
+          : _GEN_6 | _GEN_7
               ? 3'h5
-              : _GEN_5
+              : _GEN_8
                   ? 3'h4
-                  : _GEN_6
+                  : _GEN_9
                       ? 3'h5
-                      : _GEN_7
+                      : _GEN_10
                           ? 3'h4
-                          : _GEN_8
+                          : _GEN_11
                               ? 3'h5
-                              : _GEN_9
+                              : _GEN_12
                                   ? 3'h4
-                                  : _GEN_10 | _GEN_11
+                                  : _GEN_13 | _GEN_14
                                       ? 3'h5
-                                      : _GEN_12 | _GEN_13
+                                      : _GEN_15 | _GEN_16
                                           ? 3'h4
-                                          : _GEN_14
+                                          : _GEN_17
                                               ? 3'h5
-                                              : _GEN_15
+                                              : _GEN_18
                                                   ? 3'h4
-                                                  : _GEN_16
+                                                  : _GEN_19
                                                       ? 3'h5
-                                                      : _GEN_17
+                                                      : _GEN_20
                                                           ? 3'h4
-                                                          : _GEN_18
+                                                          : _GEN_21
                                                               ? 3'h5
-                                                              : _GEN_19
+                                                              : _GEN_22
                                                                   ? 3'h4
-                                                                  : _GEN_20 | _GEN_21
-                                                                    | _GEN_22
+                                                                  : _GEN_23 | _GEN_24
+                                                                    | _GEN_25
                                                                       ? 3'h5
-                                                                      : _GEN_23 | _GEN_24
-                                                                        | _GEN_25
-                                                                        | _GEN_26
-                                                                        | _GEN_27
+                                                                      : _GEN_26 | _GEN_27
+                                                                        | _GEN_28
+                                                                        | _GEN_29
+                                                                        | _GEN_30
                                                                           ? 3'h4
-                                                                          : _GEN_41
+                                                                          : _GEN_44
                                                                               ? 3'h2
-                                                                              : _GEN_31
-                                                                                | _GEN_32
-                                                                                | _GEN_33
-                                                                                | _GEN_34
+                                                                              : _GEN_34
                                                                                 | _GEN_35
                                                                                 | _GEN_36
+                                                                                | _GEN_37
+                                                                                | _GEN_38
+                                                                                | _GEN_39
                                                                                   ? 3'h1
-                                                                                  : {3{_GEN_40}};
+                                                                                  : {3{_GEN_43}};
   wire [3:0]  fuOpType =
-    _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3
+    _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6
       ? 4'h0
-      : _GEN_4
+      : _GEN_7
           ? 4'h9
-          : _GEN_5 | _GEN_6
+          : _GEN_8 | _GEN_9
               ? 4'h2
-              : _GEN_7 | _GEN_8
+              : _GEN_10 | _GEN_11
                   ? 4'h3
-                  : _GEN_9 | _GEN_10
+                  : _GEN_12 | _GEN_13
                       ? 4'h4
-                      : _GEN_11
+                      : _GEN_14
                           ? 4'hC
-                          : _GEN_12
+                          : _GEN_15
                               ? 4'h9
-                              : _GEN_13 | _GEN_14
+                              : _GEN_16 | _GEN_17
                                   ? 4'h5
-                                  : _GEN_15 | _GEN_16
+                                  : _GEN_18 | _GEN_19
                                       ? 4'h6
-                                      : _GEN_17 | _GEN_18
+                                      : _GEN_20 | _GEN_21
                                           ? 4'h7
-                                          : _GEN_19 | _GEN_20
+                                          : _GEN_22 | _GEN_23
                                               ? 4'h8
-                                              : _GEN_21
+                                              : _GEN_24
                                                   ? 4'h1
-                                                  : _GEN_22 | _GEN_23
+                                                  : _GEN_25 | _GEN_26
                                                       ? 4'h0
-                                                      : _GEN_24
+                                                      : _GEN_27
                                                           ? 4'h4
-                                                          : _GEN_25
+                                                          : _GEN_28
                                                               ? 4'h1
-                                                              : _GEN_26
+                                                              : _GEN_29
                                                                   ? 4'h5
-                                                                  : _GEN_27
+                                                                  : _GEN_30
                                                                       ? 4'h2
-                                                                      : _GEN_28
+                                                                      : _GEN_31
                                                                           ? 4'h8
-                                                                          : _GEN_29
+                                                                          : _GEN_32
                                                                               ? 4'h9
-                                                                              : _GEN_30
+                                                                              : _GEN_33
                                                                                   ? 4'hA
-                                                                                  : _GEN_31
+                                                                                  : _GEN_34
                                                                                       ? 4'h0
-                                                                                      : _GEN_32
+                                                                                      : _GEN_35
                                                                                           ? 4'h1
-                                                                                          : _GEN_33
+                                                                                          : _GEN_36
                                                                                               ? 4'h4
-                                                                                              : _GEN_34
+                                                                                              : _GEN_37
                                                                                                   ? 4'h5
-                                                                                                  : _GEN_35
+                                                                                                  : _GEN_38
                                                                                                       ? 4'h6
-                                                                                                      : _GEN_36
+                                                                                                      : _GEN_39
                                                                                                           ? 4'h7
-                                                                                                          : _GEN_37
+                                                                                                          : _GEN_40
                                                                                                               ? 4'h8
-                                                                                                              : _GEN_38
+                                                                                                              : _GEN_41
                                                                                                                   ? 4'hA
-                                                                                                                  : _GEN_39
+                                                                                                                  : _GEN_42
                                                                                                                       ? 4'hB
                                                                                                                       : 4'h0;
   wire [9:0]  _imm_j_T_2 = fuOpType == 4'hB ? 10'h0 : stage1_reg_inst[9:0];
@@ -2414,7 +2490,7 @@ module DecodeUnit(
   wire        _src1_ren_T = isR | isI;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  wire        _GEN_42 = ~isB & ~(&instrType);
+  wire        _GEN_45 = ~isB & ~(&instrType);
   always @(posedge clock) begin
     if (reset) begin
       stage1_reg_pc <= 32'h0;
@@ -2449,8 +2525,8 @@ module DecodeUnit(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_regfile_src1_raddr = _GEN_42 ? src1_raddr : io_decodeStage_data_inst[9:5];
-  assign io_regfile_src2_raddr = _GEN_42 ? src2_raddr : io_decodeStage_data_inst[4:0];
+  assign io_regfile_src1_raddr = _GEN_45 ? src1_raddr : io_decodeStage_data_inst[9:5];
+  assign io_regfile_src2_raddr = _GEN_45 ? src2_raddr : io_decodeStage_data_inst[4:0];
   assign io_executeStage_data_pc = stage1_reg_pc;
   assign io_executeStage_data_info_instr = (|instrType) ? stage1_reg_inst : 32'h2800000;
   assign io_executeStage_data_info_valid = stage1_reg_valid & (|instrType);
@@ -2468,16 +2544,16 @@ module DecodeUnit(
   assign io_executeStage_data_info_src2_ren = src2_ren;
   assign io_executeStage_data_info_fusel =
     {1'h0,
-     _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
-     | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
-     | _GEN_17 | _GEN_18 | _GEN_19 | _GEN_20 | _GEN_21
+     _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8 | _GEN_9 | _GEN_10 | _GEN_11
+     | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16 | _GEN_17 | _GEN_18 | _GEN_19
+     | _GEN_20 | _GEN_21 | _GEN_22 | _GEN_23 | _GEN_24
        ? 2'h0
-       : _GEN_22
+       : _GEN_25
            ? 2'h1
-           : _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27 | _GEN_41
+           : _GEN_26 | _GEN_27 | _GEN_28 | _GEN_29 | _GEN_30 | _GEN_44
                ? 2'h2
-               : {2{_GEN_31 | _GEN_32 | _GEN_33 | _GEN_34 | _GEN_35 | _GEN_36
-                      | _GEN_40}}};
+               : {2{_GEN_34 | _GEN_35 | _GEN_36 | _GEN_37 | _GEN_38 | _GEN_39
+                      | _GEN_43}}};
   assign io_executeStage_data_src_info_src1_data =
     src1_ren & io_bypassData_src1_bypass
       ? io_bypassData_src1_data
@@ -2487,11 +2563,8 @@ module DecodeUnit(
     src2_ren & io_bypassData_src2_bypass
       ? io_bypassData_src2_data
       : src2_ren ? io_regfile_src2_rdata : imm;
-  assign io_branch =
-    is_bru
-    & (is_beq & eq | is_bne & ~eq | is_blt & lt | is_bge & ~lt | is_bltu & ltu | is_bgeu
-       & ~ltu | is_b | is_bl | is_jirl) & io_decodeStage_data_valid;
-  assign io_target = is_jirl ? src1_data + _GEN : io_decodeStage_data_pc + _GEN;
+  assign io_branch = io_branch_0;
+  assign io_target = io_target_0;
 endmodule
 
 module ARegFile(
