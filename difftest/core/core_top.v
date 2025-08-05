@@ -2236,23 +2236,27 @@ module DecodeUnit(
   wire        is_bgeu = io_decodeStage_data_inst[31:26] == 6'h1B;
   wire        is_bru =
     is_jirl | is_b | is_bl | is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu;
+  wire        _is_stw_T = io_decodeStage_data_inst[31:26] == 6'hA;
+  wire        need_rd_as_src2 =
+    is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu | _is_stw_T
+    & io_decodeStage_data_inst[25:22] == 4'h4 | _is_stw_T
+    & io_decodeStage_data_inst[25:22] == 4'h5 | _is_stw_T
+    & io_decodeStage_data_inst[25:22] == 4'h6;
+  wire [4:0]  io_regfile_src2_raddr_0 =
+    need_rd_as_src2 ? io_decodeStage_data_inst[4:0] : io_decodeStage_data_inst[14:10];
   wire [31:0] src1_data =
-    io_bypassData_src1_bypass & is_bru ? io_bypassData_src1_data : io_regfile_src1_rdata;
+    io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata;
   wire [31:0] src2_data =
-    io_bypassData_src2_bypass & (is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu)
-      ? io_bypassData_src2_data
-      : io_regfile_src2_rdata;
+    io_bypassData_src2_bypass ? io_bypassData_src2_data : io_regfile_src2_rdata;
   wire        eq = src1_data == src2_data;
   wire        lt = $signed(src1_data) < $signed(src2_data);
   wire        ltu = src1_data < src2_data;
   wire [31:0] _GEN = {_imm_bru_T, io_decodeStage_data_inst[25:10], 2'h0};
-  wire [31:0] _pc_plus_imm_T = io_decodeStage_data_pc + _GEN;
   wire [31:0] _src1_plus_imm_T = src1_data + _GEN;
   wire        takeBranch =
     is_beq & eq | is_bne & ~eq | is_blt & lt | is_bge & ~lt | is_bltu & ltu | is_bgeu
     & ~ltu | is_b | is_bl | is_jirl;
-  wire [31:0] io_target_0 = is_jirl ? _src1_plus_imm_T : _pc_plus_imm_T;
-  wire        io_branch_0 = is_bru & takeBranch & io_decodeStage_data_valid;
+  wire [31:0] io_target_0 = is_jirl ? _src1_plus_imm_T : io_decodeStage_data_pc + _GEN;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       automatic logic [31:0] imm_bru;
@@ -2262,10 +2266,9 @@ module DecodeUnit(
       imm_bru = {_imm_bru_T, io_decodeStage_data_inst[25:10], 2'h0};
       if (_GEN_1) begin
         $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
-        $fwrite(32'h80000002, "  PC: 0x%x\n", io_decodeStage_data_pc);
-        $fwrite(32'h80000002, "  Inst: 0x%x\n", io_decodeStage_data_inst);
-        $fwrite(32'h80000002, "  Opcode: 0x%x\n", io_decodeStage_data_inst[31:26]);
-        $fwrite(32'h80000002, "  Instruction type: ");
+        $fwrite(32'h80000002, "  PC: 0x%x, Inst: 0x%x\n", io_decodeStage_data_pc,
+                io_decodeStage_data_inst);
+        $fwrite(32'h80000002, "  Type: ");
       end
       if (_GEN_2)
         $fwrite(32'h80000002, "JIRL");
@@ -2287,33 +2290,25 @@ module DecodeUnit(
         $fwrite(32'h80000002, "BGEU");
       if (_GEN_1) begin
         $fwrite(32'h80000002, "\n");
-        $fwrite(32'h80000002, "  rj: %d, rd: %d\n", io_decodeStage_data_inst[9:5],
-                io_decodeStage_data_inst[4:0]);
-        $fwrite(32'h80000002, "  offs: 0x%x, imm_bru: 0x%x\n",
-                {io_decodeStage_data_inst[25:10], 2'h0}, imm_bru);
-        $fwrite(32'h80000002, "  src1_raw: 0x%x, src2_raw: 0x%x\n", io_regfile_src1_rdata,
-                io_regfile_src2_rdata);
-        $fwrite(32'h80000002, "  src1_data: 0x%x, src2_data: 0x%x\n", src1_data,
-                src2_data);
-        $fwrite(32'h80000002, "  Bypass: src1_bypass=%d, src2_bypass=%d\n",
-                io_bypassData_src1_bypass, io_bypassData_src2_bypass);
-        $fwrite(32'h80000002, "  pc_plus_imm: 0x%x\n", _pc_plus_imm_T);
-        $fwrite(32'h80000002, "  src1_plus_imm: 0x%x\n", _src1_plus_imm_T);
-        $fwrite(32'h80000002, "  takeBranch: %d\n", takeBranch);
-        $fwrite(32'h80000002, "  target_bru: 0x%x\n", io_target_0);
-        $fwrite(32'h80000002, "  io.branch: %d, io.target: 0x%x\n", io_branch_0,
-                io_target_0);
+        $fwrite(32'h80000002, "  rj=%d, rd=%d, rk=%d\n", io_decodeStage_data_inst[9:5],
+                io_decodeStage_data_inst[4:0], io_decodeStage_data_inst[14:10]);
+        $fwrite(32'h80000002, "  regfile.src1.raddr=%d, regfile.src2.raddr=%d\n",
+                io_decodeStage_data_inst[9:5], io_regfile_src2_raddr_0);
+        $fwrite(32'h80000002, "  src1_data=0x%x, src2_data=0x%x\n", src1_data, src2_data);
+        $fwrite(32'h80000002, "  imm_bru=0x%x\n", imm_bru);
+        $fwrite(32'h80000002, "  takeBranch=%d, target=0x%x\n", takeBranch, io_target_0);
       end
       if (_GEN_2)
-        $fwrite(32'h80000002, "  [JIRL Debug] src1_data=0x%x + imm_bru=0x%x = 0x%x\n",
-                src1_data, imm_bru, _src1_plus_imm_T);
-      if ((`PRINTF_COND_) & io_branch_0 & ~reset)
-        $fwrite(32'h80000002, "[DecodeUnit] Branch taken! Target: 0x%x\n", io_target_0);
+        $fwrite(32'h80000002, "  [JIRL] rj(0x%x) + offs(0x%x) = 0x%x\n", src1_data,
+                imm_bru, _src1_plus_imm_T);
     end // always @(posedge)
   `endif // not def SYNTHESIS
   reg  [31:0] stage1_reg_pc;
   reg  [31:0] stage1_reg_inst;
   reg         stage1_reg_valid;
+  reg  [31:0] stage1_reg_src1_data;
+  reg  [31:0] stage1_reg_src2_data;
+  reg         stage1_reg_was_rd_read;
   wire        _GEN_3 = stage1_reg_inst[31:25] == 7'hA;
   wire        _GEN_4 = stage1_reg_inst[31:25] == 7'hE;
   wire        _GEN_5 = stage1_reg_inst[31:22] == 10'hA;
@@ -2482,25 +2477,25 @@ module DecodeUnit(
     | ((&instrType)
          ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, stage1_reg_inst[25:10], 2'h0}
          : 32'h0);
-  wire [4:0]  src1_raddr =
-    isR | isI | isS | isB | (&instrType) ? stage1_reg_inst[9:5] : 5'h0;
-  wire [4:0]  src2_raddr =
-    (isR ? stage1_reg_inst[14:10] : 5'h0) | (isS ? stage1_reg_inst[4:0] : 5'h0)
-    | (isB ? stage1_reg_inst[4:0] : 5'h0);
   wire        _src1_ren_T = isR | isI;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  wire        _GEN_45 = ~isB & ~(&instrType);
   always @(posedge clock) begin
     if (reset) begin
       stage1_reg_pc <= 32'h0;
       stage1_reg_inst <= 32'h0;
       stage1_reg_valid <= 1'h0;
+      stage1_reg_src1_data <= 32'h0;
+      stage1_reg_src2_data <= 32'h0;
+      stage1_reg_was_rd_read <= 1'h0;
     end
     else begin
       stage1_reg_pc <= io_decodeStage_data_pc;
       stage1_reg_inst <= io_decodeStage_data_inst;
       stage1_reg_valid <= io_decodeStage_data_valid;
+      stage1_reg_src1_data <= src1_data;
+      stage1_reg_src2_data <= src2_data;
+      stage1_reg_was_rd_read <= need_rd_as_src2;
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -2508,30 +2503,34 @@ module DecodeUnit(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:2];
+      automatic logic [31:0] _RANDOM[0:4];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        stage1_reg_pc = _RANDOM[2'h0];
-        stage1_reg_inst = _RANDOM[2'h1];
-        stage1_reg_valid = _RANDOM[2'h2][0];
+        stage1_reg_pc = _RANDOM[3'h0];
+        stage1_reg_inst = _RANDOM[3'h1];
+        stage1_reg_valid = _RANDOM[3'h2][0];
+        stage1_reg_src1_data = {_RANDOM[3'h2][31:1], _RANDOM[3'h3][0]};
+        stage1_reg_src2_data = {_RANDOM[3'h3][31:1], _RANDOM[3'h4][0]};
+        stage1_reg_was_rd_read = _RANDOM[3'h4][1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_regfile_src1_raddr = _GEN_45 ? src1_raddr : io_decodeStage_data_inst[9:5];
-  assign io_regfile_src2_raddr = _GEN_45 ? src2_raddr : io_decodeStage_data_inst[4:0];
+  assign io_regfile_src1_raddr = io_decodeStage_data_inst[9:5];
+  assign io_regfile_src2_raddr = io_regfile_src2_raddr_0;
   assign io_executeStage_data_pc = stage1_reg_pc;
   assign io_executeStage_data_info_instr = (|instrType) ? stage1_reg_inst : 32'h2800000;
   assign io_executeStage_data_info_valid = stage1_reg_valid & (|instrType);
-  assign io_executeStage_data_info_src1_raddr = src1_raddr;
-  assign io_executeStage_data_info_src2_raddr = src2_raddr;
+  assign io_executeStage_data_info_src1_raddr = stage1_reg_inst[9:5];
+  assign io_executeStage_data_info_src2_raddr =
+    isR ? stage1_reg_inst[14:10] : isS | isB ? stage1_reg_inst[4:0] : 5'h0;
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
     (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & stage1_reg_valid
@@ -2555,15 +2554,11 @@ module DecodeUnit(
                : {2{_GEN_34 | _GEN_35 | _GEN_36 | _GEN_37 | _GEN_38 | _GEN_39
                       | _GEN_43}}};
   assign io_executeStage_data_src_info_src1_data =
-    src1_ren & io_bypassData_src1_bypass
-      ? io_bypassData_src1_data
-      : (src1_ren ? io_regfile_src1_rdata : 32'h0)
-        | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
+    (src1_ren ? stage1_reg_src1_data : 32'h0)
+    | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
   assign io_executeStage_data_src_info_src2_data =
-    src2_ren & io_bypassData_src2_bypass
-      ? io_bypassData_src2_data
-      : src2_ren ? io_regfile_src2_rdata : imm;
-  assign io_branch = io_branch_0;
+    src2_ren ? (stage1_reg_was_rd_read | ~isR ? stage1_reg_src2_data : 32'h0) : imm;
+  assign io_branch = is_bru & takeBranch & io_decodeStage_data_valid;
   assign io_target = io_target_0;
 endmodule
 

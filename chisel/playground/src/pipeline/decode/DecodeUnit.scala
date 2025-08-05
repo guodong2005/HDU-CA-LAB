@@ -8,7 +8,7 @@ import cpu.defines.Const._
 class DecodeUnit extends Module with HasInstrType {
   val io = IO(new Bundle {
     val decodeStage = Flipped(new FetchUnitDecodeUnit())
-    val regfile     = new Src12Read()
+    val regfile     = new Src1234Read() // 修改为4个读端口
     val bypassData = Input(new Bundle {
       val src1_bypass = Bool()
       val src2_bypass = Bool()
@@ -19,9 +19,10 @@ class DecodeUnit extends Module with HasInstrType {
     val islsu        = Output(Bool())
     val branch       = Output(Bool())
     val target       = Output(UInt(XLEN.W))
+    val executeready = Input(Bool())
   })
 
-  // ========== 第一级流水线：统一读取寄存器 + MiniBru快速执行 ==========
+  // ========== 第一级流水线：MiniBru专用寄存器读取 ==========
   val inst  = io.decodeStage.data.inst
   val pc    = io.decodeStage.data.pc
   val valid = io.decodeStage.data.valid
@@ -50,54 +51,34 @@ class DecodeUnit extends Module with HasInstrType {
   val is_bru = is_jirl || is_b || is_bl || is_beq || is_bne ||
     is_blt || is_bge || is_bltu || is_bgeu
 
-  // LSU指令识别（Store指令需要rd作为源）
-  val is_ldb  = opcode === "b001010".U && inst(25, 22) === "b0000".U
-  val is_ldh  = opcode === "b001010".U && inst(25, 22) === "b0001".U
-  val is_ldw  = opcode === "b001010".U && inst(25, 22) === "b0010".U
-  val is_ldbu = opcode === "b001010".U && inst(25, 22) === "b1000".U
-  val is_ldhu = opcode === "b001010".U && inst(25, 22) === "b1001".U
-
-  val is_stb = opcode === "b001010".U && inst(25, 22) === "b0100".U
-  val is_sth = opcode === "b001010".U && inst(25, 22) === "b0101".U
-  val is_stw = opcode === "b001010".U && inst(25, 22) === "b0110".U
-
-  val is_load  = is_ldb || is_ldh || is_ldw || is_ldbu || is_ldhu
-  val is_store = is_stb || is_sth || is_stw
-
   // 分支比较指令需要rd作为第二个源
   val bru_need_rd = is_beq || is_bne || is_blt || is_bge || is_bltu || is_bgeu
 
-  // ========== 智能寄存器读取策略 ==========
-  // src1总是读rj
-  io.regfile.src1.raddr := rj
+  // ========== MiniBRU专用读端口（src1和src2） ==========
+  // 只有BRU指令才使用这两个端口
+  io.regfile.src1.raddr := Mux(is_bru, rj, 0.U)
+  io.regfile.src2.raddr := Mux(is_bru && bru_need_rd, rd, 0.U)
 
-  // src2根据指令类型选择：
-  // - BRU比较指令：读rd
-  // - Store指令：读rd（要存储的数据）
-  // - 其他指令：读rk（如果有的话）
-  val need_rd_as_src2 = bru_need_rd || is_store
-  io.regfile.src2.raddr := Mux(need_rd_as_src2, rd, rk)
+  // 获取寄存器数据（仅用于BRU）
+  val bru_src1_raw = io.regfile.src1.rdata
+  val bru_src2_raw = io.regfile.src2.rdata
 
-  // 获取寄存器数据
-  val src1_raw = io.regfile.src1.rdata
-  val src2_raw = io.regfile.src2.rdata
-
-  // 前递处理
-  val src1_data = Mux(io.bypassData.src1_bypass, io.bypassData.src1_data, src1_raw)
-  val src2_data = Mux(io.bypassData.src2_bypass, io.bypassData.src2_data, src2_raw)
+  // 前递处理（仅用于BRU）
+  val bru_src1_data = Mux(io.bypassData.src1_bypass && is_bru, io.bypassData.src1_data, bru_src1_raw)
+  val bru_src2_data = Mux(io.bypassData.src2_bypass && is_bru && bru_need_rd, io.bypassData.src2_data, bru_src2_raw)
 
   // ========== MiniBru逻辑（第一级） ==========
   // BRU比较
-  val eq  = src1_data === src2_data
-  val lt  = src1_data.asSInt < src2_data.asSInt
-  val ltu = src1_data < src2_data
+  val eq  = bru_src1_data === bru_src2_data
+  val lt  = bru_src1_data.asSInt < bru_src2_data.asSInt
+  val ltu = bru_src1_data < bru_src2_data
 
   // 目标地址计算
   val pc_plus_imm   = pc + imm_bru
-  val src1_plus_imm = src1_data + imm_bru
+  val src1_plus_imm = bru_src1_data + imm_bru
 
   // 分支判断
-  val takeBranch = Mux1H(
+  val takeBranch = is_bru && Mux1H(
     Seq(
       is_beq  -> eq,
       is_bne  -> !eq,
@@ -115,56 +96,24 @@ class DecodeUnit extends Module with HasInstrType {
   io.branch := is_bru && takeBranch && valid
   io.target := target_bru
 
-  // ========== 调试打印 ==========
-  when(is_bru && valid) {
-    printf("[DecodeUnit] BRU instruction detected:\n")
-    printf("  PC: 0x%x, Inst: 0x%x\n", pc, inst)
-    printf("  Type: ")
-    when(is_jirl) { printf("JIRL") }
-    when(is_b) { printf("B") }
-    when(is_bl) { printf("BL") }
-    when(is_beq) { printf("BEQ") }
-    when(is_bne) { printf("BNE") }
-    when(is_blt) { printf("BLT") }
-    when(is_bge) { printf("BGE") }
-    when(is_bltu) { printf("BLTU") }
-    when(is_bgeu) { printf("BGEU") }
-    printf("\n")
-    printf("  rj=%d, rd=%d, rk=%d\n", rj, rd, rk)
-    printf("  regfile.src1.raddr=%d, regfile.src2.raddr=%d\n", io.regfile.src1.raddr, io.regfile.src2.raddr)
-    printf("  src1_data=0x%x, src2_data=0x%x\n", src1_data, src2_data)
-    printf("  imm_bru=0x%x\n", imm_bru)
-    printf("  takeBranch=%d, target=0x%x\n", takeBranch, target_bru)
-
-    when(is_jirl) {
-      printf("  [JIRL] rj(0x%x) + offs(0x%x) = 0x%x\n", src1_data, imm_bru, src1_plus_imm)
-    }
-  }
-
-  // ========== 流水线寄存器 ==========
+  // ========== 流水线寄存器与阻塞控制 ==========
   val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
-    val pc          = UInt(XLEN.W)
-    val inst        = UInt(32.W)
-    val valid       = Bool()
-    val src1_data   = UInt(XLEN.W) // 保存读取的数据
-    val src2_data   = UInt(XLEN.W)
-    val was_rd_read = Bool()       // 标记src2是否读的是rd
+    val pc    = UInt(XLEN.W)
+    val inst  = UInt(32.W)
+    val valid = Bool()
   }))
 
-  stage1_reg.pc          := pc
-  stage1_reg.inst        := inst
-  stage1_reg.valid       := valid
-  stage1_reg.src1_data   := src1_data
-  stage1_reg.src2_data   := src2_data
-  stage1_reg.was_rd_read := need_rd_as_src2
+  // 当执行级未准备好时，保持当前值；否则更新
+  when(io.executeready) {
+    stage1_reg.pc    := pc
+    stage1_reg.inst  := inst
+    stage1_reg.valid := valid
+  }
 
   // ========== 第二级流水线：完整解码 ==========
-  val inst_s2         = stage1_reg.inst
-  val pc_s2           = stage1_reg.pc
-  val valid_s2        = stage1_reg.valid
-  val src1_data_saved = stage1_reg.src1_data
-  val src2_data_saved = stage1_reg.src2_data
-  val was_rd_read     = stage1_reg.was_rd_read
+  val inst_s2  = stage1_reg.inst
+  val pc_s2    = stage1_reg.pc
+  val valid_s2 = stage1_reg.valid
 
   // 完整指令解码
   val instrType :: fuType :: fuOpType :: Nil =
@@ -225,6 +174,19 @@ class DecodeUnit extends Module with HasInstrType {
   val src1_ren = (isR || isI || isS || isB || isJ)
   val src2_ren = (isR || isS || isB)
 
+  // ========== 其他指令的寄存器读取（src3和src4） ==========
+  // LSU指令识别
+  val is_lsu_s2   = fuType === FuType.lsu
+  val is_store_s2 = is_lsu_s2 && (isS || isB) // Store指令的特征
+
+  // 根据指令类型读取寄存器
+  io.regfile.src3.raddr := Mux(src1_ren, src1_raddr, 0.U)
+  io.regfile.src4.raddr := Mux(src2_ren, src2_raddr, 0.U)
+
+  // 获取寄存器数据
+  val other_src1_data = io.regfile.src3.rdata
+  val other_src2_data = io.regfile.src4.rdata
+
   // 构建info
   val info = Wire(new Info())
   info.instr      := Mux(isN, Instructions.NOP, inst_s2)
@@ -247,16 +209,12 @@ class DecodeUnit extends Module with HasInstrType {
 
   val src1_data_final = Mux1H(
     Seq(
-      src1_select_reg  -> src1_data_saved,
+      src1_select_reg  -> other_src1_data,
       src1_select_zero -> 0.U,
       src1_select_pc   -> pc_s2
     ))
 
-  // src2的选择需要考虑第一级是否已经正确读取
-  val src2_data_final = Mux(
-    src2_ren,
-    Mux(was_rd_read || !isR, src2_data_saved, DontCare), // 如果需要rk但第一级读的是rd，这里会有问题
-    imm)
+  val src2_data_final = Mux(src2_ren, other_src2_data, imm)
 
   // 输出到执行阶段
   io.executeStage.data.pc                 := pc_s2
@@ -266,4 +224,32 @@ class DecodeUnit extends Module with HasInstrType {
 
   // 功能单元选择
   io.islsu := fuType === FuType.lsu
+
+  // ========== 调试打印 ==========
+  when(is_bru && valid) {
+    printf("[DecodeUnit] BRU instruction detected:\n")
+    printf("  PC: 0x%x, Inst: 0x%x\n", pc, inst)
+    printf("  Type: ")
+    when(is_jirl) { printf("JIRL") }
+    when(is_b) { printf("B") }
+    when(is_bl) { printf("BL") }
+    when(is_beq) { printf("BEQ") }
+    when(is_bne) { printf("BNE") }
+    when(is_blt) { printf("BLT") }
+    when(is_bge) { printf("BGE") }
+    when(is_bltu) { printf("BLTU") }
+    when(is_bgeu) { printf("BGEU") }
+    printf("\n")
+    printf("  rj=%d, rd=%d, rk=%d\n", rj, rd, rk)
+    printf("  bru_src1_data=0x%x, bru_src2_data=0x%x\n", bru_src1_data, bru_src2_data)
+    printf("  takeBranch=%d, target=0x%x\n", takeBranch, target_bru)
+  }
+
+  when(valid_s2 && !isN) {
+    printf("[DecodeUnit Stage2] Instruction:\n")
+    printf("  PC: 0x%x, Inst: 0x%x\n", pc_s2, inst_s2)
+    printf("  FuType: %d, FuOpType: %d\n", fuType, fuOpType)
+    printf("  src1_raddr=%d, src2_raddr=%d\n", src1_raddr, src2_raddr)
+    printf("  src1_data=0x%x, src2_data=0x%x\n", src1_data_final, src2_data_final)
+  }
 }
