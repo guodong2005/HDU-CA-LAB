@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
+
 class Alu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
@@ -12,25 +13,23 @@ class Alu extends Module {
     val valid    = Output(Bool())
   })
 
-  val src1 = io.src_info.src1_data
-  val src2 = io.src_info.src2_data
+  io.result := 0.U
 
-  // 位级并行加法器
-  val sum_with_carry = src1 +& src2 // +& 会返回扩展位宽的结果，包含进位
+  io.valid := io.info.valid
+  switch(io.info.op) {
+    // Other 32-bit operations remain unchanged
+    is(ALUOpType.add) { io.result := (io.src_info.src1_data + io.src_info.src2_data)(31, 0) } // ADD
+    is(ALUOpType.sub) { io.result := (io.src_info.src1_data - io.src_info.src2_data)(31, 0) } // SUB
+    is(ALUOpType.and) { io.result := (io.src_info.src1_data & io.src_info.src2_data)(31, 0) } // AND
+    is(ALUOpType.or) { io.result := (io.src_info.src1_data | io.src_info.src2_data)(31, 0) } // OR
+    is(ALUOpType.xor) { io.result := (io.src_info.src1_data ^ io.src_info.src2_data)(31, 0) } // XOR
+    is(ALUOpType.nor) { io.result := (~(io.src_info.src1_data | io.src_info.src2_data))(31, 0) } // NOR
+    is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt) } // SLT (signed)
+    is(ALUOpType.sltu) { io.result := (io.src_info.src1_data.asUInt < io.src_info.src2_data).asUInt } // SLTU (unsigned)
+    is(ALUOpType.sll) { io.result := (io.src_info.src1_data << io.src_info.src2_data(4, 0))(31, 0) } // SLL
+    is(ALUOpType.srl) { io.result := (io.src_info.src1_data >> io.src_info.src2_data(4, 0))(31, 0) } // SRL (logical right shift)
+    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt(31, 0) } // SRA (arithmetic right shift)
 
-  // 并行计算多个结果
-  val results = Wire(Vec(8, UInt(32.W)))
-  results(0) := (src1 + src2)(31, 0)        // ADD
-  results(1) := (src1 - src2)(31, 0)        // SUB
-  results(2) := (src1 & src2)(31, 0)        // AND
-  results(3) := (src1 | src2)(31, 0)        // OR
-  results(4) := (src1 ^ src2)(31, 0)        // XOR
-  results(5) := (src1 << src2(4, 0))(31, 0) // SLL
-  results(6) := (src1 >> src2(4, 0))(31, 0) // SRL
-  results(7) := 0.U                         // Reserved
+  }
 
-  // 使用独热编码进行快速选择
-  val op_onehot = UIntToOH(io.info.op)
-  io.result := Mux1H(op_onehot, results)
-  io.valid  := io.info.valid
 }
