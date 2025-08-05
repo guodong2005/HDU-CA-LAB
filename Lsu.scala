@@ -38,9 +38,9 @@ class Lsu extends Module {
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
 
-  val writeBuffer = Module(new WriteBuffer(depth = 4))
+  val writeBuffer = Module(new WriteBuffer(depth = 2))
   writeBuffer.io.flush        := false.B
-  writeBuffer.io.bypassEnable := true.B
+  writeBuffer.io.bypassEnable := false.B
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
