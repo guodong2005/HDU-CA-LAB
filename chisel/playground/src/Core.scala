@@ -38,10 +38,8 @@ class Core extends Module {
   dontTouch(fetchUnit.io)
   dontTouch(icache.io)
 
-  controlUnit.io.executeResult       := executeUnit.io.result // EX阶段完成所有计算（包括load）
-  controlUnit.io.writeBackResult     := writeBackUnit.io.result
-  controlUnit.io.decodeInternalStall := decodeUnit.io.decodeInternalStall
-  decodeUnit.io.decodeStage1Stall    := controlUnit.io.signals.decodeStage1Stall
+  controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
+  controlUnit.io.writeBackResult := writeBackUnit.io.result
   // ============================================================================
   // IoControl 外部接口连接
   // ============================================================================
@@ -83,7 +81,7 @@ class Core extends Module {
 // 注意：去掉了 controlUnit.io.memoryResult，因为没有memory stage了
 
 // ============ Fetch Unit 连接 ============
-  fetchUnit.io.branch := decodeUnit.io.branch
+  fetchUnit.io.branch := executeUnit.io.branch
   fetchUnit.io.target := executeUnit.io.target
   fetchUnit.io.signal := controlUnit.io.signals
 
