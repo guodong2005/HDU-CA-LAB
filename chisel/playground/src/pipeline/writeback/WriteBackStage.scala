@@ -1,37 +1,46 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 import cpu.CpuConfig
 
-class MemWbData extends Bundle {
+// 重新定义WriteBack阶段的数据束，直接使用ExeMemData或者简化版本
+class ExeWbData extends Bundle {
   val pc      = UInt(XLEN.W)
   val info    = new Info()
   val rd_info = new RdInfo()
+  // 注意：去掉了src_info，因为WriteBack阶段通常不需要源操作数信息
 }
 
-class MemoryUnitWriteBackUnit extends Bundle {
-  val data = new MemWbData()
+class ExecuteUnitWriteBackUnit extends Bundle {
+  val data = new ExeWbData()
 }
+
 class WriteBackStage extends Module {
   val io = IO(new Bundle {
-    val memoryUnit    = Input(new MemoryUnitWriteBackUnit())
+    val executeUnit   = Input(new ExecuteUnitWriteBackUnit())  // 直接从execute unit接收数据
     val controlSignal = Input(new Signals())
-    val writeBackUnit = Output(new MemoryUnitWriteBackUnit())
+    val writeBackUnit = Output(new ExecuteUnitWriteBackUnit()) // 输出到WriteBack单元
   })
 
-  val data = RegInit(0.U.asTypeOf(new MemWbData()))
-  when(io.controlSignal.memoryUnitSignal.allow_to_go === false.B) {
-    data := data
+  val data = RegInit(0.U.asTypeOf(new ExeWbData()))
+
+  // 控制信号逻辑：当不允许进行时保持数据
+  when(io.controlSignal.executeUnitSignal.allow_to_go === false.B) {
+    data := data // 保持之前的数据
   }.otherwise {
-    data := io.memoryUnit.data // Update data if units are allowed to proceed
+    // 从ExeMemData转换到ExeWbData（去掉src_info字段）
+    data.pc      := io.executeUnit.data.pc
+    data.info    := io.executeUnit.data.info
+    data.rd_info := io.executeUnit.data.rd_info
   }
-  // flush logic:
-  when(io.controlSignal.memoryUnitSignal.do_flush === true.B) {
-    data := 0.U.asTypeOf(new MemWbData()) // Reset data if flush signal is high
+
+  // 冲刷逻辑：当冲刷信号为高时重置数据
+  when(io.controlSignal.executeUnitSignal.do_flush === true.B) {
+    data := 0.U.asTypeOf(new ExeWbData()) // 重置数据
   }
-  // Output the data to the next stage
+
+  // 输出数据到下一阶段
   io.writeBackUnit.data := data
 }

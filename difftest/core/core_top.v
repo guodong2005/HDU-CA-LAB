@@ -2507,7 +2507,8 @@ module DecodeUnit(
            ? io_bypassData_stage2_src2_data
            : io_regfile_src4_rdata)
       : imm;
-  assign io_branch = is_bru & takeBranch & io_decodeStage_data_valid;
+  assign io_branch =
+    is_bru & takeBranch & io_decodeStage_data_valid & ~io_decodeStage1Stall;
   assign io_target = io_target_0;
   assign io_decodeInternalStall = io_decodeInternalStall_0;
   assign io_registerInfo_stage1_src1_raddr = io_decodeStage_data_inst[9:5];
