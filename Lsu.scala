@@ -41,7 +41,6 @@ class Lsu extends Module {
   val writeBuffer = Module(new WriteBuffer(depth = 4))
   writeBuffer.io.flush        := false.B
   writeBuffer.io.bypassEnable := true.B
-  lsu.io.diffout              := DontCare
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
@@ -184,13 +183,6 @@ class Lsu extends Module {
       }
     }
   }
+  io.diffout := DontCare
 
-  io.diffout                       := DontCare
-  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
-  io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
-  io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
-  io.diffout.storeEvent.storeData  := newReq.wdata
-  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
-  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
-  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
 }
