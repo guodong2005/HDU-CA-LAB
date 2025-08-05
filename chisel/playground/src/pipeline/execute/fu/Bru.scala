@@ -15,7 +15,8 @@ class Bru extends Module {
     val target   = Output(UInt(XLEN.W))
   })
 
-  io.valid := true.B && io.info.valid && (io.info.fusel === FuType.bru)
+  // 修复：去掉多余的 true.B
+  io.valid := io.info.valid && (io.info.fusel === FuType.bru)
 
   val info = io.info
   val pc   = io.pc
