@@ -63,11 +63,12 @@ class DecodeUnit extends Module with HasInstrType {
 
   // 快速生成BRU的Info（只包含BRU需要的信息）
   val bru_info = Wire(new Info())
-  bru_info.instr   := inst
-  bru_info.op      := bru_op
-  bru_info.fusel   := FuType.bru
-  bru_info.valid   := valid && is_bru
-  bru_info.diffout := DontCare
+  bru_info := DontCare
+
+  bru_info.instr := inst
+  bru_info.op    := bru_op
+  bru_info.fusel := FuType.bru
+  bru_info.valid := valid && is_bru
 
   // BRU相关的寄存器地址（用于前递判断）
   val bru_src1_addr = rj_bru
