@@ -33,10 +33,6 @@ class Lsu extends Module {
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
-  io.diffout := DontCare
-  io.ready   := DontCare
-
-  io.valid := DontCare
   val isLsu                                     = (io.info.fusel === FuType.lsu) && io.info.valid
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
@@ -187,12 +183,5 @@ class Lsu extends Module {
     }
   }
 
-  io.diffout                       := DontCare
-  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
-  io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
-  io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
-  io.diffout.storeEvent.storeData  := newReq.wdata
-  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
-  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
-  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
+  io.diffout := DontCare
 }
