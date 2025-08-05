@@ -20,6 +20,10 @@ class DecodeUnit extends Module with HasInstrType {
     val branch       = Output(Bool())
     val target       = Output(UInt(XLEN.W))
     val executeready = Input(Bool())
+    val decodeStall  = Input(Bool()) // 新增：来自ControlUnit的解码内部stall信号
+
+    // 新增：输出给ControlUnit的解码阶段信息
+    val decodeStageInfo = Output(new DecodeStageInfo())
   })
 
   // ========== 第一级流水线：MiniBru专用寄存器读取 ==========
@@ -103,12 +107,18 @@ class DecodeUnit extends Module with HasInstrType {
     val valid = Bool()
   }))
 
-  // 当执行级未准备好时，保持当前值；否则更新
-  when(io.executeready) {
+  // 当执行级未准备好或存在解码内部冲突时，保持当前值；否则更新
+  when(io.executeready && !io.decodeStall) {
     stage1_reg.pc    := pc
     stage1_reg.inst  := inst
     stage1_reg.valid := valid
   }
+
+  // 输出解码阶段信息给ControlUnit
+  io.decodeStageInfo.stage1_inst  := inst
+  io.decodeStageInfo.stage1_valid := valid
+  io.decodeStageInfo.stage2_inst  := stage1_reg.inst
+  io.decodeStageInfo.stage2_valid := stage1_reg.valid
 
   // ========== 第二级流水线：完整解码 ==========
   val inst_s2  = stage1_reg.inst
