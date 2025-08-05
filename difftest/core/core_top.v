@@ -1105,8 +1105,19 @@ module ICache(
   reg          cache_valid_125;
   reg          cache_valid_126;
   reg          cache_valid_127;
+  reg  [6:0]   reg_index;
+  reg  [19:0]  reg_tag;
+  reg  [31:0]  reg_addr;
   wire [31:0]  current_req_bits_addr =
     saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
+  wire [6:0]   index =
+    saved_req_valid ? saved_req_bits_addr[11:5] : io_icache_req_bits_addr[11:5];
+  wire [19:0]  tag =
+    saved_req_valid ? saved_req_bits_addr[31:12] : io_icache_req_bits_addr[31:12];
+  wire [6:0]   read_index =
+    ~(|state) & io_icache_req_valid & ~saved_req_valid | ~saved_req_valid
+      ? io_icache_req_bits_addr[11:5]
+      : saved_req_bits_addr[11:5];
   wire [127:0] _GEN =
     {{cache_valid_127},
      {cache_valid_126},
@@ -1236,10 +1247,9 @@ module ICache(
      {cache_valid_2},
      {cache_valid_1},
      {cache_valid_0}};
-  reg  [31:0]  hit_cache_REG;
   wire         hit_cache =
-    _cache_tag_ext_R0_data == current_req_bits_addr[31:12]
-    & _GEN[current_req_bits_addr[11:5]] & hit_cache_REG == current_req_bits_addr;
+    reg_tag == _cache_tag_ext_R0_data & _GEN[reg_index]
+    & reg_addr == current_req_bits_addr;
   wire         _GEN_0 = state == 2'h1;
   wire         _GEN_1 = state == 2'h2;
   wire         _GEN_2 = _GEN_1 & io_io_read_resp_valid;
@@ -1378,9 +1388,14 @@ module ICache(
       cache_valid_125 <= 1'h0;
       cache_valid_126 <= 1'h0;
       cache_valid_127 <= 1'h0;
+      reg_index <= 7'h0;
+      reg_tag <= 20'h0;
+      reg_addr <= 32'h0;
     end
     else begin
+      automatic logic current_req_valid;
       automatic logic _GEN_3;
+      current_req_valid = saved_req_valid | io_icache_req_valid;
       _GEN_3 = io_icache_req_valid & ~saved_req_valid;
       if (|state) begin
         if (_GEN_0) begin
@@ -1392,170 +1407,147 @@ module ICache(
         else if (_GEN_1 & io_io_read_resp_valid)
           state <= 2'h0;
       end
-      else if (saved_req_valid ? saved_req_valid : io_icache_req_valid)
+      else if (current_req_valid)
         state <= 2'h1;
       saved_req_valid <= ~io_icache_resp_valid_0 & (_GEN_3 | saved_req_valid);
       if (io_icache_resp_valid_0)
         saved_req_bits_addr <= 32'h0;
       else if (_GEN_3)
         saved_req_bits_addr <= io_icache_req_bits_addr;
-      cache_valid_0 <= cache_we & current_req_bits_addr[11:5] == 7'h0 | cache_valid_0;
-      cache_valid_1 <= cache_we & current_req_bits_addr[11:5] == 7'h1 | cache_valid_1;
-      cache_valid_2 <= cache_we & current_req_bits_addr[11:5] == 7'h2 | cache_valid_2;
-      cache_valid_3 <= cache_we & current_req_bits_addr[11:5] == 7'h3 | cache_valid_3;
-      cache_valid_4 <= cache_we & current_req_bits_addr[11:5] == 7'h4 | cache_valid_4;
-      cache_valid_5 <= cache_we & current_req_bits_addr[11:5] == 7'h5 | cache_valid_5;
-      cache_valid_6 <= cache_we & current_req_bits_addr[11:5] == 7'h6 | cache_valid_6;
-      cache_valid_7 <= cache_we & current_req_bits_addr[11:5] == 7'h7 | cache_valid_7;
-      cache_valid_8 <= cache_we & current_req_bits_addr[11:5] == 7'h8 | cache_valid_8;
-      cache_valid_9 <= cache_we & current_req_bits_addr[11:5] == 7'h9 | cache_valid_9;
-      cache_valid_10 <= cache_we & current_req_bits_addr[11:5] == 7'hA | cache_valid_10;
-      cache_valid_11 <= cache_we & current_req_bits_addr[11:5] == 7'hB | cache_valid_11;
-      cache_valid_12 <= cache_we & current_req_bits_addr[11:5] == 7'hC | cache_valid_12;
-      cache_valid_13 <= cache_we & current_req_bits_addr[11:5] == 7'hD | cache_valid_13;
-      cache_valid_14 <= cache_we & current_req_bits_addr[11:5] == 7'hE | cache_valid_14;
-      cache_valid_15 <= cache_we & current_req_bits_addr[11:5] == 7'hF | cache_valid_15;
-      cache_valid_16 <= cache_we & current_req_bits_addr[11:5] == 7'h10 | cache_valid_16;
-      cache_valid_17 <= cache_we & current_req_bits_addr[11:5] == 7'h11 | cache_valid_17;
-      cache_valid_18 <= cache_we & current_req_bits_addr[11:5] == 7'h12 | cache_valid_18;
-      cache_valid_19 <= cache_we & current_req_bits_addr[11:5] == 7'h13 | cache_valid_19;
-      cache_valid_20 <= cache_we & current_req_bits_addr[11:5] == 7'h14 | cache_valid_20;
-      cache_valid_21 <= cache_we & current_req_bits_addr[11:5] == 7'h15 | cache_valid_21;
-      cache_valid_22 <= cache_we & current_req_bits_addr[11:5] == 7'h16 | cache_valid_22;
-      cache_valid_23 <= cache_we & current_req_bits_addr[11:5] == 7'h17 | cache_valid_23;
-      cache_valid_24 <= cache_we & current_req_bits_addr[11:5] == 7'h18 | cache_valid_24;
-      cache_valid_25 <= cache_we & current_req_bits_addr[11:5] == 7'h19 | cache_valid_25;
-      cache_valid_26 <= cache_we & current_req_bits_addr[11:5] == 7'h1A | cache_valid_26;
-      cache_valid_27 <= cache_we & current_req_bits_addr[11:5] == 7'h1B | cache_valid_27;
-      cache_valid_28 <= cache_we & current_req_bits_addr[11:5] == 7'h1C | cache_valid_28;
-      cache_valid_29 <= cache_we & current_req_bits_addr[11:5] == 7'h1D | cache_valid_29;
-      cache_valid_30 <= cache_we & current_req_bits_addr[11:5] == 7'h1E | cache_valid_30;
-      cache_valid_31 <= cache_we & current_req_bits_addr[11:5] == 7'h1F | cache_valid_31;
-      cache_valid_32 <= cache_we & current_req_bits_addr[11:5] == 7'h20 | cache_valid_32;
-      cache_valid_33 <= cache_we & current_req_bits_addr[11:5] == 7'h21 | cache_valid_33;
-      cache_valid_34 <= cache_we & current_req_bits_addr[11:5] == 7'h22 | cache_valid_34;
-      cache_valid_35 <= cache_we & current_req_bits_addr[11:5] == 7'h23 | cache_valid_35;
-      cache_valid_36 <= cache_we & current_req_bits_addr[11:5] == 7'h24 | cache_valid_36;
-      cache_valid_37 <= cache_we & current_req_bits_addr[11:5] == 7'h25 | cache_valid_37;
-      cache_valid_38 <= cache_we & current_req_bits_addr[11:5] == 7'h26 | cache_valid_38;
-      cache_valid_39 <= cache_we & current_req_bits_addr[11:5] == 7'h27 | cache_valid_39;
-      cache_valid_40 <= cache_we & current_req_bits_addr[11:5] == 7'h28 | cache_valid_40;
-      cache_valid_41 <= cache_we & current_req_bits_addr[11:5] == 7'h29 | cache_valid_41;
-      cache_valid_42 <= cache_we & current_req_bits_addr[11:5] == 7'h2A | cache_valid_42;
-      cache_valid_43 <= cache_we & current_req_bits_addr[11:5] == 7'h2B | cache_valid_43;
-      cache_valid_44 <= cache_we & current_req_bits_addr[11:5] == 7'h2C | cache_valid_44;
-      cache_valid_45 <= cache_we & current_req_bits_addr[11:5] == 7'h2D | cache_valid_45;
-      cache_valid_46 <= cache_we & current_req_bits_addr[11:5] == 7'h2E | cache_valid_46;
-      cache_valid_47 <= cache_we & current_req_bits_addr[11:5] == 7'h2F | cache_valid_47;
-      cache_valid_48 <= cache_we & current_req_bits_addr[11:5] == 7'h30 | cache_valid_48;
-      cache_valid_49 <= cache_we & current_req_bits_addr[11:5] == 7'h31 | cache_valid_49;
-      cache_valid_50 <= cache_we & current_req_bits_addr[11:5] == 7'h32 | cache_valid_50;
-      cache_valid_51 <= cache_we & current_req_bits_addr[11:5] == 7'h33 | cache_valid_51;
-      cache_valid_52 <= cache_we & current_req_bits_addr[11:5] == 7'h34 | cache_valid_52;
-      cache_valid_53 <= cache_we & current_req_bits_addr[11:5] == 7'h35 | cache_valid_53;
-      cache_valid_54 <= cache_we & current_req_bits_addr[11:5] == 7'h36 | cache_valid_54;
-      cache_valid_55 <= cache_we & current_req_bits_addr[11:5] == 7'h37 | cache_valid_55;
-      cache_valid_56 <= cache_we & current_req_bits_addr[11:5] == 7'h38 | cache_valid_56;
-      cache_valid_57 <= cache_we & current_req_bits_addr[11:5] == 7'h39 | cache_valid_57;
-      cache_valid_58 <= cache_we & current_req_bits_addr[11:5] == 7'h3A | cache_valid_58;
-      cache_valid_59 <= cache_we & current_req_bits_addr[11:5] == 7'h3B | cache_valid_59;
-      cache_valid_60 <= cache_we & current_req_bits_addr[11:5] == 7'h3C | cache_valid_60;
-      cache_valid_61 <= cache_we & current_req_bits_addr[11:5] == 7'h3D | cache_valid_61;
-      cache_valid_62 <= cache_we & current_req_bits_addr[11:5] == 7'h3E | cache_valid_62;
-      cache_valid_63 <= cache_we & current_req_bits_addr[11:5] == 7'h3F | cache_valid_63;
-      cache_valid_64 <= cache_we & current_req_bits_addr[11:5] == 7'h40 | cache_valid_64;
-      cache_valid_65 <= cache_we & current_req_bits_addr[11:5] == 7'h41 | cache_valid_65;
-      cache_valid_66 <= cache_we & current_req_bits_addr[11:5] == 7'h42 | cache_valid_66;
-      cache_valid_67 <= cache_we & current_req_bits_addr[11:5] == 7'h43 | cache_valid_67;
-      cache_valid_68 <= cache_we & current_req_bits_addr[11:5] == 7'h44 | cache_valid_68;
-      cache_valid_69 <= cache_we & current_req_bits_addr[11:5] == 7'h45 | cache_valid_69;
-      cache_valid_70 <= cache_we & current_req_bits_addr[11:5] == 7'h46 | cache_valid_70;
-      cache_valid_71 <= cache_we & current_req_bits_addr[11:5] == 7'h47 | cache_valid_71;
-      cache_valid_72 <= cache_we & current_req_bits_addr[11:5] == 7'h48 | cache_valid_72;
-      cache_valid_73 <= cache_we & current_req_bits_addr[11:5] == 7'h49 | cache_valid_73;
-      cache_valid_74 <= cache_we & current_req_bits_addr[11:5] == 7'h4A | cache_valid_74;
-      cache_valid_75 <= cache_we & current_req_bits_addr[11:5] == 7'h4B | cache_valid_75;
-      cache_valid_76 <= cache_we & current_req_bits_addr[11:5] == 7'h4C | cache_valid_76;
-      cache_valid_77 <= cache_we & current_req_bits_addr[11:5] == 7'h4D | cache_valid_77;
-      cache_valid_78 <= cache_we & current_req_bits_addr[11:5] == 7'h4E | cache_valid_78;
-      cache_valid_79 <= cache_we & current_req_bits_addr[11:5] == 7'h4F | cache_valid_79;
-      cache_valid_80 <= cache_we & current_req_bits_addr[11:5] == 7'h50 | cache_valid_80;
-      cache_valid_81 <= cache_we & current_req_bits_addr[11:5] == 7'h51 | cache_valid_81;
-      cache_valid_82 <= cache_we & current_req_bits_addr[11:5] == 7'h52 | cache_valid_82;
-      cache_valid_83 <= cache_we & current_req_bits_addr[11:5] == 7'h53 | cache_valid_83;
-      cache_valid_84 <= cache_we & current_req_bits_addr[11:5] == 7'h54 | cache_valid_84;
-      cache_valid_85 <= cache_we & current_req_bits_addr[11:5] == 7'h55 | cache_valid_85;
-      cache_valid_86 <= cache_we & current_req_bits_addr[11:5] == 7'h56 | cache_valid_86;
-      cache_valid_87 <= cache_we & current_req_bits_addr[11:5] == 7'h57 | cache_valid_87;
-      cache_valid_88 <= cache_we & current_req_bits_addr[11:5] == 7'h58 | cache_valid_88;
-      cache_valid_89 <= cache_we & current_req_bits_addr[11:5] == 7'h59 | cache_valid_89;
-      cache_valid_90 <= cache_we & current_req_bits_addr[11:5] == 7'h5A | cache_valid_90;
-      cache_valid_91 <= cache_we & current_req_bits_addr[11:5] == 7'h5B | cache_valid_91;
-      cache_valid_92 <= cache_we & current_req_bits_addr[11:5] == 7'h5C | cache_valid_92;
-      cache_valid_93 <= cache_we & current_req_bits_addr[11:5] == 7'h5D | cache_valid_93;
-      cache_valid_94 <= cache_we & current_req_bits_addr[11:5] == 7'h5E | cache_valid_94;
-      cache_valid_95 <= cache_we & current_req_bits_addr[11:5] == 7'h5F | cache_valid_95;
-      cache_valid_96 <= cache_we & current_req_bits_addr[11:5] == 7'h60 | cache_valid_96;
-      cache_valid_97 <= cache_we & current_req_bits_addr[11:5] == 7'h61 | cache_valid_97;
-      cache_valid_98 <= cache_we & current_req_bits_addr[11:5] == 7'h62 | cache_valid_98;
-      cache_valid_99 <= cache_we & current_req_bits_addr[11:5] == 7'h63 | cache_valid_99;
-      cache_valid_100 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h64 | cache_valid_100;
-      cache_valid_101 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h65 | cache_valid_101;
-      cache_valid_102 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h66 | cache_valid_102;
-      cache_valid_103 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h67 | cache_valid_103;
-      cache_valid_104 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h68 | cache_valid_104;
-      cache_valid_105 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h69 | cache_valid_105;
-      cache_valid_106 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6A | cache_valid_106;
-      cache_valid_107 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6B | cache_valid_107;
-      cache_valid_108 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6C | cache_valid_108;
-      cache_valid_109 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6D | cache_valid_109;
-      cache_valid_110 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6E | cache_valid_110;
-      cache_valid_111 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h6F | cache_valid_111;
-      cache_valid_112 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h70 | cache_valid_112;
-      cache_valid_113 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h71 | cache_valid_113;
-      cache_valid_114 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h72 | cache_valid_114;
-      cache_valid_115 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h73 | cache_valid_115;
-      cache_valid_116 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h74 | cache_valid_116;
-      cache_valid_117 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h75 | cache_valid_117;
-      cache_valid_118 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h76 | cache_valid_118;
-      cache_valid_119 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h77 | cache_valid_119;
-      cache_valid_120 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h78 | cache_valid_120;
-      cache_valid_121 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h79 | cache_valid_121;
-      cache_valid_122 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h7A | cache_valid_122;
-      cache_valid_123 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h7B | cache_valid_123;
-      cache_valid_124 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h7C | cache_valid_124;
-      cache_valid_125 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h7D | cache_valid_125;
-      cache_valid_126 <=
-        cache_we & current_req_bits_addr[11:5] == 7'h7E | cache_valid_126;
-      cache_valid_127 <= cache_we & (&(current_req_bits_addr[11:5])) | cache_valid_127;
+      cache_valid_0 <= cache_we & index == 7'h0 | cache_valid_0;
+      cache_valid_1 <= cache_we & index == 7'h1 | cache_valid_1;
+      cache_valid_2 <= cache_we & index == 7'h2 | cache_valid_2;
+      cache_valid_3 <= cache_we & index == 7'h3 | cache_valid_3;
+      cache_valid_4 <= cache_we & index == 7'h4 | cache_valid_4;
+      cache_valid_5 <= cache_we & index == 7'h5 | cache_valid_5;
+      cache_valid_6 <= cache_we & index == 7'h6 | cache_valid_6;
+      cache_valid_7 <= cache_we & index == 7'h7 | cache_valid_7;
+      cache_valid_8 <= cache_we & index == 7'h8 | cache_valid_8;
+      cache_valid_9 <= cache_we & index == 7'h9 | cache_valid_9;
+      cache_valid_10 <= cache_we & index == 7'hA | cache_valid_10;
+      cache_valid_11 <= cache_we & index == 7'hB | cache_valid_11;
+      cache_valid_12 <= cache_we & index == 7'hC | cache_valid_12;
+      cache_valid_13 <= cache_we & index == 7'hD | cache_valid_13;
+      cache_valid_14 <= cache_we & index == 7'hE | cache_valid_14;
+      cache_valid_15 <= cache_we & index == 7'hF | cache_valid_15;
+      cache_valid_16 <= cache_we & index == 7'h10 | cache_valid_16;
+      cache_valid_17 <= cache_we & index == 7'h11 | cache_valid_17;
+      cache_valid_18 <= cache_we & index == 7'h12 | cache_valid_18;
+      cache_valid_19 <= cache_we & index == 7'h13 | cache_valid_19;
+      cache_valid_20 <= cache_we & index == 7'h14 | cache_valid_20;
+      cache_valid_21 <= cache_we & index == 7'h15 | cache_valid_21;
+      cache_valid_22 <= cache_we & index == 7'h16 | cache_valid_22;
+      cache_valid_23 <= cache_we & index == 7'h17 | cache_valid_23;
+      cache_valid_24 <= cache_we & index == 7'h18 | cache_valid_24;
+      cache_valid_25 <= cache_we & index == 7'h19 | cache_valid_25;
+      cache_valid_26 <= cache_we & index == 7'h1A | cache_valid_26;
+      cache_valid_27 <= cache_we & index == 7'h1B | cache_valid_27;
+      cache_valid_28 <= cache_we & index == 7'h1C | cache_valid_28;
+      cache_valid_29 <= cache_we & index == 7'h1D | cache_valid_29;
+      cache_valid_30 <= cache_we & index == 7'h1E | cache_valid_30;
+      cache_valid_31 <= cache_we & index == 7'h1F | cache_valid_31;
+      cache_valid_32 <= cache_we & index == 7'h20 | cache_valid_32;
+      cache_valid_33 <= cache_we & index == 7'h21 | cache_valid_33;
+      cache_valid_34 <= cache_we & index == 7'h22 | cache_valid_34;
+      cache_valid_35 <= cache_we & index == 7'h23 | cache_valid_35;
+      cache_valid_36 <= cache_we & index == 7'h24 | cache_valid_36;
+      cache_valid_37 <= cache_we & index == 7'h25 | cache_valid_37;
+      cache_valid_38 <= cache_we & index == 7'h26 | cache_valid_38;
+      cache_valid_39 <= cache_we & index == 7'h27 | cache_valid_39;
+      cache_valid_40 <= cache_we & index == 7'h28 | cache_valid_40;
+      cache_valid_41 <= cache_we & index == 7'h29 | cache_valid_41;
+      cache_valid_42 <= cache_we & index == 7'h2A | cache_valid_42;
+      cache_valid_43 <= cache_we & index == 7'h2B | cache_valid_43;
+      cache_valid_44 <= cache_we & index == 7'h2C | cache_valid_44;
+      cache_valid_45 <= cache_we & index == 7'h2D | cache_valid_45;
+      cache_valid_46 <= cache_we & index == 7'h2E | cache_valid_46;
+      cache_valid_47 <= cache_we & index == 7'h2F | cache_valid_47;
+      cache_valid_48 <= cache_we & index == 7'h30 | cache_valid_48;
+      cache_valid_49 <= cache_we & index == 7'h31 | cache_valid_49;
+      cache_valid_50 <= cache_we & index == 7'h32 | cache_valid_50;
+      cache_valid_51 <= cache_we & index == 7'h33 | cache_valid_51;
+      cache_valid_52 <= cache_we & index == 7'h34 | cache_valid_52;
+      cache_valid_53 <= cache_we & index == 7'h35 | cache_valid_53;
+      cache_valid_54 <= cache_we & index == 7'h36 | cache_valid_54;
+      cache_valid_55 <= cache_we & index == 7'h37 | cache_valid_55;
+      cache_valid_56 <= cache_we & index == 7'h38 | cache_valid_56;
+      cache_valid_57 <= cache_we & index == 7'h39 | cache_valid_57;
+      cache_valid_58 <= cache_we & index == 7'h3A | cache_valid_58;
+      cache_valid_59 <= cache_we & index == 7'h3B | cache_valid_59;
+      cache_valid_60 <= cache_we & index == 7'h3C | cache_valid_60;
+      cache_valid_61 <= cache_we & index == 7'h3D | cache_valid_61;
+      cache_valid_62 <= cache_we & index == 7'h3E | cache_valid_62;
+      cache_valid_63 <= cache_we & index == 7'h3F | cache_valid_63;
+      cache_valid_64 <= cache_we & index == 7'h40 | cache_valid_64;
+      cache_valid_65 <= cache_we & index == 7'h41 | cache_valid_65;
+      cache_valid_66 <= cache_we & index == 7'h42 | cache_valid_66;
+      cache_valid_67 <= cache_we & index == 7'h43 | cache_valid_67;
+      cache_valid_68 <= cache_we & index == 7'h44 | cache_valid_68;
+      cache_valid_69 <= cache_we & index == 7'h45 | cache_valid_69;
+      cache_valid_70 <= cache_we & index == 7'h46 | cache_valid_70;
+      cache_valid_71 <= cache_we & index == 7'h47 | cache_valid_71;
+      cache_valid_72 <= cache_we & index == 7'h48 | cache_valid_72;
+      cache_valid_73 <= cache_we & index == 7'h49 | cache_valid_73;
+      cache_valid_74 <= cache_we & index == 7'h4A | cache_valid_74;
+      cache_valid_75 <= cache_we & index == 7'h4B | cache_valid_75;
+      cache_valid_76 <= cache_we & index == 7'h4C | cache_valid_76;
+      cache_valid_77 <= cache_we & index == 7'h4D | cache_valid_77;
+      cache_valid_78 <= cache_we & index == 7'h4E | cache_valid_78;
+      cache_valid_79 <= cache_we & index == 7'h4F | cache_valid_79;
+      cache_valid_80 <= cache_we & index == 7'h50 | cache_valid_80;
+      cache_valid_81 <= cache_we & index == 7'h51 | cache_valid_81;
+      cache_valid_82 <= cache_we & index == 7'h52 | cache_valid_82;
+      cache_valid_83 <= cache_we & index == 7'h53 | cache_valid_83;
+      cache_valid_84 <= cache_we & index == 7'h54 | cache_valid_84;
+      cache_valid_85 <= cache_we & index == 7'h55 | cache_valid_85;
+      cache_valid_86 <= cache_we & index == 7'h56 | cache_valid_86;
+      cache_valid_87 <= cache_we & index == 7'h57 | cache_valid_87;
+      cache_valid_88 <= cache_we & index == 7'h58 | cache_valid_88;
+      cache_valid_89 <= cache_we & index == 7'h59 | cache_valid_89;
+      cache_valid_90 <= cache_we & index == 7'h5A | cache_valid_90;
+      cache_valid_91 <= cache_we & index == 7'h5B | cache_valid_91;
+      cache_valid_92 <= cache_we & index == 7'h5C | cache_valid_92;
+      cache_valid_93 <= cache_we & index == 7'h5D | cache_valid_93;
+      cache_valid_94 <= cache_we & index == 7'h5E | cache_valid_94;
+      cache_valid_95 <= cache_we & index == 7'h5F | cache_valid_95;
+      cache_valid_96 <= cache_we & index == 7'h60 | cache_valid_96;
+      cache_valid_97 <= cache_we & index == 7'h61 | cache_valid_97;
+      cache_valid_98 <= cache_we & index == 7'h62 | cache_valid_98;
+      cache_valid_99 <= cache_we & index == 7'h63 | cache_valid_99;
+      cache_valid_100 <= cache_we & index == 7'h64 | cache_valid_100;
+      cache_valid_101 <= cache_we & index == 7'h65 | cache_valid_101;
+      cache_valid_102 <= cache_we & index == 7'h66 | cache_valid_102;
+      cache_valid_103 <= cache_we & index == 7'h67 | cache_valid_103;
+      cache_valid_104 <= cache_we & index == 7'h68 | cache_valid_104;
+      cache_valid_105 <= cache_we & index == 7'h69 | cache_valid_105;
+      cache_valid_106 <= cache_we & index == 7'h6A | cache_valid_106;
+      cache_valid_107 <= cache_we & index == 7'h6B | cache_valid_107;
+      cache_valid_108 <= cache_we & index == 7'h6C | cache_valid_108;
+      cache_valid_109 <= cache_we & index == 7'h6D | cache_valid_109;
+      cache_valid_110 <= cache_we & index == 7'h6E | cache_valid_110;
+      cache_valid_111 <= cache_we & index == 7'h6F | cache_valid_111;
+      cache_valid_112 <= cache_we & index == 7'h70 | cache_valid_112;
+      cache_valid_113 <= cache_we & index == 7'h71 | cache_valid_113;
+      cache_valid_114 <= cache_we & index == 7'h72 | cache_valid_114;
+      cache_valid_115 <= cache_we & index == 7'h73 | cache_valid_115;
+      cache_valid_116 <= cache_we & index == 7'h74 | cache_valid_116;
+      cache_valid_117 <= cache_we & index == 7'h75 | cache_valid_117;
+      cache_valid_118 <= cache_we & index == 7'h76 | cache_valid_118;
+      cache_valid_119 <= cache_we & index == 7'h77 | cache_valid_119;
+      cache_valid_120 <= cache_we & index == 7'h78 | cache_valid_120;
+      cache_valid_121 <= cache_we & index == 7'h79 | cache_valid_121;
+      cache_valid_122 <= cache_we & index == 7'h7A | cache_valid_122;
+      cache_valid_123 <= cache_we & index == 7'h7B | cache_valid_123;
+      cache_valid_124 <= cache_we & index == 7'h7C | cache_valid_124;
+      cache_valid_125 <= cache_we & index == 7'h7D | cache_valid_125;
+      cache_valid_126 <= cache_we & index == 7'h7E | cache_valid_126;
+      cache_valid_127 <= cache_we & (&index) | cache_valid_127;
+      if (current_req_valid & (~(|state) | _GEN_0)) begin
+        reg_index <= index;
+        reg_tag <= tag;
+        reg_addr <= current_req_bits_addr;
+      end
     end
-    hit_cache_REG <= current_req_bits_addr;
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
@@ -1701,7 +1693,9 @@ module ICache(
         cache_valid_125 = _RANDOM[3'h5][0];
         cache_valid_126 = _RANDOM[3'h5][1];
         cache_valid_127 = _RANDOM[3'h5][2];
-        hit_cache_REG = {_RANDOM[3'h5][31:3], _RANDOM[3'h6][2:0]};
+        reg_index = _RANDOM[3'h5][9:3];
+        reg_tag = _RANDOM[3'h5][29:10];
+        reg_addr = {_RANDOM[3'h5][31:30], _RANDOM[3'h6][29:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -1709,91 +1703,91 @@ module ICache(
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
   cache_tag_128x20 cache_tag_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_tag_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
-    .W0_data (current_req_bits_addr[31:12])
+    .W0_data (tag)
   );
   cache_data_128x32 cache_data_0_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_0_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
   );
   cache_data_128x32 cache_data_1_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_1_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
   );
   cache_data_128x32 cache_data_2_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_2_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
   );
   cache_data_128x32 cache_data_3_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_3_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
   );
   cache_data_128x32 cache_data_4_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_4_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
   );
   cache_data_128x32 cache_data_5_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_5_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
   );
   cache_data_128x32 cache_data_6_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_6_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
   );
   cache_data_128x32 cache_data_7_ext (
-    .R0_addr (current_req_bits_addr[11:5]),
+    .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_7_ext_R0_data),
-    .W0_addr (current_req_bits_addr[11:5]),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
