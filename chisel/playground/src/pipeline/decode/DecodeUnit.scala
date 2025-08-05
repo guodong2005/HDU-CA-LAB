@@ -25,7 +25,6 @@ class DecodeUnit extends Module with HasInstrType {
   val inst  = io.decodeStage.data.inst
   val pc    = io.decodeStage.data.pc
   val valid = io.decodeStage.data.valid
-  info.diffout := DontCare
 
   // 根据图片进行BRU指令的快速解码
   val is_jirl = inst(31, 26) === "b010011".U
@@ -64,10 +63,11 @@ class DecodeUnit extends Module with HasInstrType {
 
   // 快速生成BRU的Info（只包含BRU需要的信息）
   val bru_info = Wire(new Info())
-  bru_info.instr := inst
-  bru_info.op    := bru_op
-  bru_info.fusel := FuType.bru
-  bru_info.valid := valid && is_bru
+  bru_info.instr   := inst
+  bru_info.op      := bru_op
+  bru_info.fusel   := FuType.bru
+  bru_info.valid   := valid && is_bru
+  bru_info.diffout := DontCare
 
   // BRU相关的寄存器地址（用于前递判断）
   val bru_src1_addr = rj_bru
