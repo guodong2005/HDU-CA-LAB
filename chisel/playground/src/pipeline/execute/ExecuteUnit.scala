@@ -11,6 +11,8 @@ class ExecuteUnit extends Module {
     val executeStage   = Input(new DecodeUnitExecuteUnit())
     val writeBackStage = Output(new ExecuteUnitWriteBackUnit()) // 重命名：直接输出到WriteBack阶段
     val ready          = Output(Bool())
+    val branch         = Output(Bool())
+    val target         = Output(UInt(XLEN.W))
     val dcache = new Bundle {
       val req  = (Decoupled(new DCacheReq))
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -26,6 +28,8 @@ class ExecuteUnit extends Module {
 
   io.result := fu.io.data.rd_info.wdata
   io.ready  := fu.io.data.ready
+  io.branch := io.branch
+  io.target := io.target
 
   // 直接输出到WriteBack阶段，不再经过Memory阶段
   io.writeBackStage.data.pc           := io.executeStage.data.pc

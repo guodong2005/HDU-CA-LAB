@@ -16,14 +16,6 @@ class Src12Read extends Bundle {
   val src2 = new SrcRead()
 }
 
-// 新增：四端口读取接口
-class Src1234Read extends Bundle {
-  val src1 = new SrcRead()
-  val src2 = new SrcRead()
-  val src3 = new SrcRead()
-  val src4 = new SrcRead()
-}
-
 class RegWrite extends Bundle {
   val wen   = Output(Bool())
   val waddr = Output(UInt(REG_ADDR_WID.W))
@@ -32,7 +24,7 @@ class RegWrite extends Bundle {
 
 class ARegFile extends Module {
   val io = IO(new Bundle {
-    val read     = Flipped(new Src1234Read())          // 修改为4个读端口
+    val read     = Flipped(new Src12Read())            // 改回2个读端口
     val write    = Flipped(new RegWrite())
     val regs_out = Output(Vec(AREG_NUM, UInt(XLEN.W))) // Expose registers to top
   })
@@ -48,9 +40,12 @@ class ARegFile extends Module {
 
   io.regs_out := regs
 
-  // 读寄存器堆 - 现在有4个读端口
+  // 读寄存器堆 - 2个读端口
   io.read.src1.rdata := regs(io.read.src1.raddr)
   io.read.src2.rdata := regs(io.read.src2.raddr)
-  io.read.src3.rdata := regs(io.read.src3.raddr)
-  io.read.src4.rdata := regs(io.read.src4.raddr)
+
+  // 调试输出
+  when(io.write.wen && io.write.waddr =/= 0.U) {
+    printf("[RegFile] Write: r%d = 0x%x\n", io.write.waddr, io.write.wdata)
+  }
 }

@@ -76,7 +76,7 @@ class Core extends Module {
   dcache.io.resp <> executeUnit.io.dcache.resp
 
 // ============ Control Unit 连接 ============
-  controlUnit.io.branch           := decodeUnit.io.branch
+  controlUnit.io.branch           := executeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
   controlUnit.io.executeResult    := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.writeBackResult  := writeBackUnit.io.result
@@ -84,7 +84,7 @@ class Core extends Module {
 
 // ============ Fetch Unit 连接 ============
   fetchUnit.io.branch := decodeUnit.io.branch
-  fetchUnit.io.target := decodeUnit.io.target
+  fetchUnit.io.target := executeUnit.io.target
   fetchUnit.io.signal := controlUnit.io.signals
 
 // ============ Decode Unit 连接 ============
