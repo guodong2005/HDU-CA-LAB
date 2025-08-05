@@ -34,6 +34,7 @@ class Lsu extends Module {
     }
   })
   io.diffout := DontCare
+  io.ready   := DontCare
   val isLsu                                     = (io.info.fusel === FuType.lsu) && io.info.valid
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
