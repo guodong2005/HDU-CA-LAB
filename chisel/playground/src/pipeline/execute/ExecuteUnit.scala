@@ -28,8 +28,8 @@ class ExecuteUnit extends Module {
 
   io.result := fu.io.data.rd_info.wdata
   io.ready  := fu.io.data.ready
-  io.branch := io.branch
-  io.target := io.target
+  io.branch := fu.io.data.branch
+  io.target := fu.io.data.target
 
   // 直接输出到WriteBack阶段，不再经过Memory阶段
   io.writeBackStage.data.pc           := io.executeStage.data.pc
