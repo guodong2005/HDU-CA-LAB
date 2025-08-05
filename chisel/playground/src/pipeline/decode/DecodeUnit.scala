@@ -247,7 +247,7 @@ class DecodeUnit extends Module with HasInstrType {
   io.islsu := fuType === FuType.lsu
 
   // ========== 调试打印 ==========
-  when(decode_internal_conflict) {
+  when(isS) {
     printf("[DecodeUnit] Internal conflict detected!\n")
     printf("  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n", inst, rj, rd, is_bru)
     printf("  Stage2: inst=0x%x, rd=%d, will_write=%d\n", stage2_inst, stage2_rd, stage2_will_write)

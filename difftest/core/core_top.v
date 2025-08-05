@@ -2245,12 +2245,9 @@ module DecodeUnit(
   reg  [31:0] stage1_reg_pc;
   reg  [31:0] stage1_reg_inst;
   reg         stage1_reg_valid;
-  wire        stage2_will_write =
-    stage1_reg_valid & (|(stage1_reg_inst[4:0])) & stage1_reg_inst[31:26] != 6'h14
-    & ~(stage1_reg_inst[31:26] == 6'hA & stage1_reg_inst[24]);
   wire        stage1_needs_rd = is_bru & bru_need_rd;
   wire        io_decodeStall_0 =
-    io_decodeStage_data_valid & stage2_will_write
+    io_decodeStage_data_valid
     & (is_bru & (is_jirl | bru_need_rd)
        & io_decodeStage_data_inst[9:5] == stage1_reg_inst[4:0]
        & (|(io_decodeStage_data_inst[9:5])) | stage1_needs_rd
@@ -2456,7 +2453,7 @@ module DecodeUnit(
                 io_decodeStage_data_inst, io_decodeStage_data_inst[9:5],
                 io_decodeStage_data_inst[4:0], is_bru);
         $fwrite(32'h80000002, "  Stage2: inst=0x%x, rd=%d, will_write=%d\n",
-                stage1_reg_inst, stage1_reg_inst[4:0], stage2_will_write);
+                stage1_reg_inst, stage1_reg_inst[4:0], 1'h1);
       end
       if (_GEN_43) begin
         $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
