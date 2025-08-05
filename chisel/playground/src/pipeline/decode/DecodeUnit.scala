@@ -20,10 +20,7 @@ class DecodeUnit extends Module with HasInstrType {
     val branch       = Output(Bool())
     val target       = Output(UInt(XLEN.W))
     val executeready = Input(Bool())
-    val decodeStall  = Input(Bool()) // 新增：来自ControlUnit的解码内部stall信号
-
-    // 新增：输出给ControlUnit的解码阶段信息
-    val decodeStageInfo = Output(new DecodeStageInfo())
+    val decodeStall  = Output(Bool()) // 输出给ControlUnit的解码内部stall信号
   })
 
   // ========== 第一级流水线：MiniBru专用寄存器读取 ==========
@@ -57,6 +54,39 @@ class DecodeUnit extends Module with HasInstrType {
 
   // 分支比较指令需要rd作为第二个源
   val bru_need_rd = is_beq || is_bne || is_blt || is_bge || is_bltu || is_bgeu
+
+  // ========== 流水线寄存器 ==========
+  val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
+    val pc    = UInt(XLEN.W)
+    val inst  = UInt(32.W)
+    val valid = Bool()
+  }))
+
+  // ========== 解码内部冲突检测 ==========
+  // 获取第二级的信息
+  val stage2_inst  = stage1_reg.inst
+  val stage2_valid = stage1_reg.valid
+
+  // 快速解码第二级指令是否会写寄存器
+  val stage2_rd     = stage2_inst(4, 0)
+  val stage2_opcode = stage2_inst(31, 26)
+
+  // 判断第二级指令是否会写寄存器（简化判断）
+  val stage2_is_b       = stage2_opcode === "b010100".U                                   // B指令不写寄存器
+  val stage2_is_store   = stage2_opcode === "b001010".U && stage2_inst(25, 22)(2) === 1.U // Store指令
+  val stage2_will_write = stage2_valid && stage2_rd.orR && !stage2_is_b && !stage2_is_store
+
+  // 检测冲突：第一级BRU要读的寄存器是否是第二级要写的
+  val stage1_needs_rj = is_bru && (is_jirl || bru_need_rd) // BRU需要读rj
+  val stage1_needs_rd = is_bru && bru_need_rd              // BRU比较指令需要读rd
+
+  val decode_internal_conflict = valid && stage2_will_write && (
+    (stage1_needs_rj && rj === stage2_rd && rj.orR) ||
+      (stage1_needs_rd && rd === stage2_rd && rd.orR)
+  )
+
+  // 输出stall信号
+  io.decodeStall := decode_internal_conflict
 
   // ========== MiniBRU专用读端口（src1和src2） ==========
   // 只有BRU指令才使用这两个端口
@@ -100,25 +130,13 @@ class DecodeUnit extends Module with HasInstrType {
   io.branch := is_bru && takeBranch && valid
   io.target := target_bru
 
-  // ========== 流水线寄存器与阻塞控制 ==========
-  val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
-    val pc    = UInt(XLEN.W)
-    val inst  = UInt(32.W)
-    val valid = Bool()
-  }))
-
+  // ========== 流水线寄存器更新 ==========
   // 当执行级未准备好或存在解码内部冲突时，保持当前值；否则更新
-  when(io.executeready && !io.decodeStall) {
+  when(io.executeready && !decode_internal_conflict) {
     stage1_reg.pc    := pc
     stage1_reg.inst  := inst
     stage1_reg.valid := valid
   }
-
-  // 输出解码阶段信息给ControlUnit
-  io.decodeStageInfo.stage1_inst  := inst
-  io.decodeStageInfo.stage1_valid := valid
-  io.decodeStageInfo.stage2_inst  := stage1_reg.inst
-  io.decodeStageInfo.stage2_valid := stage1_reg.valid
 
   // ========== 第二级流水线：完整解码 ==========
   val inst_s2  = stage1_reg.inst
@@ -185,10 +203,6 @@ class DecodeUnit extends Module with HasInstrType {
   val src2_ren = (isR || isS || isB)
 
   // ========== 其他指令的寄存器读取（src3和src4） ==========
-  // LSU指令识别
-  val is_lsu_s2   = fuType === FuType.lsu
-  val is_store_s2 = is_lsu_s2 && (isS || isB) // Store指令的特征
-
   // 根据指令类型读取寄存器
   io.regfile.src3.raddr := Mux(src1_ren, src1_raddr, 0.U)
   io.regfile.src4.raddr := Mux(src2_ren, src2_raddr, 0.U)
@@ -236,6 +250,12 @@ class DecodeUnit extends Module with HasInstrType {
   io.islsu := fuType === FuType.lsu
 
   // ========== 调试打印 ==========
+  when(decode_internal_conflict) {
+    printf("[DecodeUnit] Internal conflict detected!\n")
+    printf("  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n", inst, rj, rd, is_bru)
+    printf("  Stage2: inst=0x%x, rd=%d, will_write=%d\n", stage2_inst, stage2_rd, stage2_will_write)
+  }
+
   when(is_bru && valid) {
     printf("[DecodeUnit] BRU instruction detected:\n")
     printf("  PC: 0x%x, Inst: 0x%x\n", pc, inst)
@@ -253,13 +273,5 @@ class DecodeUnit extends Module with HasInstrType {
     printf("  rj=%d, rd=%d, rk=%d\n", rj, rd, rk)
     printf("  bru_src1_data=0x%x, bru_src2_data=0x%x\n", bru_src1_data, bru_src2_data)
     printf("  takeBranch=%d, target=0x%x\n", takeBranch, target_bru)
-  }
-
-  when(valid_s2 && !isN) {
-    printf("[DecodeUnit Stage2] Instruction:\n")
-    printf("  PC: 0x%x, Inst: 0x%x\n", pc_s2, inst_s2)
-    printf("  FuType: %d, FuOpType: %d\n", fuType, fuOpType)
-    printf("  src1_raddr=%d, src2_raddr=%d\n", src1_raddr, src2_raddr)
-    printf("  src1_data=0x%x, src2_data=0x%x\n", src1_data_final, src2_data_final)
   }
 }
