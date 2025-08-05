@@ -5,23 +5,42 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
+// 用于向ControlUnit发送寄存器读取信息
+class DecodeRegisterInfo extends Bundle {
+  val stage1_src1_raddr = UInt(REG_ADDR_WID.W)
+  val stage1_src2_raddr = UInt(REG_ADDR_WID.W)
+  val stage1_src1_ren   = Bool()
+  val stage1_src2_ren   = Bool()
+  val stage2_src1_raddr = UInt(REG_ADDR_WID.W)
+  val stage2_src2_raddr = UInt(REG_ADDR_WID.W)
+  val stage2_src1_ren   = Bool()
+  val stage2_src2_ren   = Bool()
+}
+
 class DecodeUnit extends Module with HasInstrType {
   val io = IO(new Bundle {
     val decodeStage = Flipped(new FetchUnitDecodeUnit())
-    val regfile     = new Src1234Read() // 修改为4个读端口
+    val regfile     = new Src1234Read() // 4个读端口
     val bypassData = Input(new Bundle {
-      val src1_bypass = Bool()
-      val src2_bypass = Bool()
-      val src1_data   = UInt(XLEN.W)
-      val src2_data   = UInt(XLEN.W)
+      // Stage1 (MiniBRU) 前递
+      val stage1_src1_bypass = Bool()
+      val stage1_src2_bypass = Bool()
+      val stage1_src1_data   = UInt(XLEN.W)
+      val stage1_src2_data   = UInt(XLEN.W)
+      // Stage2 前递
+      val stage2_src1_bypass = Bool()
+      val stage2_src2_bypass = Bool()
+      val stage2_src1_data   = UInt(XLEN.W)
+      val stage2_src2_data   = UInt(XLEN.W)
     })
     val executeStage        = Output(new DecodeUnitExecuteUnit())
     val islsu               = Output(Bool())
     val branch              = Output(Bool())
     val target              = Output(UInt(XLEN.W))
     val executeready        = Input(Bool())
-    val decodeInternalStall = Output(Bool()) // 输出给ControlUnit的解码内部stall信号
-    val decodeStage1Stall   = Input(Bool())  // 来自ControlUnit的第一级stall信号
+    val decodeInternalStall = Output(Bool())                   // 输出给ControlUnit的解码内部stall信号
+    val decodeStage1Stall   = Input(Bool())                    // 来自ControlUnit的第一级stall信号
+    val registerInfo        = Output(new DecodeRegisterInfo()) // 发送给ControlUnit的寄存器信息
   })
 
   // ========== 第一级流水线：MiniBru专用寄存器读取 ==========
@@ -55,6 +74,7 @@ class DecodeUnit extends Module with HasInstrType {
 
   // 分支比较指令需要rd作为第二个源
   val bru_need_rd = is_beq || is_bne || is_blt || is_bge || is_bltu || is_bgeu
+  val bru_need_rj = is_jirl || bru_need_rd // JIRL需要rj，比较指令也需要rj
 
   // ========== 流水线寄存器 ==========
   val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
@@ -78,16 +98,22 @@ class DecodeUnit extends Module with HasInstrType {
   val stage2_will_write = stage2_valid && stage2_rd.orR && !stage2_is_b && !stage2_is_store
 
   // 检测冲突：第一级BRU要读的寄存器是否是第二级要写的
-  val stage1_needs_rj = is_bru && (is_jirl || bru_need_rd) // BRU需要读rj
-  val stage1_needs_rd = is_bru && bru_need_rd              // BRU比较指令需要读rd
+  val stage1_needs_rj = is_bru && bru_need_rj
+  val stage1_needs_rd = is_bru && bru_need_rd
 
   val decode_internal_conflict = valid && stage2_will_write && (
     (stage1_needs_rj && rj === stage2_rd && rj.orR) ||
       (stage1_needs_rd && rd === stage2_rd && rd.orR)
   )
 
-  // 输出stall信号
+  // 输出内部stall信号
   io.decodeInternalStall := decode_internal_conflict
+
+  // ========== 第一级寄存器信息（发送给ControlUnit用于前递） ==========
+  io.registerInfo.stage1_src1_raddr := rj
+  io.registerInfo.stage1_src2_raddr := rd // BRU比较指令用rd作为第二个源
+  io.registerInfo.stage1_src1_ren   := is_bru && bru_need_rj
+  io.registerInfo.stage1_src2_ren   := is_bru && bru_need_rd
 
   // ========== MiniBRU专用读端口（src1和src2） ==========
   // 只有BRU指令才使用这两个端口
@@ -98,9 +124,9 @@ class DecodeUnit extends Module with HasInstrType {
   val bru_src1_raw = io.regfile.src1.rdata
   val bru_src2_raw = io.regfile.src2.rdata
 
-  // 前递处理（仅用于BRU）
-  val bru_src1_data = Mux(io.bypassData.src1_bypass && is_bru, io.bypassData.src1_data, bru_src1_raw)
-  val bru_src2_data = Mux(io.bypassData.src2_bypass && is_bru && bru_need_rd, io.bypassData.src2_data, bru_src2_raw)
+  // 前递处理（使用stage1专用的前递信号）
+  val bru_src1_data = Mux(io.bypassData.stage1_src1_bypass && is_bru, io.bypassData.stage1_src1_data, bru_src1_raw)
+  val bru_src2_data = Mux(io.bypassData.stage1_src2_bypass && is_bru && bru_need_rd, io.bypassData.stage1_src2_data, bru_src2_raw)
 
   // ========== MiniBru逻辑（第一级） ==========
   // BRU比较
@@ -203,14 +229,24 @@ class DecodeUnit extends Module with HasInstrType {
   val src1_ren = (isR || isI || isS || isB || isJ)
   val src2_ren = (isR || isS || isB)
 
+  // ========== 第二级寄存器信息（发送给ControlUnit用于前递） ==========
+  io.registerInfo.stage2_src1_raddr := src1_raddr
+  io.registerInfo.stage2_src2_raddr := src2_raddr
+  io.registerInfo.stage2_src1_ren   := src1_ren
+  io.registerInfo.stage2_src2_ren   := src2_ren
+
   // ========== 其他指令的寄存器读取（src3和src4） ==========
   // 根据指令类型读取寄存器
   io.regfile.src3.raddr := Mux(src1_ren, src1_raddr, 0.U)
   io.regfile.src4.raddr := Mux(src2_ren, src2_raddr, 0.U)
 
   // 获取寄存器数据
-  val other_src1_data = io.regfile.src3.rdata
-  val other_src2_data = io.regfile.src4.rdata
+  val other_src1_raw = io.regfile.src3.rdata
+  val other_src2_raw = io.regfile.src4.rdata
+
+  // 前递处理（使用stage2专用的前递信号）
+  val other_src1_data = Mux(io.bypassData.stage2_src1_bypass, io.bypassData.stage2_src1_data, other_src1_raw)
+  val other_src2_data = Mux(io.bypassData.stage2_src2_bypass, io.bypassData.stage2_src2_data, other_src2_raw)
 
   // 构建info
   val info = Wire(new Info())
@@ -260,18 +296,7 @@ class DecodeUnit extends Module with HasInstrType {
   when(is_bru && valid) {
     printf("[DecodeUnit] BRU instruction detected:\n")
     printf("  PC: 0x%x, Inst: 0x%x\n", pc, inst)
-    printf("  Type: ")
-    when(is_jirl) { printf("JIRL") }
-    when(is_b) { printf("B") }
-    when(is_bl) { printf("BL") }
-    when(is_beq) { printf("BEQ") }
-    when(is_bne) { printf("BNE") }
-    when(is_blt) { printf("BLT") }
-    when(is_bge) { printf("BGE") }
-    when(is_bltu) { printf("BLTU") }
-    when(is_bgeu) { printf("BGEU") }
-    printf("\n")
-    printf("  rj=%d, rd=%d, rk=%d\n", rj, rd, rk)
+    printf("  rj=%d, rd=%d\n", rj, rd)
     printf("  bru_src1_data=0x%x, bru_src2_data=0x%x\n", bru_src1_data, bru_src2_data)
     printf("  takeBranch=%d, target=0x%x\n", takeBranch, target_bru)
   }

@@ -103,10 +103,11 @@ class Core extends Module {
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
   writeBackUnit.io.regfile        <> regfile.io.write
 
-  controlUnit.io.decodeInfo    := decodeUnit.io.executeStage.data.info
-  controlUnit.io.executeInfo   := executeUnit.io.memoryStage.data.info
-  controlUnit.io.memoryInfo    := memoryUnit.io.writeBackStage.data.info
-  controlUnit.io.writeBackInfo := writeBackStage.io.writeBackUnit.data.info
+  controlUnit.io.decodeRegisterInfo := decodeUnit.io.registerInfo
+  controlUnit.io.decodeInfo         := decodeUnit.io.executeStage.data.info
+  controlUnit.io.executeInfo        := executeUnit.io.memoryStage.data.info
+  controlUnit.io.memoryInfo         := memoryUnit.io.writeBackStage.data.info
+  controlUnit.io.writeBackInfo      := writeBackStage.io.writeBackUnit.data.info
 
   decodeStage.io.controlSignal    := controlUnit.io.signals
   executeStage.io.controlSignal   := controlUnit.io.signals

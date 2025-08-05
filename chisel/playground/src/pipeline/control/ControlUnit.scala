@@ -12,10 +12,16 @@ class ControlSignal extends Bundle {
 
 // 前递控制信号和数据
 class BypassData extends Bundle {
-  val src1_bypass = Bool()       // src1是否需要前递
-  val src2_bypass = Bool()       // src2是否需要前递
-  val src1_data   = UInt(XLEN.W) // src1前递的数据
-  val src2_data   = UInt(XLEN.W) // src2前递的数据
+  // Stage1 (MiniBRU) 前递
+  val stage1_src1_bypass = Bool()
+  val stage1_src2_bypass = Bool()
+  val stage1_src1_data   = UInt(XLEN.W)
+  val stage1_src2_data   = UInt(XLEN.W)
+  // Stage2 前递
+  val stage2_src1_bypass = Bool()
+  val stage2_src2_bypass = Bool()
+  val stage2_src1_data   = UInt(XLEN.W)
+  val stage2_src2_data   = UInt(XLEN.W)
 }
 
 class Signals extends Bundle {
@@ -24,7 +30,7 @@ class Signals extends Bundle {
   val executeUnitSignal = Output(new ControlSignal())
   val memoryUnitSignal  = Output(new ControlSignal())
   val bypassData        = Output(new BypassData()) // 前递数据
-  val decodeStage1Stall = Output(Bool())           // 新增：控制DecodeUnit第一级的stall信号
+  val decodeStage1Stall = Output(Bool())           // 控制DecodeUnit第一级的stall信号
 }
 
 class ControlUnit extends Module {
@@ -37,94 +43,185 @@ class ControlUnit extends Module {
     val signals          = Output(new Signals())
     val branch           = Input(Bool())
 
-    // 新增：来自DecodeUnit的内部stall信号
+    // 来自DecodeUnit的信息
     val decodeInternalStall = Input(Bool())
+    val decodeRegisterInfo  = Input(new DecodeRegisterInfo())
 
-    // 各阶段的结果数据用于前递（MEM阶段无实际功能，但保留接口）
-    val executeResult   = Input(UInt(XLEN.W)) // EXU的计算结果（包括load结果）
-    val memoryResult    = Input(UInt(XLEN.W)) // MEM阶段的结果（实际上就是EX结果的传递）
-    val writeBackResult = Input(UInt(XLEN.W)) // WB阶段的结果
+    // 各阶段的结果数据用于前递
+    val executeResult   = Input(UInt(XLEN.W))
+    val memoryResult    = Input(UInt(XLEN.W))
+    val writeBackResult = Input(UInt(XLEN.W))
   })
 
-  // 前递逻辑：检查是否可以通过前递解决数据冲突
+  // ========== Stage1 (MiniBRU) 前递逻辑 ==========
   def canForwardFromStage(stageInfo: Info, srcAddr: UInt, srcEn: Bool): Bool = {
     stageInfo.valid && stageInfo.reg_wen && stageInfo.reg_waddr.orR &&
     srcEn && (srcAddr === stageInfo.reg_waddr)
   }
 
-  // 检查各阶段是否可以前递到src1
-  val src1_forward_from_ex  = canForwardFromStage(io.executeInfo, io.decodeInfo.src1_raddr, io.decodeInfo.src1_ren)
-  val src1_forward_from_mem = canForwardFromStage(io.memoryInfo, io.decodeInfo.src1_raddr, io.decodeInfo.src1_ren)
-  val src1_forward_from_wb  = canForwardFromStage(io.writeBackInfo, io.decodeInfo.src1_raddr, io.decodeInfo.src1_ren)
+  // Stage1 src1前递检查
+  val stage1_src1_forward_from_ex = canForwardFromStage(
+    io.executeInfo,
+    io.decodeRegisterInfo.stage1_src1_raddr,
+    io.decodeRegisterInfo.stage1_src1_ren
+  )
+  val stage1_src1_forward_from_mem = canForwardFromStage(
+    io.memoryInfo,
+    io.decodeRegisterInfo.stage1_src1_raddr,
+    io.decodeRegisterInfo.stage1_src1_ren
+  )
+  val stage1_src1_forward_from_wb = canForwardFromStage(
+    io.writeBackInfo,
+    io.decodeRegisterInfo.stage1_src1_raddr,
+    io.decodeRegisterInfo.stage1_src1_ren
+  )
 
-  // 检查各阶段是否可以前递到src2
-  val src2_forward_from_ex  = canForwardFromStage(io.executeInfo, io.decodeInfo.src2_raddr, io.decodeInfo.src2_ren)
-  val src2_forward_from_mem = canForwardFromStage(io.memoryInfo, io.decodeInfo.src2_raddr, io.decodeInfo.src2_ren)
-  val src2_forward_from_wb  = canForwardFromStage(io.writeBackInfo, io.decodeInfo.src2_raddr, io.decodeInfo.src2_ren)
+  // Stage1 src2前递检查
+  val stage1_src2_forward_from_ex = canForwardFromStage(
+    io.executeInfo,
+    io.decodeRegisterInfo.stage1_src2_raddr,
+    io.decodeRegisterInfo.stage1_src2_ren
+  )
+  val stage1_src2_forward_from_mem = canForwardFromStage(
+    io.memoryInfo,
+    io.decodeRegisterInfo.stage1_src2_raddr,
+    io.decodeRegisterInfo.stage1_src2_ren
+  )
+  val stage1_src2_forward_from_wb = canForwardFromStage(
+    io.writeBackInfo,
+    io.decodeRegisterInfo.stage1_src2_raddr,
+    io.decodeRegisterInfo.stage1_src2_ren
+  )
 
-  // 前递优先级：EX > MEM > WB（越近的阶段优先级越高）
-  val src1_forward_sel = MuxCase(
+  // Stage1前递优先级选择
+  val stage1_src1_forward_sel = MuxCase(
     0.U(2.W),
     Seq(
-      src1_forward_from_wb  -> 3.U(2.W), // 从WB前递
-      src1_forward_from_mem -> 2.U(2.W), // 从MEM前递
-      src1_forward_from_ex  -> 1.U(2.W)  // 从EX前递
+      stage1_src1_forward_from_wb  -> 3.U(2.W),
+      stage1_src1_forward_from_mem -> 2.U(2.W),
+      stage1_src1_forward_from_ex  -> 1.U(2.W)
     )
   )
 
-  val src2_forward_sel = MuxCase(
+  val stage1_src2_forward_sel = MuxCase(
     0.U(2.W),
     Seq(
-      src2_forward_from_wb  -> 3.U(2.W), // 从WB前递
-      src2_forward_from_mem -> 2.U(2.W), // 从MEM前递
-      src2_forward_from_ex  -> 1.U(2.W)  // 从EX前递
+      stage1_src2_forward_from_wb  -> 3.U(2.W),
+      stage1_src2_forward_from_mem -> 2.U(2.W),
+      stage1_src2_forward_from_ex  -> 1.U(2.W)
     )
   )
 
-  // 生成bypassData信号和数据
-  io.signals.bypassData.src1_bypass := src1_forward_sel.orR
-  io.signals.bypassData.src2_bypass := src2_forward_sel.orR
+  // ========== Stage2 前递逻辑 ==========
+  // Stage2 src1前递检查
+  val stage2_src1_forward_from_ex = canForwardFromStage(
+    io.executeInfo,
+    io.decodeRegisterInfo.stage2_src1_raddr,
+    io.decodeRegisterInfo.stage2_src1_ren
+  )
+  val stage2_src1_forward_from_mem = canForwardFromStage(
+    io.memoryInfo,
+    io.decodeRegisterInfo.stage2_src1_raddr,
+    io.decodeRegisterInfo.stage2_src1_ren
+  )
+  val stage2_src1_forward_from_wb = canForwardFromStage(
+    io.writeBackInfo,
+    io.decodeRegisterInfo.stage2_src1_raddr,
+    io.decodeRegisterInfo.stage2_src1_ren
+  )
 
-  io.signals.bypassData.src1_data := MuxCase(
+  // Stage2 src2前递检查
+  val stage2_src2_forward_from_ex = canForwardFromStage(
+    io.executeInfo,
+    io.decodeRegisterInfo.stage2_src2_raddr,
+    io.decodeRegisterInfo.stage2_src2_ren
+  )
+  val stage2_src2_forward_from_mem = canForwardFromStage(
+    io.memoryInfo,
+    io.decodeRegisterInfo.stage2_src2_raddr,
+    io.decodeRegisterInfo.stage2_src2_ren
+  )
+  val stage2_src2_forward_from_wb = canForwardFromStage(
+    io.writeBackInfo,
+    io.decodeRegisterInfo.stage2_src2_raddr,
+    io.decodeRegisterInfo.stage2_src2_ren
+  )
+
+  // Stage2前递优先级选择
+  val stage2_src1_forward_sel = MuxCase(
+    0.U(2.W),
+    Seq(
+      stage2_src1_forward_from_wb  -> 3.U(2.W),
+      stage2_src1_forward_from_mem -> 2.U(2.W),
+      stage2_src1_forward_from_ex  -> 1.U(2.W)
+    )
+  )
+
+  val stage2_src2_forward_sel = MuxCase(
+    0.U(2.W),
+    Seq(
+      stage2_src2_forward_from_wb  -> 3.U(2.W),
+      stage2_src2_forward_from_mem -> 2.U(2.W),
+      stage2_src2_forward_from_ex  -> 1.U(2.W)
+    )
+  )
+
+  // ========== 生成前递信号和数据 ==========
+  // Stage1前递
+  io.signals.bypassData.stage1_src1_bypass := stage1_src1_forward_sel.orR
+  io.signals.bypassData.stage1_src2_bypass := stage1_src2_forward_sel.orR
+
+  io.signals.bypassData.stage1_src1_data := MuxCase(
     0.U,
     Seq(
-      (src1_forward_sel === 1.U) -> io.executeResult,
-      (src1_forward_sel === 2.U) -> io.memoryResult,
-      (src1_forward_sel === 3.U) -> io.writeBackResult
+      (stage1_src1_forward_sel === 1.U) -> io.executeResult,
+      (stage1_src1_forward_sel === 2.U) -> io.memoryResult,
+      (stage1_src1_forward_sel === 3.U) -> io.writeBackResult
     )
   )
 
-  io.signals.bypassData.src2_data := MuxCase(
+  io.signals.bypassData.stage1_src2_data := MuxCase(
     0.U,
     Seq(
-      (src2_forward_sel === 1.U) -> io.executeResult,
-      (src2_forward_sel === 2.U) -> io.memoryResult,
-      (src2_forward_sel === 3.U) -> io.writeBackResult
+      (stage1_src2_forward_sel === 1.U) -> io.executeResult,
+      (stage1_src2_forward_sel === 2.U) -> io.memoryResult,
+      (stage1_src2_forward_sel === 3.U) -> io.writeBackResult
     )
   )
 
-  // 检查Load-Use冲突（由于load指令在execute阶段就完成，所以不存在Load-Use冲突）
-  // val load_use_hazard = false.B  // 没有Load-Use冲突
+  // Stage2前递
+  io.signals.bypassData.stage2_src1_bypass := stage2_src1_forward_sel.orR
+  io.signals.bypassData.stage2_src2_bypass := stage2_src2_forward_sel.orR
 
-  // 更新后的冲突检测：由于有前递机制，大部分冲突都可以通过前递解决
-  val exe_conflict = false.B // EX阶段可以前递，不需要stall
-  val mem_conflict = false.B // MEM阶段没有实际功能，不需要stall
-  val wb_conflict  = false.B // WB阶段可以前递，不需要stall
+  io.signals.bypassData.stage2_src1_data := MuxCase(
+    0.U,
+    Seq(
+      (stage2_src1_forward_sel === 1.U) -> io.executeResult,
+      (stage2_src1_forward_sel === 2.U) -> io.memoryResult,
+      (stage2_src1_forward_sel === 3.U) -> io.writeBackResult
+    )
+  )
 
-  val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
+  io.signals.bypassData.stage2_src2_data := MuxCase(
+    0.U,
+    Seq(
+      (stage2_src2_forward_sel === 1.U) -> io.executeResult,
+      (stage2_src2_forward_sel === 2.U) -> io.memoryResult,
+      (stage2_src2_forward_sel === 3.U) -> io.writeBackResult
+    )
+  )
+
+  // ========== 流水线控制逻辑 ==========
+  val pipeline_stall = false.B // 由于有完整的前递，不需要额外的stall
 
   // 判断是否需要阻塞DecodeUnit的第一级
-  // 1. DecodeUnit内部有冲突
-  // 2. ExecuteUnit未准备好（多周期指令）
   val decode_stage1_stall = io.decodeInternalStall || !io.executeUnitReady
 
   // 输出给DecodeUnit的第一级stall信号
   io.signals.decodeStage1Stall := decode_stage1_stall
 
   // Generate control signals
-  // FetchUnit: 当Decode第一级需要stall时，阻塞Fetch
-  io.signals.fetchUnitSignal.allow_to_go := (!pipeline_stall) & (!decode_stage1_stall)
-  // DecodeUnit: 第二级仍然可以继续（由executeready控制）
+  io.signals.fetchUnitSignal.allow_to_go   := (!pipeline_stall) & (!decode_stage1_stall)
   io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & io.executeUnitReady
   io.signals.executeUnitSignal.allow_to_go := true.B
   io.signals.memoryUnitSignal.allow_to_go  := true.B
@@ -135,12 +232,12 @@ class ControlUnit extends Module {
   io.signals.memoryUnitSignal.do_flush  := false.B
 
   // 调试输出
-  when(io.decodeInternalStall) {
-    printf("[ControlUnit] Decode internal stall signal received\n")
+  when(io.decodeRegisterInfo.stage1_src1_ren && stage1_src1_forward_sel.orR) {
+    printf("[ControlUnit] Stage1 src1 forward: addr=%d, sel=%d\n", io.decodeRegisterInfo.stage1_src1_raddr, stage1_src1_forward_sel)
   }
 
-  when(!io.executeUnitReady) {
-    printf("[ControlUnit] Execute unit not ready, stalling decode stage 1\n")
+  when(io.decodeRegisterInfo.stage1_src2_ren && stage1_src2_forward_sel.orR) {
+    printf("[ControlUnit] Stage1 src2 forward: addr=%d, sel=%d\n", io.decodeRegisterInfo.stage1_src2_raddr, stage1_src2_forward_sel)
   }
 
   when(decode_stage1_stall) {

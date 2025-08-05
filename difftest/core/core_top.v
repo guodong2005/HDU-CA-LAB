@@ -1999,7 +1999,8 @@ module FetchUnit(
                  io_signal_bypassData_src2_bypass,
   input  [31:0]  io_signal_bypassData_src1_data,
                  io_signal_bypassData_src2_data,
-  input          io_icache_req_ready,
+  input          io_signal_decodeStage1Stall,
+                 io_icache_req_ready,
   output         io_icache_req_valid,
   output [31:0]  io_icache_req_bits_addr,
   output         io_canStart
@@ -2226,8 +2227,8 @@ module DecodeUnit(
                 io_executeStage_data_src_info_src2_data,
   output        io_branch,
   output [31:0] io_target,
-  input         io_executeready,
-  output        io_decodeStall
+  output        io_decodeInternalStall,
+  input         io_decodeStage1Stall
 );
 
   wire        is_jirl = io_decodeStage_data_inst[31:26] == 6'h13;
@@ -2245,9 +2246,12 @@ module DecodeUnit(
   reg  [31:0] stage1_reg_pc;
   reg  [31:0] stage1_reg_inst;
   reg         stage1_reg_valid;
+  wire        stage2_will_write =
+    stage1_reg_valid & (|(stage1_reg_inst[4:0])) & stage1_reg_inst[31:26] != 6'h14
+    & ~(stage1_reg_inst[31:26] == 6'hA & stage1_reg_inst[24]);
   wire        stage1_needs_rd = is_bru & bru_need_rd;
-  wire        io_decodeStall_0 =
-    io_decodeStage_data_valid
+  wire        io_decodeInternalStall_0 =
+    io_decodeStage_data_valid & stage2_will_write
     & (is_bru & (is_jirl | bru_need_rd)
        & io_decodeStage_data_inst[9:5] == stage1_reg_inst[4:0]
        & (|(io_decodeStage_data_inst[9:5])) | stage1_needs_rd
@@ -2447,13 +2451,13 @@ module DecodeUnit(
     always @(posedge clock) begin
       automatic logic _GEN_42 = is_bru & io_decodeStage_data_valid;
       automatic logic _GEN_43 = (`PRINTF_COND_) & _GEN_42 & ~reset;
-      if ((`PRINTF_COND_) & isS & ~reset) begin
+      if ((`PRINTF_COND_) & io_decodeInternalStall_0 & ~reset) begin
         $fwrite(32'h80000002, "[DecodeUnit] Internal conflict detected!\n");
         $fwrite(32'h80000002, "  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n",
                 io_decodeStage_data_inst, io_decodeStage_data_inst[9:5],
                 io_decodeStage_data_inst[4:0], is_bru);
         $fwrite(32'h80000002, "  Stage2: inst=0x%x, rd=%d, will_write=%d\n",
-                stage1_reg_inst, stage1_reg_inst[4:0], 1'h1);
+                stage1_reg_inst, stage1_reg_inst[4:0], stage2_will_write);
       end
       if (_GEN_43) begin
         $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
@@ -2495,7 +2499,9 @@ module DecodeUnit(
       stage1_reg_inst <= 32'h0;
       stage1_reg_valid <= 1'h0;
     end
-    else if (io_executeready & ~io_decodeStall_0) begin
+    else if (io_decodeStage1Stall) begin
+    end
+    else begin
       stage1_reg_pc <= io_decodeStage_data_pc;
       stage1_reg_inst <= io_decodeStage_data_inst;
       stage1_reg_valid <= io_decodeStage_data_valid;
@@ -2560,7 +2566,7 @@ module DecodeUnit(
   assign io_executeStage_data_src_info_src2_data = src2_ren ? io_regfile_src4_rdata : imm;
   assign io_branch = is_bru & takeBranch & io_decodeStage_data_valid;
   assign io_target = io_target_0;
-  assign io_decodeStall = io_decodeStall_0;
+  assign io_decodeInternalStall = io_decodeInternalStall_0;
 endmodule
 
 module ARegFile(
@@ -3706,6 +3712,7 @@ module MemoryStage(
                 io_controlSignal_bypassData_src2_bypass,
   input  [31:0] io_controlSignal_bypassData_src1_data,
                 io_controlSignal_bypassData_src2_data,
+  input         io_controlSignal_decodeStage1Stall,
   output [31:0] io_memoryUnit_data_pc,
                 io_memoryUnit_data_info_instr,
   output        io_memoryUnit_data_info_valid,
@@ -4198,8 +4205,9 @@ module ControlUnit(
                 io_signals_bypassData_src2_bypass,
   output [31:0] io_signals_bypassData_src1_data,
                 io_signals_bypassData_src2_data,
+  output        io_signals_decodeStage1Stall,
   input         io_branch,
-                io_decodeStall,
+                io_decodeInternalStall,
   input  [31:0] io_executeResult,
                 io_memoryResult,
                 io_writeBackResult
@@ -4234,19 +4242,26 @@ module ControlUnit(
                & io_decodeInfo_src2_raddr == io_executeInfo_reg_waddr};
   wire [3:0][31:0] _GEN =
     {{io_writeBackResult}, {io_memoryResult}, {io_executeResult}, {32'h0}};
+  wire             decode_stage1_stall = io_decodeInternalStall | ~io_executeUnitReady;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeStall & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Decode stall signal received\n");
+      if ((`PRINTF_COND_) & io_decodeInternalStall & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] Decode internal stall signal received\n");
+      if ((`PRINTF_COND_) & ~io_executeUnitReady & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Execute unit not ready, stalling decode stage 1\n");
+      if ((`PRINTF_COND_) & decode_stage1_stall & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] Decode stage 1 stall activated\n");
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  assign io_signals_fetchUnitSignal_allow_to_go = ~io_decodeStall & io_executeUnitReady;
+  assign io_signals_fetchUnitSignal_allow_to_go = ~decode_stage1_stall;
   assign io_signals_fetchUnitSignal_do_flush = io_branch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
   assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
   assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
   assign io_signals_bypassData_src1_data = _GEN[src1_forward_sel];
   assign io_signals_bypassData_src2_data = _GEN[src2_forward_sel];
+  assign io_signals_decodeStage1Stall = decode_stage1_stall;
 endmodule
 
 module Diff(
@@ -4560,6 +4575,7 @@ module Core(
   wire         _controlUnit_io_signals_bypassData_src2_bypass;
   wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
   wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_decodeStage1Stall;
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
   wire [31:0]  _writeBackUnit_io_regfile_wdata;
@@ -4711,7 +4727,7 @@ module Core(
   wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src2_data;
   wire         _decodeUnit_io_branch;
   wire [31:0]  _decodeUnit_io_target;
-  wire         _decodeUnit_io_decodeStall;
+  wire         _decodeUnit_io_decodeInternalStall;
   wire [31:0]  _decodeStage_io_decodeUnit_data_inst;
   wire         _decodeStage_io_decodeUnit_data_valid;
   wire [31:0]  _decodeStage_io_decodeUnit_data_pc;
@@ -4859,6 +4875,7 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_signal_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signal_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
     .io_icache_req_ready                     (_icache_io_icache_req_ready),
     .io_icache_req_valid                     (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr                 (_fetchUnit_io_icache_req_bits_addr),
@@ -4927,8 +4944,8 @@ module Core(
       (_decodeUnit_io_executeStage_data_src_info_src2_data),
     .io_branch                               (_decodeUnit_io_branch),
     .io_target                               (_decodeUnit_io_target),
-    .io_executeready                         (_executeUnit_io_ready),
-    .io_decodeStall                          (_decodeUnit_io_decodeStall)
+    .io_decodeInternalStall                  (_decodeUnit_io_decodeInternalStall),
+    .io_decodeStage1Stall                    (_controlUnit_io_signals_decodeStage1Stall)
   );
   ARegFile regfile (
     .clock              (clock),
@@ -5135,6 +5152,8 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_controlSignal_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
+    .io_controlSignal_decodeStage1Stall
+      (_controlUnit_io_signals_decodeStage1Stall),
     .io_memoryUnit_data_pc
       (_memoryStage_io_memoryUnit_data_pc),
     .io_memoryUnit_data_info_instr
@@ -5402,8 +5421,9 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_signals_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signals_decodeStage1Stall            (_controlUnit_io_signals_decodeStage1Stall),
     .io_branch                               (_decodeUnit_io_branch),
-    .io_decodeStall                          (_decodeUnit_io_decodeStall),
+    .io_decodeInternalStall                  (_decodeUnit_io_decodeInternalStall),
     .io_executeResult                        (_executeUnit_io_result),
     .io_memoryResult                         (_memoryUnit_io_result),
     .io_writeBackResult                      (_writeBackUnit_io_result)
