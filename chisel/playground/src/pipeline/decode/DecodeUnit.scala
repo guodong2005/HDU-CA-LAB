@@ -93,7 +93,44 @@ class DecodeUnit extends Module with HasInstrType {
   // 第一级输出（立即输出给IFU）
   io.branch := is_bru && takeBranch && valid
   io.target := target_bru
+  // ========== 调试打印 ==========
+  when(is_bru && valid) {
+    printf("[DecodeUnit] BRU instruction detected:\n")
+    printf("  PC: 0x%x\n", pc)
+    printf("  Inst: 0x%x\n", inst)
+    printf("  Opcode: 0x%x\n", opcode)
+    printf("  Instruction type: ")
+    when(is_jirl) { printf("JIRL") }
+    when(is_b) { printf("B") }
+    when(is_bl) { printf("BL") }
+    when(is_beq) { printf("BEQ") }
+    when(is_bne) { printf("BNE") }
+    when(is_blt) { printf("BLT") }
+    when(is_bge) { printf("BGE") }
+    when(is_bltu) { printf("BLTU") }
+    when(is_bgeu) { printf("BGEU") }
+    printf("\n")
+    printf("  rj: %d, rd: %d\n", rj, rd)
+    printf("  offs: 0x%x, imm_bru: 0x%x\n", offs, imm_bru)
+    printf("  src1_raw: 0x%x, src2_raw: 0x%x\n", src1_raw, src2_raw)
+    printf("  src1_data: 0x%x, src2_data: 0x%x\n", src1_data, src2_data)
+    printf("  Bypass: src1_bypass=%d, src2_bypass=%d\n", io.bypassData.src1_bypass, io.bypassData.src2_bypass)
+    printf("  pc_plus_imm: 0x%x\n", pc_plus_imm)
+    printf("  src1_plus_imm: 0x%x\n", src1_plus_imm)
+    printf("  takeBranch: %d\n", takeBranch)
+    printf("  target_bru: 0x%x\n", target_bru)
+    printf("  io.branch: %d, io.target: 0x%x\n", io.branch, io.target)
 
+    // 特别关注JIRL指令
+    when(is_jirl) {
+      printf("  [JIRL Debug] src1_data=0x%x + imm_bru=0x%x = 0x%x\n", src1_data, imm_bru, src1_plus_imm)
+    }
+  }
+
+  // 当branch信号为高时的额外调试
+  when(io.branch) {
+    printf("[DecodeUnit] Branch taken! Target: 0x%x\n", io.target)
+  }
   // ========== 流水线寄存器 ==========
   val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
     val pc    = UInt(XLEN.W)
