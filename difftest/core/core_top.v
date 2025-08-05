@@ -1995,10 +1995,14 @@ module FetchUnit(
                  io_signal_executeUnitSignal_do_flush,
                  io_signal_memoryUnitSignal_allow_to_go,
                  io_signal_memoryUnitSignal_do_flush,
-                 io_signal_bypassData_src1_bypass,
-                 io_signal_bypassData_src2_bypass,
-  input  [31:0]  io_signal_bypassData_src1_data,
-                 io_signal_bypassData_src2_data,
+                 io_signal_bypassData_stage1_src1_bypass,
+                 io_signal_bypassData_stage1_src2_bypass,
+  input  [31:0]  io_signal_bypassData_stage1_src1_data,
+                 io_signal_bypassData_stage1_src2_data,
+  input          io_signal_bypassData_stage2_src1_bypass,
+                 io_signal_bypassData_stage2_src2_bypass,
+  input  [31:0]  io_signal_bypassData_stage2_src1_data,
+                 io_signal_bypassData_stage2_src2_data,
   input          io_signal_decodeStage1Stall,
                  io_icache_req_ready,
   output         io_icache_req_valid,
@@ -2207,28 +2211,36 @@ module DecodeUnit(
   input  [31:0] io_regfile_src3_rdata,
   output [4:0]  io_regfile_src4_raddr,
   input  [31:0] io_regfile_src4_rdata,
-  input         io_bypassData_src1_bypass,
-                io_bypassData_src2_bypass,
-  input  [31:0] io_bypassData_src1_data,
-                io_bypassData_src2_data,
+  input         io_bypassData_stage1_src1_bypass,
+                io_bypassData_stage1_src2_bypass,
+  input  [31:0] io_bypassData_stage1_src1_data,
+                io_bypassData_stage1_src2_data,
+  input         io_bypassData_stage2_src1_bypass,
+                io_bypassData_stage2_src2_bypass,
+  input  [31:0] io_bypassData_stage2_src1_data,
+                io_bypassData_stage2_src2_data,
   output [31:0] io_executeStage_data_pc,
                 io_executeStage_data_info_instr,
   output        io_executeStage_data_info_valid,
-  output [4:0]  io_executeStage_data_info_src1_raddr,
-                io_executeStage_data_info_src2_raddr,
-                io_executeStage_data_info_op,
+  output [4:0]  io_executeStage_data_info_op,
   output        io_executeStage_data_info_reg_wen,
   output [4:0]  io_executeStage_data_info_reg_waddr,
   output [31:0] io_executeStage_data_info_imm,
-  output        io_executeStage_data_info_src1_ren,
-                io_executeStage_data_info_src2_ren,
   output [2:0]  io_executeStage_data_info_fusel,
   output [31:0] io_executeStage_data_src_info_src1_data,
                 io_executeStage_data_src_info_src2_data,
   output        io_branch,
   output [31:0] io_target,
   output        io_decodeInternalStall,
-  input         io_decodeStage1Stall
+  input         io_decodeStage1Stall,
+  output [4:0]  io_registerInfo_stage1_src1_raddr,
+                io_registerInfo_stage1_src2_raddr,
+  output        io_registerInfo_stage1_src1_ren,
+                io_registerInfo_stage1_src2_ren,
+  output [4:0]  io_registerInfo_stage2_src1_raddr,
+                io_registerInfo_stage2_src2_raddr,
+  output        io_registerInfo_stage2_src1_ren,
+                io_registerInfo_stage2_src2_ren
 );
 
   wire        is_jirl = io_decodeStage_data_inst[31:26] == 6'h13;
@@ -2249,19 +2261,21 @@ module DecodeUnit(
   wire        stage2_will_write =
     stage1_reg_valid & (|(stage1_reg_inst[4:0])) & stage1_reg_inst[31:26] != 6'h14
     & ~(stage1_reg_inst[31:26] == 6'hA & stage1_reg_inst[24]);
+  wire        stage1_needs_rj = is_bru & (is_jirl | bru_need_rd);
   wire        stage1_needs_rd = is_bru & bru_need_rd;
   wire        io_decodeInternalStall_0 =
     io_decodeStage_data_valid & stage2_will_write
-    & (is_bru & (is_jirl | bru_need_rd)
-       & io_decodeStage_data_inst[9:5] == stage1_reg_inst[4:0]
+    & (stage1_needs_rj & io_decodeStage_data_inst[9:5] == stage1_reg_inst[4:0]
        & (|(io_decodeStage_data_inst[9:5])) | stage1_needs_rd
        & io_decodeStage_data_inst[4:0] == stage1_reg_inst[4:0]
        & (|(io_decodeStage_data_inst[4:0])));
   wire [31:0] bru_src1_data =
-    io_bypassData_src1_bypass & is_bru ? io_bypassData_src1_data : io_regfile_src1_rdata;
+    io_bypassData_stage1_src1_bypass & is_bru
+      ? io_bypassData_stage1_src1_data
+      : io_regfile_src1_rdata;
   wire [31:0] bru_src2_data =
-    io_bypassData_src2_bypass & is_bru & bru_need_rd
-      ? io_bypassData_src2_data
+    io_bypassData_stage1_src2_bypass & is_bru & bru_need_rd
+      ? io_bypassData_stage1_src2_data
       : io_regfile_src2_rdata;
   wire        eq = bru_src1_data == bru_src2_data;
   wire        lt = $signed(bru_src1_data) < $signed(bru_src2_data);
@@ -2449,8 +2463,6 @@ module DecodeUnit(
   wire        src2_ren = isR | isS | isB;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
-      automatic logic _GEN_42 = is_bru & io_decodeStage_data_valid;
-      automatic logic _GEN_43 = (`PRINTF_COND_) & _GEN_42 & ~reset;
       if ((`PRINTF_COND_) & io_decodeInternalStall_0 & ~reset) begin
         $fwrite(32'h80000002, "[DecodeUnit] Internal conflict detected!\n");
         $fwrite(32'h80000002, "  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n",
@@ -2459,34 +2471,12 @@ module DecodeUnit(
         $fwrite(32'h80000002, "  Stage2: inst=0x%x, rd=%d, will_write=%d\n",
                 stage1_reg_inst, stage1_reg_inst[4:0], stage2_will_write);
       end
-      if (_GEN_43) begin
+      if ((`PRINTF_COND_) & is_bru & io_decodeStage_data_valid & ~reset) begin
         $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
         $fwrite(32'h80000002, "  PC: 0x%x, Inst: 0x%x\n", io_decodeStage_data_pc,
                 io_decodeStage_data_inst);
-        $fwrite(32'h80000002, "  Type: ");
-      end
-      if ((`PRINTF_COND_) & _GEN_42 & is_jirl & ~reset)
-        $fwrite(32'h80000002, "JIRL");
-      if ((`PRINTF_COND_) & _GEN_42 & is_b & ~reset)
-        $fwrite(32'h80000002, "B");
-      if ((`PRINTF_COND_) & _GEN_42 & is_bl & ~reset)
-        $fwrite(32'h80000002, "BL");
-      if ((`PRINTF_COND_) & _GEN_42 & is_beq & ~reset)
-        $fwrite(32'h80000002, "BEQ");
-      if ((`PRINTF_COND_) & _GEN_42 & is_bne & ~reset)
-        $fwrite(32'h80000002, "BNE");
-      if ((`PRINTF_COND_) & _GEN_42 & is_blt & ~reset)
-        $fwrite(32'h80000002, "BLT");
-      if ((`PRINTF_COND_) & _GEN_42 & is_bge & ~reset)
-        $fwrite(32'h80000002, "BGE");
-      if ((`PRINTF_COND_) & _GEN_42 & is_bltu & ~reset)
-        $fwrite(32'h80000002, "BLTU");
-      if ((`PRINTF_COND_) & _GEN_42 & is_bgeu & ~reset)
-        $fwrite(32'h80000002, "BGEU");
-      if (_GEN_43) begin
-        $fwrite(32'h80000002, "\n");
-        $fwrite(32'h80000002, "  rj=%d, rd=%d, rk=%d\n", io_decodeStage_data_inst[9:5],
-                io_decodeStage_data_inst[4:0], io_decodeStage_data_inst[14:10]);
+        $fwrite(32'h80000002, "  rj=%d, rd=%d\n", io_decodeStage_data_inst[9:5],
+                io_decodeStage_data_inst[4:0]);
         $fwrite(32'h80000002, "  bru_src1_data=0x%x, bru_src2_data=0x%x\n", bru_src1_data,
                 bru_src2_data);
         $fwrite(32'h80000002, "  takeBranch=%d, target=0x%x\n", takeBranch, io_target_0);
@@ -2536,8 +2526,6 @@ module DecodeUnit(
   assign io_executeStage_data_pc = stage1_reg_pc;
   assign io_executeStage_data_info_instr = (|instrType) ? stage1_reg_inst : 32'h2800000;
   assign io_executeStage_data_info_valid = stage1_reg_valid & (|instrType);
-  assign io_executeStage_data_info_src1_raddr = stage1_reg_inst[9:5];
-  assign io_executeStage_data_info_src2_raddr = src2_raddr;
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
     (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & stage1_reg_valid
@@ -2546,8 +2534,6 @@ module DecodeUnit(
     (isR | isI | isU ? stage1_reg_inst[4:0] : 5'h0)
     | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : stage1_reg_inst[4:0]) : 5'h0);
   assign io_executeStage_data_info_imm = imm;
-  assign io_executeStage_data_info_src1_ren = src1_ren;
-  assign io_executeStage_data_info_src2_ren = src2_ren;
   assign io_executeStage_data_info_fusel =
     {1'h0,
      _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
@@ -2561,12 +2547,28 @@ module DecodeUnit(
                : {2{_GEN_31 | _GEN_32 | _GEN_33 | _GEN_34 | _GEN_35 | _GEN_36
                       | _GEN_40}}};
   assign io_executeStage_data_src_info_src1_data =
-    (src1_ren ? io_regfile_src3_rdata : 32'h0)
-    | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
-  assign io_executeStage_data_src_info_src2_data = src2_ren ? io_regfile_src4_rdata : imm;
+    (src1_ren
+       ? (io_bypassData_stage2_src1_bypass
+            ? io_bypassData_stage2_src1_data
+            : io_regfile_src3_rdata)
+       : 32'h0) | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
+  assign io_executeStage_data_src_info_src2_data =
+    src2_ren
+      ? (io_bypassData_stage2_src2_bypass
+           ? io_bypassData_stage2_src2_data
+           : io_regfile_src4_rdata)
+      : imm;
   assign io_branch = is_bru & takeBranch & io_decodeStage_data_valid;
   assign io_target = io_target_0;
   assign io_decodeInternalStall = io_decodeInternalStall_0;
+  assign io_registerInfo_stage1_src1_raddr = io_decodeStage_data_inst[9:5];
+  assign io_registerInfo_stage1_src2_raddr = io_decodeStage_data_inst[4:0];
+  assign io_registerInfo_stage1_src1_ren = stage1_needs_rj;
+  assign io_registerInfo_stage1_src2_ren = stage1_needs_rd;
+  assign io_registerInfo_stage2_src1_raddr = stage1_reg_inst[9:5];
+  assign io_registerInfo_stage2_src2_raddr = src2_raddr;
+  assign io_registerInfo_stage2_src1_ren = src1_ren;
+  assign io_registerInfo_stage2_src2_ren = src2_ren;
 endmodule
 
 module ARegFile(
@@ -3708,10 +3710,14 @@ module MemoryStage(
                 io_controlSignal_executeUnitSignal_do_flush,
                 io_controlSignal_memoryUnitSignal_allow_to_go,
                 io_controlSignal_memoryUnitSignal_do_flush,
-                io_controlSignal_bypassData_src1_bypass,
-                io_controlSignal_bypassData_src2_bypass,
-  input  [31:0] io_controlSignal_bypassData_src1_data,
-                io_controlSignal_bypassData_src2_data,
+                io_controlSignal_bypassData_stage1_src1_bypass,
+                io_controlSignal_bypassData_stage1_src2_bypass,
+  input  [31:0] io_controlSignal_bypassData_stage1_src1_data,
+                io_controlSignal_bypassData_stage1_src2_data,
+  input         io_controlSignal_bypassData_stage2_src1_bypass,
+                io_controlSignal_bypassData_stage2_src2_bypass,
+  input  [31:0] io_controlSignal_bypassData_stage2_src1_data,
+                io_controlSignal_bypassData_stage2_src2_data,
   input         io_controlSignal_decodeStage1Stall,
   output [31:0] io_memoryUnit_data_pc,
                 io_memoryUnit_data_info_instr,
@@ -4184,10 +4190,6 @@ endmodule
 module ControlUnit(
   input         clock,
                 reset,
-  input  [4:0]  io_decodeInfo_src1_raddr,
-                io_decodeInfo_src2_raddr,
-  input         io_decodeInfo_src1_ren,
-                io_decodeInfo_src2_ren,
                 io_executeInfo_valid,
                 io_executeInfo_reg_wen,
   input  [4:0]  io_executeInfo_reg_waddr,
@@ -4201,55 +4203,101 @@ module ControlUnit(
   output        io_signals_fetchUnitSignal_allow_to_go,
                 io_signals_fetchUnitSignal_do_flush,
                 io_signals_decodeUnitSignal_allow_to_go,
-                io_signals_bypassData_src1_bypass,
-                io_signals_bypassData_src2_bypass,
-  output [31:0] io_signals_bypassData_src1_data,
-                io_signals_bypassData_src2_data,
+                io_signals_bypassData_stage1_src1_bypass,
+                io_signals_bypassData_stage1_src2_bypass,
+  output [31:0] io_signals_bypassData_stage1_src1_data,
+                io_signals_bypassData_stage1_src2_data,
+  output        io_signals_bypassData_stage2_src1_bypass,
+                io_signals_bypassData_stage2_src2_bypass,
+  output [31:0] io_signals_bypassData_stage2_src1_data,
+                io_signals_bypassData_stage2_src2_data,
   output        io_signals_decodeStage1Stall,
   input         io_branch,
                 io_decodeInternalStall,
+  input  [4:0]  io_decodeRegisterInfo_stage1_src1_raddr,
+                io_decodeRegisterInfo_stage1_src2_raddr,
+  input         io_decodeRegisterInfo_stage1_src1_ren,
+                io_decodeRegisterInfo_stage1_src2_ren,
+  input  [4:0]  io_decodeRegisterInfo_stage2_src1_raddr,
+                io_decodeRegisterInfo_stage2_src2_raddr,
+  input         io_decodeRegisterInfo_stage2_src1_ren,
+                io_decodeRegisterInfo_stage2_src2_ren,
   input  [31:0] io_executeResult,
                 io_memoryResult,
                 io_writeBackResult
 );
 
-  wire             _src2_forward_from_ex_T =
+  wire             _stage2_src2_forward_from_ex_T =
     io_executeInfo_valid & io_executeInfo_reg_wen;
-  wire             _src2_forward_from_mem_T = io_memoryInfo_valid & io_memoryInfo_reg_wen;
-  wire             _src2_forward_from_wb_T =
+  wire             _stage2_src2_forward_from_mem_T =
+    io_memoryInfo_valid & io_memoryInfo_reg_wen;
+  wire             _stage2_src2_forward_from_wb_T =
     io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
-  wire [1:0]       src1_forward_sel =
-    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr) & io_decodeInfo_src1_ren
-    & io_decodeInfo_src1_raddr == io_writeBackInfo_reg_waddr
+  wire [1:0]       stage1_src1_forward_sel =
+    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_stage1_src1_ren
+    & io_decodeRegisterInfo_stage1_src1_raddr == io_writeBackInfo_reg_waddr
       ? 2'h3
-      : _src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr) & io_decodeInfo_src1_ren
-        & io_decodeInfo_src1_raddr == io_memoryInfo_reg_waddr
+      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
+        & io_decodeRegisterInfo_stage1_src1_ren
+        & io_decodeRegisterInfo_stage1_src1_raddr == io_memoryInfo_reg_waddr
           ? 2'h2
           : {1'h0,
-             _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeInfo_src1_ren
-               & io_decodeInfo_src1_raddr == io_executeInfo_reg_waddr};
-  wire [1:0]       src2_forward_sel =
-    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr) & io_decodeInfo_src2_ren
-    & io_decodeInfo_src2_raddr == io_writeBackInfo_reg_waddr
+             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+               & io_decodeRegisterInfo_stage1_src1_ren
+               & io_decodeRegisterInfo_stage1_src1_raddr == io_executeInfo_reg_waddr};
+  wire [1:0]       stage1_src2_forward_sel =
+    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_stage1_src2_ren
+    & io_decodeRegisterInfo_stage1_src2_raddr == io_writeBackInfo_reg_waddr
       ? 2'h3
-      : _src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr) & io_decodeInfo_src2_ren
-        & io_decodeInfo_src2_raddr == io_memoryInfo_reg_waddr
+      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
+        & io_decodeRegisterInfo_stage1_src2_ren
+        & io_decodeRegisterInfo_stage1_src2_raddr == io_memoryInfo_reg_waddr
           ? 2'h2
           : {1'h0,
-             _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeInfo_src2_ren
-               & io_decodeInfo_src2_raddr == io_executeInfo_reg_waddr};
+             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+               & io_decodeRegisterInfo_stage1_src2_ren
+               & io_decodeRegisterInfo_stage1_src2_raddr == io_executeInfo_reg_waddr};
+  wire [1:0]       stage2_src1_forward_sel =
+    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_stage2_src1_ren
+    & io_decodeRegisterInfo_stage2_src1_raddr == io_writeBackInfo_reg_waddr
+      ? 2'h3
+      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
+        & io_decodeRegisterInfo_stage2_src1_ren
+        & io_decodeRegisterInfo_stage2_src1_raddr == io_memoryInfo_reg_waddr
+          ? 2'h2
+          : {1'h0,
+             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+               & io_decodeRegisterInfo_stage2_src1_ren
+               & io_decodeRegisterInfo_stage2_src1_raddr == io_executeInfo_reg_waddr};
+  wire [1:0]       stage2_src2_forward_sel =
+    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_stage2_src2_ren
+    & io_decodeRegisterInfo_stage2_src2_raddr == io_writeBackInfo_reg_waddr
+      ? 2'h3
+      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
+        & io_decodeRegisterInfo_stage2_src2_ren
+        & io_decodeRegisterInfo_stage2_src2_raddr == io_memoryInfo_reg_waddr
+          ? 2'h2
+          : {1'h0,
+             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+               & io_decodeRegisterInfo_stage2_src2_ren
+               & io_decodeRegisterInfo_stage2_src2_raddr == io_executeInfo_reg_waddr};
   wire [3:0][31:0] _GEN =
     {{io_writeBackResult}, {io_memoryResult}, {io_executeResult}, {32'h0}};
   wire             decode_stage1_stall = io_decodeInternalStall | ~io_executeUnitReady;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeInternalStall & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Decode internal stall signal received\n");
-      if ((`PRINTF_COND_) & ~io_executeUnitReady & ~reset)
-        $fwrite(32'h80000002,
-                "[ControlUnit] Execute unit not ready, stalling decode stage 1\n");
+      if ((`PRINTF_COND_) & io_decodeRegisterInfo_stage1_src1_ren
+          & (|stage1_src1_forward_sel) & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] Stage1 src1 forward: addr=%d, sel=%d\n",
+                io_decodeRegisterInfo_stage1_src1_raddr, stage1_src1_forward_sel);
+      if ((`PRINTF_COND_) & io_decodeRegisterInfo_stage1_src2_ren
+          & (|stage1_src2_forward_sel) & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] Stage1 src2 forward: addr=%d, sel=%d\n",
+                io_decodeRegisterInfo_stage1_src2_raddr, stage1_src2_forward_sel);
       if ((`PRINTF_COND_) & decode_stage1_stall & ~reset)
         $fwrite(32'h80000002, "[ControlUnit] Decode stage 1 stall activated\n");
     end // always @(posedge)
@@ -4257,10 +4305,14 @@ module ControlUnit(
   assign io_signals_fetchUnitSignal_allow_to_go = ~decode_stage1_stall;
   assign io_signals_fetchUnitSignal_do_flush = io_branch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
-  assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
-  assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
-  assign io_signals_bypassData_src1_data = _GEN[src1_forward_sel];
-  assign io_signals_bypassData_src2_data = _GEN[src2_forward_sel];
+  assign io_signals_bypassData_stage1_src1_bypass = |stage1_src1_forward_sel;
+  assign io_signals_bypassData_stage1_src2_bypass = |stage1_src2_forward_sel;
+  assign io_signals_bypassData_stage1_src1_data = _GEN[stage1_src1_forward_sel];
+  assign io_signals_bypassData_stage1_src2_data = _GEN[stage1_src2_forward_sel];
+  assign io_signals_bypassData_stage2_src1_bypass = |stage2_src1_forward_sel;
+  assign io_signals_bypassData_stage2_src2_bypass = |stage2_src2_forward_sel;
+  assign io_signals_bypassData_stage2_src1_data = _GEN[stage2_src1_forward_sel];
+  assign io_signals_bypassData_stage2_src2_data = _GEN[stage2_src2_forward_sel];
   assign io_signals_decodeStage1Stall = decode_stage1_stall;
 endmodule
 
@@ -4571,10 +4623,14 @@ module Core(
   wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
   wire         _controlUnit_io_signals_fetchUnitSignal_do_flush;
   wire         _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
-  wire         _controlUnit_io_signals_bypassData_src1_bypass;
-  wire         _controlUnit_io_signals_bypassData_src2_bypass;
-  wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
-  wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_bypassData_stage1_src1_bypass;
+  wire         _controlUnit_io_signals_bypassData_stage1_src2_bypass;
+  wire [31:0]  _controlUnit_io_signals_bypassData_stage1_src1_data;
+  wire [31:0]  _controlUnit_io_signals_bypassData_stage1_src2_data;
+  wire         _controlUnit_io_signals_bypassData_stage2_src1_bypass;
+  wire         _controlUnit_io_signals_bypassData_stage2_src2_bypass;
+  wire [31:0]  _controlUnit_io_signals_bypassData_stage2_src1_data;
+  wire [31:0]  _controlUnit_io_signals_bypassData_stage2_src2_data;
   wire         _controlUnit_io_signals_decodeStage1Stall;
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
@@ -4714,20 +4770,24 @@ module Core(
   wire [31:0]  _decodeUnit_io_executeStage_data_pc;
   wire [31:0]  _decodeUnit_io_executeStage_data_info_instr;
   wire         _decodeUnit_io_executeStage_data_info_valid;
-  wire [4:0]   _decodeUnit_io_executeStage_data_info_src1_raddr;
-  wire [4:0]   _decodeUnit_io_executeStage_data_info_src2_raddr;
   wire [4:0]   _decodeUnit_io_executeStage_data_info_op;
   wire         _decodeUnit_io_executeStage_data_info_reg_wen;
   wire [4:0]   _decodeUnit_io_executeStage_data_info_reg_waddr;
   wire [31:0]  _decodeUnit_io_executeStage_data_info_imm;
-  wire         _decodeUnit_io_executeStage_data_info_src1_ren;
-  wire         _decodeUnit_io_executeStage_data_info_src2_ren;
   wire [2:0]   _decodeUnit_io_executeStage_data_info_fusel;
   wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src1_data;
   wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src2_data;
   wire         _decodeUnit_io_branch;
   wire [31:0]  _decodeUnit_io_target;
   wire         _decodeUnit_io_decodeInternalStall;
+  wire [4:0]   _decodeUnit_io_registerInfo_stage1_src1_raddr;
+  wire [4:0]   _decodeUnit_io_registerInfo_stage1_src2_raddr;
+  wire         _decodeUnit_io_registerInfo_stage1_src1_ren;
+  wire         _decodeUnit_io_registerInfo_stage1_src2_ren;
+  wire [4:0]   _decodeUnit_io_registerInfo_stage2_src1_raddr;
+  wire [4:0]   _decodeUnit_io_registerInfo_stage2_src2_raddr;
+  wire         _decodeUnit_io_registerInfo_stage2_src1_ren;
+  wire         _decodeUnit_io_registerInfo_stage2_src2_ren;
   wire [31:0]  _decodeStage_io_decodeUnit_data_inst;
   wire         _decodeStage_io_decodeUnit_data_valid;
   wire [31:0]  _decodeStage_io_decodeUnit_data_pc;
@@ -4867,14 +4927,22 @@ module Core(
     .io_signal_executeUnitSignal_do_flush    (1'h0),
     .io_signal_memoryUnitSignal_allow_to_go  (1'h1),
     .io_signal_memoryUnitSignal_do_flush     (1'h0),
-    .io_signal_bypassData_src1_bypass
-      (_controlUnit_io_signals_bypassData_src1_bypass),
-    .io_signal_bypassData_src2_bypass
-      (_controlUnit_io_signals_bypassData_src2_bypass),
-    .io_signal_bypassData_src1_data
-      (_controlUnit_io_signals_bypassData_src1_data),
-    .io_signal_bypassData_src2_data
-      (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signal_bypassData_stage1_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
+    .io_signal_bypassData_stage1_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
+    .io_signal_bypassData_stage1_src1_data
+      (_controlUnit_io_signals_bypassData_stage1_src1_data),
+    .io_signal_bypassData_stage1_src2_data
+      (_controlUnit_io_signals_bypassData_stage1_src2_data),
+    .io_signal_bypassData_stage2_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
+    .io_signal_bypassData_stage2_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
+    .io_signal_bypassData_stage2_src1_data
+      (_controlUnit_io_signals_bypassData_stage2_src1_data),
+    .io_signal_bypassData_stage2_src2_data
+      (_controlUnit_io_signals_bypassData_stage2_src2_data),
     .io_signal_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
     .io_icache_req_ready                     (_icache_io_icache_req_ready),
     .io_icache_req_valid                     (_fetchUnit_io_icache_req_valid),
@@ -4909,33 +4977,33 @@ module Core(
     .io_regfile_src3_rdata                   (_regfile_io_read_src3_rdata),
     .io_regfile_src4_raddr                   (_decodeUnit_io_regfile_src4_raddr),
     .io_regfile_src4_rdata                   (_regfile_io_read_src4_rdata),
-    .io_bypassData_src1_bypass
-      (_controlUnit_io_signals_bypassData_src1_bypass),
-    .io_bypassData_src2_bypass
-      (_controlUnit_io_signals_bypassData_src2_bypass),
-    .io_bypassData_src1_data
-      (_controlUnit_io_signals_bypassData_src1_data),
-    .io_bypassData_src2_data
-      (_controlUnit_io_signals_bypassData_src2_data),
+    .io_bypassData_stage1_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
+    .io_bypassData_stage1_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
+    .io_bypassData_stage1_src1_data
+      (_controlUnit_io_signals_bypassData_stage1_src1_data),
+    .io_bypassData_stage1_src2_data
+      (_controlUnit_io_signals_bypassData_stage1_src2_data),
+    .io_bypassData_stage2_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
+    .io_bypassData_stage2_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
+    .io_bypassData_stage2_src1_data
+      (_controlUnit_io_signals_bypassData_stage2_src1_data),
+    .io_bypassData_stage2_src2_data
+      (_controlUnit_io_signals_bypassData_stage2_src2_data),
     .io_executeStage_data_pc                 (_decodeUnit_io_executeStage_data_pc),
     .io_executeStage_data_info_instr
       (_decodeUnit_io_executeStage_data_info_instr),
     .io_executeStage_data_info_valid
       (_decodeUnit_io_executeStage_data_info_valid),
-    .io_executeStage_data_info_src1_raddr
-      (_decodeUnit_io_executeStage_data_info_src1_raddr),
-    .io_executeStage_data_info_src2_raddr
-      (_decodeUnit_io_executeStage_data_info_src2_raddr),
     .io_executeStage_data_info_op            (_decodeUnit_io_executeStage_data_info_op),
     .io_executeStage_data_info_reg_wen
       (_decodeUnit_io_executeStage_data_info_reg_wen),
     .io_executeStage_data_info_reg_waddr
       (_decodeUnit_io_executeStage_data_info_reg_waddr),
     .io_executeStage_data_info_imm           (_decodeUnit_io_executeStage_data_info_imm),
-    .io_executeStage_data_info_src1_ren
-      (_decodeUnit_io_executeStage_data_info_src1_ren),
-    .io_executeStage_data_info_src2_ren
-      (_decodeUnit_io_executeStage_data_info_src2_ren),
     .io_executeStage_data_info_fusel
       (_decodeUnit_io_executeStage_data_info_fusel),
     .io_executeStage_data_src_info_src1_data
@@ -4945,7 +5013,22 @@ module Core(
     .io_branch                               (_decodeUnit_io_branch),
     .io_target                               (_decodeUnit_io_target),
     .io_decodeInternalStall                  (_decodeUnit_io_decodeInternalStall),
-    .io_decodeStage1Stall                    (_controlUnit_io_signals_decodeStage1Stall)
+    .io_decodeStage1Stall                    (_controlUnit_io_signals_decodeStage1Stall),
+    .io_registerInfo_stage1_src1_raddr
+      (_decodeUnit_io_registerInfo_stage1_src1_raddr),
+    .io_registerInfo_stage1_src2_raddr
+      (_decodeUnit_io_registerInfo_stage1_src2_raddr),
+    .io_registerInfo_stage1_src1_ren
+      (_decodeUnit_io_registerInfo_stage1_src1_ren),
+    .io_registerInfo_stage1_src2_ren
+      (_decodeUnit_io_registerInfo_stage1_src2_ren),
+    .io_registerInfo_stage2_src1_raddr
+      (_decodeUnit_io_registerInfo_stage2_src1_raddr),
+    .io_registerInfo_stage2_src2_raddr
+      (_decodeUnit_io_registerInfo_stage2_src2_raddr),
+    .io_registerInfo_stage2_src1_ren
+      (_decodeUnit_io_registerInfo_stage2_src1_ren),
+    .io_registerInfo_stage2_src2_ren         (_decodeUnit_io_registerInfo_stage2_src2_ren)
   );
   ARegFile regfile (
     .clock              (clock),
@@ -5144,14 +5227,22 @@ module Core(
     .io_controlSignal_executeUnitSignal_do_flush            (1'h0),
     .io_controlSignal_memoryUnitSignal_allow_to_go          (1'h1),
     .io_controlSignal_memoryUnitSignal_do_flush             (1'h0),
-    .io_controlSignal_bypassData_src1_bypass
-      (_controlUnit_io_signals_bypassData_src1_bypass),
-    .io_controlSignal_bypassData_src2_bypass
-      (_controlUnit_io_signals_bypassData_src2_bypass),
-    .io_controlSignal_bypassData_src1_data
-      (_controlUnit_io_signals_bypassData_src1_data),
-    .io_controlSignal_bypassData_src2_data
-      (_controlUnit_io_signals_bypassData_src2_data),
+    .io_controlSignal_bypassData_stage1_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
+    .io_controlSignal_bypassData_stage1_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
+    .io_controlSignal_bypassData_stage1_src1_data
+      (_controlUnit_io_signals_bypassData_stage1_src1_data),
+    .io_controlSignal_bypassData_stage1_src2_data
+      (_controlUnit_io_signals_bypassData_stage1_src2_data),
+    .io_controlSignal_bypassData_stage2_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
+    .io_controlSignal_bypassData_stage2_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
+    .io_controlSignal_bypassData_stage2_src1_data
+      (_controlUnit_io_signals_bypassData_stage2_src1_data),
+    .io_controlSignal_bypassData_stage2_src2_data
+      (_controlUnit_io_signals_bypassData_stage2_src2_data),
     .io_controlSignal_decodeStage1Stall
       (_controlUnit_io_signals_decodeStage1Stall),
     .io_memoryUnit_data_pc
@@ -5378,16 +5469,8 @@ module Core(
     .io_result                                                 (_writeBackUnit_io_result)
   );
   ControlUnit controlUnit (
-    .clock                                   (clock),
-    .reset                                   (reset),
-    .io_decodeInfo_src1_raddr
-      (_decodeUnit_io_executeStage_data_info_src1_raddr),
-    .io_decodeInfo_src2_raddr
-      (_decodeUnit_io_executeStage_data_info_src2_raddr),
-    .io_decodeInfo_src1_ren
-      (_decodeUnit_io_executeStage_data_info_src1_ren),
-    .io_decodeInfo_src2_ren
-      (_decodeUnit_io_executeStage_data_info_src2_ren),
+    .clock                                    (clock),
+    .reset                                    (reset),
     .io_executeInfo_valid
       (_executeUnit_io_memoryStage_data_info_valid),
     .io_executeInfo_reg_wen
@@ -5406,27 +5489,51 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackInfo_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_executeUnitReady                     (_executeUnit_io_ready),
+    .io_executeUnitReady                      (_executeUnit_io_ready),
     .io_signals_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
     .io_signals_fetchUnitSignal_do_flush
       (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_signals_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
-    .io_signals_bypassData_src1_bypass
-      (_controlUnit_io_signals_bypassData_src1_bypass),
-    .io_signals_bypassData_src2_bypass
-      (_controlUnit_io_signals_bypassData_src2_bypass),
-    .io_signals_bypassData_src1_data
-      (_controlUnit_io_signals_bypassData_src1_data),
-    .io_signals_bypassData_src2_data
-      (_controlUnit_io_signals_bypassData_src2_data),
-    .io_signals_decodeStage1Stall            (_controlUnit_io_signals_decodeStage1Stall),
-    .io_branch                               (_decodeUnit_io_branch),
-    .io_decodeInternalStall                  (_decodeUnit_io_decodeInternalStall),
-    .io_executeResult                        (_executeUnit_io_result),
-    .io_memoryResult                         (_memoryUnit_io_result),
-    .io_writeBackResult                      (_writeBackUnit_io_result)
+    .io_signals_bypassData_stage1_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
+    .io_signals_bypassData_stage1_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
+    .io_signals_bypassData_stage1_src1_data
+      (_controlUnit_io_signals_bypassData_stage1_src1_data),
+    .io_signals_bypassData_stage1_src2_data
+      (_controlUnit_io_signals_bypassData_stage1_src2_data),
+    .io_signals_bypassData_stage2_src1_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
+    .io_signals_bypassData_stage2_src2_bypass
+      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
+    .io_signals_bypassData_stage2_src1_data
+      (_controlUnit_io_signals_bypassData_stage2_src1_data),
+    .io_signals_bypassData_stage2_src2_data
+      (_controlUnit_io_signals_bypassData_stage2_src2_data),
+    .io_signals_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
+    .io_branch                                (_decodeUnit_io_branch),
+    .io_decodeInternalStall                   (_decodeUnit_io_decodeInternalStall),
+    .io_decodeRegisterInfo_stage1_src1_raddr
+      (_decodeUnit_io_registerInfo_stage1_src1_raddr),
+    .io_decodeRegisterInfo_stage1_src2_raddr
+      (_decodeUnit_io_registerInfo_stage1_src2_raddr),
+    .io_decodeRegisterInfo_stage1_src1_ren
+      (_decodeUnit_io_registerInfo_stage1_src1_ren),
+    .io_decodeRegisterInfo_stage1_src2_ren
+      (_decodeUnit_io_registerInfo_stage1_src2_ren),
+    .io_decodeRegisterInfo_stage2_src1_raddr
+      (_decodeUnit_io_registerInfo_stage2_src1_raddr),
+    .io_decodeRegisterInfo_stage2_src2_raddr
+      (_decodeUnit_io_registerInfo_stage2_src2_raddr),
+    .io_decodeRegisterInfo_stage2_src1_ren
+      (_decodeUnit_io_registerInfo_stage2_src1_ren),
+    .io_decodeRegisterInfo_stage2_src2_ren
+      (_decodeUnit_io_registerInfo_stage2_src2_ren),
+    .io_executeResult                         (_executeUnit_io_result),
+    .io_memoryResult                          (_memoryUnit_io_result),
+    .io_writeBackResult                       (_writeBackUnit_io_result)
   );
   Diff diff (
     .clock                                 (clock),
