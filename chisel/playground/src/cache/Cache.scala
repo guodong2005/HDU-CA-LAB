@@ -170,7 +170,7 @@ class ICache extends Module {
   }
 
   // Debug
-  dontTouch(io.icache_debug)
+  // dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
   io.icache_debug.hit_cache      := hit_cache
   io.icache_debug.cache_we       := cache_we

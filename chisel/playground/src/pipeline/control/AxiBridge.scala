@@ -25,9 +25,9 @@ class wRequest extends Bundle {
 }
 
 /**
-  * Axibridge acts as an intermediary between two cache modules (dcache and icache) and an external AXI memory bus. It arbitrates AR (read address) requests from both caches and forwards them on the external bus. When the AXI slave returns read data, the bridge demultiplexes the response to the
-  * proper cache based on a source tag encoded in the lowest bit of the AXI id.
-  */
+ * Axibridge acts as an intermediary between two cache modules (dcache and icache) and an external AXI memory bus. It arbitrates AR (read address) requests from both caches and forwards them on the external bus. When the AXI slave returns read data, the bridge demultiplexes the response to the
+ * proper cache based on a source tag encoded in the lowest bit of the AXI id.
+ */
 class Axibridge extends Module {
   val io = IO(new Bundle {
     val axi         = new AXI()
@@ -36,7 +36,7 @@ class Axibridge extends Module {
     val read_resp   = Decoupled(new ICacheResp())
   })
 
-  dontTouch(io.dcacheInput)
+  // dontTouch(io.dcacheInput)
   io.axi         := DontCare
   io.dcacheInput := DontCare
   io.icacheInput := DontCare

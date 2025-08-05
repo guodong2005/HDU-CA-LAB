@@ -1,5 +1,4 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines._
@@ -13,23 +12,46 @@ class Alu extends Module {
     val valid    = Output(Bool())
   })
 
-  io.result := 0.U
+  // 并行计算所有可能的结果
+  val src1 = io.src_info.src1_data
+  val src2 = io.src_info.src2_data
+
+  // 算术运算单元 - 并行计算
+  val adder_result = src1 + src2
+  val sub_result   = src1 - src2
+
+  // 逻辑运算单元 - 并行计算
+  val and_result = src1 & src2
+  val or_result  = src1 | src2
+  val xor_result = src1 ^ src2
+
+  // 移位运算单元 - 并行计算
+  val shift_amount = src2(4, 0) // 只取低5位作为移位量
+  val sll_result   = src1 << shift_amount
+  val srl_result   = src1 >> shift_amount
+
+  // 比较运算单元 - 用于分支指令
+  val eq_result = (src1 === src2)
+  val ne_result = (src1 =/= src2)
+
+  // 输出逻辑 - 使用并行MUX选择
+  io.result := MuxLookup(io.info.op, 0.U)(
+    Seq(
+      ALUOpType.add -> adder_result(31, 0), // add.w, addi.w, pcaddu12i, 地址计算
+      ALUOpType.sub -> sub_result(31, 0),   // sub.w
+      ALUOpType.and -> and_result(31, 0),   // and, andi
+      ALUOpType.or  -> or_result(31, 0),    // or, ori
+      ALUOpType.xor -> xor_result(31, 0),   // xor
+      ALUOpType.sll -> sll_result(31, 0),   // slli.w
+      ALUOpType.srl -> srl_result(31, 0)    // srli.w
+
+    ))
 
   io.valid := io.info.valid
-  switch(io.info.op) {
-    // Other 32-bit operations remain unchanged
-    is(ALUOpType.add) { io.result := (io.src_info.src1_data + io.src_info.src2_data)(31, 0) } // ADD
-    is(ALUOpType.sub) { io.result := (io.src_info.src1_data - io.src_info.src2_data)(31, 0) } // SUB
-    is(ALUOpType.and) { io.result := (io.src_info.src1_data & io.src_info.src2_data)(31, 0) } // AND
-    is(ALUOpType.or) { io.result := (io.src_info.src1_data | io.src_info.src2_data)(31, 0) } // OR
-    is(ALUOpType.xor) { io.result := (io.src_info.src1_data ^ io.src_info.src2_data)(31, 0) } // XOR
-    is(ALUOpType.nor) { io.result := (~(io.src_info.src1_data | io.src_info.src2_data))(31, 0) } // NOR
-    is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt) } // SLT (signed)
-    is(ALUOpType.sltu) { io.result := (io.src_info.src1_data.asUInt < io.src_info.src2_data).asUInt } // SLTU (unsigned)
-    is(ALUOpType.sll) { io.result := (io.src_info.src1_data << io.src_info.src2_data(4, 0))(31, 0) } // SLL
-    is(ALUOpType.srl) { io.result := (io.src_info.src1_data >> io.src_info.src2_data(4, 0))(31, 0) } // SRL (logical right shift)
-    is(ALUOpType.sra) { io.result := (io.src_info.src1_data.asSInt >> io.src_info.src2_data(4, 0)).asUInt(31, 0) } // SRA (arithmetic right shift)
 
-  }
-
+  // 可选：添加性能计数器
+  // val op_counter = RegInit(VecInit(Seq.fill(16)(0.U(32.W))))
+  // when(io.info.valid) {
+  //   op_counter(io.info.op) := op_counter(io.info.op) + 1.U
+  // }
 }
