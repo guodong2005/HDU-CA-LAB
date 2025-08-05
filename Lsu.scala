@@ -37,7 +37,7 @@ class Lsu extends Module {
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
 
-  val writeBuffer = Module(new WriteBuffer(depth = 4))
+  val writeBuffer = Module(new WriteBuffer(depth = 8))
   writeBuffer.io.flush        := false.B
   writeBuffer.io.bypassEnable := true.B
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
@@ -183,5 +183,12 @@ class Lsu extends Module {
     }
   }
 
-  io.diffout := DontCare
+  io.diffout                       := DontCare
+  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
+  io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
+  io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
+  io.diffout.storeEvent.storeData  := newReq.wdata
+  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
+  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
 }
