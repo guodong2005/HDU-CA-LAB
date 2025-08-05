@@ -3233,7 +3233,6 @@ endmodule
 module Bru(
   input         io_info_valid,
   input  [4:0]  io_info_op,
-                io_info_reg_waddr,
   input  [31:0] io_info_imm,
   input  [2:0]  io_info_fusel,
   input  [31:0] io_pc,
@@ -3245,33 +3244,61 @@ module Bru(
   output [31:0] io_target
 );
 
-  wire eq = io_src_info_src1_data == io_src_info_src2_data;
-  wire lt = $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data);
-  wire ltu = io_src_info_src1_data < io_src_info_src2_data;
-  wire _io_target_T = io_info_op == 5'hB;
-  assign io_valid = io_info_valid & io_info_fusel == 3'h3;
+  wire _io_branch_T_30 = io_info_fusel == 3'h3;
+  wire _GEN = io_info_op == 5'h8;
+  wire _GEN_0 = io_info_op == 5'hA;
+  wire _GEN_1 = io_info_op == 5'hB;
+  wire _GEN_2 = io_info_op == 5'h0;
+  wire _GEN_3 = io_info_op == 5'h1;
+  wire _GEN_4 = io_info_op == 5'h4;
+  wire _GEN_5 = io_info_op == 5'h5;
+  wire _GEN_6 = io_info_op == 5'h6;
+  wire _GEN_7 = io_info_op == 5'h7;
+  assign io_valid = io_info_valid & _io_branch_T_30;
   assign io_result =
-    io_info_op == 5'h8
-      ? 32'h0
-      : io_info_op == 5'hA
-          ? io_pc + 32'h4
-          : io_info_op != 5'hB | io_info_reg_waddr == 5'h0 ? 32'h0 : io_pc + 32'h4;
+    _GEN ? 32'h0 : _GEN_0 ? io_pc + 32'h4 : _GEN_1 ? io_pc + 32'h4 : 32'h0;
   assign io_branch =
-    io_info_op == 5'h0
-      ? eq
-      : io_info_op == 5'h1
-          ? ~eq
-          : io_info_op == 5'h4
-              ? lt
-              : io_info_op == 5'h5
-                  ? ~lt
-                  : io_info_op == 5'h6
-                      ? ltu
-                      : io_info_op == 5'h7
-                          ? ~ltu
-                          : io_info_op == 5'h8 | io_info_op == 5'hA | _io_target_T;
+    _GEN
+      ? io_info_valid & _io_branch_T_30
+      : _GEN_0
+          ? io_info_valid & _io_branch_T_30
+          : _GEN_1
+              ? io_info_valid & _io_branch_T_30
+              : _GEN_2
+                  ? io_info_valid & _io_branch_T_30
+                    & io_src_info_src1_data == io_src_info_src2_data
+                  : _GEN_3
+                      ? io_info_valid & _io_branch_T_30
+                        & io_src_info_src1_data != io_src_info_src2_data
+                      : _GEN_4
+                          ? io_info_valid & _io_branch_T_30
+                            & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
+                          : _GEN_5
+                              ? io_info_valid & _io_branch_T_30
+                                & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
+                              : _GEN_6
+                                  ? io_info_valid & _io_branch_T_30
+                                    & io_src_info_src1_data < io_src_info_src2_data
+                                  : _GEN_7 & io_info_valid & _io_branch_T_30
+                                    & io_src_info_src1_data >= io_src_info_src2_data;
   assign io_target =
-    _io_target_T ? io_src_info_src1_data + io_info_imm : io_pc + io_info_imm;
+    _GEN
+      ? io_pc + io_info_imm
+      : _GEN_0
+          ? io_pc + io_info_imm
+          : _GEN_1
+              ? io_src_info_src1_data + io_info_imm
+              : _GEN_2
+                  ? io_pc + io_info_imm
+                  : _GEN_3
+                      ? io_pc + io_info_imm
+                      : _GEN_4
+                          ? io_pc + io_info_imm
+                          : _GEN_5
+                              ? io_pc + io_info_imm
+                              : _GEN_6
+                                  ? io_pc + io_info_imm
+                                  : _GEN_7 ? io_pc + io_info_imm : 32'h0;
 endmodule
 
 module Fu(
@@ -3280,7 +3307,6 @@ module Fu(
   input  [31:0] io_data_pc,
   input         io_data_info_valid,
   input  [4:0]  io_data_info_op,
-                io_data_info_reg_waddr,
   input  [31:0] io_data_info_imm,
   input  [2:0]  io_data_info_fusel,
   input  [31:0] io_data_src_info_src1_data,
@@ -3400,7 +3426,6 @@ module Fu(
   Bru bru (
     .io_info_valid         (io_data_info_valid),
     .io_info_op            (io_data_info_op),
-    .io_info_reg_waddr     (io_data_info_reg_waddr),
     .io_info_imm           (io_data_info_imm),
     .io_info_fusel         (io_data_info_fusel),
     .io_pc                 (io_data_pc),
@@ -3469,7 +3494,6 @@ module ExecuteUnit(
     .io_data_pc                            (io_executeStage_data_pc),
     .io_data_info_valid                    (io_executeStage_data_info_valid),
     .io_data_info_op                       (io_executeStage_data_info_op),
-    .io_data_info_reg_waddr                (io_executeStage_data_info_reg_waddr),
     .io_data_info_imm                      (io_executeStage_data_info_imm),
     .io_data_info_fusel                    (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data            (io_executeStage_data_src_info_src1_data),
