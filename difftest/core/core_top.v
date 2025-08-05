@@ -3112,141 +3112,664 @@ module WriteBuffer(
   output [31:0] io_deq_bits_addr,
   output        io_deq_bits_write,
   output [31:0] io_deq_bits_wdata,
-  output [3:0]  io_deq_bits_wstrb
+  output [3:0]  io_deq_bits_wstrb,
+  input  [31:0] io_bypassAddr
 );
 
-  reg  [31:0]      buffer_0_req_addr;
-  reg              buffer_0_req_write;
-  reg  [31:0]      buffer_0_req_wdata;
-  reg  [3:0]       buffer_0_req_wstrb;
-  reg  [31:0]      buffer_1_req_addr;
-  reg              buffer_1_req_write;
-  reg  [31:0]      buffer_1_req_wdata;
-  reg  [3:0]       buffer_1_req_wstrb;
-  reg  [31:0]      buffer_2_req_addr;
-  reg              buffer_2_req_write;
-  reg  [31:0]      buffer_2_req_wdata;
-  reg  [3:0]       buffer_2_req_wstrb;
-  reg  [31:0]      buffer_3_req_addr;
-  reg              buffer_3_req_write;
-  reg  [31:0]      buffer_3_req_wdata;
-  reg  [3:0]       buffer_3_req_wstrb;
-  reg              valids_0;
-  reg              valids_1;
-  reg              valids_2;
-  reg              valids_3;
-  wire [1:0]       deqIdx = valids_0 ? 2'h0 : valids_1 ? 2'h1 : {1'h1, ~valids_2};
-  wire [2:0]       _io_enq_ready_T_9 =
-    {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
-    + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
-  wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
-  wire [3:0][31:0] _GEN =
-    {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
-  wire [3:0]       _GEN_0 =
-    {{buffer_3_req_write},
+  reg  [31:0]       buffer_0_req_addr;
+  reg               buffer_0_req_write;
+  reg  [31:0]       buffer_0_req_wdata;
+  reg  [3:0]        buffer_0_req_wstrb;
+  reg               buffer_0_valid;
+  reg               buffer_0_allocated;
+  reg  [31:0]       buffer_1_req_addr;
+  reg               buffer_1_req_write;
+  reg  [31:0]       buffer_1_req_wdata;
+  reg  [3:0]        buffer_1_req_wstrb;
+  reg               buffer_1_valid;
+  reg               buffer_1_allocated;
+  reg  [31:0]       buffer_2_req_addr;
+  reg               buffer_2_req_write;
+  reg  [31:0]       buffer_2_req_wdata;
+  reg  [3:0]        buffer_2_req_wstrb;
+  reg               buffer_2_valid;
+  reg               buffer_2_allocated;
+  reg  [31:0]       buffer_3_req_addr;
+  reg               buffer_3_req_write;
+  reg  [31:0]       buffer_3_req_wdata;
+  reg  [3:0]        buffer_3_req_wstrb;
+  reg               buffer_3_valid;
+  reg               buffer_3_allocated;
+  reg  [31:0]       buffer_4_req_addr;
+  reg               buffer_4_req_write;
+  reg  [31:0]       buffer_4_req_wdata;
+  reg  [3:0]        buffer_4_req_wstrb;
+  reg               buffer_4_valid;
+  reg               buffer_4_allocated;
+  reg  [31:0]       buffer_5_req_addr;
+  reg               buffer_5_req_write;
+  reg  [31:0]       buffer_5_req_wdata;
+  reg  [3:0]        buffer_5_req_wstrb;
+  reg               buffer_5_valid;
+  reg               buffer_5_allocated;
+  reg  [31:0]       buffer_6_req_addr;
+  reg               buffer_6_req_write;
+  reg  [31:0]       buffer_6_req_wdata;
+  reg  [3:0]        buffer_6_req_wstrb;
+  reg               buffer_6_valid;
+  reg               buffer_6_allocated;
+  reg  [31:0]       buffer_7_req_addr;
+  reg               buffer_7_req_write;
+  reg  [31:0]       buffer_7_req_wdata;
+  reg  [3:0]        buffer_7_req_wstrb;
+  reg               buffer_7_valid;
+  reg               buffer_7_allocated;
+  reg  [31:0]       buffer_8_req_addr;
+  reg               buffer_8_req_write;
+  reg  [31:0]       buffer_8_req_wdata;
+  reg  [3:0]        buffer_8_req_wstrb;
+  reg               buffer_8_valid;
+  reg               buffer_8_allocated;
+  reg  [31:0]       buffer_9_req_addr;
+  reg               buffer_9_req_write;
+  reg  [31:0]       buffer_9_req_wdata;
+  reg  [3:0]        buffer_9_req_wstrb;
+  reg               buffer_9_valid;
+  reg               buffer_9_allocated;
+  reg  [31:0]       buffer_10_req_addr;
+  reg               buffer_10_req_write;
+  reg  [31:0]       buffer_10_req_wdata;
+  reg  [3:0]        buffer_10_req_wstrb;
+  reg               buffer_10_valid;
+  reg               buffer_10_allocated;
+  reg  [31:0]       buffer_11_req_addr;
+  reg               buffer_11_req_write;
+  reg  [31:0]       buffer_11_req_wdata;
+  reg  [3:0]        buffer_11_req_wstrb;
+  reg               buffer_11_valid;
+  reg               buffer_11_allocated;
+  wire              validEntries_0 = buffer_0_valid & buffer_0_allocated;
+  wire              validEntries_1 = buffer_1_valid & buffer_1_allocated;
+  wire              validEntries_2 = buffer_2_valid & buffer_2_allocated;
+  wire              validEntries_3 = buffer_3_valid & buffer_3_allocated;
+  wire              validEntries_4 = buffer_4_valid & buffer_4_allocated;
+  wire              validEntries_5 = buffer_5_valid & buffer_5_allocated;
+  wire              validEntries_6 = buffer_6_valid & buffer_6_allocated;
+  wire              validEntries_7 = buffer_7_valid & buffer_7_allocated;
+  wire              validEntries_8 = buffer_8_valid & buffer_8_allocated;
+  wire              validEntries_9 = buffer_9_valid & buffer_9_allocated;
+  wire              validEntries_10 = buffer_10_valid & buffer_10_allocated;
+  wire              validEntries_11 = buffer_11_valid & buffer_11_allocated;
+  wire              sameAddrHits_0 =
+    validEntries_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_1 =
+    validEntries_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_2 =
+    validEntries_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_3 =
+    validEntries_3 & buffer_3_req_write & buffer_3_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_4 =
+    validEntries_4 & buffer_4_req_write & buffer_4_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_5 =
+    validEntries_5 & buffer_5_req_write & buffer_5_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_6 =
+    validEntries_6 & buffer_6_req_write & buffer_6_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_7 =
+    validEntries_7 & buffer_7_req_write & buffer_7_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_8 =
+    validEntries_8 & buffer_8_req_write & buffer_8_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_9 =
+    validEntries_9 & buffer_9_req_write & buffer_9_req_addr == io_enq_bits_addr;
+  wire              sameAddrHits_10 =
+    validEntries_10 & buffer_10_req_write & buffer_10_req_addr == io_enq_bits_addr;
+  wire              hasSameAddr =
+    sameAddrHits_0 | sameAddrHits_1 | sameAddrHits_2 | sameAddrHits_3 | sameAddrHits_4
+    | sameAddrHits_5 | sameAddrHits_6 | sameAddrHits_7 | sameAddrHits_8 | sameAddrHits_9
+    | sameAddrHits_10 | validEntries_11 & buffer_11_req_write
+    & buffer_11_req_addr == io_enq_bits_addr;
+  wire [3:0]        sameAddrIdx =
+    sameAddrHits_0
+      ? 4'h0
+      : sameAddrHits_1
+          ? 4'h1
+          : sameAddrHits_2
+              ? 4'h2
+              : sameAddrHits_3
+                  ? 4'h3
+                  : sameAddrHits_4
+                      ? 4'h4
+                      : sameAddrHits_5
+                          ? 4'h5
+                          : sameAddrHits_6
+                              ? 4'h6
+                              : sameAddrHits_7
+                                  ? 4'h7
+                                  : sameAddrHits_8
+                                      ? 4'h8
+                                      : sameAddrHits_9 ? 4'h9 : {3'h5, ~sameAddrHits_10};
+  wire              historySlots_0 = buffer_0_allocated & ~buffer_0_valid;
+  wire              historySlots_1 = buffer_1_allocated & ~buffer_1_valid;
+  wire              historySlots_2 = buffer_2_allocated & ~buffer_2_valid;
+  wire              historySlots_3 = buffer_3_allocated & ~buffer_3_valid;
+  wire              historySlots_4 = buffer_4_allocated & ~buffer_4_valid;
+  wire              historySlots_5 = buffer_5_allocated & ~buffer_5_valid;
+  wire              historySlots_6 = buffer_6_allocated & ~buffer_6_valid;
+  wire              historySlots_7 = buffer_7_allocated & ~buffer_7_valid;
+  wire              historySlots_8 = buffer_8_allocated & ~buffer_8_valid;
+  wire              historySlots_9 = buffer_9_allocated & ~buffer_9_valid;
+  wire              historySlots_10 = buffer_10_allocated & ~buffer_10_valid;
+  wire              hasHistorySlot =
+    historySlots_0 | historySlots_1 | historySlots_2 | historySlots_3 | historySlots_4
+    | historySlots_5 | historySlots_6 | historySlots_7 | historySlots_8 | historySlots_9
+    | historySlots_10 | buffer_11_allocated & ~buffer_11_valid;
+  wire [3:0]        _oldestHistoryIdx_T = {3'h5, ~historySlots_10};
+  wire [3:0]        enqIdx =
+    hasSameAddr
+      ? sameAddrIdx
+      : buffer_0_allocated & buffer_1_allocated & buffer_2_allocated & buffer_3_allocated
+        & buffer_4_allocated & buffer_5_allocated & buffer_6_allocated
+        & buffer_7_allocated & buffer_8_allocated & buffer_9_allocated
+        & buffer_10_allocated & buffer_11_allocated
+          ? (~hasHistorySlot | historySlots_0
+               ? 4'h0
+               : historySlots_1
+                   ? 4'h1
+                   : historySlots_2
+                       ? 4'h2
+                       : historySlots_3
+                           ? 4'h3
+                           : historySlots_4
+                               ? 4'h4
+                               : historySlots_5
+                                   ? 4'h5
+                                   : historySlots_6
+                                       ? 4'h6
+                                       : historySlots_7
+                                           ? 4'h7
+                                           : historySlots_8
+                                               ? 4'h8
+                                               : historySlots_9
+                                                   ? 4'h9
+                                                   : _oldestHistoryIdx_T)
+          : buffer_0_allocated
+              ? (buffer_1_allocated
+                   ? (buffer_2_allocated
+                        ? (buffer_3_allocated
+                             ? (buffer_4_allocated
+                                  ? (buffer_5_allocated
+                                       ? (buffer_6_allocated
+                                            ? (buffer_7_allocated
+                                                 ? (buffer_8_allocated
+                                                      ? (buffer_9_allocated
+                                                           ? {3'h5, buffer_10_allocated}
+                                                           : 4'h9)
+                                                      : 4'h8)
+                                                 : 4'h7)
+                                            : 4'h6)
+                                       : 4'h5)
+                                  : 4'h4)
+                             : 4'h3)
+                        : 4'h2)
+                   : 4'h1)
+              : 4'h0;
+  wire              io_enq_ready_0 =
+    io_enq_bits_write
+    & (hasSameAddr
+       | {1'h0,
+          {1'h0, {1'h0, validEntries_0} + {1'h0, validEntries_1} + {1'h0, validEntries_2}}
+            + {1'h0,
+               {1'h0, validEntries_3} + {1'h0, validEntries_4} + {1'h0, validEntries_5}}}
+       + {1'h0,
+          {1'h0, {1'h0, validEntries_6} + {1'h0, validEntries_7} + {1'h0, validEntries_8}}
+            + {1'h0,
+               {1'h0, validEntries_9} + {1'h0, validEntries_10}
+                 + {1'h0, validEntries_11}}} < 4'h4);
+  wire [3:0]        deqIdx =
+    validEntries_0
+      ? 4'h0
+      : validEntries_1
+          ? 4'h1
+          : validEntries_2
+              ? 4'h2
+              : validEntries_3
+                  ? 4'h3
+                  : validEntries_4
+                      ? 4'h4
+                      : validEntries_5
+                          ? 4'h5
+                          : validEntries_6
+                              ? 4'h6
+                              : validEntries_7
+                                  ? 4'h7
+                                  : validEntries_8
+                                      ? 4'h8
+                                      : validEntries_9 ? 4'h9 : {3'h5, ~validEntries_10};
+  wire              io_deq_valid_0 =
+    validEntries_0 | validEntries_1 | validEntries_2 | validEntries_3 | validEntries_4
+    | validEntries_5 | validEntries_6 | validEntries_7 | validEntries_8 | validEntries_9
+    | validEntries_10 | validEntries_11;
+  wire [15:0][31:0] _GEN =
+    {{buffer_0_req_addr},
+     {buffer_0_req_addr},
+     {buffer_0_req_addr},
+     {buffer_0_req_addr},
+     {buffer_11_req_addr},
+     {buffer_10_req_addr},
+     {buffer_9_req_addr},
+     {buffer_8_req_addr},
+     {buffer_7_req_addr},
+     {buffer_6_req_addr},
+     {buffer_5_req_addr},
+     {buffer_4_req_addr},
+     {buffer_3_req_addr},
+     {buffer_2_req_addr},
+     {buffer_1_req_addr},
+     {buffer_0_req_addr}};
+  wire [15:0]       _GEN_0 =
+    {{buffer_0_req_write},
+     {buffer_0_req_write},
+     {buffer_0_req_write},
+     {buffer_0_req_write},
+     {buffer_11_req_write},
+     {buffer_10_req_write},
+     {buffer_9_req_write},
+     {buffer_8_req_write},
+     {buffer_7_req_write},
+     {buffer_6_req_write},
+     {buffer_5_req_write},
+     {buffer_4_req_write},
+     {buffer_3_req_write},
      {buffer_2_req_write},
      {buffer_1_req_write},
      {buffer_0_req_write}};
-  wire [3:0][31:0] _GEN_1 =
-    {{buffer_3_req_wdata},
+  wire [15:0][31:0] _GEN_1 =
+    {{buffer_0_req_wdata},
+     {buffer_0_req_wdata},
+     {buffer_0_req_wdata},
+     {buffer_0_req_wdata},
+     {buffer_11_req_wdata},
+     {buffer_10_req_wdata},
+     {buffer_9_req_wdata},
+     {buffer_8_req_wdata},
+     {buffer_7_req_wdata},
+     {buffer_6_req_wdata},
+     {buffer_5_req_wdata},
+     {buffer_4_req_wdata},
+     {buffer_3_req_wdata},
      {buffer_2_req_wdata},
      {buffer_1_req_wdata},
      {buffer_0_req_wdata}};
-  wire [3:0][3:0]  _GEN_2 =
-    {{buffer_3_req_wstrb},
+  wire [15:0][3:0]  _GEN_2 =
+    {{buffer_0_req_wstrb},
+     {buffer_0_req_wstrb},
+     {buffer_0_req_wstrb},
+     {buffer_0_req_wstrb},
+     {buffer_11_req_wstrb},
+     {buffer_10_req_wstrb},
+     {buffer_9_req_wstrb},
+     {buffer_8_req_wstrb},
+     {buffer_7_req_wstrb},
+     {buffer_6_req_wstrb},
+     {buffer_5_req_wstrb},
+     {buffer_4_req_wstrb},
+     {buffer_3_req_wstrb},
      {buffer_2_req_wstrb},
      {buffer_1_req_wstrb},
      {buffer_0_req_wstrb}};
+  wire              _GEN_3 = io_enq_ready_0 & io_enq_valid & io_enq_bits_write;
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      if ((`PRINTF_COND_) & _GEN_3 & hasSameAddr & ~reset)
+        $fwrite(32'h80000002, "WriteBuffer: Merging store to addr %x with data %x\n",
+                io_enq_bits_addr, io_enq_bits_wdata);
+      if ((`PRINTF_COND_) & _GEN_3 & ~hasSameAddr & ~reset)
+        $fwrite(32'h80000002,
+                "WriteBuffer: New store to addr %x with data %x at idx %d\n",
+                io_enq_bits_addr, io_enq_bits_wdata, enqIdx);
+      if ((`PRINTF_COND_) & 1'h0)
+        $fwrite(32'h80000002, "WriteBuffer: Bypass hit for addr %x, returning data %x\n",
+                io_bypassAddr, 32'h0);
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
+  reg  [15:0]       cleanupCounter;
   always @(posedge clock) begin
-    automatic logic [1:0] enqIdx;
-    automatic logic       _GEN_3 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-    automatic logic       _GEN_4;
-    automatic logic       _GEN_5;
-    automatic logic       _GEN_6;
-    automatic logic       _GEN_7;
-    enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-    _GEN_4 = _GEN_3 & enqIdx == 2'h0;
-    _GEN_5 = _GEN_3 & enqIdx == 2'h1;
-    _GEN_6 = _GEN_3 & enqIdx == 2'h2;
-    _GEN_7 = _GEN_3 & (&enqIdx);
-    if (_GEN_4) begin
-      buffer_0_req_addr <= io_enq_bits_addr;
-      buffer_0_req_write <= io_enq_bits_write;
-      buffer_0_req_wdata <= io_enq_bits_wdata;
-      buffer_0_req_wstrb <= io_enq_bits_wstrb;
-    end
+    automatic logic       _GEN_4 = enqIdx == 4'h0;
+    automatic logic       _GEN_5 = ~_GEN_3 | hasSameAddr | ~_GEN_4;
+    automatic logic       _GEN_6 = enqIdx == 4'h1;
+    automatic logic       _GEN_7 = ~_GEN_3 | hasSameAddr | ~_GEN_6;
+    automatic logic       _GEN_8 = enqIdx == 4'h2;
+    automatic logic       _GEN_9 = ~_GEN_3 | hasSameAddr | ~_GEN_8;
+    automatic logic       _GEN_10 = enqIdx == 4'h3;
+    automatic logic       _GEN_11 = ~_GEN_3 | hasSameAddr | ~_GEN_10;
+    automatic logic       _GEN_12 = enqIdx == 4'h4;
+    automatic logic       _GEN_13 = ~_GEN_3 | hasSameAddr | ~_GEN_12;
+    automatic logic       _GEN_14 = enqIdx == 4'h5;
+    automatic logic       _GEN_15 = ~_GEN_3 | hasSameAddr | ~_GEN_14;
+    automatic logic       _GEN_16 = enqIdx == 4'h6;
+    automatic logic       _GEN_17 = ~_GEN_3 | hasSameAddr | ~_GEN_16;
+    automatic logic       _GEN_18 = enqIdx == 4'h7;
+    automatic logic       _GEN_19 = ~_GEN_3 | hasSameAddr | ~_GEN_18;
+    automatic logic       _GEN_20 = enqIdx == 4'h8;
+    automatic logic       _GEN_21 = ~_GEN_3 | hasSameAddr | ~_GEN_20;
+    automatic logic       _GEN_22 = enqIdx == 4'h9;
+    automatic logic       _GEN_23 = ~_GEN_3 | hasSameAddr | ~_GEN_22;
+    automatic logic       _GEN_24 = enqIdx == 4'hA;
+    automatic logic       _GEN_25 = ~_GEN_3 | hasSameAddr | ~_GEN_24;
+    automatic logic       _GEN_26 = enqIdx == 4'hB;
+    automatic logic       _GEN_27 = ~_GEN_3 | hasSameAddr | ~_GEN_26;
+    automatic logic       _GEN_28 = _GEN_3 & ~hasSameAddr & _GEN_4;
+    automatic logic       _GEN_29 = _GEN_3 & ~hasSameAddr & _GEN_6;
+    automatic logic       _GEN_30 = _GEN_3 & ~hasSameAddr & _GEN_8;
+    automatic logic       _GEN_31 = _GEN_3 & ~hasSameAddr & _GEN_10;
+    automatic logic       _GEN_32 = _GEN_3 & ~hasSameAddr & _GEN_12;
+    automatic logic       _GEN_33 = _GEN_3 & ~hasSameAddr & _GEN_14;
+    automatic logic       _GEN_34 = _GEN_3 & ~hasSameAddr & _GEN_16;
+    automatic logic       _GEN_35 = _GEN_3 & ~hasSameAddr & _GEN_18;
+    automatic logic       _GEN_36 = _GEN_3 & ~hasSameAddr & _GEN_20;
+    automatic logic       _GEN_37 = _GEN_3 & ~hasSameAddr & _GEN_22;
+    automatic logic       _GEN_38 = _GEN_3 & ~hasSameAddr & _GEN_24;
+    automatic logic       _GEN_39 = _GEN_3 & ~hasSameAddr & _GEN_26;
+    automatic logic       _GEN_40 = io_deq_ready & io_deq_valid_0;
+    automatic logic [3:0] oldestHistoryIdx =
+      historySlots_0
+        ? 4'h0
+        : historySlots_1
+            ? 4'h1
+            : historySlots_2
+                ? 4'h2
+                : historySlots_3
+                    ? 4'h3
+                    : historySlots_4
+                        ? 4'h4
+                        : historySlots_5
+                            ? 4'h5
+                            : historySlots_6
+                                ? 4'h6
+                                : historySlots_7
+                                    ? 4'h7
+                                    : historySlots_8
+                                        ? 4'h8
+                                        : historySlots_9 ? 4'h9 : _oldestHistoryIdx_T;
+    automatic logic       _GEN_41;
+    _GEN_41 = cleanupCounter == 16'h0 & hasHistorySlot;
     if (_GEN_5) begin
-      buffer_1_req_addr <= io_enq_bits_addr;
-      buffer_1_req_write <= io_enq_bits_write;
-      buffer_1_req_wdata <= io_enq_bits_wdata;
-      buffer_1_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_6) begin
-      buffer_2_req_addr <= io_enq_bits_addr;
-      buffer_2_req_write <= io_enq_bits_write;
-      buffer_2_req_wdata <= io_enq_bits_wdata;
-      buffer_2_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_7) begin
-      buffer_3_req_addr <= io_enq_bits_addr;
-      buffer_3_req_write <= io_enq_bits_write;
-      buffer_3_req_wdata <= io_enq_bits_wdata;
-      buffer_3_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (reset) begin
-      valids_0 <= 1'h0;
-      valids_1 <= 1'h0;
-      valids_2 <= 1'h0;
-      valids_3 <= 1'h0;
     end
     else begin
-      automatic logic _GEN_8 = io_deq_ready & io_deq_valid_0;
-      valids_0 <= ~(_GEN_8 & deqIdx == 2'h0) & (_GEN_4 | valids_0);
-      valids_1 <= ~(_GEN_8 & deqIdx == 2'h1) & (_GEN_5 | valids_1);
-      valids_2 <= ~(_GEN_8 & deqIdx == 2'h2) & (_GEN_6 | valids_2);
-      valids_3 <= ~(_GEN_8 & (&deqIdx)) & (_GEN_7 | valids_3);
+      buffer_0_req_addr <= io_enq_bits_addr;
+      buffer_0_req_write <= io_enq_bits_write;
     end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h0 : _GEN_4))
+      buffer_0_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_5) begin
+    end
+    else
+      buffer_0_req_wstrb <= io_enq_bits_wstrb;
+    buffer_0_valid <= ~(_GEN_40 & deqIdx == 4'h0) & (_GEN_28 | ~reset & buffer_0_valid);
+    buffer_0_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h0) & (_GEN_28 | ~reset & buffer_0_allocated);
+    if (_GEN_7) begin
+    end
+    else begin
+      buffer_1_req_addr <= io_enq_bits_addr;
+      buffer_1_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h1 : _GEN_6))
+      buffer_1_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_7) begin
+    end
+    else
+      buffer_1_req_wstrb <= io_enq_bits_wstrb;
+    buffer_1_valid <= ~(_GEN_40 & deqIdx == 4'h1) & (_GEN_29 | ~reset & buffer_1_valid);
+    buffer_1_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h1) & (_GEN_29 | ~reset & buffer_1_allocated);
+    if (_GEN_9) begin
+    end
+    else begin
+      buffer_2_req_addr <= io_enq_bits_addr;
+      buffer_2_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h2 : _GEN_8))
+      buffer_2_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_9) begin
+    end
+    else
+      buffer_2_req_wstrb <= io_enq_bits_wstrb;
+    buffer_2_valid <= ~(_GEN_40 & deqIdx == 4'h2) & (_GEN_30 | ~reset & buffer_2_valid);
+    buffer_2_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h2) & (_GEN_30 | ~reset & buffer_2_allocated);
+    if (_GEN_11) begin
+    end
+    else begin
+      buffer_3_req_addr <= io_enq_bits_addr;
+      buffer_3_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h3 : _GEN_10))
+      buffer_3_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_11) begin
+    end
+    else
+      buffer_3_req_wstrb <= io_enq_bits_wstrb;
+    buffer_3_valid <= ~(_GEN_40 & deqIdx == 4'h3) & (_GEN_31 | ~reset & buffer_3_valid);
+    buffer_3_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h3) & (_GEN_31 | ~reset & buffer_3_allocated);
+    if (_GEN_13) begin
+    end
+    else begin
+      buffer_4_req_addr <= io_enq_bits_addr;
+      buffer_4_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h4 : _GEN_12))
+      buffer_4_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_13) begin
+    end
+    else
+      buffer_4_req_wstrb <= io_enq_bits_wstrb;
+    buffer_4_valid <= ~(_GEN_40 & deqIdx == 4'h4) & (_GEN_32 | ~reset & buffer_4_valid);
+    buffer_4_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h4) & (_GEN_32 | ~reset & buffer_4_allocated);
+    if (_GEN_15) begin
+    end
+    else begin
+      buffer_5_req_addr <= io_enq_bits_addr;
+      buffer_5_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h5 : _GEN_14))
+      buffer_5_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_15) begin
+    end
+    else
+      buffer_5_req_wstrb <= io_enq_bits_wstrb;
+    buffer_5_valid <= ~(_GEN_40 & deqIdx == 4'h5) & (_GEN_33 | ~reset & buffer_5_valid);
+    buffer_5_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h5) & (_GEN_33 | ~reset & buffer_5_allocated);
+    if (_GEN_17) begin
+    end
+    else begin
+      buffer_6_req_addr <= io_enq_bits_addr;
+      buffer_6_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h6 : _GEN_16))
+      buffer_6_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_17) begin
+    end
+    else
+      buffer_6_req_wstrb <= io_enq_bits_wstrb;
+    buffer_6_valid <= ~(_GEN_40 & deqIdx == 4'h6) & (_GEN_34 | ~reset & buffer_6_valid);
+    buffer_6_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h6) & (_GEN_34 | ~reset & buffer_6_allocated);
+    if (_GEN_19) begin
+    end
+    else begin
+      buffer_7_req_addr <= io_enq_bits_addr;
+      buffer_7_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h7 : _GEN_18))
+      buffer_7_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_19) begin
+    end
+    else
+      buffer_7_req_wstrb <= io_enq_bits_wstrb;
+    buffer_7_valid <= ~(_GEN_40 & deqIdx == 4'h7) & (_GEN_35 | ~reset & buffer_7_valid);
+    buffer_7_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h7) & (_GEN_35 | ~reset & buffer_7_allocated);
+    if (_GEN_21) begin
+    end
+    else begin
+      buffer_8_req_addr <= io_enq_bits_addr;
+      buffer_8_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h8 : _GEN_20))
+      buffer_8_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_21) begin
+    end
+    else
+      buffer_8_req_wstrb <= io_enq_bits_wstrb;
+    buffer_8_valid <= ~(_GEN_40 & deqIdx == 4'h8) & (_GEN_36 | ~reset & buffer_8_valid);
+    buffer_8_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h8) & (_GEN_36 | ~reset & buffer_8_allocated);
+    if (_GEN_23) begin
+    end
+    else begin
+      buffer_9_req_addr <= io_enq_bits_addr;
+      buffer_9_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'h9 : _GEN_22))
+      buffer_9_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_23) begin
+    end
+    else
+      buffer_9_req_wstrb <= io_enq_bits_wstrb;
+    buffer_9_valid <= ~(_GEN_40 & deqIdx == 4'h9) & (_GEN_37 | ~reset & buffer_9_valid);
+    buffer_9_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'h9) & (_GEN_37 | ~reset & buffer_9_allocated);
+    if (_GEN_25) begin
+    end
+    else begin
+      buffer_10_req_addr <= io_enq_bits_addr;
+      buffer_10_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'hA : _GEN_24))
+      buffer_10_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_25) begin
+    end
+    else
+      buffer_10_req_wstrb <= io_enq_bits_wstrb;
+    buffer_10_valid <= ~(_GEN_40 & deqIdx == 4'hA) & (_GEN_38 | ~reset & buffer_10_valid);
+    buffer_10_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'hA) & (_GEN_38 | ~reset & buffer_10_allocated);
+    if (_GEN_27) begin
+    end
+    else begin
+      buffer_11_req_addr <= io_enq_bits_addr;
+      buffer_11_req_write <= io_enq_bits_write;
+    end
+    if (_GEN_3 & (hasSameAddr ? sameAddrIdx == 4'hB : _GEN_26))
+      buffer_11_req_wdata <= io_enq_bits_wdata;
+    if (_GEN_27) begin
+    end
+    else
+      buffer_11_req_wstrb <= io_enq_bits_wstrb;
+    buffer_11_valid <= ~(_GEN_40 & deqIdx == 4'hB) & (_GEN_39 | ~reset & buffer_11_valid);
+    buffer_11_allocated <=
+      ~(_GEN_41 & oldestHistoryIdx == 4'hB) & (_GEN_39 | ~reset & buffer_11_allocated);
+    if (reset)
+      cleanupCounter <= 16'h0;
+    else
+      cleanupCounter <= cleanupCounter + 16'h1;
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:9];
+      automatic logic [31:0] _RANDOM[0:28];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [3:0] i = 4'h0; i < 4'hA; i += 4'h1) begin
+        for (logic [4:0] i = 5'h0; i < 5'h1D; i += 5'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        buffer_0_req_addr = _RANDOM[4'h0];
-        buffer_0_req_write = _RANDOM[4'h1][0];
-        buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
-        buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
-        buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
-        buffer_1_req_write = _RANDOM[4'h3][8];
-        buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
-        buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
-        buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
-        buffer_2_req_write = _RANDOM[4'h5][16];
-        buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
-        buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
-        buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
-        buffer_3_req_write = _RANDOM[4'h7][24];
-        buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
-        buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
-        valids_0 = _RANDOM[4'h9][0];
-        valids_1 = _RANDOM[4'h9][1];
-        valids_2 = _RANDOM[4'h9][2];
-        valids_3 = _RANDOM[4'h9][3];
+        buffer_0_req_addr = _RANDOM[5'h0];
+        buffer_0_req_write = _RANDOM[5'h1][0];
+        buffer_0_req_wdata = {_RANDOM[5'h1][31:1], _RANDOM[5'h2][0]};
+        buffer_0_req_wstrb = _RANDOM[5'h2][4:1];
+        buffer_0_valid = _RANDOM[5'h2][8];
+        buffer_0_allocated = _RANDOM[5'h2][9];
+        buffer_1_req_addr = {_RANDOM[5'h2][31:10], _RANDOM[5'h3][9:0]};
+        buffer_1_req_write = _RANDOM[5'h3][10];
+        buffer_1_req_wdata = {_RANDOM[5'h3][31:11], _RANDOM[5'h4][10:0]};
+        buffer_1_req_wstrb = _RANDOM[5'h4][14:11];
+        buffer_1_valid = _RANDOM[5'h4][18];
+        buffer_1_allocated = _RANDOM[5'h4][19];
+        buffer_2_req_addr = {_RANDOM[5'h4][31:20], _RANDOM[5'h5][19:0]};
+        buffer_2_req_write = _RANDOM[5'h5][20];
+        buffer_2_req_wdata = {_RANDOM[5'h5][31:21], _RANDOM[5'h6][20:0]};
+        buffer_2_req_wstrb = _RANDOM[5'h6][24:21];
+        buffer_2_valid = _RANDOM[5'h6][28];
+        buffer_2_allocated = _RANDOM[5'h6][29];
+        buffer_3_req_addr = {_RANDOM[5'h6][31:30], _RANDOM[5'h7][29:0]};
+        buffer_3_req_write = _RANDOM[5'h7][30];
+        buffer_3_req_wdata = {_RANDOM[5'h7][31], _RANDOM[5'h8][30:0]};
+        buffer_3_req_wstrb = {_RANDOM[5'h8][31], _RANDOM[5'h9][2:0]};
+        buffer_3_valid = _RANDOM[5'h9][6];
+        buffer_3_allocated = _RANDOM[5'h9][7];
+        buffer_4_req_addr = {_RANDOM[5'h9][31:8], _RANDOM[5'hA][7:0]};
+        buffer_4_req_write = _RANDOM[5'hA][8];
+        buffer_4_req_wdata = {_RANDOM[5'hA][31:9], _RANDOM[5'hB][8:0]};
+        buffer_4_req_wstrb = _RANDOM[5'hB][12:9];
+        buffer_4_valid = _RANDOM[5'hB][16];
+        buffer_4_allocated = _RANDOM[5'hB][17];
+        buffer_5_req_addr = {_RANDOM[5'hB][31:18], _RANDOM[5'hC][17:0]};
+        buffer_5_req_write = _RANDOM[5'hC][18];
+        buffer_5_req_wdata = {_RANDOM[5'hC][31:19], _RANDOM[5'hD][18:0]};
+        buffer_5_req_wstrb = _RANDOM[5'hD][22:19];
+        buffer_5_valid = _RANDOM[5'hD][26];
+        buffer_5_allocated = _RANDOM[5'hD][27];
+        buffer_6_req_addr = {_RANDOM[5'hD][31:28], _RANDOM[5'hE][27:0]};
+        buffer_6_req_write = _RANDOM[5'hE][28];
+        buffer_6_req_wdata = {_RANDOM[5'hE][31:29], _RANDOM[5'hF][28:0]};
+        buffer_6_req_wstrb = {_RANDOM[5'hF][31:29], _RANDOM[5'h10][0]};
+        buffer_6_valid = _RANDOM[5'h10][4];
+        buffer_6_allocated = _RANDOM[5'h10][5];
+        buffer_7_req_addr = {_RANDOM[5'h10][31:6], _RANDOM[5'h11][5:0]};
+        buffer_7_req_write = _RANDOM[5'h11][6];
+        buffer_7_req_wdata = {_RANDOM[5'h11][31:7], _RANDOM[5'h12][6:0]};
+        buffer_7_req_wstrb = _RANDOM[5'h12][10:7];
+        buffer_7_valid = _RANDOM[5'h12][14];
+        buffer_7_allocated = _RANDOM[5'h12][15];
+        buffer_8_req_addr = {_RANDOM[5'h12][31:16], _RANDOM[5'h13][15:0]};
+        buffer_8_req_write = _RANDOM[5'h13][16];
+        buffer_8_req_wdata = {_RANDOM[5'h13][31:17], _RANDOM[5'h14][16:0]};
+        buffer_8_req_wstrb = _RANDOM[5'h14][20:17];
+        buffer_8_valid = _RANDOM[5'h14][24];
+        buffer_8_allocated = _RANDOM[5'h14][25];
+        buffer_9_req_addr = {_RANDOM[5'h14][31:26], _RANDOM[5'h15][25:0]};
+        buffer_9_req_write = _RANDOM[5'h15][26];
+        buffer_9_req_wdata = {_RANDOM[5'h15][31:27], _RANDOM[5'h16][26:0]};
+        buffer_9_req_wstrb = _RANDOM[5'h16][30:27];
+        buffer_9_valid = _RANDOM[5'h17][2];
+        buffer_9_allocated = _RANDOM[5'h17][3];
+        buffer_10_req_addr = {_RANDOM[5'h17][31:4], _RANDOM[5'h18][3:0]};
+        buffer_10_req_write = _RANDOM[5'h18][4];
+        buffer_10_req_wdata = {_RANDOM[5'h18][31:5], _RANDOM[5'h19][4:0]};
+        buffer_10_req_wstrb = _RANDOM[5'h19][8:5];
+        buffer_10_valid = _RANDOM[5'h19][12];
+        buffer_10_allocated = _RANDOM[5'h19][13];
+        buffer_11_req_addr = {_RANDOM[5'h19][31:14], _RANDOM[5'h1A][13:0]};
+        buffer_11_req_write = _RANDOM[5'h1A][14];
+        buffer_11_req_wdata = {_RANDOM[5'h1A][31:15], _RANDOM[5'h1B][14:0]};
+        buffer_11_req_wstrb = _RANDOM[5'h1B][18:15];
+        buffer_11_valid = _RANDOM[5'h1B][22];
+        buffer_11_allocated = _RANDOM[5'h1B][23];
+        cleanupCounter = {_RANDOM[5'h1B][31:24], _RANDOM[5'h1C][7:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_enq_ready = ~(_io_enq_ready_T_9[2]);
+  assign io_enq_ready = io_enq_ready_0;
   assign io_deq_valid = io_deq_valid_0;
   assign io_deq_bits_addr = _GEN[deqIdx];
   assign io_deq_bits_write = _GEN_0[deqIdx];
@@ -3405,7 +3928,8 @@ module Lsu(
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
     .io_deq_bits_wdata (_writeBuffer_io_deq_bits_wdata),
-    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb)
+    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb),
+    .io_bypassAddr     (_effectiveAddr_T_5)
   );
   assign io_result =
     _GEN_6 | ~_GEN_5
