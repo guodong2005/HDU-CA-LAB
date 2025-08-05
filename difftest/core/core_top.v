@@ -2250,155 +2250,83 @@ module DecodeUnit(
   wire        _GEN_1 = stage1_reg_inst[31:25] == 7'hE;
   wire        _GEN_2 = stage1_reg_inst[31:22] == 10'hA;
   wire        _GEN_3 = stage1_reg_inst[31:15] == 17'h20;
-  wire        _GEN_4 = stage1_reg_inst[31:15] == 17'h2E;
-  wire        _GEN_5 = stage1_reg_inst[31:22] == 10'h8;
-  wire        _GEN_6 = stage1_reg_inst[31:15] == 17'h24;
-  wire        _GEN_7 = stage1_reg_inst[31:22] == 10'h9;
-  wire        _GEN_8 = stage1_reg_inst[31:15] == 17'h25;
-  wire        _GEN_9 = stage1_reg_inst[31:22] == 10'hF;
-  wire        _GEN_10 = stage1_reg_inst[31:15] == 17'h2B;
-  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h28;
-  wire        _GEN_12 = stage1_reg_inst[31:15] == 17'h81;
-  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h89;
-  wire        _GEN_14 = stage1_reg_inst[31:15] == 17'h2F;
-  wire        _GEN_15 = stage1_reg_inst[31:15] == 17'h91;
-  wire        _GEN_16 = stage1_reg_inst[31:15] == 17'h30;
-  wire        _GEN_17 = stage1_reg_inst[31:22] == 10'hE;
-  wire        _GEN_18 = stage1_reg_inst[31:15] == 17'h2A;
-  wire        _GEN_19 = stage1_reg_inst[31:22] == 10'hD;
-  wire        _GEN_20 = stage1_reg_inst[31:15] == 17'h29;
-  wire        _GEN_21 = stage1_reg_inst[31:15] == 17'h22;
-  wire        _GEN_22 = stage1_reg_inst[31:15] == 17'h38;
-  wire        _GEN_23 = stage1_reg_inst[31:22] == 10'hA0;
-  wire        _GEN_24 = stage1_reg_inst[31:22] == 10'hA8;
-  wire        _GEN_25 = stage1_reg_inst[31:22] == 10'hA1;
-  wire        _GEN_26 = stage1_reg_inst[31:22] == 10'hA9;
-  wire        _GEN_27 = stage1_reg_inst[31:22] == 10'hA2;
-  wire        _GEN_28 = stage1_reg_inst[31:22] == 10'hA4;
-  wire        _GEN_29 = stage1_reg_inst[31:22] == 10'hA5;
-  wire        _GEN_30 = stage1_reg_inst[31:22] == 10'hA6;
-  wire        _GEN_31 = stage1_reg_inst[31:26] == 6'h16;
-  wire        _GEN_32 = stage1_reg_inst[31:26] == 6'h17;
-  wire        _GEN_33 = stage1_reg_inst[31:26] == 6'h18;
-  wire        _GEN_34 = stage1_reg_inst[31:26] == 6'h19;
-  wire        _GEN_35 = stage1_reg_inst[31:26] == 6'h1A;
-  wire        _GEN_36 = stage1_reg_inst[31:26] == 6'h1B;
-  wire        _GEN_37 = stage1_reg_inst[31:26] == 6'h14;
-  wire        _GEN_38 = stage1_reg_inst[31:26] == 6'h15;
-  wire        _GEN_39 = stage1_reg_inst[31:26] == 6'h13;
-  wire        _GEN_40 = _GEN_37 | _GEN_38 | _GEN_39;
-  wire        _GEN_41 = _GEN_28 | _GEN_29 | _GEN_30;
+  wire        _GEN_4 = stage1_reg_inst[31:22] == 10'hF;
+  wire        _GEN_5 = stage1_reg_inst[31:15] == 17'h2B;
+  wire        _GEN_6 = stage1_reg_inst[31:15] == 17'h81;
+  wire        _GEN_7 = stage1_reg_inst[31:15] == 17'h89;
+  wire        _GEN_8 = stage1_reg_inst[31:22] == 10'hE;
+  wire        _GEN_9 = stage1_reg_inst[31:15] == 17'h2A;
+  wire        _GEN_10 = stage1_reg_inst[31:22] == 10'hD;
+  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h29;
+  wire        _GEN_12 = stage1_reg_inst[31:15] == 17'h22;
+  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h38;
+  wire        _GEN_14 = stage1_reg_inst[31:22] == 10'hA0;
+  wire        _GEN_15 = stage1_reg_inst[31:22] == 10'hA2;
+  wire        _GEN_16 = stage1_reg_inst[31:22] == 10'hA4;
+  wire        _GEN_17 = stage1_reg_inst[31:22] == 10'hA6;
+  wire        _GEN_18 = stage1_reg_inst[31:26] == 6'h16;
+  wire        _GEN_19 = stage1_reg_inst[31:26] == 6'h17;
+  wire        _GEN_20 = stage1_reg_inst[31:26] == 6'h14;
+  wire        _GEN_21 = stage1_reg_inst[31:26] == 6'h15;
+  wire        _GEN_22 = stage1_reg_inst[31:26] == 6'h13;
+  wire        _GEN_23 = _GEN_20 | _GEN_21 | _GEN_22;
+  wire        _GEN_24 = _GEN_16 | _GEN_17;
   wire [2:0]  instrType =
     _GEN_0 | _GEN_1
       ? 3'h6
       : _GEN_2
           ? 3'h4
-          : _GEN_3 | _GEN_4
+          : _GEN_3
               ? 3'h5
-              : _GEN_5
+              : _GEN_4
                   ? 3'h4
-                  : _GEN_6
+                  : _GEN_5
                       ? 3'h5
-                      : _GEN_7
+                      : _GEN_6 | _GEN_7 | _GEN_8
                           ? 3'h4
-                          : _GEN_8
+                          : _GEN_9
                               ? 3'h5
-                              : _GEN_9
+                              : _GEN_10
                                   ? 3'h4
-                                  : _GEN_10 | _GEN_11
+                                  : _GEN_11 | _GEN_12 | _GEN_13
                                       ? 3'h5
-                                      : _GEN_12 | _GEN_13
+                                      : _GEN_14 | _GEN_15
                                           ? 3'h4
-                                          : _GEN_14
-                                              ? 3'h5
-                                              : _GEN_15
-                                                  ? 3'h4
-                                                  : _GEN_16
-                                                      ? 3'h5
-                                                      : _GEN_17
-                                                          ? 3'h4
-                                                          : _GEN_18
-                                                              ? 3'h5
-                                                              : _GEN_19
-                                                                  ? 3'h4
-                                                                  : _GEN_20 | _GEN_21
-                                                                    | _GEN_22
-                                                                      ? 3'h5
-                                                                      : _GEN_23 | _GEN_24
-                                                                        | _GEN_25
-                                                                        | _GEN_26
-                                                                        | _GEN_27
-                                                                          ? 3'h4
-                                                                          : _GEN_41
-                                                                              ? 3'h2
-                                                                              : _GEN_31
-                                                                                | _GEN_32
-                                                                                | _GEN_33
-                                                                                | _GEN_34
-                                                                                | _GEN_35
-                                                                                | _GEN_36
-                                                                                  ? 3'h1
-                                                                                  : {3{_GEN_40}};
+                                          : _GEN_24
+                                              ? 3'h2
+                                              : _GEN_18 | _GEN_19 ? 3'h1 : {3{_GEN_23}};
   wire [3:0]  fuOpType =
     _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3
       ? 4'h0
-      : _GEN_4
-          ? 4'h9
-          : _GEN_5 | _GEN_6
-              ? 4'h2
-              : _GEN_7 | _GEN_8
-                  ? 4'h3
-                  : _GEN_9 | _GEN_10
-                      ? 4'h4
-                      : _GEN_11
-                          ? 4'hC
+      : _GEN_4 | _GEN_5
+          ? 4'h4
+          : _GEN_6
+              ? 4'h9
+              : _GEN_7
+                  ? 4'h5
+                  : _GEN_8 | _GEN_9
+                      ? 4'h7
+                      : _GEN_10 | _GEN_11
+                          ? 4'h8
                           : _GEN_12
-                              ? 4'h9
+                              ? 4'h1
                               : _GEN_13 | _GEN_14
-                                  ? 4'h5
-                                  : _GEN_15 | _GEN_16
-                                      ? 4'h6
-                                      : _GEN_17 | _GEN_18
-                                          ? 4'h7
-                                          : _GEN_19 | _GEN_20
-                                              ? 4'h8
-                                              : _GEN_21
-                                                  ? 4'h1
-                                                  : _GEN_22 | _GEN_23
-                                                      ? 4'h0
-                                                      : _GEN_24
-                                                          ? 4'h4
-                                                          : _GEN_25
-                                                              ? 4'h1
-                                                              : _GEN_26
-                                                                  ? 4'h5
-                                                                  : _GEN_27
-                                                                      ? 4'h2
-                                                                      : _GEN_28
-                                                                          ? 4'h8
-                                                                          : _GEN_29
-                                                                              ? 4'h9
-                                                                              : _GEN_30
-                                                                                  ? 4'hA
-                                                                                  : _GEN_31
-                                                                                      ? 4'h0
-                                                                                      : _GEN_32
-                                                                                          ? 4'h1
-                                                                                          : _GEN_33
-                                                                                              ? 4'h4
-                                                                                              : _GEN_34
-                                                                                                  ? 4'h5
-                                                                                                  : _GEN_35
-                                                                                                      ? 4'h6
-                                                                                                      : _GEN_36
-                                                                                                          ? 4'h7
-                                                                                                          : _GEN_37
-                                                                                                              ? 4'h8
-                                                                                                              : _GEN_38
-                                                                                                                  ? 4'hA
-                                                                                                                  : _GEN_39
-                                                                                                                      ? 4'hB
-                                                                                                                      : 4'h0;
+                                  ? 4'h0
+                                  : _GEN_15
+                                      ? 4'h2
+                                      : _GEN_16
+                                          ? 4'h8
+                                          : _GEN_17
+                                              ? 4'hA
+                                              : _GEN_18
+                                                  ? 4'h0
+                                                  : _GEN_19
+                                                      ? 4'h1
+                                                      : _GEN_20
+                                                          ? 4'h8
+                                                          : _GEN_21
+                                                              ? 4'hA
+                                                              : _GEN_22 ? 4'hB : 4'h0;
   wire [9:0]  _imm_j_T_2 = fuOpType == 4'hB ? 10'h0 : stage1_reg_inst[9:0];
   wire        isR = instrType == 3'h5;
   wire        isI = instrType == 3'h4;
@@ -2495,15 +2423,11 @@ module DecodeUnit(
   assign io_executeStage_data_info_fusel =
     {1'h0,
      _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
-     | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
-     | _GEN_17 | _GEN_18 | _GEN_19 | _GEN_20 | _GEN_21
+     | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12
        ? 2'h0
-       : _GEN_22
+       : _GEN_13
            ? 2'h1
-           : _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27 | _GEN_41
-               ? 2'h2
-               : {2{_GEN_31 | _GEN_32 | _GEN_33 | _GEN_34 | _GEN_35 | _GEN_36
-                      | _GEN_40}}};
+           : _GEN_14 | _GEN_15 | _GEN_24 ? 2'h2 : {2{_GEN_18 | _GEN_19 | _GEN_23}}};
   assign io_executeStage_data_src_info_src1_data =
     (src1_ren
        ? (io_bypassData_stage2_src1_bypass
