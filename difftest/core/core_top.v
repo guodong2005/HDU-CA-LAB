@@ -2184,8 +2184,6 @@ endmodule
 module MiniBru(
   input         io_info_valid,
   input  [4:0]  io_info_op,
-  input  [31:0] io_info_imm,
-  input  [2:0]  io_info_fusel,
   input  [31:0] io_pc,
                 io_src_info_src1_data,
                 io_src_info_src2_data,
@@ -2212,12 +2210,13 @@ module MiniBru(
                       : io_info_op == 5'h7
                           ? ~ltu
                           : io_info_op == 5'h8 | io_info_op == 5'hA | _io_target_T;
-  assign io_target =
-    _io_target_T ? io_src_info_src1_data + io_info_imm : io_pc + io_info_imm;
-  assign io_valid = io_info_fusel == 3'h3 & io_info_valid;
+  assign io_target = _io_target_T ? io_src_info_src1_data : io_pc;
+  assign io_valid = io_info_valid;
 endmodule
 
 module DecodeUnit(
+  input         clock,
+                reset,
   input  [31:0] io_decodeStage_data_inst,
   input         io_decodeStage_data_valid,
   input  [31:0] io_decodeStage_data_pc,
@@ -2247,48 +2246,65 @@ module DecodeUnit(
   output [31:0] io_target
 );
 
-  wire        _bru_io_branch;
-  wire        _bru_io_valid;
-  wire        _GEN = io_decodeStage_data_inst[31:25] == 7'hA;
-  wire        _GEN_0 = io_decodeStage_data_inst[31:25] == 7'hE;
-  wire        _GEN_1 = io_decodeStage_data_inst[31:22] == 10'hA;
-  wire        _GEN_2 = io_decodeStage_data_inst[31:15] == 17'h20;
-  wire        _GEN_3 = io_decodeStage_data_inst[31:15] == 17'h2E;
-  wire        _GEN_4 = io_decodeStage_data_inst[31:22] == 10'h8;
-  wire        _GEN_5 = io_decodeStage_data_inst[31:15] == 17'h24;
-  wire        _GEN_6 = io_decodeStage_data_inst[31:22] == 10'h9;
-  wire        _GEN_7 = io_decodeStage_data_inst[31:15] == 17'h25;
-  wire        _GEN_8 = io_decodeStage_data_inst[31:22] == 10'hF;
-  wire        _GEN_9 = io_decodeStage_data_inst[31:15] == 17'h2B;
-  wire        _GEN_10 = io_decodeStage_data_inst[31:15] == 17'h28;
-  wire        _GEN_11 = io_decodeStage_data_inst[31:15] == 17'h81;
-  wire        _GEN_12 = io_decodeStage_data_inst[31:15] == 17'h89;
-  wire        _GEN_13 = io_decodeStage_data_inst[31:15] == 17'h2F;
-  wire        _GEN_14 = io_decodeStage_data_inst[31:15] == 17'h91;
-  wire        _GEN_15 = io_decodeStage_data_inst[31:15] == 17'h30;
-  wire        _GEN_16 = io_decodeStage_data_inst[31:22] == 10'hE;
-  wire        _GEN_17 = io_decodeStage_data_inst[31:15] == 17'h2A;
-  wire        _GEN_18 = io_decodeStage_data_inst[31:22] == 10'hD;
-  wire        _GEN_19 = io_decodeStage_data_inst[31:15] == 17'h29;
-  wire        _GEN_20 = io_decodeStage_data_inst[31:15] == 17'h22;
-  wire        _GEN_21 = io_decodeStage_data_inst[31:15] == 17'h38;
-  wire        _GEN_22 = io_decodeStage_data_inst[31:22] == 10'hA0;
-  wire        _GEN_23 = io_decodeStage_data_inst[31:22] == 10'hA8;
-  wire        _GEN_24 = io_decodeStage_data_inst[31:22] == 10'hA1;
-  wire        _GEN_25 = io_decodeStage_data_inst[31:22] == 10'hA9;
-  wire        _GEN_26 = io_decodeStage_data_inst[31:22] == 10'hA2;
-  wire        _GEN_27 = io_decodeStage_data_inst[31:22] == 10'hA4;
-  wire        _GEN_28 = io_decodeStage_data_inst[31:22] == 10'hA5;
-  wire        _GEN_29 = io_decodeStage_data_inst[31:22] == 10'hA6;
-  wire        _GEN_30 = io_decodeStage_data_inst[31:26] == 6'h16;
-  wire        _GEN_31 = io_decodeStage_data_inst[31:26] == 6'h17;
-  wire        _GEN_32 = io_decodeStage_data_inst[31:26] == 6'h18;
-  wire        _GEN_33 = io_decodeStage_data_inst[31:26] == 6'h19;
-  wire        _GEN_34 = io_decodeStage_data_inst[31:26] == 6'h1A;
-  wire        _GEN_35 = io_decodeStage_data_inst[31:26] == 6'h1B;
-  wire        _GEN_36 = io_decodeStage_data_inst[31:26] == 6'h14;
-  wire        _GEN_37 = io_decodeStage_data_inst[31:26] == 6'h15;
-  wire        _GEN_38 = io_decodeStage_data_inst[31:26] == 6'h13;
+  wire        _minibru_io_branch;
+  wire        _minibru_io_valid;
+  wire        is_jirl = io_decodeStage_data_inst[31:26] == 6'h13;
+  wire        is_b = io_decodeStage_data_inst[31:26] == 6'h14;
+  wire        is_bl = io_decodeStage_data_inst[31:26] == 6'h15;
+  wire        is_beq = io_decodeStage_data_inst[31:26] == 6'h16;
+  wire        is_bne = io_decodeStage_data_inst[31:26] == 6'h17;
+  wire        is_blt = io_decodeStage_data_inst[31:26] == 6'h18;
+  wire        is_bge = io_decodeStage_data_inst[31:26] == 6'h19;
+  wire        is_bltu = io_decodeStage_data_inst[31:26] == 6'h1A;
+  wire        is_bgeu = io_decodeStage_data_inst[31:26] == 6'h1B;
+  wire        _bru_src2_addr_T = is_jirl | is_b;
+  wire        is_bru =
+    _bru_src2_addr_T | is_bl | is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu;
+  wire [4:0]  bru_src2_addr =
+    _bru_src2_addr_T | is_bl ? 5'h0 : io_decodeStage_data_inst[4:0];
+  reg  [31:0] stage1_reg_pc;
+  reg  [31:0] stage1_reg_inst;
+  reg         stage1_reg_valid;
+  wire        _GEN = stage1_reg_inst[31:25] == 7'hA;
+  wire        _GEN_0 = stage1_reg_inst[31:25] == 7'hE;
+  wire        _GEN_1 = stage1_reg_inst[31:22] == 10'hA;
+  wire        _GEN_2 = stage1_reg_inst[31:15] == 17'h20;
+  wire        _GEN_3 = stage1_reg_inst[31:15] == 17'h2E;
+  wire        _GEN_4 = stage1_reg_inst[31:22] == 10'h8;
+  wire        _GEN_5 = stage1_reg_inst[31:15] == 17'h24;
+  wire        _GEN_6 = stage1_reg_inst[31:22] == 10'h9;
+  wire        _GEN_7 = stage1_reg_inst[31:15] == 17'h25;
+  wire        _GEN_8 = stage1_reg_inst[31:22] == 10'hF;
+  wire        _GEN_9 = stage1_reg_inst[31:15] == 17'h2B;
+  wire        _GEN_10 = stage1_reg_inst[31:15] == 17'h28;
+  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h81;
+  wire        _GEN_12 = stage1_reg_inst[31:15] == 17'h89;
+  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h2F;
+  wire        _GEN_14 = stage1_reg_inst[31:15] == 17'h91;
+  wire        _GEN_15 = stage1_reg_inst[31:15] == 17'h30;
+  wire        _GEN_16 = stage1_reg_inst[31:22] == 10'hE;
+  wire        _GEN_17 = stage1_reg_inst[31:15] == 17'h2A;
+  wire        _GEN_18 = stage1_reg_inst[31:22] == 10'hD;
+  wire        _GEN_19 = stage1_reg_inst[31:15] == 17'h29;
+  wire        _GEN_20 = stage1_reg_inst[31:15] == 17'h22;
+  wire        _GEN_21 = stage1_reg_inst[31:15] == 17'h38;
+  wire        _GEN_22 = stage1_reg_inst[31:22] == 10'hA0;
+  wire        _GEN_23 = stage1_reg_inst[31:22] == 10'hA8;
+  wire        _GEN_24 = stage1_reg_inst[31:22] == 10'hA1;
+  wire        _GEN_25 = stage1_reg_inst[31:22] == 10'hA9;
+  wire        _GEN_26 = stage1_reg_inst[31:22] == 10'hA2;
+  wire        _GEN_27 = stage1_reg_inst[31:22] == 10'hA4;
+  wire        _GEN_28 = stage1_reg_inst[31:22] == 10'hA5;
+  wire        _GEN_29 = stage1_reg_inst[31:22] == 10'hA6;
+  wire        _GEN_30 = stage1_reg_inst[31:26] == 6'h16;
+  wire        _GEN_31 = stage1_reg_inst[31:26] == 6'h17;
+  wire        _GEN_32 = stage1_reg_inst[31:26] == 6'h18;
+  wire        _GEN_33 = stage1_reg_inst[31:26] == 6'h19;
+  wire        _GEN_34 = stage1_reg_inst[31:26] == 6'h1A;
+  wire        _GEN_35 = stage1_reg_inst[31:26] == 6'h1B;
+  wire        _GEN_36 = stage1_reg_inst[31:26] == 6'h14;
+  wire        _GEN_37 = stage1_reg_inst[31:26] == 6'h15;
+  wire        _GEN_38 = stage1_reg_inst[31:26] == 6'h13;
   wire        _GEN_39 = _GEN_36 | _GEN_37 | _GEN_38;
   wire        _GEN_40 = _GEN_27 | _GEN_28 | _GEN_29;
   wire [2:0]  instrType =
@@ -2402,7 +2418,7 @@ module DecodeUnit(
                                                                                                                   : 4'h0;
   wire        _GEN_42 = _GEN | _GEN_0 | _GEN_1 | _GEN_2;
   wire [3:0]  fuOpType = _GEN_42 ? 4'h0 : _GEN_41;
-  wire [9:0]  _imm_j_T_1 = fuOpType == 4'hB ? 10'h0 : io_decodeStage_data_inst[9:0];
+  wire [9:0]  _imm_j_T_1 = fuOpType == 4'hB ? 10'h0 : stage1_reg_inst[9:0];
   wire        isR = instrType == 3'h5;
   wire        isI = instrType == 3'h4;
   wire        isU = instrType == 3'h6;
@@ -2410,33 +2426,107 @@ module DecodeUnit(
   wire        isB = instrType == 3'h1;
   wire [31:0] imm =
     (isI
-       ? {io_decodeStage_data_inst[24] ? 20'h0 : {20{io_decodeStage_data_inst[21]}},
-          io_decodeStage_data_inst[21:10]}
-       : 32'h0)
-    | (isS
-         ? {{20{io_decodeStage_data_inst[21]}}, io_decodeStage_data_inst[21:10]}
-         : 32'h0)
-    | (isB
-         ? {{14{io_decodeStage_data_inst[25]}}, io_decodeStage_data_inst[25:10], 2'h0}
-         : 32'h0) | (isU ? {io_decodeStage_data_inst[24:5], 12'h0} : 32'h0)
+       ? {stage1_reg_inst[24] ? 20'h0 : {20{stage1_reg_inst[21]}}, stage1_reg_inst[21:10]}
+       : 32'h0) | (isS ? {{20{stage1_reg_inst[21]}}, stage1_reg_inst[21:10]} : 32'h0)
+    | (isB ? {{14{stage1_reg_inst[25]}}, stage1_reg_inst[25:10], 2'h0} : 32'h0)
+    | (isU ? {stage1_reg_inst[24:5], 12'h0} : 32'h0)
     | ((&instrType)
-         ? {{4{_imm_j_T_1[9]}}, _imm_j_T_1, io_decodeStage_data_inst[25:10], 2'h0}
+         ? {{4{_imm_j_T_1[9]}}, _imm_j_T_1, stage1_reg_inst[25:10], 2'h0}
          : 32'h0);
   wire [4:0]  src1_raddr =
-    isR | isI | isS | isB | (&instrType) ? io_decodeStage_data_inst[9:5] : 5'h0;
+    isR | isI | isS | isB | (&instrType) ? stage1_reg_inst[9:5] : 5'h0;
   wire [4:0]  src2_raddr =
-    (isR ? io_decodeStage_data_inst[14:10] : 5'h0)
-    | (isS ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | (isB ? io_decodeStage_data_inst[4:0] : 5'h0);
+    (isR ? stage1_reg_inst[14:10] : 5'h0) | (isS ? stage1_reg_inst[4:0] : 5'h0)
+    | (isB ? stage1_reg_inst[4:0] : 5'h0);
   wire        src1_ren = isR | isI | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  wire [4:0]  info_op =
+  wire        _GEN_43 = ~isB & ~(&instrType);
+  always @(posedge clock) begin
+    if (reset) begin
+      stage1_reg_pc <= 32'h0;
+      stage1_reg_inst <= 32'h0;
+      stage1_reg_valid <= 1'h0;
+    end
+    else begin
+      stage1_reg_pc <= io_decodeStage_data_pc;
+      stage1_reg_inst <= io_decodeStage_data_inst;
+      stage1_reg_valid <= io_decodeStage_data_valid;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:2];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+          _RANDOM[i] = `RANDOM;
+        end
+        stage1_reg_pc = _RANDOM[2'h0];
+        stage1_reg_inst = _RANDOM[2'h1];
+        stage1_reg_valid = _RANDOM[2'h2][0];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  MiniBru minibru (
+    .io_info_valid         (io_decodeStage_data_valid & is_bru),
+    .io_info_op
+      ({1'h0,
+        is_jirl
+          ? 4'hB
+          : is_b
+              ? 4'h8
+              : is_bl
+                  ? 4'hA
+                  : {1'h0,
+                     is_beq
+                       ? 3'h0
+                       : is_bne
+                           ? 3'h1
+                           : is_blt
+                               ? 3'h4
+                               : is_bge ? 3'h5 : is_bltu ? 3'h6 : {3{is_bgeu}}}}),
+    .io_pc                 (io_decodeStage_data_pc),
+    .io_src_info_src1_data
+      (io_bypassData_src1_bypass & is_bru
+         ? io_bypassData_src1_data
+         : io_regfile_src1_rdata),
+    .io_src_info_src2_data
+      (io_bypassData_src2_bypass & is_bru & (|bru_src2_addr)
+         ? io_bypassData_src2_data
+         : io_regfile_src2_rdata),
+    .io_branch             (_minibru_io_branch),
+    .io_target             (io_target),
+    .io_valid              (_minibru_io_valid)
+  );
+  assign io_regfile_src1_raddr = _GEN_43 ? src1_raddr : io_decodeStage_data_inst[9:5];
+  assign io_regfile_src2_raddr = _GEN_43 ? src2_raddr : bru_src2_addr;
+  assign io_executeStage_data_pc = stage1_reg_pc;
+  assign io_executeStage_data_info_instr = (|instrType) ? stage1_reg_inst : 32'h2800000;
+  assign io_executeStage_data_info_valid = stage1_reg_valid & (|instrType);
+  assign io_executeStage_data_info_src1_raddr = src1_raddr;
+  assign io_executeStage_data_info_src2_raddr = src2_raddr;
+  assign io_executeStage_data_info_op =
     {1'h0,
      (~isR | _GEN_42 ? 4'h0 : _GEN_41) | (~isI | _GEN_42 ? 4'h0 : _GEN_41)
        | (~isS | _GEN_42 ? 4'h0 : _GEN_41) | (~isB | _GEN_42 ? 4'h0 : _GEN_41)
        | (~(&instrType) | _GEN_42 ? 4'h0 : _GEN_41)};
-  wire        info_valid = io_decodeStage_data_valid & (|instrType);
-  wire [2:0]  info_fusel =
+  assign io_executeStage_data_info_reg_wen =
+    isR | isI | isU | (&instrType) & fuOpType != 4'h8;
+  assign io_executeStage_data_info_reg_waddr =
+    (isR | isI | isU ? stage1_reg_inst[4:0] : 5'h0)
+    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : stage1_reg_inst[4:0]) : 5'h0);
+  assign io_executeStage_data_info_imm = imm;
+  assign io_executeStage_data_info_src1_ren = src1_ren;
+  assign io_executeStage_data_info_src2_ren = src2_ren;
+  assign io_executeStage_data_info_fusel =
     {1'h0,
      _GEN | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
      | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
@@ -2448,50 +2538,16 @@ module DecodeUnit(
                ? 2'h2
                : {2{_GEN_30 | _GEN_31 | _GEN_32 | _GEN_33 | _GEN_34 | _GEN_35
                       | _GEN_39}}};
-  wire [31:0] src1_data =
-    io_bypassData_src1_bypass
+  assign io_executeStage_data_src_info_src1_data =
+    io_bypassData_src1_bypass & src1_ren
       ? io_bypassData_src1_data
       : (src1_ren ? io_regfile_src1_rdata : 32'h0)
-        | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
-             ? io_decodeStage_data_pc
-             : 32'h0);
-  wire [31:0] src2_data =
-    io_bypassData_src2_bypass
+        | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
+  assign io_executeStage_data_src_info_src2_data =
+    io_bypassData_src2_bypass & src2_ren
       ? io_bypassData_src2_data
       : (src2_ren ? io_regfile_src2_rdata : 32'h0) | (src2_ren ? 32'h0 : imm);
-  MiniBru bru (
-    .io_info_valid         (info_valid),
-    .io_info_op            (info_op),
-    .io_info_imm           (imm),
-    .io_info_fusel         (info_fusel),
-    .io_pc                 (io_decodeStage_data_pc),
-    .io_src_info_src1_data (src1_data),
-    .io_src_info_src2_data (src2_data),
-    .io_branch             (_bru_io_branch),
-    .io_target             (io_target),
-    .io_valid              (_bru_io_valid)
-  );
-  assign io_regfile_src1_raddr = src1_raddr;
-  assign io_regfile_src2_raddr = src2_raddr;
-  assign io_executeStage_data_pc = io_decodeStage_data_pc;
-  assign io_executeStage_data_info_instr =
-    (|instrType) ? io_decodeStage_data_inst : 32'h2800000;
-  assign io_executeStage_data_info_valid = info_valid;
-  assign io_executeStage_data_info_src1_raddr = src1_raddr;
-  assign io_executeStage_data_info_src2_raddr = src2_raddr;
-  assign io_executeStage_data_info_op = info_op;
-  assign io_executeStage_data_info_reg_wen =
-    isR | isI | isU | (&instrType) & fuOpType != 4'h8;
-  assign io_executeStage_data_info_reg_waddr =
-    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
-  assign io_executeStage_data_info_imm = imm;
-  assign io_executeStage_data_info_src1_ren = src1_ren;
-  assign io_executeStage_data_info_src2_ren = src2_ren;
-  assign io_executeStage_data_info_fusel = info_fusel;
-  assign io_executeStage_data_src_info_src1_data = src1_data;
-  assign io_executeStage_data_src_info_src2_data = src2_data;
-  assign io_branch = _bru_io_valid & _bru_io_branch;
+  assign io_branch = _minibru_io_valid & _minibru_io_branch;
 endmodule
 
 module ARegFile(
@@ -4790,6 +4846,8 @@ module Core(
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
   DecodeUnit decodeUnit (
+    .clock                                   (clock),
+    .reset                                   (reset),
     .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),

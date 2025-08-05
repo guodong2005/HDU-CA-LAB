@@ -5,69 +5,230 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
-class Decoder extends Module with HasInstrType {
+class DecodeUnit extends Module with HasInstrType {
   val io = IO(new Bundle {
-    // inputs
-    val in = Input(new Bundle {
-      val inst = UInt(XLEN.W)
+    val decodeStage = Flipped(new FetchUnitDecodeUnit())
+    val regfile     = new Src12Read()
+    val bypassData = Input(new Bundle {
+      val src1_bypass = Bool()
+      val src2_bypass = Bool()
+      val src1_data   = UInt(XLEN.W)
+      val src2_data   = UInt(XLEN.W)
     })
-    // outputs
-    val out = Output(new Bundle {
-      val info = new Info()
-    })
+    val executeStage = Output(new DecodeUnitExecuteUnit())
+    val islsu        = Output(Bool())
+    val branch       = Output(Bool())
+    val target       = Output(UInt(XLEN.W))
   })
-  // printf(p"Decoder inst: ${Hexadecimal(io.in.inst)}\n")
+
+  // ========== 第一级流水线：MiniBru快速解码和执行 ==========
+  val inst  = io.decodeStage.data.inst
+  val pc    = io.decodeStage.data.pc
+  val valid = io.decodeStage.data.valid
+
+  // 并行提取所有可能用到的字段
+  val opcode  = inst(31, 26)
+  val rd      = inst(4, 0)
+  val rj      = inst(9, 5)
+  val offs    = Cat(inst(25, 10), 0.U(2.W))
+  val imm_bru = SignedExtend(offs, XLEN)
+
+  // 并行解码所有BRU指令类型（one-hot编码）
+  val is_jirl = opcode === "b010011".U
+  val is_b    = opcode === "b010100".U
+  val is_bl   = opcode === "b010101".U
+  val is_beq  = opcode === "b010110".U
+  val is_bne  = opcode === "b010111".U
+  val is_blt  = opcode === "b011000".U
+  val is_bge  = opcode === "b011001".U
+  val is_bltu = opcode === "b011010".U
+  val is_bgeu = opcode === "b011011".U
+
+  val is_bru = is_jirl || is_b || is_bl || is_beq || is_bne ||
+    is_blt || is_bge || is_bltu || is_bgeu
+
+  // 并行计算所有BRU相关的寄存器地址
+  val bru_use_rj = is_bru
+  val bru_use_rd = (is_beq || is_bne || is_blt || is_bge || is_bltu || is_bgeu)
+
+  // 寄存器读取地址（考虑BRU优先级）
+  io.regfile.src1.raddr := rj // BRU总是使用rj
+  io.regfile.src2.raddr := rd // BRU的比较指令使用rd
+
+  // 并行获取源操作数（考虑前递）
+  val src1_raw = io.regfile.src1.rdata
+  val src2_raw = io.regfile.src2.rdata
+
+  val src1_data = Mux(io.bypassData.src1_bypass && bru_use_rj, io.bypassData.src1_data, src1_raw)
+
+  val src2_data = Mux(io.bypassData.src2_bypass && bru_use_rd, io.bypassData.src2_data, src2_raw)
+
+  // ========== MiniBru逻辑（集成在第一级） ==========
+  // 并行计算所有比较结果
+  val eq  = src1_data === src2_data
+  val lt  = src1_data.asSInt < src2_data.asSInt
+  val ltu = src1_data < src2_data
+
+  // 并行计算所有可能的目标地址
+  val pc_plus_imm   = pc + imm_bru
+  val src1_plus_imm = src1_data + imm_bru
+
+  // 并行判断是否跳转（使用one-hot选择）
+  val takeBranch = Mux1H(
+    Seq(
+      is_beq  -> eq,
+      is_bne  -> !eq,
+      is_blt  -> lt,
+      is_bge  -> !lt,
+      is_bltu -> ltu,
+      is_bgeu -> !ltu,
+      is_b    -> true.B,
+      is_bl   -> true.B,
+      is_jirl -> true.B
+    ))
+
+  // 并行选择目标地址
+  val target_bru = Mux(is_jirl, src1_plus_imm, pc_plus_imm)
+
+  // 第一级输出（立即输出给IFU）
+  io.branch := is_bru && takeBranch && valid
+  io.target := target_bru
+
+  // ========== 流水线寄存器 ==========
+  val stage1_reg = RegInit(0.U.asTypeOf(new Bundle {
+    val pc    = UInt(XLEN.W)
+    val inst  = UInt(32.W)
+    val valid = Bool()
+  }))
+
+  stage1_reg.pc    := pc
+  stage1_reg.inst  := inst
+  stage1_reg.valid := valid
+
+  // ========== 第二级流水线：完整解码 ==========
+  val inst_s2  = stage1_reg.inst
+  val pc_s2    = stage1_reg.pc
+  val valid_s2 = stage1_reg.valid
+
+  // 并行进行完整的指令解码
   val instrType :: fuType :: fuOpType :: Nil =
-    ListLookup(io.in.inst, Instructions.DecodeDefault, Instructions.DecodeTable)
-  val inst = Mux(instrType === InstrN, Instructions.NOP, io.in.inst)
-  io.out.info := DontCare
+    ListLookup(inst_s2, Instructions.DecodeDefault, Instructions.DecodeTable)
 
-  io.out.info.valid := false.B
+  // 并行提取第二级需要的所有字段
+  val rd_s2  = inst_s2(4, 0)
+  val rs1_s2 = inst_s2(9, 5)
+  val rs2_s2 = inst_s2(14, 10)
 
-  def setInfo(
-    instr:     UInt,
-    regWAddr:  UInt,
-    src1RAddr: UInt,
-    src2RAddr: UInt,
-    op:        UInt,
-    regWEn:    Bool = true.B,
-    src1REn:   Bool = true.B,
-    src2REn:   Bool = false.B,
-    valid:     Bool = true.B): Unit = {
-    io.out.info.instr      := instr
-    io.out.info.reg_waddr  := regWAddr
-    io.out.info.src1_raddr := src1RAddr
-    io.out.info.src2_raddr := src2RAddr
-    io.out.info.op         := op
-    io.out.info.reg_wen    := regWEn
-    io.out.info.src1_ren   := src1REn
-    io.out.info.src2_ren   := src2REn
-    io.out.info.valid      := valid
+  // 并行计算所有立即数格式
+  val imm_field      = inst_s2(21, 10)
+  val imm_i_signed   = SignedExtend(imm_field, XLEN)
+  val imm_i_unsigned = ZeroExtend(imm_field, XLEN)
+  val imm_s          = SignedExtend(imm_field, XLEN)
+  val imm_b          = SignedExtend(Cat(inst_s2(25, 10), 0.U(2.W)), XLEN)
+  val imm_u          = SignedExtend(Cat(inst_s2(24, 5), 0.U(12.W)), XLEN)
+  val imm_j = SignedExtend(
+    Cat(Cat(Mux(fuOpType === BRUOpType.jirl, 0.U, inst_s2(9, 0)), inst_s2(25, 10)), 0.U(2.W)),
+    XLEN
+  )
+
+  // 特殊指令检测
+  val is_lui = inst_s2(31, 25) === "b0001010".U
+
+  // 指令类型one-hot向量
+  val isR = instrType === InstrR
+  val isI = instrType === InstrI
+  val isU = instrType === InstrU
+  val isS = instrType === InstrS
+  val isB = instrType === InstrB
+  val isJ = instrType === InstrJ
+  val isN = instrType === InstrN
+
+  // 并行生成所有控制信号
+  val imm = Mux1H(
+    Seq(
+      isI -> Mux(inst_s2(24), imm_i_unsigned, imm_i_signed),
+      isS -> imm_s,
+      isB -> imm_b,
+      isU -> imm_u,
+      isJ -> imm_j
+    ))
+
+  val reg_waddr = Mux1H(
+    Seq(
+      isR -> rd_s2,
+      isI -> rd_s2,
+      isU -> rd_s2,
+      isJ -> Mux(fuOpType === BRUOpType.bl, 1.U, rd_s2)
+    ))
+
+  val src1_raddr = Mux1H(
+    Seq(
+      isR -> rs1_s2,
+      isI -> rs1_s2,
+      isS -> rs1_s2,
+      isB -> rs1_s2,
+      isJ -> rs1_s2
+    ))
+
+  val src2_raddr = Mux1H(
+    Seq(
+      isR -> rs2_s2,
+      isS -> rd_s2,
+      isB -> rd_s2
+    ))
+
+  val reg_wen  = (isR || isI || isU || (isJ && fuOpType =/= BRUOpType.b))
+  val src1_ren = (isR || isI || isS || isB || isJ)
+  val src2_ren = (isR || isS || isB)
+
+  // 构建info bundle
+  val info = Wire(new Info())
+  info.instr      := Mux(isN, Instructions.NOP, inst_s2)
+  info.reg_waddr  := reg_waddr
+  info.src1_raddr := src1_raddr
+  info.src2_raddr := src2_raddr
+  info.op         := fuOpType
+  info.reg_wen    := reg_wen && valid_s2 && !isN
+  info.src1_ren   := src1_ren
+  info.src2_ren   := src2_ren
+  info.valid      := valid_s2 && !isN
+  info.fusel      := fuType
+  info.imm        := imm
+  info.diffout    := DontCare
+
+  // 第二级寄存器读取（如果不是BRU指令）
+  when(!isB && !isJ) {
+    io.regfile.src1.raddr := src1_raddr
+    io.regfile.src2.raddr := src2_raddr
   }
 
-  val (rd, rs1, rs2) = (inst(4, 0), inst(9, 5), inst(14, 10))
-  //   rd  rj  rk
+  // 并行计算源操作数
+  val src1_select_reg  = src1_ren
+  val src1_select_zero = !src1_ren && is_lui
+  val src1_select_pc   = !src1_ren && !is_lui
 
-  when(instrType === InstrR) {
-    setInfo(inst, rd, rs1, rs2, fuOpType, true.B, true.B, true.B, true.B)
-  }.elsewhen(instrType === InstrI) {
-    //                     src2     writeback src1en src2en   valid
-    setInfo(inst, rd, rs1, 0.U, fuOpType, true.B, true.B, false.B, true.B)
-  }.elsewhen(instrType === InstrU) {
-    setInfo(inst, rd, 0.U, 0.U, ALUOpType.add, true.B, false.B, false.B, true.B)
-  }.elsewhen(instrType === InstrS) {
-    //                     src2     writeback src1en src2en   valid
-    setInfo(inst, 0.U, rs1, rd, fuOpType, false.B, true.B, true.B, true.B)
-  }.elsewhen(instrType === InstrB) {
-    //                     src2     writeback src1en src2en   valid
-    setInfo(inst, 0.U, rs1, rd, fuOpType, false.B, true.B, true.B, true.B) // wrong !!!!!!!
-    // addr src1
+  val src1_data_raw = Mux1H(
+    Seq(
+      src1_select_reg  -> io.regfile.src1.rdata,
+      src1_select_zero -> 0.U,
+      src1_select_pc   -> pc_s2
+    ))
 
-  }.elsewhen(instrType === InstrJ) {
-    //
-    setInfo(inst, Mux(fuOpType === BRUOpType.bl, 1.U, rd), rs1, 0.U, fuOpType, Mux(instrType === BRUOpType.b, false.B, true.B), true.B, false.B, true.B)
-  }.otherwise {
-    setInfo(inst, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
-  }
-  io.out.info.fusel := fuType
+  val src2_data_raw = Mux(src2_ren, io.regfile.src2.rdata, imm)
+
+  // 前递选择
+  val need_src1_forward = src1_ren && io.bypassData.src1_bypass
+  val need_src2_forward = src2_ren && io.bypassData.src2_bypass
+
+  val src1_data_s2 = Mux(need_src1_forward, io.bypassData.src1_data, src1_data_raw)
+  val src2_data_s2 = Mux(need_src2_forward, io.bypassData.src2_data, src2_data_raw)
+
+  // 输出到执行阶段
+  io.executeStage.data.pc                 := pc_s2
+  io.executeStage.data.info               := info
+  io.executeStage.data.src_info.src1_data := src1_data_s2
+  io.executeStage.data.src_info.src2_data := src2_data_s2
+
+  // 功能单元选择
+  io.islsu := fuType === FuType.lsu
 }
