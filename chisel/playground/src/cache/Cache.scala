@@ -326,16 +326,16 @@ class ICache extends Module {
 // // DCache Module (Simplified)
 // // ============================================================================
 
-// class DCacheIO extends Bundle {
-//   // CPU-side interface
-//   val req  = Flipped(Decoupled(new DCacheReq))
-//   val resp = Decoupled(new DCacheResp)
+class DCacheIO extends Bundle {
+  // CPU-side interface
+  val req  = Flipped(Decoupled(new DCacheReq))
+  val resp = Decoupled(new DCacheResp)
 
-//   // IoControl interface
-//   val io_read_req  = Decoupled(new DCacheReadReq)
-//   val io_read_resp = Flipped(Decoupled(new DCacheResp))
-//   val io_write_req = Decoupled(new DCacheWriteReq)
-// }
+  // IoControl interface
+  val io_read_req  = Decoupled(new DCacheReadReq)
+  val io_read_resp = Flipped(Decoupled(new DCacheResp))
+  val io_write_req = Decoupled(new DCacheWriteReq)
+}
 
 class DCache extends Module {
   val io = IO(new DCacheIO)
