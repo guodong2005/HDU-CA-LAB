@@ -42,6 +42,8 @@ class Core extends Module {
   controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.memoryResult    := memoryUnit.io.result  // MEM只是数据传递，实际上就是EX结果
   controlUnit.io.writeBackResult := writeBackUnit.io.result
+  controlUnit.io.decodeInfo      := decodeUnit.io.decodeStageInfo
+  decodeUnit.io.decodeStall      := controlUnit.io.signals.decodeStall
   // ============================================================================
   // IoControl 外部接口连接
   // ============================================================================
