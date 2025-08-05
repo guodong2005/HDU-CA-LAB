@@ -39,10 +39,11 @@ class Core extends Module {
   dontTouch(fetchUnit.io)
   dontTouch(icache.io)
 
-  controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
-  controlUnit.io.memoryResult    := memoryUnit.io.result  // MEM只是数据传递，实际上就是EX结果
-  controlUnit.io.writeBackResult := writeBackUnit.io.result
-  controlUnit.io.decodeStall     := decodeUnit.io.decodeStall
+  controlUnit.io.executeResult       := executeUnit.io.result // EX阶段完成所有计算（包括load）
+  controlUnit.io.memoryResult        := memoryUnit.io.result  // MEM只是数据传递，实际上就是EX结果
+  controlUnit.io.writeBackResult     := writeBackUnit.io.result
+  controlUnit.io.decodeInternalStall := decodeUnit.io.decodeInternalStall
+  decodeUnit.io.decodeStage1Stall    := controlUnit.io.signals.decodeStage1Stall
   // ============================================================================
   // IoControl 外部接口连接
   // ============================================================================

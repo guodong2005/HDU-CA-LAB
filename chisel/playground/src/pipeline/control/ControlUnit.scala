@@ -24,6 +24,7 @@ class Signals extends Bundle {
   val executeUnitSignal = Output(new ControlSignal())
   val memoryUnitSignal  = Output(new ControlSignal())
   val bypassData        = Output(new BypassData()) // 前递数据
+  val decodeStage1Stall = Output(Bool())           // 新增：控制DecodeUnit第一级的stall信号
 }
 
 class ControlUnit extends Module {
@@ -37,7 +38,7 @@ class ControlUnit extends Module {
     val branch           = Input(Bool())
 
     // 新增：来自DecodeUnit的内部stall信号
-    val decodeStall = Input(Bool())
+    val decodeInternalStall = Input(Bool())
 
     // 各阶段的结果数据用于前递（MEM阶段无实际功能，但保留接口）
     val executeResult   = Input(UInt(XLEN.W)) // EXU的计算结果（包括load结果）
@@ -112,9 +113,18 @@ class ControlUnit extends Module {
 
   val pipeline_stall = exe_conflict || mem_conflict || wb_conflict
 
-  // Generate control signals using modular assignment
-  // 当DecodeUnit内部有冲突时，需要阻塞FetchUnit
-  io.signals.fetchUnitSignal.allow_to_go   := (!pipeline_stall) & (!io.decodeStall) & io.executeUnitReady
+  // 判断是否需要阻塞DecodeUnit的第一级
+  // 1. DecodeUnit内部有冲突
+  // 2. ExecuteUnit未准备好（多周期指令）
+  val decode_stage1_stall = io.decodeInternalStall || !io.executeUnitReady
+
+  // 输出给DecodeUnit的第一级stall信号
+  io.signals.decodeStage1Stall := decode_stage1_stall
+
+  // Generate control signals
+  // FetchUnit: 当Decode第一级需要stall时，阻塞Fetch
+  io.signals.fetchUnitSignal.allow_to_go := (!pipeline_stall) & (!decode_stage1_stall)
+  // DecodeUnit: 第二级仍然可以继续（由executeready控制）
   io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & io.executeUnitReady
   io.signals.executeUnitSignal.allow_to_go := true.B
   io.signals.memoryUnitSignal.allow_to_go  := true.B
@@ -125,7 +135,15 @@ class ControlUnit extends Module {
   io.signals.memoryUnitSignal.do_flush  := false.B
 
   // 调试输出
-  when(io.decodeStall) {
-    printf("[ControlUnit] Decode stall signal received\n")
+  when(io.decodeInternalStall) {
+    printf("[ControlUnit] Decode internal stall signal received\n")
+  }
+
+  when(!io.executeUnitReady) {
+    printf("[ControlUnit] Execute unit not ready, stalling decode stage 1\n")
+  }
+
+  when(decode_stage1_stall) {
+    printf("[ControlUnit] Decode stage 1 stall activated\n")
   }
 }

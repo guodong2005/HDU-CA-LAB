@@ -2447,7 +2447,7 @@ module DecodeUnit(
     always @(posedge clock) begin
       automatic logic _GEN_42 = is_bru & io_decodeStage_data_valid;
       automatic logic _GEN_43 = (`PRINTF_COND_) & _GEN_42 & ~reset;
-      if ((`PRINTF_COND_) & io_decodeStall_0 & ~reset) begin
+      if ((`PRINTF_COND_) & isS & ~reset) begin
         $fwrite(32'h80000002, "[DecodeUnit] Internal conflict detected!\n");
         $fwrite(32'h80000002, "  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n",
                 io_decodeStage_data_inst, io_decodeStage_data_inst[9:5],

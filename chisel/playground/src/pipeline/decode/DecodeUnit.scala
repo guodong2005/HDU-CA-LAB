@@ -15,12 +15,13 @@ class DecodeUnit extends Module with HasInstrType {
       val src1_data   = UInt(XLEN.W)
       val src2_data   = UInt(XLEN.W)
     })
-    val executeStage = Output(new DecodeUnitExecuteUnit())
-    val islsu        = Output(Bool())
-    val branch       = Output(Bool())
-    val target       = Output(UInt(XLEN.W))
-    val executeready = Input(Bool())
-    val decodeStall  = Output(Bool()) // 输出给ControlUnit的解码内部stall信号
+    val executeStage        = Output(new DecodeUnitExecuteUnit())
+    val islsu               = Output(Bool())
+    val branch              = Output(Bool())
+    val target              = Output(UInt(XLEN.W))
+    val executeready        = Input(Bool())
+    val decodeInternalStall = Output(Bool()) // 输出给ControlUnit的解码内部stall信号
+    val decodeStage1Stall   = Input(Bool())  // 来自ControlUnit的第一级stall信号
   })
 
   // ========== 第一级流水线：MiniBru专用寄存器读取 ==========
@@ -71,7 +72,10 @@ class DecodeUnit extends Module with HasInstrType {
   val stage2_rd     = stage2_inst(4, 0)
   val stage2_opcode = stage2_inst(31, 26)
 
-  val stage2_will_write = true.B
+  // 判断第二级指令是否会写寄存器（简化判断）
+  val stage2_is_b       = stage2_opcode === "b010100".U                                   // B指令不写寄存器
+  val stage2_is_store   = stage2_opcode === "b001010".U && stage2_inst(25, 22)(2) === 1.U // Store指令
+  val stage2_will_write = stage2_valid && stage2_rd.orR && !stage2_is_b && !stage2_is_store
 
   // 检测冲突：第一级BRU要读的寄存器是否是第二级要写的
   val stage1_needs_rj = is_bru && (is_jirl || bru_need_rd) // BRU需要读rj
@@ -83,7 +87,7 @@ class DecodeUnit extends Module with HasInstrType {
   )
 
   // 输出stall信号
-  io.decodeStall := decode_internal_conflict
+  io.decodeInternalStall := decode_internal_conflict
 
   // ========== MiniBRU专用读端口（src1和src2） ==========
   // 只有BRU指令才使用这两个端口
@@ -128,8 +132,8 @@ class DecodeUnit extends Module with HasInstrType {
   io.target := target_bru
 
   // ========== 流水线寄存器更新 ==========
-  // 当执行级未准备好或存在解码内部冲突时，保持当前值；否则更新
-  when(io.executeready && !decode_internal_conflict) {
+  // 当收到stall信号时，保持当前值；否则更新
+  when(!io.decodeStage1Stall) {
     stage1_reg.pc    := pc
     stage1_reg.inst  := inst
     stage1_reg.valid := valid
@@ -247,7 +251,7 @@ class DecodeUnit extends Module with HasInstrType {
   io.islsu := fuType === FuType.lsu
 
   // ========== 调试打印 ==========
-  when(isS) {
+  when(decode_internal_conflict) {
     printf("[DecodeUnit] Internal conflict detected!\n")
     printf("  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n", inst, rj, rd, is_bru)
     printf("  Stage2: inst=0x%x, rd=%d, will_write=%d\n", stage2_inst, stage2_rd, stage2_will_write)
