@@ -1,3 +1,10 @@
+package cpu.pipeline
+
+import chisel3._
+import chisel3.util._
+import cpu.defines._
+import cpu.defines.Const._
+
 class DecodeUnit extends Module with HasInstrType {
   val io = IO(new Bundle {
     val decodeStage = Flipped(new FetchUnitDecodeUnit())
