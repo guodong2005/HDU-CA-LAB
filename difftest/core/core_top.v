@@ -2398,64 +2398,32 @@ module MiniBru(
   input  [31:0] io_pc,
                 io_src_info_src1_data,
                 io_src_info_src2_data,
-  output        io_valid,
-                io_branch,
-  output [31:0] io_target
+  output        io_branch,
+  output [31:0] io_target,
+  output        io_valid
 );
 
-  wire _io_branch_T_30 = io_info_fusel == 3'h3;
-  wire _GEN = io_info_op == 5'h8;
-  wire _GEN_0 = io_info_op == 5'hA;
-  wire _GEN_1 = io_info_op == 5'hB;
-  wire _GEN_2 = io_info_op == 5'h0;
-  wire _GEN_3 = io_info_op == 5'h1;
-  wire _GEN_4 = io_info_op == 5'h4;
-  wire _GEN_5 = io_info_op == 5'h5;
-  wire _GEN_6 = io_info_op == 5'h6;
-  wire _GEN_7 = io_info_op == 5'h7;
-  assign io_valid = io_info_valid & _io_branch_T_30;
+  wire eq = io_src_info_src1_data == io_src_info_src2_data;
+  wire lt = $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data);
+  wire ltu = io_src_info_src1_data < io_src_info_src2_data;
+  wire _io_target_T = io_info_op == 5'hB;
   assign io_branch =
-    _GEN
-      ? io_info_valid & _io_branch_T_30
-      : _GEN_0
-          ? io_info_valid & _io_branch_T_30
-          : _GEN_1
-              ? io_info_valid & _io_branch_T_30
-              : _GEN_2
-                  ? io_info_valid & _io_branch_T_30
-                    & io_src_info_src1_data == io_src_info_src2_data
-                  : _GEN_3
-                      ? io_info_valid & _io_branch_T_30
-                        & io_src_info_src1_data != io_src_info_src2_data
-                      : _GEN_4
-                          ? io_info_valid & _io_branch_T_30
-                            & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
-                          : _GEN_5
-                              ? io_info_valid & _io_branch_T_30
-                                & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
-                              : _GEN_6
-                                  ? io_info_valid & _io_branch_T_30
-                                    & io_src_info_src1_data < io_src_info_src2_data
-                                  : _GEN_7 & io_info_valid & _io_branch_T_30
-                                    & io_src_info_src1_data >= io_src_info_src2_data;
+    io_info_op == 5'h0
+      ? eq
+      : io_info_op == 5'h1
+          ? ~eq
+          : io_info_op == 5'h4
+              ? lt
+              : io_info_op == 5'h5
+                  ? ~lt
+                  : io_info_op == 5'h6
+                      ? ltu
+                      : io_info_op == 5'h7
+                          ? ~ltu
+                          : io_info_op == 5'h8 | io_info_op == 5'hA | _io_target_T;
   assign io_target =
-    _GEN
-      ? io_pc + io_info_imm
-      : _GEN_0
-          ? io_pc + io_info_imm
-          : _GEN_1
-              ? io_src_info_src1_data + io_info_imm
-              : _GEN_2
-                  ? io_pc + io_info_imm
-                  : _GEN_3
-                      ? io_pc + io_info_imm
-                      : _GEN_4
-                          ? io_pc + io_info_imm
-                          : _GEN_5
-                              ? io_pc + io_info_imm
-                              : _GEN_6
-                                  ? io_pc + io_info_imm
-                                  : _GEN_7 ? io_pc + io_info_imm : 32'h0;
+    _io_target_T ? io_src_info_src1_data + io_info_imm : io_pc + io_info_imm;
+  assign io_valid = io_info_fusel == 3'h3 & io_info_valid;
 endmodule
 
 module DecodeUnit(
@@ -2488,8 +2456,8 @@ module DecodeUnit(
   output [31:0] io_target
 );
 
-  wire        _bru_io_valid;
   wire        _bru_io_branch;
+  wire        _bru_io_valid;
   wire [31:0] _decoder_io_out_info_instr;
   wire [4:0]  _decoder_io_out_info_src1_raddr;
   wire [4:0]  _decoder_io_out_info_src2_raddr;
@@ -2749,9 +2717,9 @@ module DecodeUnit(
     .io_pc                 (io_decodeStage_data_pc),
     .io_src_info_src1_data (src1_data_final),
     .io_src_info_src2_data (src2_data_final),
-    .io_valid              (_bru_io_valid),
     .io_branch             (_bru_io_branch),
-    .io_target             (io_target)
+    .io_target             (io_target),
+    .io_valid              (_bru_io_valid)
   );
   assign io_regfile_src1_raddr = _decoder_io_out_info_src1_raddr;
   assign io_regfile_src2_raddr = _decoder_io_out_info_src2_raddr;

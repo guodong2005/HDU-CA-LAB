@@ -28,13 +28,7 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def SRL_W = BitPat("b00000000000101111???????????????")
   def SRA_W = BitPat("b00000000000110000???????????????")
 
-  def MUL_W   = BitPat("b00000000000111000???????????????") // Multiply Word
-  def MULH_W  = BitPat("b00000000000111001???????????????") // Multiply High Word
-  def MULH_WU = BitPat("b00000000000111010???????????????") // Multiply High Unsigned Word
-  def DIV_W   = BitPat("b00000000001000000???????????????") // Divide Word
-  def MOD_W   = BitPat("b00000000001000001???????????????") // Modulo Word
-  def DIV_WU  = BitPat("b00000000001000010???????????????") // Divide Unsigned Word
-  def MOD_WU  = BitPat("b00000000001000011???????????????") // Modulo Unsigned Word
+  def MUL_W = BitPat("b00000000000111000???????????????") // Multiply Word
 
   // Load Instructions
   // Load Instructions
@@ -67,14 +61,6 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
   def LU12I_W   = BitPat("b0001010?????????????????????????") // Load Upper 12 Immediate Word
   def PCADDU12I = BitPat("b0001110?????????????????????????") // PC Add Upper 12 Immediate
 
-  // CSR Instructions BitPat
-  def CSRRW  = BitPat("b????????_?????_?????_001_?????_1110011") // Atomic Read/Write CSR
-  def CSRRS  = BitPat("b????????_?????_?????_010_?????_1110011") // Atomic Read and Set CSR
-  def CSRRC  = BitPat("b????????_?????_?????_011_?????_1110011") // Atomic Read and Clear CSR
-  def CSRRWI = BitPat("b????????_?????_?????_101_?????_1110011") // Immediate Atomic Read/Write CSR
-  def CSRRSI = BitPat("b????????_?????_?????_110_?????_1110011") // Immediate Atomic Read and Set CSR
-  def CSRRCI = BitPat("b????????_?????_?????_111_?????_1110011") // Immediate Atomic Read and Clear CSR
-
   val table = Array(
     LU12I_W   -> List(InstrU, FuType.alu, ALUOpType.add), // Load Upper Immediate Word
     PCADDU12I -> List(InstrU, FuType.alu, ALUOpType.add), // PC Add Upper Immediate
@@ -100,13 +86,7 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     AND    -> List(InstrR, FuType.alu, ALUOpType.and),  // AND
     SUB_W  -> List(InstrR, FuType.alu, ALUOpType.sub),  // Subtract
 
-    MUL_W   -> List(InstrR, FuType.mdu, MDUOpType.mul),   // Multiply
-    MULH_W  -> List(InstrR, FuType.mdu, MDUOpType.mulh),  // Multiply High
-    MULH_WU -> List(InstrR, FuType.mdu, MDUOpType.mulhu), // Multiply High Unsigned
-    DIV_W   -> List(InstrR, FuType.mdu, MDUOpType.div),   // Divide
-    DIV_WU  -> List(InstrR, FuType.mdu, MDUOpType.divu),  // Unsigned Divide
-    MOD_W   -> List(InstrR, FuType.mdu, MDUOpType.rem),   // Remainder
-    MOD_WU  -> List(InstrR, FuType.mdu, MDUOpType.remu),
+    MUL_W -> List(InstrR, FuType.mdu, MDUOpType.mul), // Multiply
 
     // Load Instructions
     LB  -> List(InstrI, FuType.lsu, LSUOpType.lb),  // Load Byte
@@ -133,15 +113,9 @@ object RV32I_ALUInstr extends HasInstrType with CoreParameter {
     BGEU -> List(InstrB, FuType.bru, BRUOpType.bgeu), // Branch Greater Than or Equal Unsigned
     B    -> List(InstrJ, FuType.bru, BRUOpType.b),    // Branch Greater Than or Equal Unsigned
     BL   -> List(InstrJ, FuType.bru, BRUOpType.bl),   // Branch Greater Than or Equal Unsigned
-    JIRL -> List(InstrJ, FuType.bru, BRUOpType.jirl), // Branch Greater Than or Equal Unsigned
+    JIRL -> List(InstrJ, FuType.bru, BRUOpType.jirl)  // Branch Greater Than or Equal Unsigned
 
     // CSR Instructions
-    CSRRW  -> List(InstrI, FuType.csr, CSROpType.write),  // Atomic Read/Write CSR
-    CSRRS  -> List(InstrI, FuType.csr, CSROpType.set),    // Atomic Read and Set CSR
-    CSRRC  -> List(InstrI, FuType.csr, CSROpType.clear),  // Atomic Read and Clear CSR
-    CSRRWI -> List(InstrI, FuType.csr, CSROpType.writei), // Immediate Atomic Read/Write CSR
-    CSRRSI -> List(InstrI, FuType.csr, CSROpType.seti),   // Immediate Atomic Read and Set CSR
-    CSRRCI -> List(InstrI, FuType.csr, CSROpType.cleari)  // Immediate Atomic Read and Clear CSR
 
   )
 
