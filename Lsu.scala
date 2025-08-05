@@ -33,7 +33,7 @@ class Lsu extends Module {
       val resp = Flipped(Decoupled(new DCacheResp))
     }
   })
-
+  io.diffout := DontCare
   val isLsu                                     = (io.info.fusel === FuType.lsu) && io.info.valid
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
