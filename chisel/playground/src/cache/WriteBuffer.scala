@@ -36,6 +36,14 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 全局age计数器，用于跟踪操作的顺序
   val globalAge = RegInit(0.U(log2Ceil(16).W))
 
+  // 初始化buffer和in-flight buffer
+  for (i <- 0 until depth) {
+    buffer(i).req         := 0.U.asTypeOf(new DCacheReq)
+    buffer(i).age         := 0.U
+    inFlightBuffer(i).req := 0.U.asTypeOf(new DCacheReq)
+    inFlightBuffer(i).age := 0.U
+  }
+
   val validVecUInt = VecInit(valids.map(_.asBool))
   val inverted     = validVecUInt.map(x => ~x)
   val enqIdx       = PriorityEncoder(inverted)
@@ -84,33 +92,58 @@ class WriteBuffer(depth: Int = 4) extends Module {
 
   // 增强的bypass逻辑：考虑buffer中的和in-flight的store操作
   // 1. 检查buffer中的匹配
-  val bufferHits = VecInit(buffer.zip(valids).map { case (entry, v) =>
-    v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
-  })
+  val bufferHits = Wire(Vec(depth, Bool()))
+  for (i <- 0 until depth) {
+    bufferHits(i) := valids(i) && io.bypassEnable && buffer(i).req.write &&
+      (buffer(i).req.addr === io.bypassAddr)
+  }
 
   // 2. 检查in-flight buffer中的匹配
-  val inFlightHits = VecInit(inFlightBuffer.zip(inFlightValids).map { case (entry, v) =>
-    v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
-  })
+  val inFlightHits = Wire(Vec(depth, Bool()))
+  for (i <- 0 until depth) {
+    inFlightHits(i) := inFlightValids(i) && io.bypassEnable && inFlightBuffer(i).req.write &&
+      (inFlightBuffer(i).req.addr === io.bypassAddr)
+  }
 
   // 3. 找到最新的匹配项（具有最大age值）
-  val allEntries = buffer ++ inFlightBuffer
-  val allValids  = valids ++ inFlightValids
-  val allHits    = bufferHits ++ inFlightHits
+  val hasAnyHit = bufferHits.reduce(_ || _) || inFlightHits.reduce(_ || _)
 
-  // 计算每个匹配项的age，未匹配的设为0
-  val ages = VecInit(allEntries.zip(allHits).map { case (entry, hit) =>
-    Mux(hit, entry.age, 0.U)
-  })
+  // 计算buffer和in-flight buffer中的最新匹配
+  val bufferMaxAge      = Wire(UInt(log2Ceil(16).W))
+  val bufferNewestIdx   = Wire(UInt(log2Ceil(depth).W))
+  val bufferHasValidHit = Wire(Bool())
 
-  // 找到最大age值
-  val maxAge = ages.reduce((a, b) => Mux(a > b, a, b))
+  bufferMaxAge      := 0.U
+  bufferNewestIdx   := 0.U
+  bufferHasValidHit := false.B
 
-  // 确定哪个entry具有最大age
-  val newestHits = VecInit(ages.zip(allHits).map { case (age, hit) =>
-    hit && (age === maxAge)
-  })
+  for (i <- 0 until depth) {
+    when(bufferHits(i) && (buffer(i).age >= bufferMaxAge || !bufferHasValidHit)) {
+      bufferMaxAge      := buffer(i).age
+      bufferNewestIdx   := i.U
+      bufferHasValidHit := true.B
+    }
+  }
 
-  io.bypassHit  := allHits.reduce(_ || _)
-  io.bypassData := Mux1H(newestHits, allEntries.map(_.req.wdata))
+  val inFlightMaxAge      = Wire(UInt(log2Ceil(16).W))
+  val inFlightNewestIdx   = Wire(UInt(log2Ceil(depth).W))
+  val inFlightHasValidHit = Wire(Bool())
+
+  inFlightMaxAge      := 0.U
+  inFlightNewestIdx   := 0.U
+  inFlightHasValidHit := false.B
+
+  for (i <- 0 until depth) {
+    when(inFlightHits(i) && (inFlightBuffer(i).age >= inFlightMaxAge || !inFlightHasValidHit)) {
+      inFlightMaxAge      := inFlightBuffer(i).age
+      inFlightNewestIdx   := i.U
+      inFlightHasValidHit := true.B
+    }
+  }
+
+  // 选择全局最新的匹配
+  val useInFlight = inFlightHasValidHit && (!bufferHasValidHit || inFlightMaxAge >= bufferMaxAge)
+
+  io.bypassHit  := hasAnyHit
+  io.bypassData := Mux(useInFlight, inFlightBuffer(inFlightNewestIdx).req.wdata, buffer(bufferNewestIdx).req.wdata)
 }
