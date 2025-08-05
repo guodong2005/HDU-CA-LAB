@@ -2958,35 +2958,24 @@ module Alu(
   output        io_valid
 );
 
-  wire [62:0] _io_result_T_20 =
+  wire [62:0] _sll_result_T =
     {31'h0, io_src_info_src1_data} << io_src_info_src2_data[4:0];
   assign io_result =
-    io_info_op == 5'h0
-      ? io_src_info_src1_data + io_src_info_src2_data
-      : io_info_op == 5'h1
-          ? io_src_info_src1_data - io_src_info_src2_data
-          : io_info_op == 5'h8
-              ? io_src_info_src1_data & io_src_info_src2_data
+    io_info_op == 5'h5
+      ? io_src_info_src1_data >> io_src_info_src2_data[4:0]
+      : io_info_op == 5'h9
+          ? _sll_result_T[31:0]
+          : io_info_op == 5'h4
+              ? io_src_info_src1_data ^ io_src_info_src2_data
               : io_info_op == 5'h7
                   ? io_src_info_src1_data | io_src_info_src2_data
-                  : io_info_op == 5'h4
-                      ? io_src_info_src1_data ^ io_src_info_src2_data
-                      : io_info_op == 5'hC
-                          ? ~(io_src_info_src1_data | io_src_info_src2_data)
-                          : io_info_op == 5'h2
-                              ? {31'h0,
-                                 $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)}
-                              : io_info_op == 5'h3
-                                  ? {31'h0, io_src_info_src1_data < io_src_info_src2_data}
-                                  : io_info_op == 5'h9
-                                      ? _io_result_T_20[31:0]
-                                      : io_info_op == 5'h5
-                                          ? io_src_info_src1_data
-                                            >> io_src_info_src2_data[4:0]
-                                          : io_info_op == 5'h6
-                                              ? $signed($signed(io_src_info_src1_data)
-                                                        >>> io_src_info_src2_data[4:0])
-                                              : 32'h0;
+                  : io_info_op == 5'h8
+                      ? io_src_info_src1_data & io_src_info_src2_data
+                      : io_info_op == 5'h1
+                          ? io_src_info_src1_data - io_src_info_src2_data
+                          : io_info_op == 5'h0
+                              ? io_src_info_src1_data + io_src_info_src2_data
+                              : 32'h0;
   assign io_valid = io_info_valid;
 endmodule
 
