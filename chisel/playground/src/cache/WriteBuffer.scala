@@ -25,21 +25,24 @@ class WriteBuffer(depth: Int = 4, historyDepth: Int = 8) extends Module {
   })
 
   // 主buffer，包含当前有效的和历史的entries
-  val buffer = Reg(Vec(depth + historyDepth, new WriteBufferEntry))
+  val totalDepth = depth + historyDepth
+  val buffer     = Reg(Vec(totalDepth, new WriteBufferEntry))
 
-  // 初始化
-  val initEntry = Wire(new WriteBufferEntry)
-  initEntry.req       := DontCare
-  initEntry.valid     := false.B
-  initEntry.allocated := false.B
+  // 复位时初始化
+  when(reset.asBool) {
+    buffer.foreach { entry =>
+      entry.valid     := false.B
+      entry.allocated := false.B
+    }
+  }
 
   // 有效entries（未被写出的）
   val validEntries = buffer.map(e => e.valid && e.allocated)
   val validCount   = PopCount(validEntries)
 
   // 查找相同地址的store（只在有效entries中查找）
-  val sameAddrHits = VecInit(buffer.zip(validEntries).map { case (entry, valid) =>
-    valid && entry.req.write && (entry.req.addr === io.enq.bits.addr)
+  val sameAddrHits = VecInit(buffer.zipWithIndex.map { case (entry, idx) =>
+    validEntries(idx) && entry.req.write && (entry.req.addr === io.enq.bits.addr)
   })
   val hasSameAddr = sameAddrHits.reduce(_ || _)
   val sameAddrIdx = PriorityEncoder(sameAddrHits)
@@ -58,7 +61,7 @@ class WriteBuffer(depth: Int = 4, historyDepth: Int = 8) extends Module {
   val enqIdx = Mux(hasSameAddr, sameAddrIdx, Mux(hasFreeSlot, freeSlotIdx, Mux(hasHistorySlot, historySlotIdx, 0.U)))
 
   // 输入准备信号：如果有相同地址就合并，否则需要有空位
-  io.enq.ready := hasSameAddr || (validCount < depth.U)
+  io.enq.ready := io.enq.bits.write && (hasSameAddr || (validCount < depth.U))
 
   // 输出选择（只从有效entries中选择）
   val deqIdx = PriorityEncoder(validEntries)
@@ -68,10 +71,10 @@ class WriteBuffer(depth: Int = 4, historyDepth: Int = 8) extends Module {
   // 写入逻辑
   when(io.enq.fire && io.enq.bits.write) {
     when(hasSameAddr) {
-      // 合并：只更新数据和mask
+      // 合并：只更新数据，保持原有的其他字段
       buffer(sameAddrIdx).req.wdata := io.enq.bits.wdata
-      buffer(sameAddrIdx).req.wmask := io.enq.bits.wmask
       buffer(sameAddrIdx).req.size  := io.enq.bits.size
+      // 地址和write标志保持不变
     }.otherwise {
       // 新分配
       buffer(enqIdx).req       := io.enq.bits
@@ -102,12 +105,25 @@ class WriteBuffer(depth: Int = 4, historyDepth: Int = 8) extends Module {
     (entry.req.addr === io.bypassAddr)
   })
 
-  // 优先选择最新的（最后写入的）entry
-  val bypassHitVec = bypassHits.asUInt
-  val bypassIdx    = PriorityEncoder(bypassHitVec.asBools.reverse.reverse)
+  // 找到最新的（最后写入的）entry
+  // 使用反向优先编码器来选择最后一个匹配项
+  val bypassIdx = (totalDepth - 1).U - PriorityEncoder(bypassHits.reverse)
 
   io.bypassHit  := bypassHits.reduce(_ || _)
-  io.bypassData := buffer(bypassIdx).req.wdata
+  io.bypassData := Mux(io.bypassHit, buffer(bypassIdx).req.wdata, 0.U)
+
+  // 调试信息
+  when(io.enq.fire && io.enq.bits.write) {
+    when(hasSameAddr) {
+      printf("WriteBuffer: Merging store to addr %x with data %x\n", io.enq.bits.addr, io.enq.bits.wdata)
+    }.otherwise {
+      printf("WriteBuffer: New store to addr %x with data %x at idx %d\n", io.enq.bits.addr, io.enq.bits.wdata, enqIdx)
+    }
+  }
+
+  when(io.bypassHit) {
+    printf("WriteBuffer: Bypass hit for addr %x, returning data %x\n", io.bypassAddr, io.bypassData)
+  }
 
   // 可选：定期清理历史entries以防止资源耗尽
   val cleanupCounter = RegInit(0.U(16.W))
@@ -119,5 +135,17 @@ class WriteBuffer(depth: Int = 4, historyDepth: Int = 8) extends Module {
     when(hasHistorySlot) {
       buffer(oldestHistoryIdx).allocated := false.B
     }
+  }
+
+  // 性能计数器（可选）
+  val mergeCount     = RegInit(0.U(32.W))
+  val bypassHitCount = RegInit(0.U(32.W))
+
+  when(io.enq.fire && io.enq.bits.write && hasSameAddr) {
+    mergeCount := mergeCount + 1.U
+  }
+
+  when(io.bypassHit) {
+    bypassHitCount := bypassHitCount + 1.U
   }
 }
