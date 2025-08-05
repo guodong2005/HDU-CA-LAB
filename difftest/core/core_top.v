@@ -1953,8 +1953,6 @@ module FetchUnit(
                  io_signal_decodeUnitSignal_do_flush,
                  io_signal_executeUnitSignal_allow_to_go,
                  io_signal_executeUnitSignal_do_flush,
-                 io_signal_memoryUnitSignal_allow_to_go,
-                 io_signal_memoryUnitSignal_do_flush,
                  io_signal_bypassData_stage1_src1_bypass,
                  io_signal_bypassData_stage1_src2_bypass,
   input  [31:0]  io_signal_bypassData_stage1_src1_data,
@@ -2099,6 +2097,7 @@ module DecodeStage(
   input         io_fetchUnit_data_valid,
   input  [31:0] io_fetchUnit_data_pc,
   input         io_controlSignal_fetchUnitSignal_allow_to_go,
+                io_controlSignal_fetchUnitSignal_do_flush,
   output [31:0] io_decodeUnit_data_inst,
   output        io_decodeUnit_data_valid,
   output [31:0] io_decodeUnit_data_pc
@@ -2113,10 +2112,20 @@ module DecodeStage(
       data_valid <= 1'h0;
       data_pc <= 32'h0;
     end
-    else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin
-      data_inst <= io_fetchUnit_data_inst;
-      data_valid <= io_fetchUnit_data_valid;
-      data_pc <= io_fetchUnit_data_pc;
+    else begin
+      if (io_controlSignal_fetchUnitSignal_do_flush) begin
+        data_inst <= 32'h0;
+        data_pc <= 32'h0;
+      end
+      else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin
+        data_inst <= io_fetchUnit_data_inst;
+        data_pc <= io_fetchUnit_data_pc;
+      end
+      data_valid <=
+        ~io_controlSignal_fetchUnitSignal_do_flush
+        & (io_controlSignal_fetchUnitSignal_allow_to_go
+             ? io_fetchUnit_data_valid
+             : data_valid);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3565,19 +3574,19 @@ module ExecuteUnit(
   input  [2:0]  io_executeStage_data_info_fusel,
   input  [31:0] io_executeStage_data_src_info_src1_data,
                 io_executeStage_data_src_info_src2_data,
-  output [31:0] io_memoryStage_data_pc,
-                io_memoryStage_data_info_instr,
-  output        io_memoryStage_data_info_valid,
-                io_memoryStage_data_info_reg_wen,
-  output [4:0]  io_memoryStage_data_info_reg_waddr,
-  output [7:0]  io_memoryStage_data_info_diffout_storeEvent_valid,
-  output [31:0] io_memoryStage_data_info_diffout_storeEvent_storePAddr,
-                io_memoryStage_data_info_diffout_storeEvent_storeVAddr,
-                io_memoryStage_data_info_diffout_storeEvent_storeData,
-  output [7:0]  io_memoryStage_data_info_diffout_loadEvent_valid,
-  output [31:0] io_memoryStage_data_info_diffout_loadEvent_paddr,
-                io_memoryStage_data_info_diffout_loadEvent_vaddr,
-                io_memoryStage_data_rd_info_wdata,
+  output [31:0] io_writeBackStage_data_pc,
+                io_writeBackStage_data_info_instr,
+  output        io_writeBackStage_data_info_valid,
+                io_writeBackStage_data_info_reg_wen,
+  output [4:0]  io_writeBackStage_data_info_reg_waddr,
+  output [7:0]  io_writeBackStage_data_info_diffout_storeEvent_valid,
+  output [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,
+                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,
+                io_writeBackStage_data_info_diffout_storeEvent_storeData,
+  output [7:0]  io_writeBackStage_data_info_diffout_loadEvent_valid,
+  output [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,
+                io_writeBackStage_data_info_diffout_loadEvent_vaddr,
+                io_writeBackStage_data_rd_info_wdata,
   output        io_ready,
   input         io_dcache_req_ready,
   output        io_dcache_req_valid,
@@ -3604,21 +3613,21 @@ module ExecuteUnit(
     .io_data_src_info_src2_data            (io_executeStage_data_src_info_src2_data),
     .io_data_rd_info_wdata                 (_fu_io_data_rd_info_wdata),
     .io_data_diffout_storeEvent_valid
-      (io_memoryStage_data_info_diffout_storeEvent_valid),
+      (io_writeBackStage_data_info_diffout_storeEvent_valid),
     .io_data_diffout_storeEvent_storePAddr
-      (io_memoryStage_data_info_diffout_storeEvent_storePAddr),
+      (io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
     .io_data_diffout_storeEvent_storeVAddr
-      (io_memoryStage_data_info_diffout_storeEvent_storeVAddr),
+      (io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
     .io_data_diffout_storeEvent_storeData
-      (io_memoryStage_data_info_diffout_storeEvent_storeData),
+      (io_writeBackStage_data_info_diffout_storeEvent_storeData),
     .io_data_diffout_loadEvent_valid
-      (io_memoryStage_data_info_diffout_loadEvent_valid),
+      (io_writeBackStage_data_info_diffout_loadEvent_valid),
     .io_data_diffout_loadEvent_paddr
-      (io_memoryStage_data_info_diffout_loadEvent_paddr),
+      (io_writeBackStage_data_info_diffout_loadEvent_paddr),
     .io_data_diffout_loadEvent_vaddr
-      (io_memoryStage_data_info_diffout_loadEvent_vaddr),
+      (io_writeBackStage_data_info_diffout_loadEvent_vaddr),
     .io_data_ready                         (io_ready),
-    .io_data_valid                         (io_memoryStage_data_info_valid),
+    .io_data_valid                         (io_writeBackStage_data_info_valid),
     .io_dcache_req_ready                   (io_dcache_req_ready),
     .io_dcache_req_valid                   (io_dcache_req_valid),
     .io_dcache_req_bits_addr               (io_dcache_req_bits_addr),
@@ -3628,15 +3637,15 @@ module ExecuteUnit(
     .io_dcache_resp_valid                  (io_dcache_resp_valid),
     .io_dcache_resp_bits_data              (io_dcache_resp_bits_data)
   );
-  assign io_memoryStage_data_pc = io_executeStage_data_pc;
-  assign io_memoryStage_data_info_instr = io_executeStage_data_info_instr;
-  assign io_memoryStage_data_info_reg_wen = io_executeStage_data_info_reg_wen;
-  assign io_memoryStage_data_info_reg_waddr = io_executeStage_data_info_reg_waddr;
-  assign io_memoryStage_data_rd_info_wdata = _fu_io_data_rd_info_wdata;
+  assign io_writeBackStage_data_pc = io_executeStage_data_pc;
+  assign io_writeBackStage_data_info_instr = io_executeStage_data_info_instr;
+  assign io_writeBackStage_data_info_reg_wen = io_executeStage_data_info_reg_wen;
+  assign io_writeBackStage_data_info_reg_waddr = io_executeStage_data_info_reg_waddr;
+  assign io_writeBackStage_data_rd_info_wdata = _fu_io_data_rd_info_wdata;
   assign io_result = _fu_io_data_rd_info_wdata;
 endmodule
 
-module MemoryStage(
+module WriteBackStage(
   input         clock,
                 reset,
   input  [31:0] io_executeUnit_data_pc,
@@ -3652,276 +3661,16 @@ module MemoryStage(
   input  [31:0] io_executeUnit_data_info_diffout_loadEvent_paddr,
                 io_executeUnit_data_info_diffout_loadEvent_vaddr,
                 io_executeUnit_data_rd_info_wdata,
-  input         io_controlSignal_fetchUnitSignal_allow_to_go,
-                io_controlSignal_fetchUnitSignal_do_flush,
-                io_controlSignal_decodeUnitSignal_allow_to_go,
-                io_controlSignal_decodeUnitSignal_do_flush,
-                io_controlSignal_executeUnitSignal_allow_to_go,
-                io_controlSignal_executeUnitSignal_do_flush,
-                io_controlSignal_memoryUnitSignal_allow_to_go,
-                io_controlSignal_memoryUnitSignal_do_flush,
-                io_controlSignal_bypassData_stage1_src1_bypass,
-                io_controlSignal_bypassData_stage1_src2_bypass,
-  input  [31:0] io_controlSignal_bypassData_stage1_src1_data,
-                io_controlSignal_bypassData_stage1_src2_data,
-  input         io_controlSignal_bypassData_stage2_src1_bypass,
-                io_controlSignal_bypassData_stage2_src2_bypass,
-  input  [31:0] io_controlSignal_bypassData_stage2_src1_data,
-                io_controlSignal_bypassData_stage2_src2_data,
-  input         io_controlSignal_decodeStage1Stall,
-  output [31:0] io_memoryUnit_data_pc,
-                io_memoryUnit_data_info_instr,
-  output        io_memoryUnit_data_info_valid,
-                io_memoryUnit_data_info_reg_wen,
-  output [4:0]  io_memoryUnit_data_info_reg_waddr,
-  output [7:0]  io_memoryUnit_data_info_diffout_storeEvent_valid,
-  output [31:0] io_memoryUnit_data_info_diffout_storeEvent_storePAddr,
-                io_memoryUnit_data_info_diffout_storeEvent_storeVAddr,
-                io_memoryUnit_data_info_diffout_storeEvent_storeData,
-  output [7:0]  io_memoryUnit_data_info_diffout_loadEvent_valid,
-  output [31:0] io_memoryUnit_data_info_diffout_loadEvent_paddr,
-                io_memoryUnit_data_info_diffout_loadEvent_vaddr,
-                io_memoryUnit_data_rd_info_wdata
-);
-
-  reg [31:0] data_pc;
-  reg [31:0] data_info_instr;
-  reg        data_info_valid;
-  reg        data_info_reg_wen;
-  reg [4:0]  data_info_reg_waddr;
-  reg [7:0]  data_info_diffout_storeEvent_valid;
-  reg [31:0] data_info_diffout_storeEvent_storePAddr;
-  reg [31:0] data_info_diffout_storeEvent_storeVAddr;
-  reg [31:0] data_info_diffout_storeEvent_storeData;
-  reg [7:0]  data_info_diffout_loadEvent_valid;
-  reg [31:0] data_info_diffout_loadEvent_paddr;
-  reg [31:0] data_info_diffout_loadEvent_vaddr;
-  reg [31:0] data_rd_info_wdata;
-  always @(posedge clock) begin
-    if (reset) begin
-      data_pc <= 32'h0;
-      data_info_instr <= 32'h0;
-      data_info_valid <= 1'h0;
-      data_info_reg_wen <= 1'h0;
-      data_info_reg_waddr <= 5'h0;
-      data_info_diffout_storeEvent_valid <= 8'h0;
-      data_info_diffout_storeEvent_storePAddr <= 32'h0;
-      data_info_diffout_storeEvent_storeVAddr <= 32'h0;
-      data_info_diffout_storeEvent_storeData <= 32'h0;
-      data_info_diffout_loadEvent_valid <= 8'h0;
-      data_info_diffout_loadEvent_paddr <= 32'h0;
-      data_info_diffout_loadEvent_vaddr <= 32'h0;
-      data_rd_info_wdata <= 32'h0;
-    end
-    else begin
-      data_pc <=
-        io_controlSignal_executeUnitSignal_do_flush ? 32'h0 : io_executeUnit_data_pc;
-      data_info_instr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_instr;
-      data_info_valid <=
-        ~io_controlSignal_executeUnitSignal_do_flush & io_executeUnit_data_info_valid;
-      data_info_reg_wen <=
-        ~io_controlSignal_executeUnitSignal_do_flush & io_executeUnit_data_info_reg_wen;
-      data_info_reg_waddr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 5'h0
-          : io_executeUnit_data_info_reg_waddr;
-      data_info_diffout_storeEvent_valid <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 8'h0
-          : io_executeUnit_data_info_diffout_storeEvent_valid;
-      data_info_diffout_storeEvent_storePAddr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_diffout_storeEvent_storePAddr;
-      data_info_diffout_storeEvent_storeVAddr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_diffout_storeEvent_storeVAddr;
-      data_info_diffout_storeEvent_storeData <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_diffout_storeEvent_storeData;
-      data_info_diffout_loadEvent_valid <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 8'h0
-          : io_executeUnit_data_info_diffout_loadEvent_valid;
-      data_info_diffout_loadEvent_paddr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_diffout_loadEvent_paddr;
-      data_info_diffout_loadEvent_vaddr <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_info_diffout_loadEvent_vaddr;
-      data_rd_info_wdata <=
-        io_controlSignal_executeUnitSignal_do_flush
-          ? 32'h0
-          : io_executeUnit_data_rd_info_wdata;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:90];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [6:0] i = 7'h0; i < 7'h5B; i += 7'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        data_pc = _RANDOM[7'h0];
-        data_info_instr = _RANDOM[7'h1];
-        data_info_valid = _RANDOM[7'h2][0];
-        data_info_reg_wen = _RANDOM[7'h2][16];
-        data_info_reg_waddr = _RANDOM[7'h2][21:17];
-        data_info_diffout_storeEvent_valid = _RANDOM[7'h14][8:1];
-        data_info_diffout_storeEvent_storePAddr =
-          {_RANDOM[7'h14][31:9], _RANDOM[7'h15][8:0]};
-        data_info_diffout_storeEvent_storeVAddr =
-          {_RANDOM[7'h15][31:9], _RANDOM[7'h16][8:0]};
-        data_info_diffout_storeEvent_storeData =
-          {_RANDOM[7'h16][31:9], _RANDOM[7'h17][8:0]};
-        data_info_diffout_loadEvent_valid = _RANDOM[7'h17][28:21];
-        data_info_diffout_loadEvent_paddr = {_RANDOM[7'h17][31:29], _RANDOM[7'h18][28:0]};
-        data_info_diffout_loadEvent_vaddr = {_RANDOM[7'h18][31:29], _RANDOM[7'h19][28:0]};
-        data_rd_info_wdata = {_RANDOM[7'h59][31:29], _RANDOM[7'h5A][28:0]};
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_memoryUnit_data_pc =
-    io_controlSignal_executeUnitSignal_allow_to_go ? data_pc : 32'h0;
-  assign io_memoryUnit_data_info_instr =
-    io_controlSignal_executeUnitSignal_allow_to_go ? data_info_instr : 32'h0;
-  assign io_memoryUnit_data_info_valid =
-    io_controlSignal_executeUnitSignal_allow_to_go & data_info_valid;
-  assign io_memoryUnit_data_info_reg_wen =
-    io_controlSignal_executeUnitSignal_allow_to_go & data_info_reg_wen;
-  assign io_memoryUnit_data_info_reg_waddr =
-    io_controlSignal_executeUnitSignal_allow_to_go ? data_info_reg_waddr : 5'h0;
-  assign io_memoryUnit_data_info_diffout_storeEvent_valid =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_storeEvent_valid
-      : 8'h0;
-  assign io_memoryUnit_data_info_diffout_storeEvent_storePAddr =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_storeEvent_storePAddr
-      : 32'h0;
-  assign io_memoryUnit_data_info_diffout_storeEvent_storeVAddr =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_storeEvent_storeVAddr
-      : 32'h0;
-  assign io_memoryUnit_data_info_diffout_storeEvent_storeData =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_storeEvent_storeData
-      : 32'h0;
-  assign io_memoryUnit_data_info_diffout_loadEvent_valid =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_loadEvent_valid
-      : 8'h0;
-  assign io_memoryUnit_data_info_diffout_loadEvent_paddr =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_loadEvent_paddr
-      : 32'h0;
-  assign io_memoryUnit_data_info_diffout_loadEvent_vaddr =
-    io_controlSignal_executeUnitSignal_allow_to_go
-      ? data_info_diffout_loadEvent_vaddr
-      : 32'h0;
-  assign io_memoryUnit_data_rd_info_wdata =
-    io_controlSignal_executeUnitSignal_allow_to_go ? data_rd_info_wdata : 32'h0;
-endmodule
-
-module MemoryUnit(
-  input  [31:0] io_memoryStage_data_pc,
-                io_memoryStage_data_info_instr,
-  input         io_memoryStage_data_info_valid,
-                io_memoryStage_data_info_reg_wen,
-  input  [4:0]  io_memoryStage_data_info_reg_waddr,
-  input  [7:0]  io_memoryStage_data_info_diffout_storeEvent_valid,
-  input  [31:0] io_memoryStage_data_info_diffout_storeEvent_storePAddr,
-                io_memoryStage_data_info_diffout_storeEvent_storeVAddr,
-                io_memoryStage_data_info_diffout_storeEvent_storeData,
-  input  [7:0]  io_memoryStage_data_info_diffout_loadEvent_valid,
-  input  [31:0] io_memoryStage_data_info_diffout_loadEvent_paddr,
-                io_memoryStage_data_info_diffout_loadEvent_vaddr,
-                io_memoryStage_data_rd_info_wdata,
-  output [31:0] io_writeBackStage_data_pc,
-                io_writeBackStage_data_info_instr,
-  output        io_writeBackStage_data_info_valid,
-                io_writeBackStage_data_info_reg_wen,
-  output [4:0]  io_writeBackStage_data_info_reg_waddr,
-  output [7:0]  io_writeBackStage_data_info_diffout_storeEvent_valid,
-  output [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeData,
-  output [7:0]  io_writeBackStage_data_info_diffout_loadEvent_valid,
-  output [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,
-                io_writeBackStage_data_info_diffout_loadEvent_vaddr,
-                io_writeBackStage_data_rd_info_wdata,
-                io_result
-);
-
-  assign io_writeBackStage_data_pc = io_memoryStage_data_pc;
-  assign io_writeBackStage_data_info_instr = io_memoryStage_data_info_instr;
-  assign io_writeBackStage_data_info_valid = io_memoryStage_data_info_valid;
-  assign io_writeBackStage_data_info_reg_wen = io_memoryStage_data_info_reg_wen;
-  assign io_writeBackStage_data_info_reg_waddr = io_memoryStage_data_info_reg_waddr;
-  assign io_writeBackStage_data_info_diffout_storeEvent_valid =
-    io_memoryStage_data_info_diffout_storeEvent_valid;
-  assign io_writeBackStage_data_info_diffout_storeEvent_storePAddr =
-    io_memoryStage_data_info_diffout_storeEvent_storePAddr;
-  assign io_writeBackStage_data_info_diffout_storeEvent_storeVAddr =
-    io_memoryStage_data_info_diffout_storeEvent_storeVAddr;
-  assign io_writeBackStage_data_info_diffout_storeEvent_storeData =
-    io_memoryStage_data_info_diffout_storeEvent_storeData;
-  assign io_writeBackStage_data_info_diffout_loadEvent_valid =
-    io_memoryStage_data_info_diffout_loadEvent_valid;
-  assign io_writeBackStage_data_info_diffout_loadEvent_paddr =
-    io_memoryStage_data_info_diffout_loadEvent_paddr;
-  assign io_writeBackStage_data_info_diffout_loadEvent_vaddr =
-    io_memoryStage_data_info_diffout_loadEvent_vaddr;
-  assign io_writeBackStage_data_rd_info_wdata = io_memoryStage_data_rd_info_wdata;
-  assign io_result = io_memoryStage_data_rd_info_wdata;
-endmodule
-
-module WriteBackStage(
-  input         clock,
-                reset,
-  input  [31:0] io_memoryUnit_data_pc,
-                io_memoryUnit_data_info_instr,
-  input         io_memoryUnit_data_info_valid,
-                io_memoryUnit_data_info_reg_wen,
-  input  [4:0]  io_memoryUnit_data_info_reg_waddr,
-  input  [7:0]  io_memoryUnit_data_info_diffout_storeEvent_valid,
-  input  [31:0] io_memoryUnit_data_info_diffout_storeEvent_storePAddr,
-                io_memoryUnit_data_info_diffout_storeEvent_storeVAddr,
-                io_memoryUnit_data_info_diffout_storeEvent_storeData,
-  input  [7:0]  io_memoryUnit_data_info_diffout_loadEvent_valid,
-  input  [31:0] io_memoryUnit_data_info_diffout_loadEvent_paddr,
-                io_memoryUnit_data_info_diffout_loadEvent_vaddr,
-                io_memoryUnit_data_rd_info_wdata,
   output [31:0] io_writeBackUnit_data_pc,
                 io_writeBackUnit_data_info_instr,
   output        io_writeBackUnit_data_info_valid,
                 io_writeBackUnit_data_info_reg_wen,
   output [4:0]  io_writeBackUnit_data_info_reg_waddr,
-  output [3:0]  io_writeBackUnit_data_info_diffout_storeEvent_coreid,
-  output [7:0]  io_writeBackUnit_data_info_diffout_storeEvent_index,
-                io_writeBackUnit_data_info_diffout_storeEvent_valid,
+  output [7:0]  io_writeBackUnit_data_info_diffout_storeEvent_valid,
   output [31:0] io_writeBackUnit_data_info_diffout_storeEvent_storePAddr,
                 io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr,
                 io_writeBackUnit_data_info_diffout_storeEvent_storeData,
-  output [3:0]  io_writeBackUnit_data_info_diffout_loadEvent_coreid,
-  output [7:0]  io_writeBackUnit_data_info_diffout_loadEvent_index,
-                io_writeBackUnit_data_info_diffout_loadEvent_valid,
+  output [7:0]  io_writeBackUnit_data_info_diffout_loadEvent_valid,
   output [31:0] io_writeBackUnit_data_info_diffout_loadEvent_paddr,
                 io_writeBackUnit_data_info_diffout_loadEvent_vaddr,
                 io_writeBackUnit_data_rd_info_wdata
@@ -3932,14 +3681,10 @@ module WriteBackStage(
   reg        data_info_valid;
   reg        data_info_reg_wen;
   reg [4:0]  data_info_reg_waddr;
-  reg [3:0]  data_info_diffout_storeEvent_coreid;
-  reg [7:0]  data_info_diffout_storeEvent_index;
   reg [7:0]  data_info_diffout_storeEvent_valid;
   reg [31:0] data_info_diffout_storeEvent_storePAddr;
   reg [31:0] data_info_diffout_storeEvent_storeVAddr;
   reg [31:0] data_info_diffout_storeEvent_storeData;
-  reg [3:0]  data_info_diffout_loadEvent_coreid;
-  reg [7:0]  data_info_diffout_loadEvent_index;
   reg [7:0]  data_info_diffout_loadEvent_valid;
   reg [31:0] data_info_diffout_loadEvent_paddr;
   reg [31:0] data_info_diffout_loadEvent_vaddr;
@@ -3951,44 +3696,36 @@ module WriteBackStage(
       data_info_valid <= 1'h0;
       data_info_reg_wen <= 1'h0;
       data_info_reg_waddr <= 5'h0;
-      data_info_diffout_storeEvent_coreid <= 4'h0;
-      data_info_diffout_storeEvent_index <= 8'h0;
       data_info_diffout_storeEvent_valid <= 8'h0;
       data_info_diffout_storeEvent_storePAddr <= 32'h0;
       data_info_diffout_storeEvent_storeVAddr <= 32'h0;
       data_info_diffout_storeEvent_storeData <= 32'h0;
-      data_info_diffout_loadEvent_coreid <= 4'h0;
-      data_info_diffout_loadEvent_index <= 8'h0;
       data_info_diffout_loadEvent_valid <= 8'h0;
       data_info_diffout_loadEvent_paddr <= 32'h0;
       data_info_diffout_loadEvent_vaddr <= 32'h0;
       data_rd_info_wdata <= 32'h0;
     end
     else begin
-      data_pc <= io_memoryUnit_data_pc;
-      data_info_instr <= io_memoryUnit_data_info_instr;
-      data_info_valid <= io_memoryUnit_data_info_valid;
-      data_info_reg_wen <= io_memoryUnit_data_info_reg_wen;
-      data_info_reg_waddr <= io_memoryUnit_data_info_reg_waddr;
-      data_info_diffout_storeEvent_coreid <= 4'h0;
-      data_info_diffout_storeEvent_index <= 8'h0;
+      data_pc <= io_executeUnit_data_pc;
+      data_info_instr <= io_executeUnit_data_info_instr;
+      data_info_valid <= io_executeUnit_data_info_valid;
+      data_info_reg_wen <= io_executeUnit_data_info_reg_wen;
+      data_info_reg_waddr <= io_executeUnit_data_info_reg_waddr;
       data_info_diffout_storeEvent_valid <=
-        io_memoryUnit_data_info_diffout_storeEvent_valid;
+        io_executeUnit_data_info_diffout_storeEvent_valid;
       data_info_diffout_storeEvent_storePAddr <=
-        io_memoryUnit_data_info_diffout_storeEvent_storePAddr;
+        io_executeUnit_data_info_diffout_storeEvent_storePAddr;
       data_info_diffout_storeEvent_storeVAddr <=
-        io_memoryUnit_data_info_diffout_storeEvent_storeVAddr;
+        io_executeUnit_data_info_diffout_storeEvent_storeVAddr;
       data_info_diffout_storeEvent_storeData <=
-        io_memoryUnit_data_info_diffout_storeEvent_storeData;
-      data_info_diffout_loadEvent_coreid <= 4'h0;
-      data_info_diffout_loadEvent_index <= 8'h0;
+        io_executeUnit_data_info_diffout_storeEvent_storeData;
       data_info_diffout_loadEvent_valid <=
-        io_memoryUnit_data_info_diffout_loadEvent_valid;
+        io_executeUnit_data_info_diffout_loadEvent_valid;
       data_info_diffout_loadEvent_paddr <=
-        io_memoryUnit_data_info_diffout_loadEvent_paddr;
+        io_executeUnit_data_info_diffout_loadEvent_paddr;
       data_info_diffout_loadEvent_vaddr <=
-        io_memoryUnit_data_info_diffout_loadEvent_vaddr;
-      data_rd_info_wdata <= io_memoryUnit_data_rd_info_wdata;
+        io_executeUnit_data_info_diffout_loadEvent_vaddr;
+      data_rd_info_wdata <= io_executeUnit_data_rd_info_wdata;
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -4009,8 +3746,6 @@ module WriteBackStage(
         data_info_valid = _RANDOM[7'h2][0];
         data_info_reg_wen = _RANDOM[7'h2][16];
         data_info_reg_waddr = _RANDOM[7'h2][21:17];
-        data_info_diffout_storeEvent_coreid = _RANDOM[7'h13][24:21];
-        data_info_diffout_storeEvent_index = {_RANDOM[7'h13][31:25], _RANDOM[7'h14][0]};
         data_info_diffout_storeEvent_valid = _RANDOM[7'h14][8:1];
         data_info_diffout_storeEvent_storePAddr =
           {_RANDOM[7'h14][31:9], _RANDOM[7'h15][8:0]};
@@ -4018,8 +3753,6 @@ module WriteBackStage(
           {_RANDOM[7'h15][31:9], _RANDOM[7'h16][8:0]};
         data_info_diffout_storeEvent_storeData =
           {_RANDOM[7'h16][31:9], _RANDOM[7'h17][8:0]};
-        data_info_diffout_loadEvent_coreid = _RANDOM[7'h17][12:9];
-        data_info_diffout_loadEvent_index = _RANDOM[7'h17][20:13];
         data_info_diffout_loadEvent_valid = _RANDOM[7'h17][28:21];
         data_info_diffout_loadEvent_paddr = {_RANDOM[7'h17][31:29], _RANDOM[7'h18][28:0]};
         data_info_diffout_loadEvent_vaddr = {_RANDOM[7'h18][31:29], _RANDOM[7'h19][28:0]};
@@ -4035,10 +3768,6 @@ module WriteBackStage(
   assign io_writeBackUnit_data_info_valid = data_info_valid;
   assign io_writeBackUnit_data_info_reg_wen = data_info_reg_wen;
   assign io_writeBackUnit_data_info_reg_waddr = data_info_reg_waddr;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_coreid =
-    data_info_diffout_storeEvent_coreid;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_index =
-    data_info_diffout_storeEvent_index;
   assign io_writeBackUnit_data_info_diffout_storeEvent_valid =
     data_info_diffout_storeEvent_valid;
   assign io_writeBackUnit_data_info_diffout_storeEvent_storePAddr =
@@ -4047,10 +3776,6 @@ module WriteBackStage(
     data_info_diffout_storeEvent_storeVAddr;
   assign io_writeBackUnit_data_info_diffout_storeEvent_storeData =
     data_info_diffout_storeEvent_storeData;
-  assign io_writeBackUnit_data_info_diffout_loadEvent_coreid =
-    data_info_diffout_loadEvent_coreid;
-  assign io_writeBackUnit_data_info_diffout_loadEvent_index =
-    data_info_diffout_loadEvent_index;
   assign io_writeBackUnit_data_info_diffout_loadEvent_valid =
     data_info_diffout_loadEvent_valid;
   assign io_writeBackUnit_data_info_diffout_loadEvent_paddr =
@@ -4066,15 +3791,11 @@ module WriteBackUnit(
   input         io_writeBackStage_data_info_valid,
                 io_writeBackStage_data_info_reg_wen,
   input  [4:0]  io_writeBackStage_data_info_reg_waddr,
-  input  [3:0]  io_writeBackStage_data_info_diffout_storeEvent_coreid,
-  input  [7:0]  io_writeBackStage_data_info_diffout_storeEvent_index,
-                io_writeBackStage_data_info_diffout_storeEvent_valid,
+  input  [7:0]  io_writeBackStage_data_info_diffout_storeEvent_valid,
   input  [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,
                 io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,
                 io_writeBackStage_data_info_diffout_storeEvent_storeData,
-  input  [3:0]  io_writeBackStage_data_info_diffout_loadEvent_coreid,
-  input  [7:0]  io_writeBackStage_data_info_diffout_loadEvent_index,
-                io_writeBackStage_data_info_diffout_loadEvent_valid,
+  input  [7:0]  io_writeBackStage_data_info_diffout_loadEvent_valid,
   input  [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,
                 io_writeBackStage_data_info_diffout_loadEvent_vaddr,
                 io_writeBackStage_data_rd_info_wdata,
@@ -4087,15 +3808,11 @@ module WriteBackUnit(
   output [31:0] io_debug_rf_wdata,
   output        io_debug_wen,
   output [31:0] io_info_instr,
-  output [3:0]  io_info_diffout_storeEvent_coreid,
-  output [7:0]  io_info_diffout_storeEvent_index,
-                io_info_diffout_storeEvent_valid,
+  output [7:0]  io_info_diffout_storeEvent_valid,
   output [31:0] io_info_diffout_storeEvent_storePAddr,
                 io_info_diffout_storeEvent_storeVAddr,
                 io_info_diffout_storeEvent_storeData,
-  output [3:0]  io_info_diffout_loadEvent_coreid,
-  output [7:0]  io_info_diffout_loadEvent_index,
-                io_info_diffout_loadEvent_valid,
+  output [7:0]  io_info_diffout_loadEvent_valid,
   output [31:0] io_info_diffout_loadEvent_paddr,
                 io_info_diffout_loadEvent_vaddr,
                 io_result
@@ -4112,10 +3829,6 @@ module WriteBackUnit(
   assign io_debug_rf_wdata = io_writeBackStage_data_rd_info_wdata;
   assign io_debug_wen = io_debug_wen_0;
   assign io_info_instr = io_writeBackStage_data_info_instr;
-  assign io_info_diffout_storeEvent_coreid =
-    io_writeBackStage_data_info_diffout_storeEvent_coreid;
-  assign io_info_diffout_storeEvent_index =
-    io_writeBackStage_data_info_diffout_storeEvent_index;
   assign io_info_diffout_storeEvent_valid =
     io_writeBackStage_data_info_diffout_storeEvent_valid;
   assign io_info_diffout_storeEvent_storePAddr =
@@ -4124,10 +3837,6 @@ module WriteBackUnit(
     io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
   assign io_info_diffout_storeEvent_storeData =
     io_writeBackStage_data_info_diffout_storeEvent_storeData;
-  assign io_info_diffout_loadEvent_coreid =
-    io_writeBackStage_data_info_diffout_loadEvent_coreid;
-  assign io_info_diffout_loadEvent_index =
-    io_writeBackStage_data_info_diffout_loadEvent_index;
   assign io_info_diffout_loadEvent_valid =
     io_writeBackStage_data_info_diffout_loadEvent_valid;
   assign io_info_diffout_loadEvent_paddr =
@@ -4143,14 +3852,12 @@ module ControlUnit(
                 io_executeInfo_valid,
                 io_executeInfo_reg_wen,
   input  [4:0]  io_executeInfo_reg_waddr,
-  input         io_memoryInfo_valid,
-                io_memoryInfo_reg_wen,
-  input  [4:0]  io_memoryInfo_reg_waddr,
   input         io_writeBackInfo_valid,
                 io_writeBackInfo_reg_wen,
   input  [4:0]  io_writeBackInfo_reg_waddr,
   input         io_executeUnitReady,
   output        io_signals_fetchUnitSignal_allow_to_go,
+                io_signals_fetchUnitSignal_do_flush,
                 io_signals_decodeUnitSignal_allow_to_go,
                 io_signals_bypassData_stage1_src1_bypass,
                 io_signals_bypassData_stage1_src2_bypass,
@@ -4161,7 +3868,8 @@ module ControlUnit(
   output [31:0] io_signals_bypassData_stage2_src1_data,
                 io_signals_bypassData_stage2_src2_data,
   output        io_signals_decodeStage1Stall,
-  input         io_decodeInternalStall,
+  input         io_branch,
+                io_decodeInternalStall,
   input  [4:0]  io_decodeRegisterInfo_stage1_src1_raddr,
                 io_decodeRegisterInfo_stage1_src2_raddr,
   input         io_decodeRegisterInfo_stage1_src1_ren,
@@ -4171,71 +3879,50 @@ module ControlUnit(
   input         io_decodeRegisterInfo_stage2_src1_ren,
                 io_decodeRegisterInfo_stage2_src2_ren,
   input  [31:0] io_executeResult,
-                io_memoryResult,
                 io_writeBackResult
 );
 
-  wire             _stage2_src2_forward_from_ex_T =
+  wire       _stage2_src2_forward_from_ex_T =
     io_executeInfo_valid & io_executeInfo_reg_wen;
-  wire             _stage2_src2_forward_from_mem_T =
-    io_memoryInfo_valid & io_memoryInfo_reg_wen;
-  wire             _stage2_src2_forward_from_wb_T =
+  wire       _stage2_src2_forward_from_wb_T =
     io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
-  wire [1:0]       stage1_src1_forward_sel =
+  wire [1:0] stage1_src1_forward_sel =
     _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
     & io_decodeRegisterInfo_stage1_src1_ren
     & io_decodeRegisterInfo_stage1_src1_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h3
-      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
-        & io_decodeRegisterInfo_stage1_src1_ren
-        & io_decodeRegisterInfo_stage1_src1_raddr == io_memoryInfo_reg_waddr
-          ? 2'h2
-          : {1'h0,
-             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeRegisterInfo_stage1_src1_ren
-               & io_decodeRegisterInfo_stage1_src1_raddr == io_executeInfo_reg_waddr};
-  wire [1:0]       stage1_src2_forward_sel =
+      ? 2'h2
+      : {1'h0,
+         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_stage1_src1_ren
+           & io_decodeRegisterInfo_stage1_src1_raddr == io_executeInfo_reg_waddr};
+  wire [1:0] stage1_src2_forward_sel =
     _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
     & io_decodeRegisterInfo_stage1_src2_ren
     & io_decodeRegisterInfo_stage1_src2_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h3
-      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
-        & io_decodeRegisterInfo_stage1_src2_ren
-        & io_decodeRegisterInfo_stage1_src2_raddr == io_memoryInfo_reg_waddr
-          ? 2'h2
-          : {1'h0,
-             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeRegisterInfo_stage1_src2_ren
-               & io_decodeRegisterInfo_stage1_src2_raddr == io_executeInfo_reg_waddr};
-  wire [1:0]       stage2_src1_forward_sel =
+      ? 2'h2
+      : {1'h0,
+         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_stage1_src2_ren
+           & io_decodeRegisterInfo_stage1_src2_raddr == io_executeInfo_reg_waddr};
+  wire [1:0] stage2_src1_forward_sel =
     _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
     & io_decodeRegisterInfo_stage2_src1_ren
     & io_decodeRegisterInfo_stage2_src1_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h3
-      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
-        & io_decodeRegisterInfo_stage2_src1_ren
-        & io_decodeRegisterInfo_stage2_src1_raddr == io_memoryInfo_reg_waddr
-          ? 2'h2
-          : {1'h0,
-             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeRegisterInfo_stage2_src1_ren
-               & io_decodeRegisterInfo_stage2_src1_raddr == io_executeInfo_reg_waddr};
-  wire [1:0]       stage2_src2_forward_sel =
+      ? 2'h2
+      : {1'h0,
+         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_stage2_src1_ren
+           & io_decodeRegisterInfo_stage2_src1_raddr == io_executeInfo_reg_waddr};
+  wire [1:0] stage2_src2_forward_sel =
     _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
     & io_decodeRegisterInfo_stage2_src2_ren
     & io_decodeRegisterInfo_stage2_src2_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h3
-      : _stage2_src2_forward_from_mem_T & (|io_memoryInfo_reg_waddr)
-        & io_decodeRegisterInfo_stage2_src2_ren
-        & io_decodeRegisterInfo_stage2_src2_raddr == io_memoryInfo_reg_waddr
-          ? 2'h2
-          : {1'h0,
-             _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-               & io_decodeRegisterInfo_stage2_src2_ren
-               & io_decodeRegisterInfo_stage2_src2_raddr == io_executeInfo_reg_waddr};
-  wire [3:0][31:0] _GEN =
-    {{io_writeBackResult}, {io_memoryResult}, {io_executeResult}, {32'h0}};
-  wire             decode_stage1_stall = io_decodeInternalStall | ~io_executeUnitReady;
+      ? 2'h2
+      : {1'h0,
+         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_stage2_src2_ren
+           & io_decodeRegisterInfo_stage2_src2_raddr == io_executeInfo_reg_waddr};
+  wire       decode_stage1_stall = io_decodeInternalStall | ~io_executeUnitReady;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & io_decodeRegisterInfo_stage1_src1_ren
@@ -4251,15 +3938,28 @@ module ControlUnit(
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = ~decode_stage1_stall;
+  assign io_signals_fetchUnitSignal_do_flush = io_branch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
   assign io_signals_bypassData_stage1_src1_bypass = |stage1_src1_forward_sel;
   assign io_signals_bypassData_stage1_src2_bypass = |stage1_src2_forward_sel;
-  assign io_signals_bypassData_stage1_src1_data = _GEN[stage1_src1_forward_sel];
-  assign io_signals_bypassData_stage1_src2_data = _GEN[stage1_src2_forward_sel];
+  assign io_signals_bypassData_stage1_src1_data =
+    stage1_src1_forward_sel == 2'h1
+      ? io_executeResult
+      : stage1_src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  assign io_signals_bypassData_stage1_src2_data =
+    stage1_src2_forward_sel == 2'h1
+      ? io_executeResult
+      : stage1_src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
   assign io_signals_bypassData_stage2_src1_bypass = |stage2_src1_forward_sel;
   assign io_signals_bypassData_stage2_src2_bypass = |stage2_src2_forward_sel;
-  assign io_signals_bypassData_stage2_src1_data = _GEN[stage2_src1_forward_sel];
-  assign io_signals_bypassData_stage2_src2_data = _GEN[stage2_src2_forward_sel];
+  assign io_signals_bypassData_stage2_src1_data =
+    stage2_src1_forward_sel == 2'h1
+      ? io_executeResult
+      : stage2_src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  assign io_signals_bypassData_stage2_src2_data =
+    stage2_src2_forward_sel == 2'h1
+      ? io_executeResult
+      : stage2_src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
   assign io_signals_decodeStage1Stall = decode_stage1_stall;
 endmodule
 
@@ -4271,15 +3971,11 @@ module Diff(
   input  [31:0] io_debug_rf_wdata,
   input         io_debug_wen,
   input  [31:0] io_info_instr,
-  input  [3:0]  io_info_diffout_storeEvent_coreid,
-  input  [7:0]  io_info_diffout_storeEvent_index,
-                io_info_diffout_storeEvent_valid,
+  input  [7:0]  io_info_diffout_storeEvent_valid,
   input  [31:0] io_info_diffout_storeEvent_storePAddr,
                 io_info_diffout_storeEvent_storeVAddr,
                 io_info_diffout_storeEvent_storeData,
-  input  [3:0]  io_info_diffout_loadEvent_coreid,
-  input  [7:0]  io_info_diffout_loadEvent_index,
-                io_info_diffout_loadEvent_valid,
+  input  [7:0]  io_info_diffout_loadEvent_valid,
   input  [31:0] io_info_diffout_loadEvent_paddr,
                 io_info_diffout_loadEvent_vaddr,
                 io_regs_in_0,
@@ -4389,13 +4085,13 @@ module Diff(
     io_diffout_instrCommit_wdest_REG <= io_debug_rf_wnum;
     io_diffout_instrCommit_wdata_REG <= io_debug_rf_wdata;
     io_diffout_instrCommit_wen_REG <= io_debug_wen;
-    io_diffout_loadEvent_REG_coreid <= io_info_diffout_loadEvent_coreid;
-    io_diffout_loadEvent_REG_index <= io_info_diffout_loadEvent_index;
+    io_diffout_loadEvent_REG_coreid <= 4'h0;
+    io_diffout_loadEvent_REG_index <= 8'h0;
     io_diffout_loadEvent_REG_valid <= io_info_diffout_loadEvent_valid;
     io_diffout_loadEvent_REG_paddr <= io_info_diffout_loadEvent_paddr;
     io_diffout_loadEvent_REG_vaddr <= io_info_diffout_loadEvent_vaddr;
-    io_diffout_storeEvent_REG_coreid <= io_info_diffout_storeEvent_coreid;
-    io_diffout_storeEvent_REG_index <= io_info_diffout_storeEvent_index;
+    io_diffout_storeEvent_REG_coreid <= 4'h0;
+    io_diffout_storeEvent_REG_index <= 8'h0;
     io_diffout_storeEvent_REG_valid <= io_info_diffout_storeEvent_valid;
     io_diffout_storeEvent_REG_storePAddr <= io_info_diffout_storeEvent_storePAddr;
     io_diffout_storeEvent_REG_storeVAddr <= io_info_diffout_storeEvent_storeVAddr;
@@ -4568,6 +4264,7 @@ module Core(
 );
 
   wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
+  wire         _controlUnit_io_signals_fetchUnitSignal_do_flush;
   wire         _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
   wire         _controlUnit_io_signals_bypassData_stage1_src1_bypass;
   wire         _controlUnit_io_signals_bypassData_stage1_src2_bypass;
@@ -4587,14 +4284,10 @@ module Core(
   wire [31:0]  _writeBackUnit_io_debug_rf_wdata;
   wire         _writeBackUnit_io_debug_wen;
   wire [31:0]  _writeBackUnit_io_info_instr;
-  wire [3:0]   _writeBackUnit_io_info_diffout_storeEvent_coreid;
-  wire [7:0]   _writeBackUnit_io_info_diffout_storeEvent_index;
   wire [7:0]   _writeBackUnit_io_info_diffout_storeEvent_valid;
   wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storePAddr;
   wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeVAddr;
   wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeData;
-  wire [3:0]   _writeBackUnit_io_info_diffout_loadEvent_coreid;
-  wire [7:0]   _writeBackUnit_io_info_diffout_loadEvent_index;
   wire [7:0]   _writeBackUnit_io_info_diffout_loadEvent_valid;
   wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_paddr;
   wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_vaddr;
@@ -4604,58 +4297,27 @@ module Core(
   wire         _writeBackStage_io_writeBackUnit_data_info_valid;
   wire         _writeBackStage_io_writeBackUnit_data_info_reg_wen;
   wire [4:0]   _writeBackStage_io_writeBackUnit_data_info_reg_waddr;
-  wire [3:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid;
-  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index;
   wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData;
-  wire [3:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid;
-  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index;
   wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_rd_info_wdata;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_pc;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_instr;
-  wire         _memoryUnit_io_writeBackStage_data_info_valid;
-  wire         _memoryUnit_io_writeBackStage_data_info_reg_wen;
-  wire [4:0]   _memoryUnit_io_writeBackStage_data_info_reg_waddr;
-  wire [7:0]   _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;
-  wire [7:0]   _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
-  wire [31:0]  _memoryUnit_io_writeBackStage_data_rd_info_wdata;
-  wire [31:0]  _memoryUnit_io_result;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_pc;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_instr;
-  wire         _memoryStage_io_memoryUnit_data_info_valid;
-  wire         _memoryStage_io_memoryUnit_data_info_reg_wen;
-  wire [4:0]   _memoryStage_io_memoryUnit_data_info_reg_waddr;
-  wire [7:0]   _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData;
-  wire [7:0]   _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr;
-  wire [31:0]  _memoryStage_io_memoryUnit_data_rd_info_wdata;
-  wire [31:0]  _executeUnit_io_memoryStage_data_pc;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_instr;
-  wire         _executeUnit_io_memoryStage_data_info_valid;
-  wire         _executeUnit_io_memoryStage_data_info_reg_wen;
-  wire [4:0]   _executeUnit_io_memoryStage_data_info_reg_waddr;
-  wire [7:0]   _executeUnit_io_memoryStage_data_info_diffout_storeEvent_valid;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData;
-  wire [7:0]   _executeUnit_io_memoryStage_data_info_diffout_loadEvent_valid;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr;
-  wire [31:0]  _executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr;
-  wire [31:0]  _executeUnit_io_memoryStage_data_rd_info_wdata;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_pc;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_instr;
+  wire         _executeUnit_io_writeBackStage_data_info_valid;
+  wire         _executeUnit_io_writeBackStage_data_info_reg_wen;
+  wire [4:0]   _executeUnit_io_writeBackStage_data_info_reg_waddr;
+  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;
+  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_rd_info_wdata;
   wire         _executeUnit_io_ready;
   wire         _executeUnit_io_dcache_req_valid;
   wire [31:0]  _executeUnit_io_dcache_req_bits_addr;
@@ -4864,14 +4526,13 @@ module Core(
     .io_target                               (_decodeUnit_io_target),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_signal_fetchUnitSignal_do_flush      (1'h0),
+    .io_signal_fetchUnitSignal_do_flush
+      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_signal_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_signal_decodeUnitSignal_do_flush     (1'h0),
     .io_signal_executeUnitSignal_allow_to_go (1'h1),
     .io_signal_executeUnitSignal_do_flush    (1'h0),
-    .io_signal_memoryUnitSignal_allow_to_go  (1'h1),
-    .io_signal_memoryUnitSignal_do_flush     (1'h0),
     .io_signal_bypassData_stage1_src1_bypass
       (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
     .io_signal_bypassData_stage1_src2_bypass
@@ -4902,6 +4563,8 @@ module Core(
     .io_fetchUnit_data_pc                         (_fetchUnit_io_decodeStage_data_pc),
     .io_controlSignal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
+    .io_controlSignal_fetchUnitSignal_do_flush
+      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_decodeUnit_data_inst                      (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeUnit_data_valid                     (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
@@ -5066,8 +4729,8 @@ module Core(
       (_executeStage_io_executeUnit_data_src_info_src2_data)
   );
   ExecuteUnit executeUnit (
-    .clock                                                  (clock),
-    .reset                                                  (reset),
+    .clock                                                     (clock),
+    .reset                                                     (reset),
     .io_executeStage_data_pc
       (_executeStage_io_executeUnit_data_pc),
     .io_executeStage_data_info_instr
@@ -5088,34 +4751,34 @@ module Core(
       (_executeStage_io_executeUnit_data_src_info_src1_data),
     .io_executeStage_data_src_info_src2_data
       (_executeStage_io_executeUnit_data_src_info_src2_data),
-    .io_memoryStage_data_pc
-      (_executeUnit_io_memoryStage_data_pc),
-    .io_memoryStage_data_info_instr
-      (_executeUnit_io_memoryStage_data_info_instr),
-    .io_memoryStage_data_info_valid
-      (_executeUnit_io_memoryStage_data_info_valid),
-    .io_memoryStage_data_info_reg_wen
-      (_executeUnit_io_memoryStage_data_info_reg_wen),
-    .io_memoryStage_data_info_reg_waddr
-      (_executeUnit_io_memoryStage_data_info_reg_waddr),
-    .io_memoryStage_data_info_diffout_storeEvent_valid
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_valid),
-    .io_memoryStage_data_info_diffout_storeEvent_storePAddr
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr),
-    .io_memoryStage_data_info_diffout_storeEvent_storeVAddr
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_memoryStage_data_info_diffout_storeEvent_storeData
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData),
-    .io_memoryStage_data_info_diffout_loadEvent_valid
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_valid),
-    .io_memoryStage_data_info_diffout_loadEvent_paddr
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr),
-    .io_memoryStage_data_info_diffout_loadEvent_vaddr
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr),
-    .io_memoryStage_data_rd_info_wdata
-      (_executeUnit_io_memoryStage_data_rd_info_wdata),
-    .io_ready                                               (_executeUnit_io_ready),
-    .io_dcache_req_ready                                    (_dcache_io_req_ready),
+    .io_writeBackStage_data_pc
+      (_executeUnit_io_writeBackStage_data_pc),
+    .io_writeBackStage_data_info_instr
+      (_executeUnit_io_writeBackStage_data_info_instr),
+    .io_writeBackStage_data_info_valid
+      (_executeUnit_io_writeBackStage_data_info_valid),
+    .io_writeBackStage_data_info_reg_wen
+      (_executeUnit_io_writeBackStage_data_info_reg_wen),
+    .io_writeBackStage_data_info_reg_waddr
+      (_executeUnit_io_writeBackStage_data_info_reg_waddr),
+    .io_writeBackStage_data_info_diffout_storeEvent_valid
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
+    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
+    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
+    .io_writeBackStage_data_info_diffout_storeEvent_storeData
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
+    .io_writeBackStage_data_info_diffout_loadEvent_valid
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
+    .io_writeBackStage_data_info_diffout_loadEvent_paddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
+    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
+    .io_writeBackStage_data_rd_info_wdata
+      (_executeUnit_io_writeBackStage_data_rd_info_wdata),
+    .io_ready                                                  (_executeUnit_io_ready),
+    .io_dcache_req_ready                                       (_dcache_io_req_ready),
     .io_dcache_req_valid
       (_executeUnit_io_dcache_req_valid),
     .io_dcache_req_bits_addr
@@ -5126,178 +4789,40 @@ module Core(
       (_executeUnit_io_dcache_req_bits_wdata),
     .io_dcache_req_bits_wstrb
       (_executeUnit_io_dcache_req_bits_wstrb),
-    .io_dcache_resp_valid                                   (_dcache_io_resp_valid),
-    .io_dcache_resp_bits_data                               (_dcache_io_resp_bits_data),
-    .io_result                                              (_executeUnit_io_result)
-  );
-  MemoryStage memoryStage (
-    .clock                                                  (clock),
-    .reset                                                  (reset),
-    .io_executeUnit_data_pc
-      (_executeUnit_io_memoryStage_data_pc),
-    .io_executeUnit_data_info_instr
-      (_executeUnit_io_memoryStage_data_info_instr),
-    .io_executeUnit_data_info_valid
-      (_executeUnit_io_memoryStage_data_info_valid),
-    .io_executeUnit_data_info_reg_wen
-      (_executeUnit_io_memoryStage_data_info_reg_wen),
-    .io_executeUnit_data_info_reg_waddr
-      (_executeUnit_io_memoryStage_data_info_reg_waddr),
-    .io_executeUnit_data_info_diffout_storeEvent_valid
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_valid),
-    .io_executeUnit_data_info_diffout_storeEvent_storePAddr
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storePAddr),
-    .io_executeUnit_data_info_diffout_storeEvent_storeVAddr
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_executeUnit_data_info_diffout_storeEvent_storeData
-      (_executeUnit_io_memoryStage_data_info_diffout_storeEvent_storeData),
-    .io_executeUnit_data_info_diffout_loadEvent_valid
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_valid),
-    .io_executeUnit_data_info_diffout_loadEvent_paddr
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_paddr),
-    .io_executeUnit_data_info_diffout_loadEvent_vaddr
-      (_executeUnit_io_memoryStage_data_info_diffout_loadEvent_vaddr),
-    .io_executeUnit_data_rd_info_wdata
-      (_executeUnit_io_memoryStage_data_rd_info_wdata),
-    .io_controlSignal_fetchUnitSignal_allow_to_go
-      (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_controlSignal_fetchUnitSignal_do_flush              (1'h0),
-    .io_controlSignal_decodeUnitSignal_allow_to_go
-      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
-    .io_controlSignal_decodeUnitSignal_do_flush             (1'h0),
-    .io_controlSignal_executeUnitSignal_allow_to_go         (1'h1),
-    .io_controlSignal_executeUnitSignal_do_flush            (1'h0),
-    .io_controlSignal_memoryUnitSignal_allow_to_go          (1'h1),
-    .io_controlSignal_memoryUnitSignal_do_flush             (1'h0),
-    .io_controlSignal_bypassData_stage1_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
-    .io_controlSignal_bypassData_stage1_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
-    .io_controlSignal_bypassData_stage1_src1_data
-      (_controlUnit_io_signals_bypassData_stage1_src1_data),
-    .io_controlSignal_bypassData_stage1_src2_data
-      (_controlUnit_io_signals_bypassData_stage1_src2_data),
-    .io_controlSignal_bypassData_stage2_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
-    .io_controlSignal_bypassData_stage2_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
-    .io_controlSignal_bypassData_stage2_src1_data
-      (_controlUnit_io_signals_bypassData_stage2_src1_data),
-    .io_controlSignal_bypassData_stage2_src2_data
-      (_controlUnit_io_signals_bypassData_stage2_src2_data),
-    .io_controlSignal_decodeStage1Stall
-      (_controlUnit_io_signals_decodeStage1Stall),
-    .io_memoryUnit_data_pc
-      (_memoryStage_io_memoryUnit_data_pc),
-    .io_memoryUnit_data_info_instr
-      (_memoryStage_io_memoryUnit_data_info_instr),
-    .io_memoryUnit_data_info_valid
-      (_memoryStage_io_memoryUnit_data_info_valid),
-    .io_memoryUnit_data_info_reg_wen
-      (_memoryStage_io_memoryUnit_data_info_reg_wen),
-    .io_memoryUnit_data_info_reg_waddr
-      (_memoryStage_io_memoryUnit_data_info_reg_waddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_valid
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid),
-    .io_memoryUnit_data_info_diffout_storeEvent_storePAddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_storeVAddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_storeData
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData),
-    .io_memoryUnit_data_info_diffout_loadEvent_valid
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid),
-    .io_memoryUnit_data_info_diffout_loadEvent_paddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr),
-    .io_memoryUnit_data_info_diffout_loadEvent_vaddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr),
-    .io_memoryUnit_data_rd_info_wdata
-      (_memoryStage_io_memoryUnit_data_rd_info_wdata)
-  );
-  MemoryUnit memoryUnit (
-    .io_memoryStage_data_pc
-      (_memoryStage_io_memoryUnit_data_pc),
-    .io_memoryStage_data_info_instr
-      (_memoryStage_io_memoryUnit_data_info_instr),
-    .io_memoryStage_data_info_valid
-      (_memoryStage_io_memoryUnit_data_info_valid),
-    .io_memoryStage_data_info_reg_wen
-      (_memoryStage_io_memoryUnit_data_info_reg_wen),
-    .io_memoryStage_data_info_reg_waddr
-      (_memoryStage_io_memoryUnit_data_info_reg_waddr),
-    .io_memoryStage_data_info_diffout_storeEvent_valid
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_valid),
-    .io_memoryStage_data_info_diffout_storeEvent_storePAddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storePAddr),
-    .io_memoryStage_data_info_diffout_storeEvent_storeVAddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeVAddr),
-    .io_memoryStage_data_info_diffout_storeEvent_storeData
-      (_memoryStage_io_memoryUnit_data_info_diffout_storeEvent_storeData),
-    .io_memoryStage_data_info_diffout_loadEvent_valid
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_valid),
-    .io_memoryStage_data_info_diffout_loadEvent_paddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_paddr),
-    .io_memoryStage_data_info_diffout_loadEvent_vaddr
-      (_memoryStage_io_memoryUnit_data_info_diffout_loadEvent_vaddr),
-    .io_memoryStage_data_rd_info_wdata
-      (_memoryStage_io_memoryUnit_data_rd_info_wdata),
-    .io_writeBackStage_data_pc
-      (_memoryUnit_io_writeBackStage_data_pc),
-    .io_writeBackStage_data_info_instr
-      (_memoryUnit_io_writeBackStage_data_info_instr),
-    .io_writeBackStage_data_info_valid
-      (_memoryUnit_io_writeBackStage_data_info_valid),
-    .io_writeBackStage_data_info_reg_wen
-      (_memoryUnit_io_writeBackStage_data_info_reg_wen),
-    .io_writeBackStage_data_info_reg_waddr
-      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_valid
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
-    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeData
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
-    .io_writeBackStage_data_info_diffout_loadEvent_valid
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
-    .io_writeBackStage_data_info_diffout_loadEvent_paddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
-    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
-    .io_writeBackStage_data_rd_info_wdata
-      (_memoryUnit_io_writeBackStage_data_rd_info_wdata),
-    .io_result                                                 (_memoryUnit_io_result)
+    .io_dcache_resp_valid                                      (_dcache_io_resp_valid),
+    .io_dcache_resp_bits_data
+      (_dcache_io_resp_bits_data),
+    .io_result                                                 (_executeUnit_io_result)
   );
   WriteBackStage writeBackStage (
     .clock                                                    (clock),
     .reset                                                    (reset),
-    .io_memoryUnit_data_pc
-      (_memoryUnit_io_writeBackStage_data_pc),
-    .io_memoryUnit_data_info_instr
-      (_memoryUnit_io_writeBackStage_data_info_instr),
-    .io_memoryUnit_data_info_valid
-      (_memoryUnit_io_writeBackStage_data_info_valid),
-    .io_memoryUnit_data_info_reg_wen
-      (_memoryUnit_io_writeBackStage_data_info_reg_wen),
-    .io_memoryUnit_data_info_reg_waddr
-      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_valid
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
-    .io_memoryUnit_data_info_diffout_storeEvent_storePAddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_storeVAddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_memoryUnit_data_info_diffout_storeEvent_storeData
-      (_memoryUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
-    .io_memoryUnit_data_info_diffout_loadEvent_valid
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
-    .io_memoryUnit_data_info_diffout_loadEvent_paddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
-    .io_memoryUnit_data_info_diffout_loadEvent_vaddr
-      (_memoryUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
-    .io_memoryUnit_data_rd_info_wdata
-      (_memoryUnit_io_writeBackStage_data_rd_info_wdata),
+    .io_executeUnit_data_pc
+      (_executeUnit_io_writeBackStage_data_pc),
+    .io_executeUnit_data_info_instr
+      (_executeUnit_io_writeBackStage_data_info_instr),
+    .io_executeUnit_data_info_valid
+      (_executeUnit_io_writeBackStage_data_info_valid),
+    .io_executeUnit_data_info_reg_wen
+      (_executeUnit_io_writeBackStage_data_info_reg_wen),
+    .io_executeUnit_data_info_reg_waddr
+      (_executeUnit_io_writeBackStage_data_info_reg_waddr),
+    .io_executeUnit_data_info_diffout_storeEvent_valid
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
+    .io_executeUnit_data_info_diffout_storeEvent_storePAddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
+    .io_executeUnit_data_info_diffout_storeEvent_storeVAddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
+    .io_executeUnit_data_info_diffout_storeEvent_storeData
+      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
+    .io_executeUnit_data_info_diffout_loadEvent_valid
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
+    .io_executeUnit_data_info_diffout_loadEvent_paddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
+    .io_executeUnit_data_info_diffout_loadEvent_vaddr
+      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
+    .io_executeUnit_data_rd_info_wdata
+      (_executeUnit_io_writeBackStage_data_rd_info_wdata),
     .io_writeBackUnit_data_pc
       (_writeBackStage_io_writeBackUnit_data_pc),
     .io_writeBackUnit_data_info_instr
@@ -5308,10 +4833,6 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackUnit_data_info_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_writeBackUnit_data_info_diffout_storeEvent_coreid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid),
-    .io_writeBackUnit_data_info_diffout_storeEvent_index
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index),
     .io_writeBackUnit_data_info_diffout_storeEvent_valid
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),
     .io_writeBackUnit_data_info_diffout_storeEvent_storePAddr
@@ -5320,10 +4841,6 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),
     .io_writeBackUnit_data_info_diffout_storeEvent_storeData
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),
-    .io_writeBackUnit_data_info_diffout_loadEvent_coreid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid),
-    .io_writeBackUnit_data_info_diffout_loadEvent_index
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index),
     .io_writeBackUnit_data_info_diffout_loadEvent_valid
       (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),
     .io_writeBackUnit_data_info_diffout_loadEvent_paddr
@@ -5344,10 +4861,6 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackStage_data_info_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_coreid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_coreid),
-    .io_writeBackStage_data_info_diffout_storeEvent_index
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_index),
     .io_writeBackStage_data_info_diffout_storeEvent_valid
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),
     .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
@@ -5356,10 +4869,6 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),
     .io_writeBackStage_data_info_diffout_storeEvent_storeData
       (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),
-    .io_writeBackStage_data_info_diffout_loadEvent_coreid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_coreid),
-    .io_writeBackStage_data_info_diffout_loadEvent_index
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_index),
     .io_writeBackStage_data_info_diffout_loadEvent_valid
       (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),
     .io_writeBackStage_data_info_diffout_loadEvent_paddr
@@ -5386,10 +4895,6 @@ module Core(
       (_writeBackUnit_io_debug_wen),
     .io_info_instr
       (_writeBackUnit_io_info_instr),
-    .io_info_diffout_storeEvent_coreid
-      (_writeBackUnit_io_info_diffout_storeEvent_coreid),
-    .io_info_diffout_storeEvent_index
-      (_writeBackUnit_io_info_diffout_storeEvent_index),
     .io_info_diffout_storeEvent_valid
       (_writeBackUnit_io_info_diffout_storeEvent_valid),
     .io_info_diffout_storeEvent_storePAddr
@@ -5398,10 +4903,6 @@ module Core(
       (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),
     .io_info_diffout_storeEvent_storeData
       (_writeBackUnit_io_info_diffout_storeEvent_storeData),
-    .io_info_diffout_loadEvent_coreid
-      (_writeBackUnit_io_info_diffout_loadEvent_coreid),
-    .io_info_diffout_loadEvent_index
-      (_writeBackUnit_io_info_diffout_loadEvent_index),
     .io_info_diffout_loadEvent_valid
       (_writeBackUnit_io_info_diffout_loadEvent_valid),
     .io_info_diffout_loadEvent_paddr
@@ -5414,17 +4915,11 @@ module Core(
     .clock                                    (clock),
     .reset                                    (reset),
     .io_executeInfo_valid
-      (_executeUnit_io_memoryStage_data_info_valid),
+      (_executeUnit_io_writeBackStage_data_info_valid),
     .io_executeInfo_reg_wen
-      (_executeUnit_io_memoryStage_data_info_reg_wen),
+      (_executeUnit_io_writeBackStage_data_info_reg_wen),
     .io_executeInfo_reg_waddr
-      (_executeUnit_io_memoryStage_data_info_reg_waddr),
-    .io_memoryInfo_valid
-      (_memoryUnit_io_writeBackStage_data_info_valid),
-    .io_memoryInfo_reg_wen
-      (_memoryUnit_io_writeBackStage_data_info_reg_wen),
-    .io_memoryInfo_reg_waddr
-      (_memoryUnit_io_writeBackStage_data_info_reg_waddr),
+      (_executeUnit_io_writeBackStage_data_info_reg_waddr),
     .io_writeBackInfo_valid
       (_writeBackStage_io_writeBackUnit_data_info_valid),
     .io_writeBackInfo_reg_wen
@@ -5434,6 +4929,8 @@ module Core(
     .io_executeUnitReady                      (_executeUnit_io_ready),
     .io_signals_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
+    .io_signals_fetchUnitSignal_do_flush
+      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_signals_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_signals_bypassData_stage1_src1_bypass
@@ -5453,6 +4950,7 @@ module Core(
     .io_signals_bypassData_stage2_src2_data
       (_controlUnit_io_signals_bypassData_stage2_src2_data),
     .io_signals_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
+    .io_branch                                (_decodeUnit_io_branch),
     .io_decodeInternalStall                   (_decodeUnit_io_decodeInternalStall),
     .io_decodeRegisterInfo_stage1_src1_raddr
       (_decodeUnit_io_registerInfo_stage1_src1_raddr),
@@ -5471,7 +4969,6 @@ module Core(
     .io_decodeRegisterInfo_stage2_src2_ren
       (_decodeUnit_io_registerInfo_stage2_src2_ren),
     .io_executeResult                         (_executeUnit_io_result),
-    .io_memoryResult                          (_memoryUnit_io_result),
     .io_writeBackResult                       (_writeBackUnit_io_result)
   );
   Diff diff (
@@ -5482,10 +4979,6 @@ module Core(
     .io_debug_rf_wdata                     (_writeBackUnit_io_debug_rf_wdata),
     .io_debug_wen                          (_writeBackUnit_io_debug_wen),
     .io_info_instr                         (_writeBackUnit_io_info_instr),
-    .io_info_diffout_storeEvent_coreid
-      (_writeBackUnit_io_info_diffout_storeEvent_coreid),
-    .io_info_diffout_storeEvent_index
-      (_writeBackUnit_io_info_diffout_storeEvent_index),
     .io_info_diffout_storeEvent_valid
       (_writeBackUnit_io_info_diffout_storeEvent_valid),
     .io_info_diffout_storeEvent_storePAddr
@@ -5494,10 +4987,6 @@ module Core(
       (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),
     .io_info_diffout_storeEvent_storeData
       (_writeBackUnit_io_info_diffout_storeEvent_storeData),
-    .io_info_diffout_loadEvent_coreid
-      (_writeBackUnit_io_info_diffout_loadEvent_coreid),
-    .io_info_diffout_loadEvent_index
-      (_writeBackUnit_io_info_diffout_loadEvent_index),
     .io_info_diffout_loadEvent_valid
       (_writeBackUnit_io_info_diffout_loadEvent_valid),
     .io_info_diffout_loadEvent_paddr
