@@ -160,6 +160,7 @@ class DecodeUnit extends Module with HasInstrType {
   info.valid      := valid && !isN
   info.fusel      := fuType
   info.imm        := imm
+  info.diffout    := DontCare
 
   // 寄存器读取端口
   io.regfile.src1.raddr := src1_raddr
