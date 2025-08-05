@@ -183,6 +183,13 @@ class Lsu extends Module {
       }
     }
   }
-  io.diffout := DontCare
 
+  io.diffout                       := DontCare
+  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
+  io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
+  io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
+  io.diffout.storeEvent.storeData  := newReq.wdata
+  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
+  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
 }

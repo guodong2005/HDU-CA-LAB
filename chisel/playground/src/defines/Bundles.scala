@@ -193,4 +193,12 @@ class DifftestLoadEvent extends Bundle {
 //   val gRegState   = (Vec(AREG_NUM, (UInt(XLEN.W))))
 
 // }
-class DiffOut extends Bundle {}
+class DiffOut extends Bundle {
+  val instrCommit = Output(new DifftestInstrCommit())
+  val excpEvent   = Output(new DifftestExcpEvent())
+  val trapEvent   = Output(new DifftestTrapEvent())
+  val storeEvent  = Output(new DifftestStoreEvent())
+  val loadEvent   = Output(new DifftestLoadEvent())
+  val csrRegState = Output(Vec(AREG_NUM, (UInt(XLEN.W))))
+  val gRegState   = Output(Vec(AREG_NUM, (UInt(XLEN.W))))
+}
