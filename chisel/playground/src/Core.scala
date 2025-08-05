@@ -35,8 +35,8 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
-  // dontTouch(fetchUnit.io)
-  // dontTouch(icache.io)
+  dontTouch(fetchUnit.io)
+  dontTouch(icache.io)
 
   controlUnit.io.executeResult       := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.writeBackResult     := writeBackUnit.io.result
@@ -66,7 +66,8 @@ class Core extends Module {
   iocontrol.io.icache_read_req  <> icache.io.io_read_req
   iocontrol.io.icache_read_resp <> icache.io.io_read_resp
 
-  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
+  fetchUnit.io.decodeStage   <> decodeStage.io.fetchUnit
+  decodeUnit.io.executeready := executeUnit.io.ready
 
   icache.io.icache_req  <> fetchUnit.io.icache_req
   icache.io.icache_resp <> fetchUnit.io.icache_resp
