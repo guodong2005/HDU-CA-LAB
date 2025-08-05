@@ -154,7 +154,7 @@ class DecodeUnit extends Module with HasInstrType {
 
   val target_bru = Mux(is_jirl, src1_plus_imm, pc_plus_imm)
 
-  io.branch := is_bru && takeBranch && valid
+  io.branch := is_bru && takeBranch && valid && !io.decodeStage1Stall
   io.target := target_bru
 
   // ========== 流水线寄存器更新 ==========

@@ -2099,7 +2099,6 @@ module DecodeStage(
   input         io_fetchUnit_data_valid,
   input  [31:0] io_fetchUnit_data_pc,
   input         io_controlSignal_fetchUnitSignal_allow_to_go,
-                io_controlSignal_fetchUnitSignal_do_flush,
   output [31:0] io_decodeUnit_data_inst,
   output        io_decodeUnit_data_valid,
   output [31:0] io_decodeUnit_data_pc
@@ -2114,20 +2113,10 @@ module DecodeStage(
       data_valid <= 1'h0;
       data_pc <= 32'h0;
     end
-    else begin
-      if (io_controlSignal_fetchUnitSignal_do_flush) begin
-        data_inst <= 32'h0;
-        data_pc <= 32'h0;
-      end
-      else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin
-        data_inst <= io_fetchUnit_data_inst;
-        data_pc <= io_fetchUnit_data_pc;
-      end
-      data_valid <=
-        ~io_controlSignal_fetchUnitSignal_do_flush
-        & (io_controlSignal_fetchUnitSignal_allow_to_go
-             ? io_fetchUnit_data_valid
-             : data_valid);
+    else if (io_controlSignal_fetchUnitSignal_allow_to_go) begin
+      data_inst <= io_fetchUnit_data_inst;
+      data_valid <= io_fetchUnit_data_valid;
+      data_pc <= io_fetchUnit_data_pc;
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -4161,7 +4150,6 @@ module ControlUnit(
   input  [4:0]  io_writeBackInfo_reg_waddr,
   input         io_executeUnitReady,
   output        io_signals_fetchUnitSignal_allow_to_go,
-                io_signals_fetchUnitSignal_do_flush,
                 io_signals_decodeUnitSignal_allow_to_go,
                 io_signals_bypassData_stage1_src1_bypass,
                 io_signals_bypassData_stage1_src2_bypass,
@@ -4172,8 +4160,7 @@ module ControlUnit(
   output [31:0] io_signals_bypassData_stage2_src1_data,
                 io_signals_bypassData_stage2_src2_data,
   output        io_signals_decodeStage1Stall,
-  input         io_branch,
-                io_decodeInternalStall,
+  input         io_decodeInternalStall,
   input  [4:0]  io_decodeRegisterInfo_stage1_src1_raddr,
                 io_decodeRegisterInfo_stage1_src2_raddr,
   input         io_decodeRegisterInfo_stage1_src1_ren,
@@ -4263,7 +4250,6 @@ module ControlUnit(
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = ~decode_stage1_stall;
-  assign io_signals_fetchUnitSignal_do_flush = io_branch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
   assign io_signals_bypassData_stage1_src1_bypass = |stage1_src1_forward_sel;
   assign io_signals_bypassData_stage1_src2_bypass = |stage1_src2_forward_sel;
@@ -4581,7 +4567,6 @@ module Core(
 );
 
   wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
-  wire         _controlUnit_io_signals_fetchUnitSignal_do_flush;
   wire         _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
   wire         _controlUnit_io_signals_bypassData_stage1_src1_bypass;
   wire         _controlUnit_io_signals_bypassData_stage1_src2_bypass;
@@ -4878,8 +4863,7 @@ module Core(
     .io_target                               (_decodeUnit_io_target),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_signal_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
+    .io_signal_fetchUnitSignal_do_flush      (1'h0),
     .io_signal_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_signal_decodeUnitSignal_do_flush     (1'h0),
@@ -4917,8 +4901,6 @@ module Core(
     .io_fetchUnit_data_pc                         (_fetchUnit_io_decodeStage_data_pc),
     .io_controlSignal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_controlSignal_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_decodeUnit_data_inst                      (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeUnit_data_valid                     (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
@@ -5178,8 +5160,7 @@ module Core(
       (_executeUnit_io_memoryStage_data_rd_info_wdata),
     .io_controlSignal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_controlSignal_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
+    .io_controlSignal_fetchUnitSignal_do_flush              (1'h0),
     .io_controlSignal_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_controlSignal_decodeUnitSignal_do_flush             (1'h0),
@@ -5452,8 +5433,6 @@ module Core(
     .io_executeUnitReady                      (_executeUnit_io_ready),
     .io_signals_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_signals_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_signals_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
     .io_signals_bypassData_stage1_src1_bypass
@@ -5473,7 +5452,6 @@ module Core(
     .io_signals_bypassData_stage2_src2_data
       (_controlUnit_io_signals_bypassData_stage2_src2_data),
     .io_signals_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
-    .io_branch                                (_decodeUnit_io_branch),
     .io_decodeInternalStall                   (_decodeUnit_io_decodeInternalStall),
     .io_decodeRegisterInfo_stage1_src1_raddr
       (_decodeUnit_io_registerInfo_stage1_src1_raddr),
