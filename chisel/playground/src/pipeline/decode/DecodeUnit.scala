@@ -25,6 +25,7 @@ class DecodeUnit extends Module with HasInstrType {
   val inst  = io.decodeStage.data.inst
   val pc    = io.decodeStage.data.pc
   val valid = io.decodeStage.data.valid
+  info.diffout := DontCare
 
   // 根据图片进行BRU指令的快速解码
   val is_jirl = inst(31, 26) === "b010011".U
