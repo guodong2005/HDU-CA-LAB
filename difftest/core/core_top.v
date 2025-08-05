@@ -2177,41 +2177,25 @@ module Decoder(
   wire        _GEN_19 = io_in_inst[31:15] == 17'h29;
   wire        _GEN_20 = io_in_inst[31:15] == 17'h22;
   wire        _GEN_21 = io_in_inst[31:15] == 17'h38;
-  wire        _GEN_22 = io_in_inst[31:15] == 17'h39;
-  wire        _GEN_23 = io_in_inst[31:15] == 17'h3A;
-  wire        _GEN_24 = io_in_inst[31:15] == 17'h40;
-  wire        _GEN_25 = io_in_inst[31:15] == 17'h42;
-  wire        _GEN_26 = io_in_inst[31:15] == 17'h41;
-  wire        _GEN_27 = io_in_inst[31:15] == 17'h43;
-  wire        _GEN_28 = io_in_inst[31:22] == 10'hA0;
-  wire        _GEN_29 = io_in_inst[31:22] == 10'hA8;
-  wire        _GEN_30 = io_in_inst[31:22] == 10'hA1;
-  wire        _GEN_31 = io_in_inst[31:22] == 10'hA9;
-  wire        _GEN_32 = io_in_inst[31:22] == 10'hA2;
-  wire        _GEN_33 = io_in_inst[31:22] == 10'hA4;
-  wire        _GEN_34 = io_in_inst[31:22] == 10'hA5;
-  wire        _GEN_35 = io_in_inst[31:22] == 10'hA6;
-  wire        _GEN_36 = io_in_inst[31:26] == 6'h16;
-  wire        _GEN_37 = io_in_inst[31:26] == 6'h17;
-  wire        _GEN_38 = io_in_inst[31:26] == 6'h18;
-  wire        _GEN_39 = io_in_inst[31:26] == 6'h19;
-  wire        _GEN_40 = io_in_inst[31:26] == 6'h1A;
-  wire        _GEN_41 = io_in_inst[31:26] == 6'h1B;
-  wire        _GEN_42 = io_in_inst[31:26] == 6'h14;
-  wire        _GEN_43 = io_in_inst[31:26] == 6'h15;
-  wire        _GEN_44 = io_in_inst[31:26] == 6'h13;
-  wire [9:0]  _GEN_45 = {io_in_inst[14:12], io_in_inst[6:0]};
-  wire        _GEN_46 = _GEN_45 == 10'hF3;
-  wire        _GEN_47 = _GEN_45 == 10'h173;
-  wire        _GEN_48 = _GEN_45 == 10'h1F3;
-  wire        _GEN_49 = _GEN_45 == 10'h2F3;
-  wire        _GEN_50 = _GEN_45 == 10'h373;
-  wire        _GEN_51 = _GEN_45 == 10'h3F3;
-  wire [2:0]  _GEN_52 = {_GEN_46 | _GEN_47 | _GEN_48 | _GEN_49 | _GEN_50 | _GEN_51, 2'h0};
-  wire        _GEN_53 = _GEN_42 | _GEN_43 | _GEN_44;
-  wire        _GEN_54 = _GEN_33 | _GEN_34 | _GEN_35;
-  wire        _GEN_55 =
-    _GEN_21 | _GEN_22 | _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27;
+  wire        _GEN_22 = io_in_inst[31:22] == 10'hA0;
+  wire        _GEN_23 = io_in_inst[31:22] == 10'hA8;
+  wire        _GEN_24 = io_in_inst[31:22] == 10'hA1;
+  wire        _GEN_25 = io_in_inst[31:22] == 10'hA9;
+  wire        _GEN_26 = io_in_inst[31:22] == 10'hA2;
+  wire        _GEN_27 = io_in_inst[31:22] == 10'hA4;
+  wire        _GEN_28 = io_in_inst[31:22] == 10'hA5;
+  wire        _GEN_29 = io_in_inst[31:22] == 10'hA6;
+  wire        _GEN_30 = io_in_inst[31:26] == 6'h16;
+  wire        _GEN_31 = io_in_inst[31:26] == 6'h17;
+  wire        _GEN_32 = io_in_inst[31:26] == 6'h18;
+  wire        _GEN_33 = io_in_inst[31:26] == 6'h19;
+  wire        _GEN_34 = io_in_inst[31:26] == 6'h1A;
+  wire        _GEN_35 = io_in_inst[31:26] == 6'h1B;
+  wire        _GEN_36 = io_in_inst[31:26] == 6'h14;
+  wire        _GEN_37 = io_in_inst[31:26] == 6'h15;
+  wire        _GEN_38 = io_in_inst[31:26] == 6'h13;
+  wire        _GEN_39 = _GEN_36 | _GEN_37 | _GEN_38;
+  wire        _GEN_40 = _GEN_27 | _GEN_28 | _GEN_29;
   wire [2:0]  instrType =
     _GEN | _GEN_0
       ? 3'h6
@@ -2246,25 +2230,23 @@ module Decoder(
                                                               : _GEN_18
                                                                   ? 3'h4
                                                                   : _GEN_19 | _GEN_20
-                                                                    | _GEN_55
+                                                                    | _GEN_21
                                                                       ? 3'h5
-                                                                      : _GEN_28 | _GEN_29
-                                                                        | _GEN_30
-                                                                        | _GEN_31
-                                                                        | _GEN_32
+                                                                      : _GEN_22 | _GEN_23
+                                                                        | _GEN_24
+                                                                        | _GEN_25
+                                                                        | _GEN_26
                                                                           ? 3'h4
-                                                                          : _GEN_54
+                                                                          : _GEN_40
                                                                               ? 3'h2
-                                                                              : _GEN_36
-                                                                                | _GEN_37
-                                                                                | _GEN_38
-                                                                                | _GEN_39
-                                                                                | _GEN_40
-                                                                                | _GEN_41
+                                                                              : _GEN_30
+                                                                                | _GEN_31
+                                                                                | _GEN_32
+                                                                                | _GEN_33
+                                                                                | _GEN_34
+                                                                                | _GEN_35
                                                                                   ? 3'h1
-                                                                                  : _GEN_53
-                                                                                      ? 3'h7
-                                                                                      : _GEN_52;
+                                                                                  : {3{_GEN_39}};
   wire [3:0]  fuOpType =
     _GEN | _GEN_0 | _GEN_1 | _GEN_2
       ? 4'h0
@@ -2290,104 +2272,79 @@ module Decoder(
                                               ? 4'h8
                                               : _GEN_20
                                                   ? 4'h1
-                                                  : _GEN_21
+                                                  : _GEN_21 | _GEN_22
                                                       ? 4'h0
-                                                      : _GEN_22
-                                                          ? 4'h1
-                                                          : _GEN_23
-                                                              ? 4'h3
-                                                              : _GEN_24
-                                                                  ? 4'h4
-                                                                  : _GEN_25
-                                                                      ? 4'h5
-                                                                      : _GEN_26
-                                                                          ? 4'h6
-                                                                          : _GEN_27
-                                                                              ? 4'h7
-                                                                              : _GEN_28
-                                                                                  ? 4'h0
-                                                                                  : _GEN_29
-                                                                                      ? 4'h4
-                                                                                      : _GEN_30
+                                                      : _GEN_23
+                                                          ? 4'h4
+                                                          : _GEN_24
+                                                              ? 4'h1
+                                                              : _GEN_25
+                                                                  ? 4'h5
+                                                                  : _GEN_26
+                                                                      ? 4'h2
+                                                                      : _GEN_27
+                                                                          ? 4'h8
+                                                                          : _GEN_28
+                                                                              ? 4'h9
+                                                                              : _GEN_29
+                                                                                  ? 4'hA
+                                                                                  : _GEN_30
+                                                                                      ? 4'h0
+                                                                                      : _GEN_31
                                                                                           ? 4'h1
-                                                                                          : _GEN_31
-                                                                                              ? 4'h5
-                                                                                              : _GEN_32
-                                                                                                  ? 4'h2
-                                                                                                  : _GEN_33
-                                                                                                      ? 4'h8
-                                                                                                      : _GEN_34
-                                                                                                          ? 4'h9
-                                                                                                          : _GEN_35
-                                                                                                              ? 4'hA
-                                                                                                              : _GEN_36
-                                                                                                                  ? 4'h0
-                                                                                                                  : _GEN_37
-                                                                                                                      ? 4'h1
-                                                                                                                      : _GEN_38
-                                                                                                                          ? 4'h4
-                                                                                                                          : _GEN_39
-                                                                                                                              ? 4'h5
-                                                                                                                              : _GEN_40
-                                                                                                                                  ? 4'h6
-                                                                                                                                  : _GEN_41
-                                                                                                                                      ? 4'h7
-                                                                                                                                      : _GEN_42
-                                                                                                                                          ? 4'h8
-                                                                                                                                          : _GEN_43
-                                                                                                                                              ? 4'hA
-                                                                                                                                              : _GEN_44
-                                                                                                                                                  ? 4'hB
-                                                                                                                                                  : {1'h0,
-                                                                                                                                                     _GEN_46
-                                                                                                                                                       ? 3'h1
-                                                                                                                                                       : _GEN_47
-                                                                                                                                                           ? 3'h2
-                                                                                                                                                           : _GEN_48
-                                                                                                                                                               ? 3'h3
-                                                                                                                                                               : _GEN_49
-                                                                                                                                                                   ? 3'h5
-                                                                                                                                                                   : _GEN_50
-                                                                                                                                                                       ? 3'h6
-                                                                                                                                                                       : {3{_GEN_51}}};
+                                                                                          : _GEN_32
+                                                                                              ? 4'h4
+                                                                                              : _GEN_33
+                                                                                                  ? 4'h5
+                                                                                                  : _GEN_34
+                                                                                                      ? 4'h6
+                                                                                                      : _GEN_35
+                                                                                                          ? 4'h7
+                                                                                                          : _GEN_36
+                                                                                                              ? 4'h8
+                                                                                                              : _GEN_37
+                                                                                                                  ? 4'hA
+                                                                                                                  : _GEN_38
+                                                                                                                      ? 4'hB
+                                                                                                                      : 4'h0;
   wire [31:0] inst = instrType == 3'h0 ? 32'h2800000 : io_in_inst;
-  wire        _GEN_56 = instrType == 3'h5;
-  wire        _GEN_57 = instrType == 3'h4;
-  wire        _GEN_58 = instrType == 3'h6;
-  wire        _GEN_59 = instrType == 3'h2;
-  wire        _GEN_60 = instrType == 3'h1;
-  wire        _GEN_61 = _GEN_59 | _GEN_60;
-  wire        _GEN_62 = _GEN_57 | _GEN_58;
-  wire        _GEN_63 = _GEN_56 | _GEN_62;
-  wire        _GEN_64 = _GEN_56 | _GEN_57;
+  wire        _GEN_41 = instrType == 3'h5;
+  wire        _GEN_42 = instrType == 3'h4;
+  wire        _GEN_43 = instrType == 3'h6;
+  wire        _GEN_44 = instrType == 3'h2;
+  wire        _GEN_45 = instrType == 3'h1;
+  wire        _GEN_46 = _GEN_44 | _GEN_45;
+  wire        _GEN_47 = _GEN_42 | _GEN_43;
+  wire        _GEN_48 = _GEN_41 | _GEN_47;
+  wire        _GEN_49 = _GEN_41 | _GEN_42;
   assign io_out_info_instr = inst;
   assign io_out_info_src1_raddr =
-    _GEN_64 | ~(_GEN_58 | ~(_GEN_59 | _GEN_60 | (&instrType))) ? inst[9:5] : 5'h0;
+    _GEN_49 | ~(_GEN_43 | ~(_GEN_44 | _GEN_45 | (&instrType))) ? inst[9:5] : 5'h0;
   assign io_out_info_src2_raddr =
-    _GEN_56 ? inst[14:10] : _GEN_62 | ~_GEN_61 ? 5'h0 : inst[4:0];
+    _GEN_41 ? inst[14:10] : _GEN_47 | ~_GEN_46 ? 5'h0 : inst[4:0];
   assign io_out_info_op =
-    _GEN_56 | _GEN_57 | ~(_GEN_58 | ~(_GEN_59 | _GEN_60 | (&instrType)))
+    _GEN_41 | _GEN_42 | ~(_GEN_43 | ~(_GEN_44 | _GEN_45 | (&instrType)))
       ? {1'h0, fuOpType}
       : 5'h0;
-  assign io_out_info_reg_wen = _GEN_63 | ~_GEN_61 & (&instrType);
+  assign io_out_info_reg_wen = _GEN_48 | ~_GEN_46 & (&instrType);
   assign io_out_info_reg_waddr =
-    _GEN_63
+    _GEN_48
       ? inst[4:0]
-      : _GEN_61 | ~(&instrType) ? 5'h0 : fuOpType == 4'hA ? 5'h1 : inst[4:0];
-  assign io_out_info_src1_ren = _GEN_64 | ~_GEN_58 & (_GEN_61 | (&instrType));
-  assign io_out_info_src2_ren = _GEN_56 | ~_GEN_62 & (_GEN_59 | _GEN_60);
+      : _GEN_46 | ~(&instrType) ? 5'h0 : fuOpType == 4'hA ? 5'h1 : inst[4:0];
+  assign io_out_info_src1_ren = _GEN_49 | ~_GEN_43 & (_GEN_46 | (&instrType));
+  assign io_out_info_src2_ren = _GEN_41 | ~_GEN_47 & (_GEN_44 | _GEN_45);
   assign io_out_info_fusel =
-    _GEN | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
-    | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
-    | _GEN_17 | _GEN_18 | _GEN_19 | _GEN_20
-      ? 3'h0
-      : _GEN_55
-          ? 3'h1
-          : _GEN_28 | _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_54
-              ? 3'h2
-              : _GEN_36 | _GEN_37 | _GEN_38 | _GEN_39 | _GEN_40 | _GEN_41 | _GEN_53
-                  ? 3'h3
-                  : _GEN_52;
+    {1'h0,
+     _GEN | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
+     | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
+     | _GEN_17 | _GEN_18 | _GEN_19 | _GEN_20
+       ? 2'h0
+       : _GEN_21
+           ? 2'h1
+           : _GEN_22 | _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_40
+               ? 2'h2
+               : {2{_GEN_30 | _GEN_31 | _GEN_32 | _GEN_33 | _GEN_34 | _GEN_35
+                      | _GEN_39}}};
 endmodule
 
 module MiniBru(
@@ -2488,37 +2445,23 @@ module DecodeUnit(
   wire        _GEN_19 = _decoder_io_out_info_instr[31:15] == 17'h29;
   wire        _GEN_20 = _decoder_io_out_info_instr[31:15] == 17'h22;
   wire        _GEN_21 = _decoder_io_out_info_instr[31:15] == 17'h38;
-  wire        _GEN_22 = _decoder_io_out_info_instr[31:15] == 17'h39;
-  wire        _GEN_23 = _decoder_io_out_info_instr[31:15] == 17'h3A;
-  wire        _GEN_24 = _decoder_io_out_info_instr[31:15] == 17'h40;
-  wire        _GEN_25 = _decoder_io_out_info_instr[31:15] == 17'h42;
-  wire        _GEN_26 = _decoder_io_out_info_instr[31:15] == 17'h41;
-  wire        _GEN_27 = _decoder_io_out_info_instr[31:15] == 17'h43;
-  wire        _GEN_28 = _decoder_io_out_info_instr[31:22] == 10'hA0;
-  wire        _GEN_29 = _decoder_io_out_info_instr[31:22] == 10'hA8;
-  wire        _GEN_30 = _decoder_io_out_info_instr[31:22] == 10'hA1;
-  wire        _GEN_31 = _decoder_io_out_info_instr[31:22] == 10'hA9;
-  wire        _GEN_32 = _decoder_io_out_info_instr[31:22] == 10'hA2;
-  wire        _GEN_33 = _decoder_io_out_info_instr[31:22] == 10'hA4;
-  wire        _GEN_34 = _decoder_io_out_info_instr[31:22] == 10'hA5;
-  wire        _GEN_35 = _decoder_io_out_info_instr[31:22] == 10'hA6;
-  wire        _GEN_36 = _decoder_io_out_info_instr[31:26] == 6'h16;
-  wire        _GEN_37 = _decoder_io_out_info_instr[31:26] == 6'h17;
-  wire        _GEN_38 = _decoder_io_out_info_instr[31:26] == 6'h18;
-  wire        _GEN_39 = _decoder_io_out_info_instr[31:26] == 6'h19;
-  wire        _GEN_40 = _decoder_io_out_info_instr[31:26] == 6'h1A;
-  wire        _GEN_41 = _decoder_io_out_info_instr[31:26] == 6'h1B;
-  wire        _GEN_42 = _decoder_io_out_info_instr[31:26] == 6'h14;
-  wire        _GEN_43 = _decoder_io_out_info_instr[31:26] == 6'h15;
-  wire        _GEN_44 = _decoder_io_out_info_instr[31:26] == 6'h13;
-  wire [9:0]  _GEN_45 =
-    {_decoder_io_out_info_instr[14:12], _decoder_io_out_info_instr[6:0]};
-  wire        _GEN_46 = _GEN_45 == 10'hF3;
-  wire        _GEN_47 = _GEN_45 == 10'h173;
-  wire        _GEN_48 = _GEN_45 == 10'h1F3;
-  wire        _GEN_49 = _GEN_45 == 10'h2F3;
-  wire        _GEN_50 = _GEN_45 == 10'h373;
-  wire        _GEN_51 = _GEN_45 == 10'h3F3;
+  wire        _GEN_22 = _decoder_io_out_info_instr[31:22] == 10'hA0;
+  wire        _GEN_23 = _decoder_io_out_info_instr[31:22] == 10'hA8;
+  wire        _GEN_24 = _decoder_io_out_info_instr[31:22] == 10'hA1;
+  wire        _GEN_25 = _decoder_io_out_info_instr[31:22] == 10'hA9;
+  wire        _GEN_26 = _decoder_io_out_info_instr[31:22] == 10'hA2;
+  wire        _GEN_27 = _decoder_io_out_info_instr[31:22] == 10'hA4;
+  wire        _GEN_28 = _decoder_io_out_info_instr[31:22] == 10'hA5;
+  wire        _GEN_29 = _decoder_io_out_info_instr[31:22] == 10'hA6;
+  wire        _GEN_30 = _decoder_io_out_info_instr[31:26] == 6'h16;
+  wire        _GEN_31 = _decoder_io_out_info_instr[31:26] == 6'h17;
+  wire        _GEN_32 = _decoder_io_out_info_instr[31:26] == 6'h18;
+  wire        _GEN_33 = _decoder_io_out_info_instr[31:26] == 6'h19;
+  wire        _GEN_34 = _decoder_io_out_info_instr[31:26] == 6'h1A;
+  wire        _GEN_35 = _decoder_io_out_info_instr[31:26] == 6'h1B;
+  wire        _GEN_36 = _decoder_io_out_info_instr[31:26] == 6'h14;
+  wire        _GEN_37 = _decoder_io_out_info_instr[31:26] == 6'h15;
+  wire        _GEN_38 = _decoder_io_out_info_instr[31:26] == 6'h13;
   wire [2:0]  instrType =
     _GEN | _GEN_0
       ? 3'h6
@@ -2553,38 +2496,27 @@ module DecodeUnit(
                                                               : _GEN_18
                                                                   ? 3'h4
                                                                   : _GEN_19 | _GEN_20
-                                                                    | _GEN_21 | _GEN_22
-                                                                    | _GEN_23 | _GEN_24
-                                                                    | _GEN_25 | _GEN_26
-                                                                    | _GEN_27
+                                                                    | _GEN_21
                                                                       ? 3'h5
-                                                                      : _GEN_28 | _GEN_29
-                                                                        | _GEN_30
-                                                                        | _GEN_31
-                                                                        | _GEN_32
+                                                                      : _GEN_22 | _GEN_23
+                                                                        | _GEN_24
+                                                                        | _GEN_25
+                                                                        | _GEN_26
                                                                           ? 3'h4
-                                                                          : _GEN_33
-                                                                            | _GEN_34
-                                                                            | _GEN_35
+                                                                          : _GEN_27
+                                                                            | _GEN_28
+                                                                            | _GEN_29
                                                                               ? 3'h2
-                                                                              : _GEN_36
-                                                                                | _GEN_37
-                                                                                | _GEN_38
-                                                                                | _GEN_39
-                                                                                | _GEN_40
-                                                                                | _GEN_41
+                                                                              : _GEN_30
+                                                                                | _GEN_31
+                                                                                | _GEN_32
+                                                                                | _GEN_33
+                                                                                | _GEN_34
+                                                                                | _GEN_35
                                                                                   ? 3'h1
-                                                                                  : _GEN_42
-                                                                                    | _GEN_43
-                                                                                    | _GEN_44
-                                                                                      ? 3'h7
-                                                                                      : {_GEN_46
-                                                                                           | _GEN_47
-                                                                                           | _GEN_48
-                                                                                           | _GEN_49
-                                                                                           | _GEN_50
-                                                                                           | _GEN_51,
-                                                                                         2'h0};
+                                                                                  : {3{_GEN_36
+                                                                                         | _GEN_37
+                                                                                         | _GEN_38}};
   wire [9:0]  _imm_T_19 =
     (_GEN | _GEN_0 | _GEN_1 | _GEN_2
        ? 4'h0
@@ -2610,66 +2542,41 @@ module DecodeUnit(
                                                ? 4'h8
                                                : _GEN_20
                                                    ? 4'h1
-                                                   : _GEN_21
+                                                   : _GEN_21 | _GEN_22
                                                        ? 4'h0
-                                                       : _GEN_22
-                                                           ? 4'h1
-                                                           : _GEN_23
-                                                               ? 4'h3
-                                                               : _GEN_24
-                                                                   ? 4'h4
-                                                                   : _GEN_25
-                                                                       ? 4'h5
-                                                                       : _GEN_26
-                                                                           ? 4'h6
-                                                                           : _GEN_27
-                                                                               ? 4'h7
-                                                                               : _GEN_28
-                                                                                   ? 4'h0
-                                                                                   : _GEN_29
-                                                                                       ? 4'h4
-                                                                                       : _GEN_30
+                                                       : _GEN_23
+                                                           ? 4'h4
+                                                           : _GEN_24
+                                                               ? 4'h1
+                                                               : _GEN_25
+                                                                   ? 4'h5
+                                                                   : _GEN_26
+                                                                       ? 4'h2
+                                                                       : _GEN_27
+                                                                           ? 4'h8
+                                                                           : _GEN_28
+                                                                               ? 4'h9
+                                                                               : _GEN_29
+                                                                                   ? 4'hA
+                                                                                   : _GEN_30
+                                                                                       ? 4'h0
+                                                                                       : _GEN_31
                                                                                            ? 4'h1
-                                                                                           : _GEN_31
-                                                                                               ? 4'h5
-                                                                                               : _GEN_32
-                                                                                                   ? 4'h2
-                                                                                                   : _GEN_33
-                                                                                                       ? 4'h8
-                                                                                                       : _GEN_34
-                                                                                                           ? 4'h9
-                                                                                                           : _GEN_35
-                                                                                                               ? 4'hA
-                                                                                                               : _GEN_36
-                                                                                                                   ? 4'h0
-                                                                                                                   : _GEN_37
-                                                                                                                       ? 4'h1
-                                                                                                                       : _GEN_38
-                                                                                                                           ? 4'h4
-                                                                                                                           : _GEN_39
-                                                                                                                               ? 4'h5
-                                                                                                                               : _GEN_40
-                                                                                                                                   ? 4'h6
-                                                                                                                                   : _GEN_41
-                                                                                                                                       ? 4'h7
-                                                                                                                                       : _GEN_42
-                                                                                                                                           ? 4'h8
-                                                                                                                                           : _GEN_43
-                                                                                                                                               ? 4'hA
-                                                                                                                                               : _GEN_44
-                                                                                                                                                   ? 4'hB
-                                                                                                                                                   : {1'h0,
-                                                                                                                                                      _GEN_46
-                                                                                                                                                        ? 3'h1
-                                                                                                                                                        : _GEN_47
-                                                                                                                                                            ? 3'h2
-                                                                                                                                                            : _GEN_48
-                                                                                                                                                                ? 3'h3
-                                                                                                                                                                : _GEN_49
-                                                                                                                                                                    ? 3'h5
-                                                                                                                                                                    : _GEN_50
-                                                                                                                                                                        ? 3'h6
-                                                                                                                                                                        : {3{_GEN_51}}}) == 4'hB
+                                                                                           : _GEN_32
+                                                                                               ? 4'h4
+                                                                                               : _GEN_33
+                                                                                                   ? 4'h5
+                                                                                                   : _GEN_34
+                                                                                                       ? 4'h6
+                                                                                                       : _GEN_35
+                                                                                                           ? 4'h7
+                                                                                                           : _GEN_36
+                                                                                                               ? 4'h8
+                                                                                                               : _GEN_37
+                                                                                                                   ? 4'hA
+                                                                                                                   : _GEN_38
+                                                                                                                       ? 4'hB
+                                                                                                                       : 4'h0) == 4'hB
       ? 10'h0
       : _decoder_io_out_info_instr[9:0];
   wire [31:0] imm =
