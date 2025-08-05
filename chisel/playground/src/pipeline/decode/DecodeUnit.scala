@@ -211,57 +211,6 @@ class DecodeUnit extends Module with HasInstrType {
   io.branch := bru.io.valid && bru.io.branch
 }
 
-// 如果还需要单独的Decoder模块（为了兼容性），可以保留一个简单的包装
-class Decoder extends Module with HasInstrType {
-  val io = IO(new Bundle {
-    val in = Input(new Bundle {
-      val inst = UInt(XLEN.W)
-    })
-    val out = Output(new Bundle {
-      val info = new Info()
-    })
-  })
-
-  // 简单的指令解码逻辑
-  val inst = io.in.inst
-  val instrType :: fuType :: fuOpType :: Nil =
-    ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
-
-  val rd  = inst(4, 0)
-  val rs1 = inst(9, 5)
-  val rs2 = inst(14, 10)
-
-  // 生成one-hot信号
-  val isR = instrType === InstrR
-  val isI = instrType === InstrI
-  val isU = instrType === InstrU
-  val isS = instrType === InstrS
-  val isB = instrType === InstrB
-  val isJ = instrType === InstrJ
-  val isN = instrType === InstrN
-
-  io.out.info.instr := Mux(isN, Instructions.NOP, inst)
-  io.out.info.reg_waddr := Mux1H(
-    Seq(
-      isR -> rd,
-      isI -> rd,
-      isU -> rd,
-      isJ -> Mux(fuOpType === BRUOpType.bl, 1.U, rd)
-    ))
-  io.out.info.src1_raddr := Mux(isU || isN, 0.U, rs1)
-  io.out.info.src2_raddr := Mux1H(
-    Seq(
-      isR          -> rs2,
-      (isS || isB) -> rd
-    ))
-  io.out.info.op       := Mux(isU, ALUOpType.add, fuOpType)
-  io.out.info.reg_wen  := !isS && !isB && !isN && !(isJ && fuOpType === BRUOpType.b)
-  io.out.info.src1_ren := !isU && !isN
-  io.out.info.src2_ren := isR || isS || isB
-  io.out.info.valid    := !isN
-  io.out.info.fusel    := fuType
-  io.out.info.imm      := DontCare
-}
 // package cpu.pipeline
 
 // import chisel3._
