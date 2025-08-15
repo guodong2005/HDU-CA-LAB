@@ -27,15 +27,16 @@ class Lsu extends Module {
   val state                                     = RegInit(sIdle)
 
   val writeBuffer = Module(new WriteBuffer(depth = 4))
-  writeBuffer.io.flush        := false.B
-  writeBuffer.io.bypassEnable := true.B
+  writeBuffer.io.flush := false.B
   dontTouch(writeBuffer.io)
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
-  writeBuffer.io.bypassAddr := effectiveAddr
+  // 修正：只有在load时才设置bypass地址和使能
+  writeBuffer.io.bypassAddr   := effectiveAddr
+  writeBuffer.io.bypassEnable := isLoad
 
   val addr_low2 = effectiveAddr(1, 0)
 
@@ -96,7 +97,9 @@ class Lsu extends Module {
 
   // 默认接受指令
   val canEnqueue = writeBuffer.io.enq.ready
-  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu))
+  // 修正：对于load操作，如果有bypass hit，也可以立即完成
+  val loadBypassHit = isLoad && writeBuffer.io.bypassHit
+  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu || loadBypassHit))
 
   // Store enqueuing
   writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
@@ -134,10 +137,20 @@ class Lsu extends Module {
   switch(state) {
     is(sIdle) {
       when(io.info.valid && isLoad) {
-        // 收到 load 请求，进入 drain 状态
-        loadReqReg := newReq
-        loadOpReg  := io.info.op
-        state      := sDrainStores
+        // 修正：检查是否有bypass hit
+        when(writeBuffer.io.bypassHit) {
+          // 有bypass hit，直接使用bypass data
+          val bypassResult = gen_load_data(writeBuffer.io.bypassData, effectiveAddr, io.info.op)
+          io.ready  := true.B
+          io.result := bypassResult
+          io.valid  := true.B
+          // 保持在idle状态
+        }.otherwise {
+          // 没有bypass hit，收到 load 请求，进入 drain 状态
+          loadReqReg := newReq
+          loadOpReg  := io.info.op
+          state      := sDrainStores
+        }
       }
       when(drainReq.valid && drainReq.bits.write) {
         io.dcache.req.valid := true.B
@@ -180,6 +193,6 @@ class Lsu extends Module {
   io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeData  := newReq.wdata
   io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
-  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
-  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.paddr       := Mux(loadBypassHit, effectiveAddr, loadReqReg.addr.asUInt)
+  io.diffout.loadEvent.vaddr       := Mux(loadBypassHit, effectiveAddr, loadReqReg.addr.asUInt)
 }

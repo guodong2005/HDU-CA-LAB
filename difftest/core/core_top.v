@@ -2895,30 +2895,41 @@ module WriteBuffer(
   input         io_enq_bits_write,
   input  [31:0] io_enq_bits_wdata,
   input  [3:0]  io_enq_bits_wstrb,
+  input  [2:0]  io_enq_bits_size,
   input         io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_addr,
   output        io_deq_bits_write,
   output [31:0] io_deq_bits_wdata,
-  output [3:0]  io_deq_bits_wstrb
+  output [3:0]  io_deq_bits_wstrb,
+  output [2:0]  io_deq_bits_size,
+  input         io_flush,
+  input  [31:0] io_bypassAddr,
+  input         io_bypassEnable,
+  output        io_bypassHit,
+  output [31:0] io_bypassData
 );
 
   reg  [31:0]      buffer_0_req_addr;
   reg              buffer_0_req_write;
   reg  [31:0]      buffer_0_req_wdata;
   reg  [3:0]       buffer_0_req_wstrb;
+  reg  [2:0]       buffer_0_req_size;
   reg  [31:0]      buffer_1_req_addr;
   reg              buffer_1_req_write;
   reg  [31:0]      buffer_1_req_wdata;
   reg  [3:0]       buffer_1_req_wstrb;
+  reg  [2:0]       buffer_1_req_size;
   reg  [31:0]      buffer_2_req_addr;
   reg              buffer_2_req_write;
   reg  [31:0]      buffer_2_req_wdata;
   reg  [3:0]       buffer_2_req_wstrb;
+  reg  [2:0]       buffer_2_req_size;
   reg  [31:0]      buffer_3_req_addr;
   reg              buffer_3_req_write;
   reg  [31:0]      buffer_3_req_wdata;
   reg  [3:0]       buffer_3_req_wstrb;
+  reg  [2:0]       buffer_3_req_size;
   reg              valids_0;
   reg              valids_1;
   reg              valids_2;
@@ -2945,41 +2956,55 @@ module WriteBuffer(
      {buffer_2_req_wstrb},
      {buffer_1_req_wstrb},
      {buffer_0_req_wstrb}};
+  wire [3:0][2:0]  _GEN_3 =
+    {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
+  wire             hits_0 =
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+  wire             hits_1 =
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+  wire             hits_2 =
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+  wire             hits_3 =
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
   always @(posedge clock) begin
     automatic logic [1:0] enqIdx;
-    automatic logic       _GEN_3 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-    automatic logic       _GEN_4;
+    automatic logic       _GEN_4 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
     automatic logic       _GEN_5;
     automatic logic       _GEN_6;
     automatic logic       _GEN_7;
+    automatic logic       _GEN_8;
     enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-    _GEN_4 = _GEN_3 & enqIdx == 2'h0;
-    _GEN_5 = _GEN_3 & enqIdx == 2'h1;
-    _GEN_6 = _GEN_3 & enqIdx == 2'h2;
-    _GEN_7 = _GEN_3 & (&enqIdx);
-    if (_GEN_4) begin
+    _GEN_5 = _GEN_4 & enqIdx == 2'h0;
+    _GEN_6 = _GEN_4 & enqIdx == 2'h1;
+    _GEN_7 = _GEN_4 & enqIdx == 2'h2;
+    _GEN_8 = _GEN_4 & (&enqIdx);
+    if (_GEN_5) begin
       buffer_0_req_addr <= io_enq_bits_addr;
       buffer_0_req_write <= io_enq_bits_write;
       buffer_0_req_wdata <= io_enq_bits_wdata;
       buffer_0_req_wstrb <= io_enq_bits_wstrb;
+      buffer_0_req_size <= io_enq_bits_size;
     end
-    if (_GEN_5) begin
+    if (_GEN_6) begin
       buffer_1_req_addr <= io_enq_bits_addr;
       buffer_1_req_write <= io_enq_bits_write;
       buffer_1_req_wdata <= io_enq_bits_wdata;
       buffer_1_req_wstrb <= io_enq_bits_wstrb;
+      buffer_1_req_size <= io_enq_bits_size;
     end
-    if (_GEN_6) begin
+    if (_GEN_7) begin
       buffer_2_req_addr <= io_enq_bits_addr;
       buffer_2_req_write <= io_enq_bits_write;
       buffer_2_req_wdata <= io_enq_bits_wdata;
       buffer_2_req_wstrb <= io_enq_bits_wstrb;
+      buffer_2_req_size <= io_enq_bits_size;
     end
-    if (_GEN_7) begin
+    if (_GEN_8) begin
       buffer_3_req_addr <= io_enq_bits_addr;
       buffer_3_req_write <= io_enq_bits_write;
       buffer_3_req_wdata <= io_enq_bits_wdata;
       buffer_3_req_wstrb <= io_enq_bits_wstrb;
+      buffer_3_req_size <= io_enq_bits_size;
     end
     if (reset) begin
       valids_0 <= 1'h0;
@@ -2988,11 +3013,11 @@ module WriteBuffer(
       valids_3 <= 1'h0;
     end
     else begin
-      automatic logic _GEN_8 = io_deq_ready & io_deq_valid_0;
-      valids_0 <= ~(_GEN_8 & deqIdx == 2'h0) & (_GEN_4 | valids_0);
-      valids_1 <= ~(_GEN_8 & deqIdx == 2'h1) & (_GEN_5 | valids_1);
-      valids_2 <= ~(_GEN_8 & deqIdx == 2'h2) & (_GEN_6 | valids_2);
-      valids_3 <= ~(_GEN_8 & (&deqIdx)) & (_GEN_7 | valids_3);
+      automatic logic _GEN_9 = io_deq_ready & io_deq_valid_0;
+      valids_0 <= ~(io_flush | _GEN_9 & deqIdx == 2'h0) & (_GEN_5 | valids_0);
+      valids_1 <= ~(io_flush | _GEN_9 & deqIdx == 2'h1) & (_GEN_6 | valids_1);
+      valids_2 <= ~(io_flush | _GEN_9 & deqIdx == 2'h2) & (_GEN_7 | valids_2);
+      valids_3 <= ~(io_flush | _GEN_9 & (&deqIdx)) & (_GEN_8 | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3012,18 +3037,22 @@ module WriteBuffer(
         buffer_0_req_write = _RANDOM[4'h1][0];
         buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
         buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
+        buffer_0_req_size = _RANDOM[4'h2][7:5];
         buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
         buffer_1_req_write = _RANDOM[4'h3][8];
         buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
         buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
+        buffer_1_req_size = _RANDOM[4'h4][15:13];
         buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
         buffer_2_req_write = _RANDOM[4'h5][16];
         buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
         buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
+        buffer_2_req_size = _RANDOM[4'h6][23:21];
         buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
         buffer_3_req_write = _RANDOM[4'h7][24];
         buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
         buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
+        buffer_3_req_size = _RANDOM[4'h8][31:29];
         valids_0 = _RANDOM[4'h9][0];
         valids_1 = _RANDOM[4'h9][1];
         valids_2 = _RANDOM[4'h9][2];
@@ -3040,6 +3069,11 @@ module WriteBuffer(
   assign io_deq_bits_write = _GEN_0[deqIdx];
   assign io_deq_bits_wdata = _GEN_1[deqIdx];
   assign io_deq_bits_wstrb = _GEN_2[deqIdx];
+  assign io_deq_bits_size = _GEN_3[deqIdx];
+  assign io_bypassHit = hits_0 | hits_1 | hits_2 | hits_3;
+  assign io_bypassData =
+    (hits_0 ? buffer_0_req_wdata : 32'h0) | (hits_1 ? buffer_1_req_wdata : 32'h0)
+    | (hits_2 ? buffer_2_req_wdata : 32'h0) | (hits_3 ? buffer_3_req_wdata : 32'h0);
 endmodule
 
 module Lsu(
@@ -3083,6 +3117,8 @@ module Lsu(
   wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
+  wire        _storeWdata_T_6 = io_info_op == 5'h9;
+  wire        _storeWdata_T_7 = io_info_op == 5'hA;
   wire        _strb_T_9 = io_info_op == 5'h8;
   wire        _strb_T_16 = io_info_op == 5'h9;
   wire [3:0]  strb =
@@ -3104,8 +3140,8 @@ module Lsu(
   wire [31:0] newReq_wdata =
     isStore
       ? (io_info_op == 5'h8 ? {2{{2{io_src_info_src2_data[7:0]}}}} : 32'h0)
-        | (io_info_op == 5'h9 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
-        | (io_info_op == 5'hA ? io_src_info_src2_data : 32'h0)
+        | (_storeWdata_T_6 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
+        | (_storeWdata_T_7 ? io_src_info_src2_data : 32'h0)
       : 32'h0;
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
@@ -3187,13 +3223,23 @@ module Lsu(
     .io_enq_bits_write (isStore),
     .io_enq_bits_wdata (newReq_wdata),
     .io_enq_bits_wstrb (strb),
+    .io_enq_bits_size
+      ({1'h0,
+        io_info_op == 5'h2 | _storeWdata_T_7,
+        io_info_op == 5'h1 | io_info_op == 5'h5 | _storeWdata_T_6}),
     .io_deq_ready
       ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
     .io_deq_bits_wdata (_writeBuffer_io_deq_bits_wdata),
-    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb)
+    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb),
+    .io_deq_bits_size  (/* unused */),
+    .io_flush          (1'h0),
+    .io_bypassAddr     (_effectiveAddr_T_5),
+    .io_bypassEnable   (1'h1),
+    .io_bypassHit      (/* unused */),
+    .io_bypassData     (/* unused */)
   );
   assign io_result =
     _GEN_6 | ~_GEN_5
