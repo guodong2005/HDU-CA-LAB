@@ -64,7 +64,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 增强的Bypass逻辑 - 基于时间戳选择最新的匹配项
   val hits = VecInit(buffer.zip(valids).map {
     case (entry, v) =>
-      v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
+      io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
   })
 
   // 找到所有匹配项中时间戳最新的那个
