@@ -53,7 +53,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   val hits = VecInit(buffer.zip(valids).map {
     case (entry, v) =>
       // 修正：只有在valid且bypassEnable时才检查hit
-      v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
+      io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
   })
 
   io.bypassHit  := hits.reduce(_ || _)

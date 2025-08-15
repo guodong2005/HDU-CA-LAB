@@ -2959,61 +2959,101 @@ module WriteBuffer(
   wire [3:0][2:0]  _GEN_3 =
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             hits_0 =
-    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+    valids_0 & io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
   wire             hits_1 =
-    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+    valids_1 & io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
   wire             hits_2 =
-    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+    valids_2 & io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
   wire             hits_3 =
-    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+    valids_3 & io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
   always @(posedge clock) begin
-    automatic logic [1:0] enqIdx;
-    automatic logic       _GEN_4 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-    automatic logic       _GEN_5;
-    automatic logic       _GEN_6;
-    automatic logic       _GEN_7;
-    automatic logic       _GEN_8;
-    enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-    _GEN_5 = _GEN_4 & enqIdx == 2'h0;
-    _GEN_6 = _GEN_4 & enqIdx == 2'h1;
-    _GEN_7 = _GEN_4 & enqIdx == 2'h2;
-    _GEN_8 = _GEN_4 & (&enqIdx);
-    if (_GEN_5) begin
-      buffer_0_req_addr <= io_enq_bits_addr;
-      buffer_0_req_write <= io_enq_bits_write;
-      buffer_0_req_wdata <= io_enq_bits_wdata;
-      buffer_0_req_wstrb <= io_enq_bits_wstrb;
-      buffer_0_req_size <= io_enq_bits_size;
-    end
-    if (_GEN_6) begin
-      buffer_1_req_addr <= io_enq_bits_addr;
-      buffer_1_req_write <= io_enq_bits_write;
-      buffer_1_req_wdata <= io_enq_bits_wdata;
-      buffer_1_req_wstrb <= io_enq_bits_wstrb;
-      buffer_1_req_size <= io_enq_bits_size;
-    end
-    if (_GEN_7) begin
-      buffer_2_req_addr <= io_enq_bits_addr;
-      buffer_2_req_write <= io_enq_bits_write;
-      buffer_2_req_wdata <= io_enq_bits_wdata;
-      buffer_2_req_wstrb <= io_enq_bits_wstrb;
-      buffer_2_req_size <= io_enq_bits_size;
-    end
-    if (_GEN_8) begin
-      buffer_3_req_addr <= io_enq_bits_addr;
-      buffer_3_req_write <= io_enq_bits_write;
-      buffer_3_req_wdata <= io_enq_bits_wdata;
-      buffer_3_req_wstrb <= io_enq_bits_wstrb;
-      buffer_3_req_size <= io_enq_bits_size;
-    end
     if (reset) begin
+      buffer_0_req_addr <= 32'h0;
+      buffer_0_req_write <= 1'h0;
+      buffer_0_req_wdata <= 32'h0;
+      buffer_0_req_wstrb <= 4'h0;
+      buffer_0_req_size <= 3'h0;
+      buffer_1_req_addr <= 32'h0;
+      buffer_1_req_write <= 1'h0;
+      buffer_1_req_wdata <= 32'h0;
+      buffer_1_req_wstrb <= 4'h0;
+      buffer_1_req_size <= 3'h0;
+      buffer_2_req_addr <= 32'h0;
+      buffer_2_req_write <= 1'h0;
+      buffer_2_req_wdata <= 32'h0;
+      buffer_2_req_wstrb <= 4'h0;
+      buffer_2_req_size <= 3'h0;
+      buffer_3_req_addr <= 32'h0;
+      buffer_3_req_write <= 1'h0;
+      buffer_3_req_wdata <= 32'h0;
+      buffer_3_req_wstrb <= 4'h0;
+      buffer_3_req_size <= 3'h0;
       valids_0 <= 1'h0;
       valids_1 <= 1'h0;
       valids_2 <= 1'h0;
       valids_3 <= 1'h0;
     end
     else begin
-      automatic logic _GEN_9 = io_deq_ready & io_deq_valid_0;
+      automatic logic [1:0] enqIdx;
+      automatic logic       _GEN_4 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
+      automatic logic       _GEN_5;
+      automatic logic       _GEN_6;
+      automatic logic       _GEN_7;
+      automatic logic       _GEN_8;
+      automatic logic       _GEN_9 = io_deq_ready & io_deq_valid_0;
+      enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
+      _GEN_5 = _GEN_4 & enqIdx == 2'h0;
+      _GEN_6 = _GEN_4 & enqIdx == 2'h1;
+      _GEN_7 = _GEN_4 & enqIdx == 2'h2;
+      _GEN_8 = _GEN_4 & (&enqIdx);
+      if (io_flush) begin
+        buffer_0_req_addr <= 32'h0;
+        buffer_0_req_wdata <= 32'h0;
+        buffer_0_req_wstrb <= 4'h0;
+        buffer_0_req_size <= 3'h0;
+        buffer_1_req_addr <= 32'h0;
+        buffer_1_req_wdata <= 32'h0;
+        buffer_1_req_wstrb <= 4'h0;
+        buffer_1_req_size <= 3'h0;
+        buffer_2_req_addr <= 32'h0;
+        buffer_2_req_wdata <= 32'h0;
+        buffer_2_req_wstrb <= 4'h0;
+        buffer_2_req_size <= 3'h0;
+        buffer_3_req_addr <= 32'h0;
+        buffer_3_req_wdata <= 32'h0;
+        buffer_3_req_wstrb <= 4'h0;
+        buffer_3_req_size <= 3'h0;
+      end
+      else begin
+        if (_GEN_5) begin
+          buffer_0_req_addr <= io_enq_bits_addr;
+          buffer_0_req_wdata <= io_enq_bits_wdata;
+          buffer_0_req_wstrb <= io_enq_bits_wstrb;
+          buffer_0_req_size <= io_enq_bits_size;
+        end
+        if (_GEN_6) begin
+          buffer_1_req_addr <= io_enq_bits_addr;
+          buffer_1_req_wdata <= io_enq_bits_wdata;
+          buffer_1_req_wstrb <= io_enq_bits_wstrb;
+          buffer_1_req_size <= io_enq_bits_size;
+        end
+        if (_GEN_7) begin
+          buffer_2_req_addr <= io_enq_bits_addr;
+          buffer_2_req_wdata <= io_enq_bits_wdata;
+          buffer_2_req_wstrb <= io_enq_bits_wstrb;
+          buffer_2_req_size <= io_enq_bits_size;
+        end
+        if (_GEN_8) begin
+          buffer_3_req_addr <= io_enq_bits_addr;
+          buffer_3_req_wdata <= io_enq_bits_wdata;
+          buffer_3_req_wstrb <= io_enq_bits_wstrb;
+          buffer_3_req_size <= io_enq_bits_size;
+        end
+      end
+      buffer_0_req_write <= ~io_flush & (_GEN_5 ? io_enq_bits_write : buffer_0_req_write);
+      buffer_1_req_write <= ~io_flush & (_GEN_6 ? io_enq_bits_write : buffer_1_req_write);
+      buffer_2_req_write <= ~io_flush & (_GEN_7 ? io_enq_bits_write : buffer_2_req_write);
+      buffer_3_req_write <= ~io_flush & (_GEN_8 ? io_enq_bits_write : buffer_3_req_write);
       valids_0 <= ~(io_flush | _GEN_9 & deqIdx == 2'h0) & (_GEN_5 | valids_0);
       valids_1 <= ~(io_flush | _GEN_9 & deqIdx == 2'h1) & (_GEN_6 | valids_1);
       valids_2 <= ~(io_flush | _GEN_9 & deqIdx == 2'h2) & (_GEN_7 | valids_2);
