@@ -29,6 +29,7 @@ class Lsu extends Module {
   val writeBuffer = Module(new WriteBuffer(depth = 4))
   writeBuffer.io.flush        := false.B
   writeBuffer.io.bypassEnable := true.B
+  dontTouch(writeBuffer.io)
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
