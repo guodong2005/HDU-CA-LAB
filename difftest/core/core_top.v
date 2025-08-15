@@ -2964,13 +2964,13 @@ module WriteBuffer(
   wire [3:0][2:0]  _GEN_3 =
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             hits_0 =
-    valids_0 & io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
   wire             hits_1 =
-    valids_1 & io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
   wire             hits_2 =
-    valids_2 & io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
   wire             hits_3 =
-    valids_3 & io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
   wire [3:0]       hitTimestamps_0 = hits_0 ? buffer_0_timestamp : 4'h0;
   wire [3:0]       hitTimestamps_1 = hits_1 ? buffer_1_timestamp : 4'h0;
   wire [3:0]       hitTimestamps_2 = hits_2 ? buffer_2_timestamp : 4'h0;
