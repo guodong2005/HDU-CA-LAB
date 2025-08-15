@@ -26,7 +26,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 写合并逻辑：检查是否有相同地址的valid entry
   val addrMatches = VecInit(
     (0 until depth).map(i =>
-      valids(i) && buffer(i).req.write &&
+      buffer(i).req.write &&
         (buffer(i).req.addr === io.enq.bits.addr)
     )
   )
@@ -53,6 +53,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
     when(hasMatch) {
       // 写合并：更新现有entry的数据
       buffer(matchIdx).req.wdata := io.enq.bits.wdata
+      valids(enqIdx)             := true.B
       // 保持地址和其他字段不变
     }.otherwise {
       // 新分配：使用空闲slot
@@ -61,29 +62,15 @@ class WriteBuffer(depth: Int = 4) extends Module {
     }
   }
 
-  // 对于非写请求，直接分配新entry（如果有空间）
-  when(io.enq.fire && !io.enq.bits.write) {
-    buffer(enqIdx).req := io.enq.bits
-    valids(enqIdx)     := true.B
-  }
-
   // 出队逻辑
   when(io.deq.fire) {
     valids(deqIdx) := false.B
   }
 
-  // 清空逻辑
-  when(io.flush) {
-    for (i <- 0 until depth) {
-      valids(i) := false.B
-      buffer(i) := 0.U.asTypeOf(new WriteBufferEntry)
-    }
-  }
-
   // 简化的Bypass逻辑：由于有写合并，每个地址最多只有一个entry
   val bypassMatches = VecInit(
     (0 until depth).map(i =>
-      valids(i) && io.bypassEnable &&
+      io.bypassEnable &&
         buffer(i).req.write &&
         (buffer(i).req.addr === io.bypassAddr)
     )
