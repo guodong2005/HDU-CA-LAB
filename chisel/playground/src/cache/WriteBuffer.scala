@@ -26,7 +26,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 写合并逻辑：检查是否有相同地址的valid entry
   val addrMatches = VecInit(
     (0 until depth).map(i =>
-      valids(i) && buffer(i).req.write &&
+      buffer(i).req.write &&
         (buffer(i).req.addr === io.enq.bits.addr)
     )
   )
@@ -83,7 +83,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 简化的Bypass逻辑：由于有写合并，每个地址最多只有一个entry
   val bypassMatches = VecInit(
     (0 until depth).map(i =>
-      valids(i) && io.bypassEnable &&
+      io.bypassEnable &&
         buffer(i).req.write &&
         (buffer(i).req.addr === io.bypassAddr)
     )

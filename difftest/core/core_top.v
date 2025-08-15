@@ -2910,39 +2910,46 @@ module WriteBuffer(
   output [31:0] io_bypassData
 );
 
-  reg  [3:0]       globalTimestamp;
   reg  [31:0]      buffer_0_req_addr;
   reg              buffer_0_req_write;
   reg  [31:0]      buffer_0_req_wdata;
   reg  [3:0]       buffer_0_req_wstrb;
   reg  [2:0]       buffer_0_req_size;
-  reg  [3:0]       buffer_0_timestamp;
   reg  [31:0]      buffer_1_req_addr;
   reg              buffer_1_req_write;
   reg  [31:0]      buffer_1_req_wdata;
   reg  [3:0]       buffer_1_req_wstrb;
   reg  [2:0]       buffer_1_req_size;
-  reg  [3:0]       buffer_1_timestamp;
   reg  [31:0]      buffer_2_req_addr;
   reg              buffer_2_req_write;
   reg  [31:0]      buffer_2_req_wdata;
   reg  [3:0]       buffer_2_req_wstrb;
   reg  [2:0]       buffer_2_req_size;
-  reg  [3:0]       buffer_2_timestamp;
   reg  [31:0]      buffer_3_req_addr;
   reg              buffer_3_req_write;
   reg  [31:0]      buffer_3_req_wdata;
   reg  [3:0]       buffer_3_req_wstrb;
   reg  [2:0]       buffer_3_req_size;
-  reg  [3:0]       buffer_3_timestamp;
   reg              valids_0;
   reg              valids_1;
   reg              valids_2;
   reg              valids_3;
+  wire             addrMatches_0 =
+    valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+  wire             addrMatches_1 =
+    valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+  wire             addrMatches_2 =
+    valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+  wire             hasMatch =
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
+    & buffer_3_req_addr == io_enq_bits_addr;
+  wire [1:0]       matchIdx =
+    addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
   wire [1:0]       deqIdx = valids_0 ? 2'h0 : valids_1 ? 2'h1 : {1'h1, ~valids_2};
-  wire [2:0]       _io_enq_ready_T_9 =
+  wire [2:0]       _hasSpace_T_9 =
     {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
     + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
+  wire             io_enq_ready_0 = hasMatch | ~(_hasSpace_T_9[2]);
   wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
   wire [3:0][31:0] _GEN =
     {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
@@ -2963,60 +2970,45 @@ module WriteBuffer(
      {buffer_0_req_wstrb}};
   wire [3:0][2:0]  _GEN_3 =
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
-  wire             hits_0 =
-    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
-  wire             hits_1 =
-    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
-  wire             hits_2 =
-    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
-  wire             hits_3 =
-    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
-  wire [3:0]       hitTimestamps_0 = hits_0 ? buffer_0_timestamp : 4'h0;
-  wire [3:0]       hitTimestamps_1 = hits_1 ? buffer_1_timestamp : 4'h0;
-  wire [3:0]       hitTimestamps_2 = hits_2 ? buffer_2_timestamp : 4'h0;
-  wire [3:0]       hitTimestamps_3 = hits_3 ? buffer_3_timestamp : 4'h0;
-  wire [3:0]       _newestTimestamp_diff_T = hitTimestamps_0 - hitTimestamps_1;
-  wire [3:0]       _newestTimestamp_T =
-    ~(_newestTimestamp_diff_T[3]) & (|_newestTimestamp_diff_T)
-      ? hitTimestamps_0
-      : hitTimestamps_1;
-  wire [3:0]       _newestTimestamp_diff_T_1 = _newestTimestamp_T - hitTimestamps_2;
-  wire [3:0]       _newestTimestamp_T_1 =
-    ~(_newestTimestamp_diff_T_1[3]) & (|_newestTimestamp_diff_T_1)
-      ? _newestTimestamp_T
-      : hitTimestamps_2;
-  wire [3:0]       _newestTimestamp_diff_T_2 = _newestTimestamp_T_1 - hitTimestamps_3;
-  wire [3:0]       newestTimestamp =
-    ~(_newestTimestamp_diff_T_2[3]) & (|_newestTimestamp_diff_T_2)
-      ? _newestTimestamp_T_1
-      : hitTimestamps_3;
+  wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
+  wire             bypassMatches_0 =
+    valids_0 & io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+  wire             bypassMatches_1 =
+    valids_1 & io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+  wire             bypassMatches_2 =
+    valids_2 & io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+  wire             bypassMatches_3 =
+    valids_3 & io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      if ((`PRINTF_COND_) & _GEN_4 & hasMatch & ~reset)
+        $fwrite(32'h80000002,
+                "[WriteBuffer] Write coalescing: addr=0x%x, old_data=0x%x, new_data=0x%x\n",
+                io_enq_bits_addr, _GEN_1[matchIdx], io_enq_bits_wdata);
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   always @(posedge clock) begin
     if (reset) begin
-      globalTimestamp <= 4'h0;
       buffer_0_req_addr <= 32'h0;
       buffer_0_req_write <= 1'h0;
       buffer_0_req_wdata <= 32'h0;
       buffer_0_req_wstrb <= 4'h0;
       buffer_0_req_size <= 3'h0;
-      buffer_0_timestamp <= 4'h0;
       buffer_1_req_addr <= 32'h0;
       buffer_1_req_write <= 1'h0;
       buffer_1_req_wdata <= 32'h0;
       buffer_1_req_wstrb <= 4'h0;
       buffer_1_req_size <= 3'h0;
-      buffer_1_timestamp <= 4'h0;
       buffer_2_req_addr <= 32'h0;
       buffer_2_req_write <= 1'h0;
       buffer_2_req_wdata <= 32'h0;
       buffer_2_req_wstrb <= 4'h0;
       buffer_2_req_size <= 3'h0;
-      buffer_2_timestamp <= 4'h0;
       buffer_3_req_addr <= 32'h0;
       buffer_3_req_write <= 1'h0;
       buffer_3_req_wdata <= 32'h0;
       buffer_3_req_wstrb <= 4'h0;
       buffer_3_req_size <= 3'h0;
-      buffer_3_timestamp <= 4'h0;
       valids_0 <= 1'h0;
       valids_1 <= 1'h0;
       valids_2 <= 1'h0;
@@ -3024,81 +3016,105 @@ module WriteBuffer(
     end
     else begin
       automatic logic [1:0] enqIdx;
-      automatic logic       _GEN_4;
       automatic logic       _GEN_5;
       automatic logic       _GEN_6;
       automatic logic       _GEN_7;
       automatic logic       _GEN_8;
-      automatic logic       _GEN_9 = io_deq_ready & io_deq_valid_0;
+      automatic logic       _GEN_9 = _GEN_4 & ~io_enq_bits_write;
+      automatic logic       _GEN_10;
+      automatic logic       _GEN_11;
+      automatic logic       _GEN_12;
+      automatic logic       _GEN_13;
+      automatic logic       _GEN_14;
+      automatic logic       _GEN_15;
+      automatic logic       _GEN_16;
+      automatic logic       _GEN_17;
+      automatic logic       _GEN_18 = io_deq_ready & io_deq_valid_0;
       enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-      _GEN_4 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-      _GEN_5 = _GEN_4 & enqIdx == 2'h0;
-      _GEN_6 = _GEN_4 & enqIdx == 2'h1;
-      _GEN_7 = _GEN_4 & enqIdx == 2'h2;
-      _GEN_8 = _GEN_4 & (&enqIdx);
+      _GEN_5 = _GEN_4 & io_enq_bits_write;
+      _GEN_6 = enqIdx == 2'h0;
+      _GEN_7 = enqIdx == 2'h1;
+      _GEN_8 = enqIdx == 2'h2;
+      _GEN_10 = _GEN_9 & _GEN_6;
+      _GEN_11 = _GEN_10 | ~(~_GEN_5 | hasMatch | ~_GEN_6);
+      _GEN_12 = _GEN_9 & _GEN_7;
+      _GEN_13 = _GEN_12 | ~(~_GEN_5 | hasMatch | ~_GEN_7);
+      _GEN_14 = _GEN_9 & _GEN_8;
+      _GEN_15 = _GEN_14 | ~(~_GEN_5 | hasMatch | ~_GEN_8);
+      _GEN_16 = _GEN_9 & (&enqIdx);
+      _GEN_17 = _GEN_16 | ~(~_GEN_5 | hasMatch | ~(&enqIdx));
       if (io_flush) begin
-        globalTimestamp <= 4'h0;
         buffer_0_req_addr <= 32'h0;
         buffer_0_req_wdata <= 32'h0;
         buffer_0_req_wstrb <= 4'h0;
         buffer_0_req_size <= 3'h0;
-        buffer_0_timestamp <= 4'h0;
         buffer_1_req_addr <= 32'h0;
         buffer_1_req_wdata <= 32'h0;
         buffer_1_req_wstrb <= 4'h0;
         buffer_1_req_size <= 3'h0;
-        buffer_1_timestamp <= 4'h0;
         buffer_2_req_addr <= 32'h0;
         buffer_2_req_wdata <= 32'h0;
         buffer_2_req_wstrb <= 4'h0;
         buffer_2_req_size <= 3'h0;
-        buffer_2_timestamp <= 4'h0;
         buffer_3_req_addr <= 32'h0;
         buffer_3_req_wdata <= 32'h0;
         buffer_3_req_wstrb <= 4'h0;
         buffer_3_req_size <= 3'h0;
-        buffer_3_timestamp <= 4'h0;
       end
       else begin
-        if (_GEN_4)
-          globalTimestamp <= globalTimestamp + 4'h1;
-        if (_GEN_5) begin
+        if (_GEN_11)
           buffer_0_req_addr <= io_enq_bits_addr;
+        if (_GEN_10 | _GEN_5 & (hasMatch ? matchIdx == 2'h0 : _GEN_6))
           buffer_0_req_wdata <= io_enq_bits_wdata;
+        if (_GEN_11) begin
           buffer_0_req_wstrb <= io_enq_bits_wstrb;
           buffer_0_req_size <= io_enq_bits_size;
-          buffer_0_timestamp <= globalTimestamp;
         end
-        if (_GEN_6) begin
+        if (_GEN_13)
           buffer_1_req_addr <= io_enq_bits_addr;
+        if (_GEN_12 | _GEN_5 & (hasMatch ? matchIdx == 2'h1 : _GEN_7))
           buffer_1_req_wdata <= io_enq_bits_wdata;
+        if (_GEN_13) begin
           buffer_1_req_wstrb <= io_enq_bits_wstrb;
           buffer_1_req_size <= io_enq_bits_size;
-          buffer_1_timestamp <= globalTimestamp;
         end
-        if (_GEN_7) begin
+        if (_GEN_15)
           buffer_2_req_addr <= io_enq_bits_addr;
+        if (_GEN_14 | _GEN_5 & (hasMatch ? matchIdx == 2'h2 : _GEN_8))
           buffer_2_req_wdata <= io_enq_bits_wdata;
+        if (_GEN_15) begin
           buffer_2_req_wstrb <= io_enq_bits_wstrb;
           buffer_2_req_size <= io_enq_bits_size;
-          buffer_2_timestamp <= globalTimestamp;
         end
-        if (_GEN_8) begin
+        if (_GEN_17)
           buffer_3_req_addr <= io_enq_bits_addr;
+        if (_GEN_16 | _GEN_5 & (hasMatch ? (&matchIdx) : (&enqIdx)))
           buffer_3_req_wdata <= io_enq_bits_wdata;
+        if (_GEN_17) begin
           buffer_3_req_wstrb <= io_enq_bits_wstrb;
           buffer_3_req_size <= io_enq_bits_size;
-          buffer_3_timestamp <= globalTimestamp;
         end
       end
-      buffer_0_req_write <= ~io_flush & (_GEN_5 ? io_enq_bits_write : buffer_0_req_write);
-      buffer_1_req_write <= ~io_flush & (_GEN_6 ? io_enq_bits_write : buffer_1_req_write);
-      buffer_2_req_write <= ~io_flush & (_GEN_7 ? io_enq_bits_write : buffer_2_req_write);
-      buffer_3_req_write <= ~io_flush & (_GEN_8 ? io_enq_bits_write : buffer_3_req_write);
-      valids_0 <= ~(io_flush | _GEN_9 & deqIdx == 2'h0) & (_GEN_5 | valids_0);
-      valids_1 <= ~(io_flush | _GEN_9 & deqIdx == 2'h1) & (_GEN_6 | valids_1);
-      valids_2 <= ~(io_flush | _GEN_9 & deqIdx == 2'h2) & (_GEN_7 | valids_2);
-      valids_3 <= ~(io_flush | _GEN_9 & (&deqIdx)) & (_GEN_8 | valids_3);
+      buffer_0_req_write <=
+        ~io_flush & (_GEN_11 ? io_enq_bits_write : buffer_0_req_write);
+      buffer_1_req_write <=
+        ~io_flush & (_GEN_13 ? io_enq_bits_write : buffer_1_req_write);
+      buffer_2_req_write <=
+        ~io_flush & (_GEN_15 ? io_enq_bits_write : buffer_2_req_write);
+      buffer_3_req_write <=
+        ~io_flush & (_GEN_17 ? io_enq_bits_write : buffer_3_req_write);
+      valids_0 <=
+        ~(io_flush | _GEN_18 & deqIdx == 2'h0)
+        & (_GEN_10 | _GEN_5 & ~hasMatch & _GEN_6 | valids_0);
+      valids_1 <=
+        ~(io_flush | _GEN_18 & deqIdx == 2'h1)
+        & (_GEN_12 | _GEN_5 & ~hasMatch & _GEN_7 | valids_1);
+      valids_2 <=
+        ~(io_flush | _GEN_18 & deqIdx == 2'h2)
+        & (_GEN_14 | _GEN_5 & ~hasMatch & _GEN_8 | valids_2);
+      valids_3 <=
+        ~(io_flush | _GEN_18 & (&deqIdx))
+        & (_GEN_16 | _GEN_5 & ~hasMatch & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3114,54 +3130,50 @@ module WriteBuffer(
         for (logic [3:0] i = 4'h0; i < 4'hA; i += 4'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        globalTimestamp = _RANDOM[4'h0][3:0];
-        buffer_0_req_addr = {_RANDOM[4'h0][31:4], _RANDOM[4'h1][3:0]};
-        buffer_0_req_write = _RANDOM[4'h1][4];
-        buffer_0_req_wdata = {_RANDOM[4'h1][31:5], _RANDOM[4'h2][4:0]};
-        buffer_0_req_wstrb = _RANDOM[4'h2][8:5];
-        buffer_0_req_size = _RANDOM[4'h2][11:9];
-        buffer_0_timestamp = _RANDOM[4'h2][15:12];
-        buffer_1_req_addr = {_RANDOM[4'h2][31:16], _RANDOM[4'h3][15:0]};
-        buffer_1_req_write = _RANDOM[4'h3][16];
-        buffer_1_req_wdata = {_RANDOM[4'h3][31:17], _RANDOM[4'h4][16:0]};
-        buffer_1_req_wstrb = _RANDOM[4'h4][20:17];
-        buffer_1_req_size = _RANDOM[4'h4][23:21];
-        buffer_1_timestamp = _RANDOM[4'h4][27:24];
-        buffer_2_req_addr = {_RANDOM[4'h4][31:28], _RANDOM[4'h5][27:0]};
-        buffer_2_req_write = _RANDOM[4'h5][28];
-        buffer_2_req_wdata = {_RANDOM[4'h5][31:29], _RANDOM[4'h6][28:0]};
-        buffer_2_req_wstrb = {_RANDOM[4'h6][31:29], _RANDOM[4'h7][0]};
-        buffer_2_req_size = _RANDOM[4'h7][3:1];
-        buffer_2_timestamp = _RANDOM[4'h7][7:4];
-        buffer_3_req_addr = {_RANDOM[4'h7][31:8], _RANDOM[4'h8][7:0]};
-        buffer_3_req_write = _RANDOM[4'h8][8];
-        buffer_3_req_wdata = {_RANDOM[4'h8][31:9], _RANDOM[4'h9][8:0]};
-        buffer_3_req_wstrb = _RANDOM[4'h9][12:9];
-        buffer_3_req_size = _RANDOM[4'h9][15:13];
-        buffer_3_timestamp = _RANDOM[4'h9][19:16];
-        valids_0 = _RANDOM[4'h9][20];
-        valids_1 = _RANDOM[4'h9][21];
-        valids_2 = _RANDOM[4'h9][22];
-        valids_3 = _RANDOM[4'h9][23];
+        buffer_0_req_addr = _RANDOM[4'h0];
+        buffer_0_req_write = _RANDOM[4'h1][0];
+        buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
+        buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
+        buffer_0_req_size = _RANDOM[4'h2][7:5];
+        buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
+        buffer_1_req_write = _RANDOM[4'h3][8];
+        buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
+        buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
+        buffer_1_req_size = _RANDOM[4'h4][15:13];
+        buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
+        buffer_2_req_write = _RANDOM[4'h5][16];
+        buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
+        buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
+        buffer_2_req_size = _RANDOM[4'h6][23:21];
+        buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
+        buffer_3_req_write = _RANDOM[4'h7][24];
+        buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
+        buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
+        buffer_3_req_size = _RANDOM[4'h8][31:29];
+        valids_0 = _RANDOM[4'h9][0];
+        valids_1 = _RANDOM[4'h9][1];
+        valids_2 = _RANDOM[4'h9][2];
+        valids_3 = _RANDOM[4'h9][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_enq_ready = ~(_io_enq_ready_T_9[2]);
+  assign io_enq_ready = io_enq_ready_0;
   assign io_deq_valid = io_deq_valid_0;
   assign io_deq_bits_addr = _GEN[deqIdx];
   assign io_deq_bits_write = _GEN_0[deqIdx];
   assign io_deq_bits_wdata = _GEN_1[deqIdx];
   assign io_deq_bits_wstrb = _GEN_2[deqIdx];
   assign io_deq_bits_size = _GEN_3[deqIdx];
-  assign io_bypassHit = hits_0 | hits_1 | hits_2 | hits_3;
+  assign io_bypassHit =
+    bypassMatches_0 | bypassMatches_1 | bypassMatches_2 | bypassMatches_3;
   assign io_bypassData =
-    (hits_0 & buffer_0_timestamp == newestTimestamp ? buffer_0_req_wdata : 32'h0)
-    | (hits_1 & buffer_1_timestamp == newestTimestamp ? buffer_1_req_wdata : 32'h0)
-    | (hits_2 & buffer_2_timestamp == newestTimestamp ? buffer_2_req_wdata : 32'h0)
-    | (hits_3 & buffer_3_timestamp == newestTimestamp ? buffer_3_req_wdata : 32'h0);
+    (bypassMatches_0 ? buffer_0_req_wdata : 32'h0)
+    | (bypassMatches_1 ? buffer_1_req_wdata : 32'h0)
+    | (bypassMatches_2 ? buffer_2_req_wdata : 32'h0)
+    | (bypassMatches_3 ? buffer_3_req_wdata : 32'h0);
 endmodule
 
 module Lsu(
