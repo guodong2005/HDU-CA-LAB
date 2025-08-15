@@ -3111,18 +3111,23 @@ module Lsu(
   wire        _writeBuffer_io_deq_bits_write;
   wire [31:0] _writeBuffer_io_deq_bits_wdata;
   wire [3:0]  _writeBuffer_io_deq_bits_wstrb;
+  wire        _writeBuffer_io_bypassHit;
+  wire [31:0] _writeBuffer_io_bypassData;
   wire        isLsu = io_info_fusel == 3'h2 & io_info_valid;
   reg  [1:0]  state;
   wire        isStore = isLsu & io_info_op[3];
   wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
+  wire        _bypassResult_final_data_T_12 = io_info_op == 5'h1;
+  wire        _bypassResult_final_data_T_13 = io_info_op == 5'h5;
+  wire        _bypassResult_final_data_T_14 = io_info_op == 5'h2;
   wire        _storeWdata_T_6 = io_info_op == 5'h9;
   wire        _storeWdata_T_7 = io_info_op == 5'hA;
   wire        _strb_T_9 = io_info_op == 5'h8;
   wire        _strb_T_16 = io_info_op == 5'h9;
   wire [3:0]  strb =
-    _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h0
+    _strb_T_9 & ~(|(_effectiveAddr_T_5[1:0]))
       ? 4'h1
       : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
           ? 4'h2
@@ -3143,17 +3148,30 @@ module Lsu(
         | (_storeWdata_T_6 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
         | (_storeWdata_T_7 ? io_src_info_src2_data : 32'h0)
       : 32'h0;
+  wire        loadBypassHit = isLoad & _writeBuffer_io_bypassHit;
+  wire        _io_ready_T_5 =
+    ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu | loadBypassHit);
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
   reg  [31:0] loadReqReg_wdata;
   reg  [3:0]  loadReqReg_wstrb;
   reg  [3:0]  loadOpReg;
-  wire        _GEN = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_0 = _GEN ? _writeBuffer_io_deq_bits_addr : 32'h0;
-  wire        _GEN_1 = _GEN & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_2 = _GEN ? _writeBuffer_io_deq_bits_wdata : 32'h0;
-  wire [3:0]  _GEN_3 = _GEN ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
-  wire        _GEN_4 = state == 2'h1;
+  wire        _GEN = io_info_valid & isLoad;
+  wire [7:0]  bypassResult_byte_data =
+    ((|(_effectiveAddr_T_5[1:0])) ? 8'h0 : _writeBuffer_io_bypassData[7:0])
+    | (_effectiveAddr_T_5[1:0] == 2'h1 ? _writeBuffer_io_bypassData[15:8] : 8'h0)
+    | (_effectiveAddr_T_5[1:0] == 2'h2 ? _writeBuffer_io_bypassData[23:16] : 8'h0)
+    | ((&(_effectiveAddr_T_5[1:0])) ? _writeBuffer_io_bypassData[31:24] : 8'h0);
+  wire [15:0] bypassResult_half_data =
+    (_effectiveAddr_T_5[1] ? 16'h0 : _writeBuffer_io_bypassData[15:0])
+    | (_effectiveAddr_T_5[1] ? _writeBuffer_io_bypassData[31:16] : 16'h0);
+  wire        _GEN_0 = _GEN & _writeBuffer_io_bypassHit;
+  wire        _GEN_1 = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_2 = _GEN_1 ? _writeBuffer_io_deq_bits_addr : 32'h0;
+  wire        _GEN_3 = _GEN_1 & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_4 = _GEN_1 ? _writeBuffer_io_deq_bits_wdata : 32'h0;
+  wire [3:0]  _GEN_5 = _GEN_1 ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
+  wire        _GEN_6 = state == 2'h1;
   wire [7:0]  res_byte_data =
     (loadReqReg_addr[1:0] == 2'h0 ? io_dcache_resp_bits_data[7:0] : 8'h0)
     | (loadReqReg_addr[1:0] == 2'h1 ? io_dcache_resp_bits_data[15:8] : 8'h0)
@@ -3162,26 +3180,29 @@ module Lsu(
   wire [15:0] res_half_data =
     (loadReqReg_addr[1] ? 16'h0 : io_dcache_resp_bits_data[15:0])
     | (loadReqReg_addr[1] ? io_dcache_resp_bits_data[31:16] : 16'h0);
-  wire        _GEN_5 = state == 2'h2 & io_dcache_resp_valid;
-  wire        _GEN_6 = ~(|state) | _GEN_4;
-  wire        _GEN_7 = ~_GEN_6 & _GEN_5;
-  wire        io_valid_0 = _GEN_7 | isStore;
+  wire        _GEN_7 = state == 2'h2 & io_dcache_resp_valid;
+  wire        _GEN_8 = ~_GEN_6 & _GEN_7;
+  wire        io_valid_0 = (|state) ? _GEN_8 | isStore : _GEN_0 | isStore;
+  wire [31:0] io_diffout_loadEvent_vaddr_0 =
+    loadBypassHit ? _effectiveAddr_T_5 : loadReqReg_addr;
   always @(posedge clock) begin
-    automatic logic _GEN_8;
-    _GEN_8 = io_info_valid & isLoad;
     if (reset)
       state <= 2'h0;
     else if (|state) begin
-      if (_GEN_4) begin
+      if (_GEN_6) begin
         if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
           state <= 2'h2;
       end
-      else if (_GEN_5)
+      else if (_GEN_7)
         state <= 2'h0;
     end
-    else if (_GEN_8)
+    else if (~_GEN | _writeBuffer_io_bypassHit) begin
+    end
+    else
       state <= 2'h1;
-    if (~(|state) & _GEN_8) begin
+    if (~(~(|state) & _GEN) | _writeBuffer_io_bypassHit) begin
+    end
+    else begin
       loadReqReg_addr <= newReq_addr;
       loadReqReg_write <= isStore;
       loadReqReg_wdata <= newReq_wdata;
@@ -3225,10 +3246,12 @@ module Lsu(
     .io_enq_bits_wstrb (strb),
     .io_enq_bits_size
       ({1'h0,
-        io_info_op == 5'h2 | _storeWdata_T_7,
-        io_info_op == 5'h1 | io_info_op == 5'h5 | _storeWdata_T_6}),
+        _bypassResult_final_data_T_14 | _storeWdata_T_7,
+        _bypassResult_final_data_T_12 | _bypassResult_final_data_T_13 | _storeWdata_T_6}),
     .io_deq_ready
-      ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
+      ((|state)
+         ? ~(_GEN_6 & _GEN_1) | io_dcache_req_ready
+         : ~_GEN_1 | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
@@ -3237,43 +3260,54 @@ module Lsu(
     .io_deq_bits_size  (/* unused */),
     .io_flush          (1'h0),
     .io_bypassAddr     (_effectiveAddr_T_5),
-    .io_bypassEnable   (1'h1),
-    .io_bypassHit      (/* unused */),
-    .io_bypassData     (/* unused */)
+    .io_bypassEnable   (isLoad),
+    .io_bypassHit      (_writeBuffer_io_bypassHit),
+    .io_bypassData     (_writeBuffer_io_bypassData)
   );
   assign io_result =
-    _GEN_6 | ~_GEN_5
-      ? 32'h0
-      : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0);
-  assign io_ready = _GEN_7 | ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu);
+    (|state)
+      ? (_GEN_6 | ~_GEN_7
+           ? 32'h0
+           : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0))
+      : _GEN_0
+          ? (io_info_op == 5'h0
+               ? {{24{bypassResult_byte_data[7]}}, bypassResult_byte_data}
+               : 32'h0) | (io_info_op == 5'h4 ? {24'h0, bypassResult_byte_data} : 32'h0)
+            | (_bypassResult_final_data_T_12
+                 ? {{16{bypassResult_half_data[15]}}, bypassResult_half_data}
+                 : 32'h0)
+            | (_bypassResult_final_data_T_13 ? {16'h0, bypassResult_half_data} : 32'h0)
+            | (_bypassResult_final_data_T_14 ? _writeBuffer_io_bypassData : 32'h0)
+          : 32'h0;
+  assign io_ready = (|state) ? _GEN_8 | _io_ready_T_5 : _GEN_0 | _io_ready_T_5;
   assign io_valid = io_valid_0;
   assign io_diffout_storeEvent_valid = {7'h0, isStore & isLsu & io_valid_0};
   assign io_diffout_storeEvent_storePAddr = newReq_addr;
   assign io_diffout_storeEvent_storeVAddr = newReq_addr;
   assign io_diffout_storeEvent_storeData = newReq_wdata;
   assign io_diffout_loadEvent_valid = {7'h0, isLoad & isLsu & io_valid_0};
-  assign io_diffout_loadEvent_paddr = loadReqReg_addr;
-  assign io_diffout_loadEvent_vaddr = loadReqReg_addr;
+  assign io_diffout_loadEvent_paddr = io_diffout_loadEvent_vaddr_0;
+  assign io_diffout_loadEvent_vaddr = io_diffout_loadEvent_vaddr_0;
   assign io_dcache_req_valid =
-    (|state) ? _GEN_4 & (~_writeBuffer_io_deq_valid | _GEN) : _GEN;
+    (|state) ? _GEN_6 & (~_writeBuffer_io_deq_valid | _GEN_1) : _GEN_1;
   assign io_dcache_req_bits_addr =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_0 : loadReqReg_addr) : 32'h0)
-      : _GEN_0;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_addr) : 32'h0)
+      : _GEN_2;
   assign io_dcache_req_bits_write =
-    (|state) ? _GEN_4 & (_writeBuffer_io_deq_valid ? _GEN_1 : loadReqReg_write) : _GEN_1;
+    (|state) ? _GEN_6 & (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_write) : _GEN_3;
   assign io_dcache_req_bits_wdata =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_wdata) : 32'h0)
-      : _GEN_2;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_4 : loadReqReg_wdata) : 32'h0)
+      : _GEN_4;
   assign io_dcache_req_bits_wstrb =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_wstrb) : 4'h0)
-      : _GEN_3;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_5 : loadReqReg_wstrb) : 4'h0)
+      : _GEN_5;
 endmodule
 
 module Bru(

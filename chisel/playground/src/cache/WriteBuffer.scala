@@ -1,5 +1,4 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines._
@@ -20,7 +19,8 @@ class WriteBuffer(depth: Int = 4) extends Module {
     val bypassData   = Output(UInt(XLEN.W))
   })
 
-  val buffer = Reg(Vec(depth, new WriteBufferEntry))
+  // 修正：正确初始化buffer
+  val buffer = RegInit(VecInit(Seq.fill(depth)(0.U.asTypeOf(new WriteBufferEntry))))
   val valids = RegInit(VecInit(Seq.fill(depth)(false.B)))
 
   val validVecUInt = VecInit(valids.map(_.asBool))
@@ -44,14 +44,16 @@ class WriteBuffer(depth: Int = 4) extends Module {
   when(io.flush) {
     for (i <- 0 until depth) {
       valids(i) := false.B
+      // 修正：flush时也清除buffer内容
+      buffer(i) := 0.U.asTypeOf(new WriteBufferEntry)
     }
   }
 
   // Bypass logic (仅查找匹配地址，不做合并)
   val hits = VecInit(buffer.zip(valids).map {
     case (entry, v) =>
-      // v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
-      io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
+      // 修正：只有在valid且bypassEnable时才检查hit
+      v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
   })
 
   io.bypassHit  := hits.reduce(_ || _)
