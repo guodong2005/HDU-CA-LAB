@@ -2935,13 +2935,13 @@ module WriteBuffer(
   reg              valids_2;
   reg              valids_3;
   wire             addrMatches_0 =
-    valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+    buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
   wire             addrMatches_1 =
-    valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+    buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
   wire             addrMatches_2 =
-    valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+    buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
   wire             hasMatch =
-    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | buffer_3_req_write
     & buffer_3_req_addr == io_enq_bits_addr;
   wire [1:0]       matchIdx =
     addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
@@ -2972,13 +2972,13 @@ module WriteBuffer(
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
   wire             bypassMatches_0 =
-    valids_0 & io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
   wire             bypassMatches_1 =
-    valids_1 & io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
   wire             bypassMatches_2 =
-    valids_2 & io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
   wire             bypassMatches_3 =
-    valids_3 & io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & _GEN_4 & hasMatch & ~reset)
