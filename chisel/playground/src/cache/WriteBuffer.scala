@@ -51,9 +51,8 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 入队逻辑：写合并 or 新分配
   when(io.enq.fire && io.enq.bits.write) {
     when(hasMatch) {
-      // 写合并：更新现有entry的数据和掩码
+      // 写合并：更新现有entry的数据
       buffer(matchIdx).req.wdata := io.enq.bits.wdata
-      buffer(matchIdx).req.wmask := io.enq.bits.wmask
       // 保持地址和其他字段不变
     }.otherwise {
       // 新分配：使用空闲slot
