@@ -48,8 +48,10 @@ class WriteBuffer(depth: Int = 8) extends Module {
   }
 
   // Bypass logic (仅查找匹配地址，不做合并)
-  val hits = VecInit(buffer.zip(valids).map { case (entry, v) =>
-    v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
+  val hits = VecInit(buffer.zip(valids).map {
+    case (entry, v) =>
+      // v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
+      io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
   })
 
   io.bypassHit  := hits.reduce(_ || _)
