@@ -2295,13 +2295,6 @@ module DecodeUnit(
   wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  wire [31:0] src1_data_final =
-    (src1_ren
-       ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
-       : 32'h0)
-    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
-         ? io_decodeStage_data_pc
-         : 32'h0);
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
@@ -2333,7 +2326,13 @@ module DecodeUnit(
        : _GEN_12
            ? 2'h1
            : _GEN_13 | _GEN_14 | _GEN_23 ? 2'h2 : {2{_GEN_17 | _GEN_18 | _GEN_22}}};
-  assign io_executeStage_data_src_info_src1_data = src1_data_final;
+  assign io_executeStage_data_src_info_src1_data =
+    (src1_ren
+       ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
+       : 32'h0)
+    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
+         ? io_decodeStage_data_pc
+         : 32'h0);
   assign io_executeStage_data_src_info_src2_data =
     src2_ren
       ? (io_bypassData_src2_bypass ? io_bypassData_src2_data : io_regfile_src2_rdata)
@@ -2342,9 +2341,8 @@ module DecodeUnit(
   assign io_registerInfo_src2_raddr = src2_raddr;
   assign io_registerInfo_src1_ren = src1_ren;
   assign io_registerInfo_src2_ren = src2_ren;
-  assign io_branch = &instrType;
-  assign io_target =
-    fuOpType == 4'hB ? src1_data_final + imm : io_decodeStage_data_pc + imm;
+  assign io_branch = (&instrType) & fuOpType != 4'hB;
+  assign io_target = io_decodeStage_data_pc + imm;
 endmodule
 
 module ARegFile(
@@ -3481,7 +3479,7 @@ module Bru(
   output [31:0] io_target
 );
 
-  wire _io_branch_T_24 = io_info_fusel == 3'h3;
+  wire _io_branch_T_26 = io_info_fusel == 3'h3;
   wire _GEN = io_info_op == 5'h8;
   wire _GEN_0 = io_info_op == 5'hA;
   wire _GEN_1 = io_info_op == 5'hB;
@@ -3491,28 +3489,30 @@ module Bru(
   wire _GEN_5 = io_info_op == 5'h5;
   wire _GEN_6 = io_info_op == 5'h6;
   wire _GEN_7 = io_info_op == 5'h7;
-  assign io_valid = io_info_valid & _io_branch_T_24;
+  assign io_valid = io_info_valid & _io_branch_T_26;
   assign io_result =
     _GEN ? 32'h0 : _GEN_0 ? io_pc + 32'h4 : _GEN_1 ? io_pc + 32'h4 : 32'h0;
   assign io_branch =
-    ~(_GEN | _GEN_0 | _GEN_1)
-    & (_GEN_2
-         ? io_info_valid & _io_branch_T_24
-           & io_src_info_src1_data == io_src_info_src2_data
-         : _GEN_3
-             ? io_info_valid & _io_branch_T_24
-               & io_src_info_src1_data != io_src_info_src2_data
-             : _GEN_4
-                 ? io_info_valid & _io_branch_T_24
-                   & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
-                 : _GEN_5
-                     ? io_info_valid & _io_branch_T_24
-                       & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
-                     : _GEN_6
-                         ? io_info_valid & _io_branch_T_24
-                           & io_src_info_src1_data < io_src_info_src2_data
-                         : _GEN_7 & io_info_valid & _io_branch_T_24
-                           & io_src_info_src1_data >= io_src_info_src2_data);
+    ~(_GEN | _GEN_0)
+    & (_GEN_1
+         ? io_info_valid & _io_branch_T_26
+         : _GEN_2
+             ? io_info_valid & _io_branch_T_26
+               & io_src_info_src1_data == io_src_info_src2_data
+             : _GEN_3
+                 ? io_info_valid & _io_branch_T_26
+                   & io_src_info_src1_data != io_src_info_src2_data
+                 : _GEN_4
+                     ? io_info_valid & _io_branch_T_26
+                       & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
+                     : _GEN_5
+                         ? io_info_valid & _io_branch_T_26
+                           & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
+                         : _GEN_6
+                             ? io_info_valid & _io_branch_T_26
+                               & io_src_info_src1_data < io_src_info_src2_data
+                             : _GEN_7 & io_info_valid & _io_branch_T_26
+                               & io_src_info_src1_data >= io_src_info_src2_data);
   assign io_target =
     _GEN
       ? io_pc + io_info_imm
