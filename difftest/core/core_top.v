@@ -2935,13 +2935,13 @@ module WriteBuffer(
   reg              valids_2;
   reg              valids_3;
   wire             addrMatches_0 =
-    buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+    valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
   wire             addrMatches_1 =
-    buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+    valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
   wire             addrMatches_2 =
-    buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+    valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
   wire             hasMatch =
-    addrMatches_0 | addrMatches_1 | addrMatches_2 | buffer_3_req_write
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
     & buffer_3_req_addr == io_enq_bits_addr;
   wire [1:0]       matchIdx =
     addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
@@ -2972,19 +2972,33 @@ module WriteBuffer(
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
   wire             bypassMatches_0 =
-    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+    io_bypassEnable & valids_0 & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr
+    & buffer_0_req_addr[31:22] == 10'h201;
   wire             bypassMatches_1 =
-    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+    io_bypassEnable & valids_1 & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr
+    & buffer_1_req_addr[31:22] == 10'h201;
   wire             bypassMatches_2 =
-    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+    io_bypassEnable & valids_2 & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr
+    & buffer_2_req_addr[31:22] == 10'h201;
   wire             bypassMatches_3 =
-    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+    io_bypassEnable & valids_3 & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr
+    & buffer_3_req_addr[31:22] == 10'h201;
+  wire             io_bypassHit_0 =
+    bypassMatches_0 | bypassMatches_1 | bypassMatches_2 | bypassMatches_3;
+  wire [31:0]      _io_bypassData_T_6 =
+    (bypassMatches_0 ? buffer_0_req_wdata : 32'h0)
+    | (bypassMatches_1 ? buffer_1_req_wdata : 32'h0)
+    | (bypassMatches_2 ? buffer_2_req_wdata : 32'h0)
+    | (bypassMatches_3 ? buffer_3_req_wdata : 32'h0);
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & _GEN_4 & hasMatch & ~reset)
         $fwrite(32'h80000002,
                 "[WriteBuffer] Write coalescing: addr=0x%x, old_data=0x%x, new_data=0x%x\n",
                 io_enq_bits_addr, _GEN_1[matchIdx], io_enq_bits_wdata);
+      if ((`PRINTF_COND_) & io_bypassHit_0 & ~reset)
+        $fwrite(32'h80000002, "[WriteBuffer] Bypass hit: addr=0x%x, data=0x%x\n",
+                io_bypassAddr, _io_bypassData_T_6);
     end // always @(posedge)
   `endif // not def SYNTHESIS
   always @(posedge clock) begin
@@ -3024,58 +3038,82 @@ module WriteBuffer(
       automatic logic       _GEN_10;
       automatic logic       _GEN_11;
       automatic logic       _GEN_12;
-      automatic logic       _GEN_13 = io_deq_ready & io_deq_valid_0;
+      automatic logic       _GEN_13;
+      automatic logic       _GEN_14;
+      automatic logic       _GEN_15;
+      automatic logic       _GEN_16 = io_deq_ready & io_deq_valid_0;
       enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-      _GEN_6 = enqIdx == 2'h0;
-      _GEN_7 = enqIdx == 2'h1;
-      _GEN_8 = enqIdx == 2'h2;
-      _GEN_9 = ~_GEN_5 | hasMatch | ~_GEN_6;
-      _GEN_10 = ~_GEN_5 | hasMatch | ~_GEN_7;
-      _GEN_11 = ~_GEN_5 | hasMatch | ~_GEN_8;
-      _GEN_12 = ~_GEN_5 | hasMatch | ~(&enqIdx);
-      if (_GEN_9) begin
+      _GEN_6 = matchIdx == 2'h0;
+      _GEN_7 = matchIdx == 2'h1;
+      _GEN_8 = matchIdx == 2'h2;
+      _GEN_9 = enqIdx == 2'h0;
+      _GEN_10 = ~_GEN_5 | hasMatch | ~_GEN_9;
+      _GEN_11 = enqIdx == 2'h1;
+      _GEN_12 = ~_GEN_5 | hasMatch | ~_GEN_11;
+      _GEN_13 = enqIdx == 2'h2;
+      _GEN_14 = ~_GEN_5 | hasMatch | ~_GEN_13;
+      _GEN_15 = ~_GEN_5 | hasMatch | ~(&enqIdx);
+      if (_GEN_10) begin
       end
       else begin
         buffer_0_req_addr <= io_enq_bits_addr;
         buffer_0_req_write <= io_enq_bits_write;
       end
-      if (_GEN_5 & (hasMatch ? matchIdx == 2'h0 : _GEN_6))
+      if (_GEN_5 & (hasMatch ? _GEN_6 : _GEN_9))
         buffer_0_req_wdata <= io_enq_bits_wdata;
-      if (_GEN_9) begin
-      end
-      else begin
-        buffer_0_req_wstrb <= io_enq_bits_wstrb;
-        buffer_0_req_size <= io_enq_bits_size;
+      if (_GEN_5) begin
+        if (hasMatch) begin
+          automatic logic [3:0] _buffer_req_wstrb_T;
+          _buffer_req_wstrb_T = io_enq_bits_wstrb | _GEN_2[matchIdx];
+          if (_GEN_6)
+            buffer_0_req_wstrb <= _buffer_req_wstrb_T;
+          if (_GEN_7)
+            buffer_1_req_wstrb <= _buffer_req_wstrb_T;
+          if (_GEN_8)
+            buffer_2_req_wstrb <= _buffer_req_wstrb_T;
+          if (&matchIdx)
+            buffer_3_req_wstrb <= _buffer_req_wstrb_T;
+        end
+        else begin
+          if (_GEN_9)
+            buffer_0_req_wstrb <= io_enq_bits_wstrb;
+          if (_GEN_11)
+            buffer_1_req_wstrb <= io_enq_bits_wstrb;
+          if (_GEN_13)
+            buffer_2_req_wstrb <= io_enq_bits_wstrb;
+          if (&enqIdx)
+            buffer_3_req_wstrb <= io_enq_bits_wstrb;
+        end
       end
       if (_GEN_10) begin
+      end
+      else
+        buffer_0_req_size <= io_enq_bits_size;
+      if (_GEN_12) begin
       end
       else begin
         buffer_1_req_addr <= io_enq_bits_addr;
         buffer_1_req_write <= io_enq_bits_write;
       end
-      if (_GEN_5 & (hasMatch ? matchIdx == 2'h1 : _GEN_7))
+      if (_GEN_5 & (hasMatch ? _GEN_7 : _GEN_11))
         buffer_1_req_wdata <= io_enq_bits_wdata;
-      if (_GEN_10) begin
+      if (_GEN_12) begin
       end
-      else begin
-        buffer_1_req_wstrb <= io_enq_bits_wstrb;
+      else
         buffer_1_req_size <= io_enq_bits_size;
-      end
-      if (_GEN_11) begin
+      if (_GEN_14) begin
       end
       else begin
         buffer_2_req_addr <= io_enq_bits_addr;
         buffer_2_req_write <= io_enq_bits_write;
       end
-      if (_GEN_5 & (hasMatch ? matchIdx == 2'h2 : _GEN_8))
+      if (_GEN_5 & (hasMatch ? _GEN_8 : _GEN_13))
         buffer_2_req_wdata <= io_enq_bits_wdata;
-      if (_GEN_11) begin
+      if (_GEN_14) begin
       end
-      else begin
-        buffer_2_req_wstrb <= io_enq_bits_wstrb;
+      else
         buffer_2_req_size <= io_enq_bits_size;
-      end
-      if (_GEN_12) begin
+      if (_GEN_15) begin
       end
       else begin
         buffer_3_req_addr <= io_enq_bits_addr;
@@ -3083,16 +3121,14 @@ module WriteBuffer(
       end
       if (_GEN_5 & (hasMatch ? (&matchIdx) : (&enqIdx)))
         buffer_3_req_wdata <= io_enq_bits_wdata;
-      if (_GEN_12) begin
+      if (_GEN_15) begin
       end
-      else begin
-        buffer_3_req_wstrb <= io_enq_bits_wstrb;
+      else
         buffer_3_req_size <= io_enq_bits_size;
-      end
-      valids_0 <= ~(_GEN_13 & deqIdx == 2'h0) & (_GEN_5 & _GEN_6 | valids_0);
-      valids_1 <= ~(_GEN_13 & deqIdx == 2'h1) & (_GEN_5 & _GEN_7 | valids_1);
-      valids_2 <= ~(_GEN_13 & deqIdx == 2'h2) & (_GEN_5 & _GEN_8 | valids_2);
-      valids_3 <= ~(_GEN_13 & (&deqIdx)) & (_GEN_5 & (&enqIdx) | valids_3);
+      valids_0 <= ~(_GEN_16 & deqIdx == 2'h0) & (_GEN_5 & ~hasMatch & _GEN_9 | valids_0);
+      valids_1 <= ~(_GEN_16 & deqIdx == 2'h1) & (_GEN_5 & ~hasMatch & _GEN_11 | valids_1);
+      valids_2 <= ~(_GEN_16 & deqIdx == 2'h2) & (_GEN_5 & ~hasMatch & _GEN_13 | valids_2);
+      valids_3 <= ~(_GEN_16 & (&deqIdx)) & (_GEN_5 & ~hasMatch & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3145,13 +3181,8 @@ module WriteBuffer(
   assign io_deq_bits_wdata = _GEN_1[deqIdx];
   assign io_deq_bits_wstrb = _GEN_2[deqIdx];
   assign io_deq_bits_size = _GEN_3[deqIdx];
-  assign io_bypassHit =
-    bypassMatches_0 | bypassMatches_1 | bypassMatches_2 | bypassMatches_3;
-  assign io_bypassData =
-    (bypassMatches_0 ? buffer_0_req_wdata : 32'h0)
-    | (bypassMatches_1 ? buffer_1_req_wdata : 32'h0)
-    | (bypassMatches_2 ? buffer_2_req_wdata : 32'h0)
-    | (bypassMatches_3 ? buffer_3_req_wdata : 32'h0);
+  assign io_bypassHit = io_bypassHit_0;
+  assign io_bypassData = _io_bypassData_T_6;
 endmodule
 
 module Lsu(
@@ -3202,22 +3233,6 @@ module Lsu(
   wire        _bypassResult_final_data_T_14 = io_info_op == 5'h2;
   wire        _storeWdata_T_6 = io_info_op == 5'h9;
   wire        _storeWdata_T_7 = io_info_op == 5'hA;
-  wire        _strb_T_9 = io_info_op == 5'h8;
-  wire        _strb_T_16 = io_info_op == 5'h9;
-  wire [3:0]  strb =
-    _strb_T_9 & ~(|(_effectiveAddr_T_5[1:0]))
-      ? 4'h1
-      : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
-          ? 4'h2
-          : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h2
-              ? 4'h4
-              : _strb_T_9 & (&(_effectiveAddr_T_5[1:0]))
-                  ? 4'h8
-                  : _strb_T_16 & ~(_effectiveAddr_T_5[0])
-                      ? 4'h3
-                      : _strb_T_16 & _effectiveAddr_T_5[0]
-                          ? 4'hC
-                          : {4{io_info_op == 5'hA}};
   wire [31:0] newReq_addr =
     isStore ? {_effectiveAddr_T_5[31:2], 2'h0} : _effectiveAddr_T_5;
   wire [31:0] newReq_wdata =
@@ -3226,9 +3241,16 @@ module Lsu(
         | (_storeWdata_T_6 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
         | (_storeWdata_T_7 ? io_src_info_src2_data : 32'h0)
       : 32'h0;
+  reg  [31:0] storeReqReg_addr;
+  reg         storeReqReg_write;
+  reg  [31:0] storeReqReg_wdata;
+  reg  [3:0]  storeReqReg_wstrb;
+  reg  [2:0]  storeReqReg_size;
+  reg         storeReqValid;
   wire        loadBypassHit = isLoad & _writeBuffer_io_bypassHit;
   wire        _io_ready_T_5 =
-    ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu | loadBypassHit);
+    ~(|state)
+    & (isStore & (~storeReqValid | _writeBuffer_io_enq_ready) | ~isLsu | loadBypassHit);
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
   reg  [31:0] loadReqReg_wdata;
@@ -3264,20 +3286,61 @@ module Lsu(
   wire [31:0] io_diffout_loadEvent_vaddr_0 =
     loadBypassHit ? _effectiveAddr_T_5 : loadReqReg_addr;
   always @(posedge clock) begin
-    if (reset)
+    automatic logic       _strb_T_9 = io_info_op == 5'h8;
+    automatic logic       _strb_T_16 = io_info_op == 5'h9;
+    automatic logic [3:0] strb;
+    strb =
+      _strb_T_9 & ~(|(_effectiveAddr_T_5[1:0]))
+        ? 4'h1
+        : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
+            ? 4'h2
+            : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h2
+                ? 4'h4
+                : _strb_T_9 & (&(_effectiveAddr_T_5[1:0]))
+                    ? 4'h8
+                    : _strb_T_16 & ~(_effectiveAddr_T_5[0])
+                        ? 4'h3
+                        : _strb_T_16 & _effectiveAddr_T_5[0]
+                            ? 4'hC
+                            : {4{io_info_op == 5'hA}};
+    if (reset) begin
       state <= 2'h0;
-    else if (|state) begin
-      if (_GEN_6) begin
-        if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
-          state <= 2'h2;
+      storeReqReg_addr <= 32'h0;
+      storeReqReg_write <= 1'h0;
+      storeReqReg_wdata <= 32'h0;
+      storeReqReg_wstrb <= 4'h0;
+      storeReqReg_size <= 3'h0;
+      storeReqValid <= 1'h0;
+    end
+    else begin
+      automatic logic _GEN_9;
+      _GEN_9 = ~(|state) & isStore & io_info_valid & ~storeReqValid;
+      if (|state) begin
+        if (_GEN_6) begin
+          if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
+            state <= 2'h2;
+        end
+        else if (_GEN_7)
+          state <= 2'h0;
       end
-      else if (_GEN_7)
-        state <= 2'h0;
+      else if (~_GEN | _writeBuffer_io_bypassHit) begin
+      end
+      else
+        state <= 2'h1;
+      if (_GEN_9) begin
+        storeReqReg_addr <= newReq_addr;
+        storeReqReg_write <= isStore;
+        storeReqReg_wdata <= newReq_wdata;
+        storeReqReg_wstrb <= strb;
+        storeReqReg_size <=
+          {1'h0,
+           _bypassResult_final_data_T_14 | _storeWdata_T_7,
+           _bypassResult_final_data_T_12 | _bypassResult_final_data_T_13
+             | _storeWdata_T_6};
+      end
+      storeReqValid <=
+        _GEN_9 | ~(_writeBuffer_io_enq_ready & storeReqValid) & storeReqValid;
     end
-    else if (~_GEN | _writeBuffer_io_bypassHit) begin
-    end
-    else
-      state <= 2'h1;
     if (~(~(|state) & _GEN) | _writeBuffer_io_bypassHit) begin
     end
     else begin
@@ -3293,20 +3356,26 @@ module Lsu(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:2];
+      automatic logic [31:0] _RANDOM[0:4];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[2'h0][1:0];
-        loadReqReg_addr = {_RANDOM[2'h0][31:2], _RANDOM[2'h1][1:0]};
-        loadReqReg_write = _RANDOM[2'h1][2];
-        loadReqReg_wdata = {_RANDOM[2'h1][31:3], _RANDOM[2'h2][2:0]};
-        loadReqReg_wstrb = _RANDOM[2'h2][6:3];
-        loadOpReg = _RANDOM[2'h2][13:10];
+        state = _RANDOM[3'h0][1:0];
+        storeReqReg_addr = {_RANDOM[3'h0][31:2], _RANDOM[3'h1][1:0]};
+        storeReqReg_write = _RANDOM[3'h1][2];
+        storeReqReg_wdata = {_RANDOM[3'h1][31:3], _RANDOM[3'h2][2:0]};
+        storeReqReg_wstrb = _RANDOM[3'h2][6:3];
+        storeReqReg_size = _RANDOM[3'h2][9:7];
+        storeReqValid = _RANDOM[3'h2][10];
+        loadReqReg_addr = {_RANDOM[3'h2][31:11], _RANDOM[3'h3][10:0]};
+        loadReqReg_write = _RANDOM[3'h3][11];
+        loadReqReg_wdata = {_RANDOM[3'h3][31:12], _RANDOM[3'h4][11:0]};
+        loadReqReg_wstrb = _RANDOM[3'h4][15:12];
+        loadOpReg = _RANDOM[3'h4][22:19];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -3317,15 +3386,12 @@ module Lsu(
     .clock             (clock),
     .reset             (reset),
     .io_enq_ready      (_writeBuffer_io_enq_ready),
-    .io_enq_valid      (~(|state) & isStore & io_info_valid),
-    .io_enq_bits_addr  (newReq_addr),
-    .io_enq_bits_write (isStore),
-    .io_enq_bits_wdata (newReq_wdata),
-    .io_enq_bits_wstrb (strb),
-    .io_enq_bits_size
-      ({1'h0,
-        _bypassResult_final_data_T_14 | _storeWdata_T_7,
-        _bypassResult_final_data_T_12 | _bypassResult_final_data_T_13 | _storeWdata_T_6}),
+    .io_enq_valid      (storeReqValid),
+    .io_enq_bits_addr  (storeReqReg_addr),
+    .io_enq_bits_write (storeReqReg_write),
+    .io_enq_bits_wdata (storeReqReg_wdata),
+    .io_enq_bits_wstrb (storeReqReg_wstrb),
+    .io_enq_bits_size  (storeReqReg_size),
     .io_deq_ready
       ((|state)
          ? ~(_GEN_6 & _GEN_1) | io_dcache_req_ready

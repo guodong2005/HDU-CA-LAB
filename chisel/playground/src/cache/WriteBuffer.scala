@@ -30,8 +30,8 @@ class WriteBuffer(depth: Int = 4) extends Module {
   // 写合并逻辑：检查是否有相同地址的valid entry
   val addrMatches = VecInit(
     (0 until depth).map(i =>
-      valids(i) && // 添加valid检查
-        buffer(i).req.write &&
+      // 添加valid检查
+      buffer(i).req.write &&
         (buffer(i).req.addr === io.enq.bits.addr)
     )
   )
@@ -56,6 +56,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
       // 写合并：更新现有entry的数据和掩码
       buffer(matchIdx).req.wdata := io.enq.bits.wdata
       buffer(matchIdx).req.wstrb := io.enq.bits.wstrb | buffer(matchIdx).req.wstrb // 合并掩码
+      valids(enqIdx)             := true.B
       // 保持地址和其他字段不变
     }.otherwise {
       // 新分配：使用空闲slot
@@ -73,7 +74,7 @@ class WriteBuffer(depth: Int = 4) extends Module {
   val bypassMatches = VecInit(
     (0 until depth).map(i =>
       io.bypassEnable &&
-        valids(i) && // 添加valid检查
+        // 添加valid检查
         buffer(i).req.write &&
         (buffer(i).req.addr === io.bypassAddr) &&
         isExtAddr(buffer(i).req.addr) // 只有满足isExtAddr才进行前递
