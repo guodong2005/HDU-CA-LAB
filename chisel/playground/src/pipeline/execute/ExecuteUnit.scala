@@ -13,6 +13,7 @@ class ExecuteUnit extends Module {
     val ready          = Output(Bool())
     val branch         = Output(Bool())
     val target         = Output(UInt(XLEN.W))
+    val bpufeedback    = Output(new BPUFeedback())
     val dcache = new Bundle {
       val req  = (Decoupled(new DCacheReq))
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -21,7 +22,7 @@ class ExecuteUnit extends Module {
   })
 
   val fu = Module(new Fu())
-  fu.io.dcache        <> io.dcache
+  fu.io.dcache <> io.dcache
   fu.io.data.pc       := io.executeStage.data.pc
   fu.io.data.info     := io.executeStage.data.info
   fu.io.data.src_info := io.executeStage.data.src_info

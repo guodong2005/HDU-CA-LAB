@@ -150,6 +150,8 @@ class DecodeUnit extends Module with HasInstrType {
   io.branch := false.B;
   io.target := 0.U;
   // 输出到执行阶段
+  info.bpu_pred.predicted_taken           := io.decodeStage.data.predicted_taken
+  info.bpu_pred.predicted_target          := io.decodeStage.data.predicted_target
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info
   io.executeStage.data.src_info.src1_data := src1_data_final

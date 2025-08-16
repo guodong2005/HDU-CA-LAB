@@ -3394,7 +3394,7 @@ module Lsu(
     .io_deq_bits_size  (/* unused */),
     .io_flush          (1'h0),
     .io_bypassAddr     (_effectiveAddr_T_5),
-    .io_bypassEnable   (isLoad),
+    .io_bypassEnable   (1'h0),
     .io_bypassHit      (_writeBuffer_io_bypassHit),
     .io_bypassData     (_writeBuffer_io_bypassData)
   );

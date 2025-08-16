@@ -10,15 +10,16 @@ import scala.collection.generic.IdleSignalling
 class Fu extends Module with HasInstrType {
   val io = IO(new Bundle {
     val data = new Bundle {
-      val pc       = Input(UInt(XLEN.W))
-      val info     = Input(new Info())
-      val src_info = Input(new SrcInfo())
-      val rd_info  = Output(new RdInfo())
-      val diffout  = Output(new DiffOut())
-      val ready    = Output(Bool())
-      val valid    = Output(Bool())
-      val branch   = Output(Bool())
-      val target   = Output(UInt(XLEN.W))
+      val pc          = Input(UInt(XLEN.W))
+      val info        = Input(new Info())
+      val src_info    = Input(new SrcInfo())
+      val rd_info     = Output(new RdInfo())
+      val diffout     = Output(new DiffOut())
+      val ready       = Output(Bool())
+      val valid       = Output(Bool())
+      val branch      = Output(Bool())
+      val target      = Output(UInt(XLEN.W))
+      val bpufeedback = Output(new BPUFeedback())
     }
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
@@ -81,14 +82,15 @@ class Fu extends Module with HasInstrType {
   val ready = LookupTree(
     fusel,
     Seq(
-      FuType.alu -> true.B,       // ALU总是ready
+      FuType.alu -> true.B, // ALU总是ready
       FuType.mdu -> mdu.io.ready, // MDU现在有ready信号
-      FuType.bru -> true.B,       // BRU总是ready
-      FuType.lsu -> lsu.io.ready  // LSU可能不ready
+      FuType.bru -> true.B, // BRU总是ready
+      FuType.lsu -> lsu.io.ready // LSU可能不ready
     )
   )
 
   // 输出赋值
+  io.data.bpufeedback   := bru.io.bpufeedback
   io.data.branch        := bru.io.branch
   io.data.target        := bru.io.target
   io.data.rd_info.wdata := result

@@ -41,10 +41,8 @@ class ControlUnit extends Module {
     val signals          = Output(new Signals())
 
     // 分支信号输入
-    val executeBranch = Input(Bool()) // 来自ExecuteUnit的分支信号
+    val executeBranch = Input(Bool()) // 来自ExecuteUnit的分支信号（分支预测失败时为true）
     val executeTarget = Input(UInt(XLEN.W)) // 来自ExecuteUnit的跳转目标
-    val decodeBranch  = Input(Bool()) // 来自DecodeUnit的分支信号（无条件跳转等）
-    val decodeTarget  = Input(UInt(XLEN.W)) // 来自DecodeUnit的跳转目标
 
     // 来自DecodeUnit的信息
     val decodeRegisterInfo = Input(new DecodeRegisterInfo())
@@ -124,14 +122,13 @@ class ControlUnit extends Module {
   )
 
   // ========== 分支控制逻辑 ==========
-  // Execute阶段的分支优先级高于Decode阶段
-  // 因为Execute阶段的分支表示条件分支已经解析，需要覆盖之前的预测
-  val actualBranch = io.executeBranch || io.decodeBranch
-  val branchTarget = Mux(io.executeBranch, io.executeTarget, io.decodeTarget)
+  // 修改：只有ExecuteUnit的分支信号才用于实际的分支控制
+  // ExecuteUnit的分支信号表示分支预测失败，需要进行流水线flush和跳转
+  // DecodeUnit的分支信号可用于其他目的（如分支预测），但不直接控制flush
 
-  // 输出分支控制信号给FetchUnit
-  io.signals.branchControl.branch := actualBranch
-  io.signals.branchControl.target := branchTarget
+  // 输出分支控制信号给FetchUnit（只响应ExecuteUnit的分支）
+  io.signals.branchControl.branch := io.executeBranch
+  io.signals.branchControl.target := io.executeTarget
 
   // ========== 流水线控制逻辑 ==========
   val pipeline_stall = false.B // 由于有完整的前递，不需要额外的stall
@@ -141,11 +138,12 @@ class ControlUnit extends Module {
   io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & io.executeUnitReady
   io.signals.executeUnitSignal.allow_to_go := true.B
 
-  // Flush信号处理：
-  // - 如果Execute阶段有分支，刷新F和D阶段
-  // - 如果只有Decode阶段有分支（无条件跳转），只刷新F阶段
-  io.signals.fetchUnitSignal.do_flush   := actualBranch
-  io.signals.decodeUnitSignal.do_flush  := io.executeBranch // 只有Execute的分支才刷新Decode
+  // 修改：Flush信号处理
+  // 只有ExecuteUnit检测到分支预测失败时才进行flush
+  // - executeBranch为true表示分支预测失败，需要刷新F和D阶段
+  // - 不再响应DecodeUnit的分支信号进行flush
+  io.signals.fetchUnitSignal.do_flush   := io.executeBranch
+  io.signals.decodeUnitSignal.do_flush  := io.executeBranch
   io.signals.executeUnitSignal.do_flush := false.B
 
   // ========== 调试输出 ==========
@@ -167,15 +165,9 @@ class ControlUnit extends Module {
     )
   }
 
+  // 修改：调试输出只关注ExecuteUnit的分支控制
   when(io.executeBranch) {
-    printf("[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n", io.executeTarget)
+    printf("[ControlUnit] Branch misprediction detected! Flushing F and D stages, target=0x%x\n", io.executeTarget)
   }
 
-  when(io.decodeBranch && !io.executeBranch) {
-    printf("[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n", io.decodeTarget)
-  }
-
-  when(io.executeBranch && io.decodeBranch) {
-    printf("[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n")
-  }
 }

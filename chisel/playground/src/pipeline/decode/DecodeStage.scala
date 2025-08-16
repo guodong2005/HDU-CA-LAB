@@ -7,9 +7,11 @@ import cpu.defines.Const._
 import cpu.CpuConfig
 
 class IfIdData extends Bundle {
-  val inst  = UInt(XLEN.W)
-  val valid = Bool()
-  val pc    = UInt(XLEN.W)
+  val inst             = UInt(XLEN.W)
+  val valid            = Bool()
+  val pc               = UInt(XLEN.W)
+  val predicted_taken  = Bool()
+  val predicted_target = UInt(XLEN.W)
 }
 
 class FetchUnitDecodeUnit extends Bundle {
