@@ -9,8 +9,6 @@ class FetchUnit extends Module {
   val io = IO(new Bundle {
     val decodeStage = new FetchUnitDecodeUnit()
     val icache_resp = Flipped(Valid(new InstPacket))
-    val branch      = Input(Bool())
-    val target      = Input(UInt(XLEN.W))
     val signal      = Input(new Signals())
     val icache_req  = Decoupled(new ICacheReq)
     val canStart    = Output(Bool())
@@ -27,6 +25,9 @@ class FetchUnit extends Module {
   val alignedPC   = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
   val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
 
+  val branch = io.signal.branchControl.branch
+  val target = io.signal.branchControl.target
+
   // ✅ 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
@@ -39,8 +40,8 @@ class FetchUnit extends Module {
 
   // ========== 修复后的逻辑 ==========
   // 分支处理：统一的PC更新逻辑
-  when(io.branch) {
-    pc             := io.target
+  when(branch) {
+    pc             := target
     state          := sIdle
     ifid_reg.valid := false.B // 清除缓存的指令
   }.otherwise {
@@ -68,7 +69,8 @@ class FetchUnit extends Module {
             5.U -> io.icache_resp.bits.data(191, 160),
             6.U -> io.icache_resp.bits.data(223, 192),
             7.U -> io.icache_resp.bits.data(255, 224)
-          ))
+          )
+        )
 
         val matchAddr = respLineAddr === (reqPC)
 
@@ -98,8 +100,8 @@ class FetchUnit extends Module {
   }
 
   // 分支时立即更新icache请求地址
-  when(io.branch) {
-    io.icache_req.bits.addr := io.target
+  when(branch) {
+    io.icache_req.bits.addr := target
     io.icache_req.valid     := true.B // 分支时立即发送新地址的请求
   }
 }

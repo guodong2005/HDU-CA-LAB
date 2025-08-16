@@ -18,11 +18,18 @@ class BypassData extends Bundle {
   val src2_data   = UInt(XLEN.W)
 }
 
+// 新增：分支控制输出
+class BranchControl extends Bundle {
+  val branch = Bool()
+  val target = UInt(XLEN.W)
+}
+
 class Signals extends Bundle {
   val fetchUnitSignal   = Output(new ControlSignal())
   val decodeUnitSignal  = Output(new ControlSignal())
   val executeUnitSignal = Output(new ControlSignal())
   val bypassData        = Output(new BypassData()) // 前递数据
+  val branchControl     = Output(new BranchControl()) // 新增：分支控制输出
 }
 
 class ControlUnit extends Module {
@@ -32,7 +39,12 @@ class ControlUnit extends Module {
     val writeBackInfo    = Input(new Info())
     val executeUnitReady = Input(Bool())
     val signals          = Output(new Signals())
-    val branch           = Input(Bool()) // 现在来自ExecuteUnit
+
+    // 分支信号输入
+    val executeBranch = Input(Bool()) // 来自ExecuteUnit的分支信号
+    val executeTarget = Input(UInt(XLEN.W)) // 来自ExecuteUnit的跳转目标
+    val decodeBranch  = Input(Bool()) // 来自DecodeUnit的分支信号（无条件跳转等）
+    val decodeTarget  = Input(UInt(XLEN.W)) // 来自DecodeUnit的跳转目标
 
     // 来自DecodeUnit的信息
     val decodeRegisterInfo = Input(new DecodeRegisterInfo())
@@ -54,6 +66,7 @@ class ControlUnit extends Module {
     io.decodeRegisterInfo.src1_raddr,
     io.decodeRegisterInfo.src1_ren
   )
+
   val src1_forward_from_wb = canForwardFromStage(
     io.writeBackInfo,
     io.decodeRegisterInfo.src1_raddr,
@@ -66,6 +79,7 @@ class ControlUnit extends Module {
     io.decodeRegisterInfo.src2_raddr,
     io.decodeRegisterInfo.src2_ren
   )
+
   val src2_forward_from_wb = canForwardFromStage(
     io.writeBackInfo,
     io.decodeRegisterInfo.src2_raddr,
@@ -109,6 +123,16 @@ class ControlUnit extends Module {
     )
   )
 
+  // ========== 分支控制逻辑 ==========
+  // Execute阶段的分支优先级高于Decode阶段
+  // 因为Execute阶段的分支表示条件分支已经解析，需要覆盖之前的预测
+  val actualBranch = io.executeBranch || io.decodeBranch
+  val branchTarget = Mux(io.executeBranch, io.executeTarget, io.decodeTarget)
+
+  // 输出分支控制信号给FetchUnit
+  io.signals.branchControl.branch := actualBranch
+  io.signals.branchControl.target := branchTarget
+
   // ========== 流水线控制逻辑 ==========
   val pipeline_stall = false.B // 由于有完整的前递，不需要额外的stall
 
@@ -117,21 +141,41 @@ class ControlUnit extends Module {
   io.signals.decodeUnitSignal.allow_to_go  := (!pipeline_stall) & io.executeUnitReady
   io.signals.executeUnitSignal.allow_to_go := true.B
 
-  // Flush信号：分支信号现在来自ExecuteUnit
-  io.signals.fetchUnitSignal.do_flush   := io.branch
-  io.signals.decodeUnitSignal.do_flush  := io.branch
+  // Flush信号处理：
+  // - 如果Execute阶段有分支，刷新F和D阶段
+  // - 如果只有Decode阶段有分支（无条件跳转），只刷新F阶段
+  io.signals.fetchUnitSignal.do_flush   := actualBranch
+  io.signals.decodeUnitSignal.do_flush  := io.executeBranch // 只有Execute的分支才刷新Decode
   io.signals.executeUnitSignal.do_flush := false.B
 
-  // 调试输出
+  // ========== 调试输出 ==========
   when(io.decodeRegisterInfo.src1_ren && src1_forward_sel.orR) {
-    printf("[ControlUnit] src1 forward: addr=%d, sel=%d, data=0x%x\n", io.decodeRegisterInfo.src1_raddr, src1_forward_sel, io.signals.bypassData.src1_data)
+    printf(
+      "[ControlUnit] src1 forward: addr=%d, sel=%d, data=0x%x\n",
+      io.decodeRegisterInfo.src1_raddr,
+      src1_forward_sel,
+      io.signals.bypassData.src1_data
+    )
   }
 
   when(io.decodeRegisterInfo.src2_ren && src2_forward_sel.orR) {
-    printf("[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n", io.decodeRegisterInfo.src2_raddr, src2_forward_sel, io.signals.bypassData.src2_data)
+    printf(
+      "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
+      io.decodeRegisterInfo.src2_raddr,
+      src2_forward_sel,
+      io.signals.bypassData.src2_data
+    )
   }
 
-  when(io.branch) {
-    printf("[ControlUnit] Branch taken, flushing F and D stages\n")
+  when(io.executeBranch) {
+    printf("[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n", io.executeTarget)
+  }
+
+  when(io.decodeBranch && !io.executeBranch) {
+    printf("[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n", io.decodeTarget)
+  }
+
+  when(io.executeBranch && io.decodeBranch) {
+    printf("[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n")
   }
 }

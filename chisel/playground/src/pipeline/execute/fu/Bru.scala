@@ -39,20 +39,20 @@ class Bru extends Module {
   switch(info.op) {
     // JAL (Jump and Link)
     is(BRUOpType.b) { // 不写回
-      io.branch := info.valid && (info.fusel === FuType.bru)
+      // io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt
       io.result := 0.U
       // printf("jal triggered\n");
     }
     is(BRUOpType.bl) {
-      io.branch := info.valid && (info.fusel === FuType.bru)
+      // io.branch := info.valid && (info.fusel === FuType.bru)
       io.target := (pc.asSInt + imm).asUInt
       io.result := pc + 4.U
     }
 
     // JALR (Jump and Link Register)
     is(BRUOpType.jirl) {
-      io.branch := info.valid && (info.fusel === FuType.bru)
+      // io.branch := info.valid && (info.fusel === FuType.bru)
       io.result := pc + 4.U // Return address (PC + 4)
       io.target := (io.src_info.src1_data.asSInt + imm).asUInt;
     }
@@ -61,7 +61,7 @@ class Bru extends Module {
     is(BRUOpType.beq) {
       io.branch := info.valid && (info.fusel === FuType.bru) && (io.src_info.src1_data === io.src_info.src2_data)
       io.target := (pc.asSInt + imm).asUInt // Signed addition for target
-      io.result := 0.U                      // No return address needed
+      io.result := 0.U // No return address needed
     }
 
     // BNE (Branch if Not Equal)

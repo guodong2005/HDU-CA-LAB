@@ -27,6 +27,8 @@ class DecodeUnit extends Module with HasInstrType {
     val islsu        = Output(Bool())
     val executeready = Input(Bool())
     val registerInfo = Output(new DecodeRegisterInfo()) // 发送给ControlUnit的寄存器信息
+    val branch       = Output(Bool())
+    val target       = Output(UInt(XLEN.W))
   })
 
   // 获取输入
@@ -75,7 +77,8 @@ class DecodeUnit extends Module with HasInstrType {
       isB -> imm_b,
       isU -> imm_u,
       isJ -> imm_j
-    ))
+    )
+  )
 
   // 生成控制信号
   val reg_waddr = Mux1H(
@@ -84,7 +87,8 @@ class DecodeUnit extends Module with HasInstrType {
       isI -> rd,
       isU -> rd,
       isJ -> Mux(fuOpType === BRUOpType.bl, 1.U, rd)
-    ))
+    )
+  )
 
   val src1_raddr = rs1
   val src2_raddr = Mux(isR, rs2, Mux(isS || isB, rd, 0.U))
@@ -136,10 +140,13 @@ class DecodeUnit extends Module with HasInstrType {
       src1_select_reg  -> src1_data,
       src1_select_zero -> 0.U,
       src1_select_pc   -> pc
-    ))
+    )
+  )
 
   val src2_data_final = Mux(src2_ren, src2_data, imm)
 
+  io.branch := isJ
+  io.target := (pc.asSInt + imm.asSInt).asUInt
   // 输出到执行阶段
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info
