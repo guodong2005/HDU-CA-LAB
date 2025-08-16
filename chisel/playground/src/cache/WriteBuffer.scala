@@ -23,14 +23,18 @@ class WriteBuffer(depth: Int = 4) extends Module {
   val buffer = RegInit(VecInit(Seq.fill(depth)(0.U.asTypeOf(new WriteBufferEntry))))
   val valids = RegInit(VecInit(Seq.fill(depth)(false.B)))
 
+  // ============= 添加 isExtAddr 函数 =============
+  def isExtAddr(addr: UInt): Bool = addr(31, 22) === "h201".U(10.W) // 0x80400000>>22 = 0x201
+  // ================================================
+
   // 写合并逻辑：检查是否有相同地址的valid entry
   val addrMatches = VecInit(
     (0 until depth).map(i =>
-      buffer(i).req.write &&
+      valids(i) && // 添加valid检查
+        buffer(i).req.write &&
         (buffer(i).req.addr === io.enq.bits.addr)
     )
   )
-
   val hasMatch = addrMatches.reduce(_ || _)
   val matchIdx = PriorityEncoder(addrMatches)
 
@@ -39,21 +43,19 @@ class WriteBuffer(depth: Int = 4) extends Module {
   val inverted     = validVecUInt.map(x => ~x)
   val enqIdx       = PriorityEncoder(inverted)
   val deqIdx       = PriorityEncoder(validVecUInt)
-
-  val hasSpace = valids.count(_ === true.B) < depth.U
+  val hasSpace     = valids.count(_ === true.B) < depth.U
 
   // 入队条件：要么有匹配可以合并，要么有空间分配新entry
   io.enq.ready := hasMatch || hasSpace
-
   io.deq.valid := valids.reduce(_ || _)
   io.deq.bits  := buffer(deqIdx).req
 
   // 入队逻辑：写合并 or 新分配
   when(io.enq.fire && io.enq.bits.write) {
     when(hasMatch) {
-      // 写合并：更新现有entry的数据
+      // 写合并：更新现有entry的数据和掩码
       buffer(matchIdx).req.wdata := io.enq.bits.wdata
-      valids(enqIdx)             := true.B
+      buffer(matchIdx).req.wstrb := io.enq.bits.wstrb | buffer(matchIdx).req.wstrb // 合并掩码
       // 保持地址和其他字段不变
     }.otherwise {
       // 新分配：使用空闲slot
@@ -67,17 +69,20 @@ class WriteBuffer(depth: Int = 4) extends Module {
     valids(deqIdx) := false.B
   }
 
-  // 简化的Bypass逻辑：由于有写合并，每个地址最多只有一个entry
+  // ============= 修改后的Bypass逻辑：添加isExtAddr检查 =============
   val bypassMatches = VecInit(
     (0 until depth).map(i =>
       io.bypassEnable &&
+        valids(i) && // 添加valid检查
         buffer(i).req.write &&
-        (buffer(i).req.addr === io.bypassAddr)
+        (buffer(i).req.addr === io.bypassAddr) &&
+        isExtAddr(buffer(i).req.addr) // 只有满足isExtAddr才进行前递
     )
   )
 
   io.bypassHit  := bypassMatches.reduce(_ || _)
   io.bypassData := Mux1H(bypassMatches, buffer.map(_.req.wdata))
+  // ====================================================================
 
   // 调试信息
   when(io.enq.fire && hasMatch) {
@@ -85,6 +90,13 @@ class WriteBuffer(depth: Int = 4) extends Module {
       p"[WriteBuffer] Write coalescing: addr=0x${Hexadecimal(io.enq.bits.addr)}, " +
         p"old_data=0x${Hexadecimal(buffer(matchIdx).req.wdata)}, " +
         p"new_data=0x${Hexadecimal(io.enq.bits.wdata)}\n"
+    )
+  }
+
+  when(io.bypassHit) {
+    printf(
+      p"[WriteBuffer] Bypass hit: addr=0x${Hexadecimal(io.bypassAddr)}, " +
+        p"data=0x${Hexadecimal(io.bypassData)}\n"
     )
   }
 }

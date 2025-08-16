@@ -2935,13 +2935,13 @@ module WriteBuffer(
   reg              valids_2;
   reg              valids_3;
   wire             addrMatches_0 =
-    valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+    buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
   wire             addrMatches_1 =
-    valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+    buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
   wire             addrMatches_2 =
-    valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+    buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
   wire             hasMatch =
-    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | buffer_3_req_write
     & buffer_3_req_addr == io_enq_bits_addr;
   wire [1:0]       matchIdx =
     addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
@@ -2972,13 +2972,13 @@ module WriteBuffer(
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
   wire             bypassMatches_0 =
-    valids_0 & io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr;
   wire             bypassMatches_1 =
-    valids_1 & io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr;
   wire             bypassMatches_2 =
-    valids_2 & io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr;
   wire             bypassMatches_3 =
-    valids_3 & io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & _GEN_4 & hasMatch & ~reset)
@@ -3016,105 +3016,83 @@ module WriteBuffer(
     end
     else begin
       automatic logic [1:0] enqIdx;
-      automatic logic       _GEN_5;
+      automatic logic       _GEN_5 = _GEN_4 & io_enq_bits_write;
       automatic logic       _GEN_6;
       automatic logic       _GEN_7;
       automatic logic       _GEN_8;
-      automatic logic       _GEN_9 = _GEN_4 & ~io_enq_bits_write;
+      automatic logic       _GEN_9;
       automatic logic       _GEN_10;
       automatic logic       _GEN_11;
       automatic logic       _GEN_12;
-      automatic logic       _GEN_13;
-      automatic logic       _GEN_14;
-      automatic logic       _GEN_15;
-      automatic logic       _GEN_16;
-      automatic logic       _GEN_17;
-      automatic logic       _GEN_18 = io_deq_ready & io_deq_valid_0;
+      automatic logic       _GEN_13 = io_deq_ready & io_deq_valid_0;
       enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-      _GEN_5 = _GEN_4 & io_enq_bits_write;
       _GEN_6 = enqIdx == 2'h0;
       _GEN_7 = enqIdx == 2'h1;
       _GEN_8 = enqIdx == 2'h2;
-      _GEN_10 = _GEN_9 & _GEN_6;
-      _GEN_11 = _GEN_10 | ~(~_GEN_5 | hasMatch | ~_GEN_6);
-      _GEN_12 = _GEN_9 & _GEN_7;
-      _GEN_13 = _GEN_12 | ~(~_GEN_5 | hasMatch | ~_GEN_7);
-      _GEN_14 = _GEN_9 & _GEN_8;
-      _GEN_15 = _GEN_14 | ~(~_GEN_5 | hasMatch | ~_GEN_8);
-      _GEN_16 = _GEN_9 & (&enqIdx);
-      _GEN_17 = _GEN_16 | ~(~_GEN_5 | hasMatch | ~(&enqIdx));
-      if (io_flush) begin
-        buffer_0_req_addr <= 32'h0;
-        buffer_0_req_wdata <= 32'h0;
-        buffer_0_req_wstrb <= 4'h0;
-        buffer_0_req_size <= 3'h0;
-        buffer_1_req_addr <= 32'h0;
-        buffer_1_req_wdata <= 32'h0;
-        buffer_1_req_wstrb <= 4'h0;
-        buffer_1_req_size <= 3'h0;
-        buffer_2_req_addr <= 32'h0;
-        buffer_2_req_wdata <= 32'h0;
-        buffer_2_req_wstrb <= 4'h0;
-        buffer_2_req_size <= 3'h0;
-        buffer_3_req_addr <= 32'h0;
-        buffer_3_req_wdata <= 32'h0;
-        buffer_3_req_wstrb <= 4'h0;
-        buffer_3_req_size <= 3'h0;
+      _GEN_9 = ~_GEN_5 | hasMatch | ~_GEN_6;
+      _GEN_10 = ~_GEN_5 | hasMatch | ~_GEN_7;
+      _GEN_11 = ~_GEN_5 | hasMatch | ~_GEN_8;
+      _GEN_12 = ~_GEN_5 | hasMatch | ~(&enqIdx);
+      if (_GEN_9) begin
       end
       else begin
-        if (_GEN_11)
-          buffer_0_req_addr <= io_enq_bits_addr;
-        if (_GEN_10 | _GEN_5 & (hasMatch ? matchIdx == 2'h0 : _GEN_6))
-          buffer_0_req_wdata <= io_enq_bits_wdata;
-        if (_GEN_11) begin
-          buffer_0_req_wstrb <= io_enq_bits_wstrb;
-          buffer_0_req_size <= io_enq_bits_size;
-        end
-        if (_GEN_13)
-          buffer_1_req_addr <= io_enq_bits_addr;
-        if (_GEN_12 | _GEN_5 & (hasMatch ? matchIdx == 2'h1 : _GEN_7))
-          buffer_1_req_wdata <= io_enq_bits_wdata;
-        if (_GEN_13) begin
-          buffer_1_req_wstrb <= io_enq_bits_wstrb;
-          buffer_1_req_size <= io_enq_bits_size;
-        end
-        if (_GEN_15)
-          buffer_2_req_addr <= io_enq_bits_addr;
-        if (_GEN_14 | _GEN_5 & (hasMatch ? matchIdx == 2'h2 : _GEN_8))
-          buffer_2_req_wdata <= io_enq_bits_wdata;
-        if (_GEN_15) begin
-          buffer_2_req_wstrb <= io_enq_bits_wstrb;
-          buffer_2_req_size <= io_enq_bits_size;
-        end
-        if (_GEN_17)
-          buffer_3_req_addr <= io_enq_bits_addr;
-        if (_GEN_16 | _GEN_5 & (hasMatch ? (&matchIdx) : (&enqIdx)))
-          buffer_3_req_wdata <= io_enq_bits_wdata;
-        if (_GEN_17) begin
-          buffer_3_req_wstrb <= io_enq_bits_wstrb;
-          buffer_3_req_size <= io_enq_bits_size;
-        end
+        buffer_0_req_addr <= io_enq_bits_addr;
+        buffer_0_req_write <= io_enq_bits_write;
       end
-      buffer_0_req_write <=
-        ~io_flush & (_GEN_11 ? io_enq_bits_write : buffer_0_req_write);
-      buffer_1_req_write <=
-        ~io_flush & (_GEN_13 ? io_enq_bits_write : buffer_1_req_write);
-      buffer_2_req_write <=
-        ~io_flush & (_GEN_15 ? io_enq_bits_write : buffer_2_req_write);
-      buffer_3_req_write <=
-        ~io_flush & (_GEN_17 ? io_enq_bits_write : buffer_3_req_write);
-      valids_0 <=
-        ~(io_flush | _GEN_18 & deqIdx == 2'h0)
-        & (_GEN_10 | _GEN_5 & ~hasMatch & _GEN_6 | valids_0);
-      valids_1 <=
-        ~(io_flush | _GEN_18 & deqIdx == 2'h1)
-        & (_GEN_12 | _GEN_5 & ~hasMatch & _GEN_7 | valids_1);
-      valids_2 <=
-        ~(io_flush | _GEN_18 & deqIdx == 2'h2)
-        & (_GEN_14 | _GEN_5 & ~hasMatch & _GEN_8 | valids_2);
-      valids_3 <=
-        ~(io_flush | _GEN_18 & (&deqIdx))
-        & (_GEN_16 | _GEN_5 & ~hasMatch & (&enqIdx) | valids_3);
+      if (_GEN_5 & (hasMatch ? matchIdx == 2'h0 : _GEN_6))
+        buffer_0_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_9) begin
+      end
+      else begin
+        buffer_0_req_wstrb <= io_enq_bits_wstrb;
+        buffer_0_req_size <= io_enq_bits_size;
+      end
+      if (_GEN_10) begin
+      end
+      else begin
+        buffer_1_req_addr <= io_enq_bits_addr;
+        buffer_1_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? matchIdx == 2'h1 : _GEN_7))
+        buffer_1_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_10) begin
+      end
+      else begin
+        buffer_1_req_wstrb <= io_enq_bits_wstrb;
+        buffer_1_req_size <= io_enq_bits_size;
+      end
+      if (_GEN_11) begin
+      end
+      else begin
+        buffer_2_req_addr <= io_enq_bits_addr;
+        buffer_2_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? matchIdx == 2'h2 : _GEN_8))
+        buffer_2_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_11) begin
+      end
+      else begin
+        buffer_2_req_wstrb <= io_enq_bits_wstrb;
+        buffer_2_req_size <= io_enq_bits_size;
+      end
+      if (_GEN_12) begin
+      end
+      else begin
+        buffer_3_req_addr <= io_enq_bits_addr;
+        buffer_3_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? (&matchIdx) : (&enqIdx)))
+        buffer_3_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_12) begin
+      end
+      else begin
+        buffer_3_req_wstrb <= io_enq_bits_wstrb;
+        buffer_3_req_size <= io_enq_bits_size;
+      end
+      valids_0 <= ~(_GEN_13 & deqIdx == 2'h0) & (_GEN_5 & _GEN_6 | valids_0);
+      valids_1 <= ~(_GEN_13 & deqIdx == 2'h1) & (_GEN_5 & _GEN_7 | valids_1);
+      valids_2 <= ~(_GEN_13 & deqIdx == 2'h2) & (_GEN_5 & _GEN_8 | valids_2);
+      valids_3 <= ~(_GEN_13 & (&deqIdx)) & (_GEN_5 & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_

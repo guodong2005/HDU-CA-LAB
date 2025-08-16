@@ -5,8 +5,6 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
-/** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is "don't care." */
-
 class Lsu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
@@ -15,7 +13,6 @@ class Lsu extends Module {
     val ready    = Output(Bool())
     val valid    = Output(Bool())
     val diffout  = Output(new DiffOut())
-//    val flush    = Input(Bool())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -40,7 +37,7 @@ class Lsu extends Module {
 
   val addr_low2 = effectiveAddr(1, 0)
 
-  // 改进的size计算，模仿第一份代码的逻辑
+  // 改进的size计算
   val size = LookupTree(
     io.info.op,
     Seq(
@@ -55,7 +52,7 @@ class Lsu extends Module {
     )
   )
 
-  // 改进的写掩码生成，模仿第一份代码的逻辑
+  // 改进的写掩码生成
   val strb = MuxCase(
     0.U(4.W),
     Seq(
@@ -71,7 +68,7 @@ class Lsu extends Module {
 
   val storeAddr = effectiveAddr(31, 2) << 2
 
-  // 改进的写数据生成，模仿第一份代码的逻辑
+  // 改进的写数据生成
   val storeWdata = LookupTree(
     io.info.op,
     Seq(
@@ -88,6 +85,27 @@ class Lsu extends Module {
   newReq.wstrb := strb
   newReq.size  := size
 
+  // ============= 添加寄存器级 =============
+  // Store请求缓冲寄存器
+  val storeReqReg   = RegInit(0.U.asTypeOf(new DCacheReq))
+  val storeReqValid = RegInit(false.B)
+
+  // 将缓冲的store请求连接到WriteBuffer
+  writeBuffer.io.enq.valid := storeReqValid
+  writeBuffer.io.enq.bits  := storeReqReg
+
+  // 当WriteBuffer接受请求时，清除valid标志
+  when(writeBuffer.io.enq.fire) {
+    storeReqValid := false.B
+  }
+
+  // 当有新的store请求且没有待处理的store时，缓冲新请求
+  when((state === sIdle) && isStore && io.info.valid && !storeReqValid) {
+    storeReqReg   := newReq
+    storeReqValid := true.B
+  }
+  // ========================================
+
   // Default
   io.valid             := Mux(isStore, true.B, false.B)
   io.result            := 0.U
@@ -95,22 +113,18 @@ class Lsu extends Module {
   io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
   io.dcache.resp.ready := true.B
 
-  // 默认接受指令
-  val canEnqueue = writeBuffer.io.enq.ready
-  // 修正：对于load操作，如果有bypass hit，也可以立即完成
-  val loadBypassHit = isLoad && writeBuffer.io.bypassHit
-  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu || loadBypassHit))
+  // 修改ready信号：考虑额外的寄存器级
+  val canAcceptStore = !storeReqValid || writeBuffer.io.enq.ready
+  val loadBypassHit  = isLoad && writeBuffer.io.bypassHit
+  io.ready := ((state === sIdle) && ((isStore && canAcceptStore) || !isLsu || loadBypassHit))
 
-  // Store enqueuing
-  writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
-  writeBuffer.io.enq.bits  := newReq
   writeBuffer.io.deq.ready := true.B
 
   val drainReq   = writeBuffer.io.deq
   val loadReqReg = Reg(new DCacheReq)
   val loadOpReg  = Reg(UInt(4.W))
 
-  // 改进的load数据处理函数，模仿第一份代码的逻辑
+  // 改进的load数据处理函数
   def gen_load_data(data: UInt, mem_addr: UInt, op: UInt): UInt = {
     val addr_low2 = mem_addr(1, 0)
 
