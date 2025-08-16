@@ -145,12 +145,8 @@ class DecodeUnit extends Module with HasInstrType {
 
   val src2_data_final = Mux(src2_ren, src2_data, imm)
 
-  io.branch := isJ
-  io.target := Mux(
-    info.op === BRUOpType.jirl,
-    (src1_data_final.asSInt + imm.asSInt).asUInt,
-    (pc.asSInt + imm.asSInt).asUInt
-  ).asUInt
+  io.branch := isJ && info.op =/= BRUOpType.jirl;
+  io.target := (pc.asSInt + imm.asSInt).asUInt;
   // 输出到执行阶段
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info

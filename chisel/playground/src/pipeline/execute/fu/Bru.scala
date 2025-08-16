@@ -51,7 +51,7 @@ class Bru extends Module {
 
     // JALR (Jump and Link Register)
     is(BRUOpType.jirl) {
-      // io.branch := info.valid && (info.fusel === FuType.bru)
+      io.branch := info.valid && (info.fusel === FuType.bru)
       io.result := pc + 4.U // Return address (PC + 4)
       io.target := (io.src_info.src1_data.asSInt + imm).asUInt;
     }

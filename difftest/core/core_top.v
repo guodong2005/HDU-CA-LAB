@@ -2295,6 +2295,13 @@ module DecodeUnit(
   wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
+  wire [31:0] src1_data_final =
+    (src1_ren
+       ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
+       : 32'h0)
+    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
+         ? io_decodeStage_data_pc
+         : 32'h0);
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
@@ -2326,13 +2333,7 @@ module DecodeUnit(
        : _GEN_12
            ? 2'h1
            : _GEN_13 | _GEN_14 | _GEN_23 ? 2'h2 : {2{_GEN_17 | _GEN_18 | _GEN_22}}};
-  assign io_executeStage_data_src_info_src1_data =
-    (src1_ren
-       ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
-       : 32'h0)
-    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
-         ? io_decodeStage_data_pc
-         : 32'h0);
+  assign io_executeStage_data_src_info_src1_data = src1_data_final;
   assign io_executeStage_data_src_info_src2_data =
     src2_ren
       ? (io_bypassData_src2_bypass ? io_bypassData_src2_data : io_regfile_src2_rdata)
@@ -2342,7 +2343,8 @@ module DecodeUnit(
   assign io_registerInfo_src1_ren = src1_ren;
   assign io_registerInfo_src2_ren = src2_ren;
   assign io_branch = &instrType;
-  assign io_target = io_decodeStage_data_pc + imm;
+  assign io_target =
+    fuOpType == 4'hB ? src1_data_final + imm : io_decodeStage_data_pc + imm;
 endmodule
 
 module ARegFile(
