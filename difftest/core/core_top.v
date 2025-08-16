@@ -1939,8 +1939,6 @@ module FetchUnit(
   input          io_icache_resp_valid,
   input  [255:0] io_icache_resp_bits_data,
   input  [31:0]  io_icache_resp_bits_addr,
-  input          io_branch,
-  input  [31:0]  io_target,
   input          io_signal_fetchUnitSignal_allow_to_go,
                  io_signal_fetchUnitSignal_do_flush,
                  io_signal_decodeUnitSignal_allow_to_go,
@@ -1951,6 +1949,8 @@ module FetchUnit(
                  io_signal_bypassData_src2_bypass,
   input  [31:0]  io_signal_bypassData_src1_data,
                  io_signal_bypassData_src2_data,
+  input          io_signal_branchControl_branch,
+  input  [31:0]  io_signal_branchControl_target,
   input          io_icache_req_ready,
   output         io_icache_req_valid,
   output [31:0]  io_icache_req_bits_addr,
@@ -1998,9 +1998,11 @@ module FetchUnit(
     end
     else begin
       automatic logic _GEN_7;
-      _GEN_7 = io_branch | ~(|state) | ~_GEN_4 | io_signal_fetchUnitSignal_allow_to_go;
-      if (io_branch) begin
-        pc <= io_target;
+      _GEN_7 =
+        io_signal_branchControl_branch | ~(|state) | ~_GEN_4
+        | io_signal_fetchUnitSignal_allow_to_go;
+      if (io_signal_branchControl_branch) begin
+        pc <= io_signal_branchControl_target;
         state <= 2'h0;
       end
       else begin
@@ -2024,14 +2026,14 @@ module FetchUnit(
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
-        ~(io_branch | _GEN_5)
+        ~(io_signal_branchControl_branch | _GEN_5)
         & ((|state) & _GEN_4 & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
       if (_GEN_7) begin
       end
       else
         ifid_reg_pc <= reqPC;
     end
-    if (io_branch | ~(~(|state) & _GEN_6)) begin
+    if (io_signal_branchControl_branch | ~(~(|state) & _GEN_6)) begin
     end
     else
       reqPC <= pc;
@@ -2066,16 +2068,21 @@ module FetchUnit(
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
   assign io_decodeStage_data_inst =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_inst : _GEN_3 ? inst : 32'h0;
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_inst : _GEN_3 ? inst : 32'h0;
   assign io_decodeStage_data_valid =
-    ~io_branch
+    ~io_signal_branchControl_branch
     & (_GEN_5
          ? ifid_reg_valid
          : (|state) & _GEN_4 & io_signal_fetchUnitSignal_allow_to_go);
   assign io_decodeStage_data_pc =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
-  assign io_icache_req_valid = io_branch | io_canStart_0;
-  assign io_icache_req_bits_addr = io_branch ? io_target : pc;
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
+  assign io_icache_req_valid = io_signal_branchControl_branch | io_canStart_0;
+  assign io_icache_req_bits_addr =
+    io_signal_branchControl_branch ? io_signal_branchControl_target : pc;
   assign io_canStart = io_canStart_0;
 endmodule
 
@@ -2171,7 +2178,9 @@ module DecodeUnit(
   output [4:0]  io_registerInfo_src1_raddr,
                 io_registerInfo_src2_raddr,
   output        io_registerInfo_src1_ren,
-                io_registerInfo_src2_ren
+                io_registerInfo_src2_ren,
+                io_branch,
+  output [31:0] io_target
 );
 
   wire        _GEN = io_decodeStage_data_inst[31:25] == 7'hA;
@@ -2332,6 +2341,8 @@ module DecodeUnit(
   assign io_registerInfo_src2_raddr = src2_raddr;
   assign io_registerInfo_src1_ren = src1_ren;
   assign io_registerInfo_src2_ren = src2_ren;
+  assign io_branch = &instrType;
+  assign io_target = io_decodeStage_data_pc + imm;
 endmodule
 
 module ARegFile(
@@ -3468,7 +3479,7 @@ module Bru(
   output [31:0] io_target
 );
 
-  wire _io_branch_T_30 = io_info_fusel == 3'h3;
+  wire _io_branch_T_24 = io_info_fusel == 3'h3;
   wire _GEN = io_info_op == 5'h8;
   wire _GEN_0 = io_info_op == 5'hA;
   wire _GEN_1 = io_info_op == 5'hB;
@@ -3478,33 +3489,28 @@ module Bru(
   wire _GEN_5 = io_info_op == 5'h5;
   wire _GEN_6 = io_info_op == 5'h6;
   wire _GEN_7 = io_info_op == 5'h7;
-  assign io_valid = io_info_valid & _io_branch_T_30;
+  assign io_valid = io_info_valid & _io_branch_T_24;
   assign io_result =
     _GEN ? 32'h0 : _GEN_0 ? io_pc + 32'h4 : _GEN_1 ? io_pc + 32'h4 : 32'h0;
   assign io_branch =
-    _GEN
-      ? io_info_valid & _io_branch_T_30
-      : _GEN_0
-          ? io_info_valid & _io_branch_T_30
-          : _GEN_1
-              ? io_info_valid & _io_branch_T_30
-              : _GEN_2
-                  ? io_info_valid & _io_branch_T_30
-                    & io_src_info_src1_data == io_src_info_src2_data
-                  : _GEN_3
-                      ? io_info_valid & _io_branch_T_30
-                        & io_src_info_src1_data != io_src_info_src2_data
-                      : _GEN_4
-                          ? io_info_valid & _io_branch_T_30
-                            & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
-                          : _GEN_5
-                              ? io_info_valid & _io_branch_T_30
-                                & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
-                              : _GEN_6
-                                  ? io_info_valid & _io_branch_T_30
-                                    & io_src_info_src1_data < io_src_info_src2_data
-                                  : _GEN_7 & io_info_valid & _io_branch_T_30
-                                    & io_src_info_src1_data >= io_src_info_src2_data;
+    ~(_GEN | _GEN_0 | _GEN_1)
+    & (_GEN_2
+         ? io_info_valid & _io_branch_T_24
+           & io_src_info_src1_data == io_src_info_src2_data
+         : _GEN_3
+             ? io_info_valid & _io_branch_T_24
+               & io_src_info_src1_data != io_src_info_src2_data
+             : _GEN_4
+                 ? io_info_valid & _io_branch_T_24
+                   & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
+                 : _GEN_5
+                     ? io_info_valid & _io_branch_T_24
+                       & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
+                     : _GEN_6
+                         ? io_info_valid & _io_branch_T_24
+                           & io_src_info_src1_data < io_src_info_src2_data
+                         : _GEN_7 & io_info_valid & _io_branch_T_24
+                           & io_src_info_src1_data >= io_src_info_src2_data);
   assign io_target =
     _GEN
       ? io_pc + io_info_imm
@@ -3977,7 +3983,12 @@ module ControlUnit(
                 io_signals_bypassData_src2_bypass,
   output [31:0] io_signals_bypassData_src1_data,
                 io_signals_bypassData_src2_data,
-  input         io_branch,
+  output        io_signals_branchControl_branch,
+  output [31:0] io_signals_branchControl_target,
+  input         io_executeBranch,
+  input  [31:0] io_executeTarget,
+  input         io_decodeBranch,
+  input  [31:0] io_decodeTarget,
   input  [4:0]  io_decodeRegisterInfo_src1_raddr,
                 io_decodeRegisterInfo_src2_raddr,
   input         io_decodeRegisterInfo_src1_ren,
@@ -4014,6 +4025,7 @@ module ControlUnit(
     src2_forward_sel == 2'h1
       ? io_executeResult
       : src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  wire        actualBranch = io_executeBranch | io_decodeBranch;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & io_decodeRegisterInfo_src1_ren & (|src1_forward_sel) & ~reset)
@@ -4024,18 +4036,30 @@ module ControlUnit(
         $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
                 io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
                 io_signals_bypassData_src2_data_0);
-      if ((`PRINTF_COND_) & io_branch & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Branch taken, flushing F and D stages\n");
+      if ((`PRINTF_COND_) & io_executeBranch & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n",
+                io_executeTarget);
+      if ((`PRINTF_COND_) & io_decodeBranch & ~io_executeBranch & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n",
+                io_decodeTarget);
+      if ((`PRINTF_COND_) & io_executeBranch & io_decodeBranch & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n");
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
-  assign io_signals_fetchUnitSignal_do_flush = io_branch;
+  assign io_signals_fetchUnitSignal_do_flush = actualBranch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
-  assign io_signals_decodeUnitSignal_do_flush = io_branch;
+  assign io_signals_decodeUnitSignal_do_flush = io_executeBranch;
   assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
   assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
   assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
   assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
+  assign io_signals_branchControl_branch = actualBranch;
+  assign io_signals_branchControl_target =
+    io_executeBranch ? io_executeTarget : io_decodeTarget;
 endmodule
 
 module Diff(
@@ -4346,6 +4370,8 @@ module Core(
   wire         _controlUnit_io_signals_bypassData_src2_bypass;
   wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
   wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_branchControl_branch;
+  wire [31:0]  _controlUnit_io_signals_branchControl_target;
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
   wire [31:0]  _writeBackUnit_io_regfile_wdata;
@@ -4458,6 +4484,8 @@ module Core(
   wire [4:0]   _decodeUnit_io_registerInfo_src2_raddr;
   wire         _decodeUnit_io_registerInfo_src1_ren;
   wire         _decodeUnit_io_registerInfo_src2_ren;
+  wire         _decodeUnit_io_branch;
+  wire [31:0]  _decodeUnit_io_target;
   wire [31:0]  _decodeStage_io_decodeUnit_data_inst;
   wire         _decodeStage_io_decodeUnit_data_valid;
   wire [31:0]  _decodeStage_io_decodeUnit_data_pc;
@@ -4584,8 +4612,6 @@ module Core(
     .io_icache_resp_valid                    (_icache_io_icache_resp_valid),
     .io_icache_resp_bits_data                (_icache_io_icache_resp_bits_data),
     .io_icache_resp_bits_addr                (_icache_io_icache_resp_bits_addr),
-    .io_branch                               (_executeUnit_io_branch),
-    .io_target                               (_executeUnit_io_target),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
     .io_signal_fetchUnitSignal_do_flush
@@ -4604,6 +4630,10 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_signal_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signal_branchControl_branch
+      (_controlUnit_io_signals_branchControl_branch),
+    .io_signal_branchControl_target
+      (_controlUnit_io_signals_branchControl_target),
     .io_icache_req_ready                     (_icache_io_icache_req_ready),
     .io_icache_req_valid                     (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr                 (_fetchUnit_io_icache_req_bits_addr),
@@ -4661,7 +4691,9 @@ module Core(
     .io_registerInfo_src1_raddr              (_decodeUnit_io_registerInfo_src1_raddr),
     .io_registerInfo_src2_raddr              (_decodeUnit_io_registerInfo_src2_raddr),
     .io_registerInfo_src1_ren                (_decodeUnit_io_registerInfo_src1_ren),
-    .io_registerInfo_src2_ren                (_decodeUnit_io_registerInfo_src2_ren)
+    .io_registerInfo_src2_ren                (_decodeUnit_io_registerInfo_src2_ren),
+    .io_branch                               (_decodeUnit_io_branch),
+    .io_target                               (_decodeUnit_io_target)
   );
   ARegFile regfile (
     .clock              (clock),
@@ -4970,7 +5002,14 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_signals_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
-    .io_branch                               (_executeUnit_io_branch),
+    .io_signals_branchControl_branch
+      (_controlUnit_io_signals_branchControl_branch),
+    .io_signals_branchControl_target
+      (_controlUnit_io_signals_branchControl_target),
+    .io_executeBranch                        (_executeUnit_io_branch),
+    .io_executeTarget                        (_executeUnit_io_target),
+    .io_decodeBranch                         (_decodeUnit_io_branch),
+    .io_decodeTarget                         (_decodeUnit_io_target),
     .io_decodeRegisterInfo_src1_raddr        (_decodeUnit_io_registerInfo_src1_raddr),
     .io_decodeRegisterInfo_src2_raddr        (_decodeUnit_io_registerInfo_src2_raddr),
     .io_decodeRegisterInfo_src1_ren          (_decodeUnit_io_registerInfo_src1_ren),
