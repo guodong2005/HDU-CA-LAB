@@ -35,8 +35,6 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
-  dontTouch(fetchUnit.io)
-  dontTouch(icache.io)
 
   controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.writeBackResult := writeBackUnit.io.result
