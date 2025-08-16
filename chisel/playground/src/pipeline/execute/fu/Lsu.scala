@@ -33,7 +33,7 @@ class Lsu extends Module {
 
   // 修正：只有在load时才设置bypass地址和使能
   writeBuffer.io.bypassAddr   := effectiveAddr
-  writeBuffer.io.bypassEnable := isLoad
+  writeBuffer.io.bypassEnable := false.B
 
   val addr_low2 = effectiveAddr(1, 0)
 
