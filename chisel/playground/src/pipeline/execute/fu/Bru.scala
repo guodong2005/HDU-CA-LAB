@@ -9,7 +9,6 @@ class Bru extends Module {
     val info        = Input(new Info())
     val pc          = Input(UInt(XLEN.W))
     val src_info    = Input(new SrcInfo())
-    val bpu_pred    = Input(new BPUPrediction()) // Added BPU prediction input
     val valid       = Output(Bool())
     val result      = Output(UInt(XLEN.W))
     val branch      = Output(Bool())
