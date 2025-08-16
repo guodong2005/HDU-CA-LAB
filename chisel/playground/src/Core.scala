@@ -76,7 +76,7 @@ class Core extends Module {
 // ============ Control Unit 连接 ============
   controlUnit.io.executeBranch := executeUnit.io.branch
   controlUnit.io.executeTarget := executeUnit.io.target
-  controlUnit.io.decodeBranch  := decodeUnit.io.branch
+  controlUnit.io.decodeBranch  := false.B
   controlUnit.io.decodeTarget  := decodeUnit.io.target
 
   controlUnit.io.executeUnitReady := executeUnit.io.ready
