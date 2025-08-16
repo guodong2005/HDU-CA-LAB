@@ -152,8 +152,8 @@ class Bru extends Module {
   io.bpufeedback.actual_target := actual_target
 
   // Determine if prediction was wrong
-  val prediction_wrong = (io.bpu_pred.predicted_taken =/= actual_taken) ||
-    (actual_taken && (io.bpu_pred.predicted_target =/= actual_target))
+  val prediction_wrong = (io.info.bpu_pred.predicted_taken =/= actual_taken) ||
+    (actual_taken && (io.info.bpu_pred.predicted_target =/= actual_target))
   io.bpufeedback.mispredicted := io.bpufeedback.valid && prediction_wrong
 
   // Branch signal should only be true when we need to redirect (misprediction)
