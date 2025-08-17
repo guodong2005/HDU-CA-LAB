@@ -1646,7 +1646,7 @@ module ICache(
   wire [31:0] _cache_data_1_ext_R0_data;
   wire [31:0] _cache_data_0_ext_R0_data;
   wire [17:0] _cache_tag_ext_R0_data;
-  reg         state;
+  reg  [1:0]  state;
   reg         saved_req_valid;
   reg  [31:0] saved_req_bits_addr;
   reg         cache_valid_0;
@@ -1681,15 +1681,19 @@ module ICache(
   reg         cache_valid_29;
   reg         cache_valid_30;
   reg         cache_valid_31;
-  reg         processing_valid;
-  reg  [31:0] processing_addr;
-  reg  [4:0]  processing_index;
-  reg  [17:0] processing_tag;
-  wire [4:0]  current_index =
+  reg  [4:0]  reg_index;
+  reg  [17:0] reg_tag;
+  reg  [31:0] reg_addr;
+  wire [31:0] current_req_bits_addr =
+    saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
+  wire [4:0]  index =
     saved_req_valid ? saved_req_bits_addr[13:9] : io_icache_req_bits_addr[13:9];
-  wire        start_read =
-    ~state & (saved_req_valid | io_icache_req_valid) & ~processing_valid;
-  wire [4:0]  read_index = start_read ? current_index : processing_index;
+  wire [17:0] tag =
+    saved_req_valid ? saved_req_bits_addr[31:14] : io_icache_req_bits_addr[31:14];
+  wire [4:0]  read_index =
+    ~(|state) & io_icache_req_valid & ~saved_req_valid | ~saved_req_valid
+      ? io_icache_req_bits_addr[13:9]
+      : saved_req_bits_addr[13:9];
   wire [31:0] _GEN =
     {{cache_valid_31},
      {cache_valid_30},
@@ -1724,14 +1728,16 @@ module ICache(
      {cache_valid_1},
      {cache_valid_0}};
   wire        hit_cache =
-    processing_valid & processing_tag == _cache_tag_ext_R0_data & _GEN[processing_index];
-  wire        can_accept_req =
-    ~saved_req_valid & (~processing_valid | processing_valid & (hit_cache | state));
-  wire        _GEN_0 = state & io_io_read_resp_valid;
-  wire        cache_we = state & _GEN_0;
+    reg_tag == _cache_tag_ext_R0_data & _GEN[reg_index]
+    & reg_addr == current_req_bits_addr;
+  wire        _GEN_0 = state == 2'h1;
+  wire        _GEN_1 = state == 2'h2;
+  wire        _GEN_2 = _GEN_1 & io_io_read_resp_valid;
+  wire        io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
+  wire        cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
   always @(posedge clock) begin
     if (reset) begin
-      state <= 1'h0;
+      state <= 2'h0;
       saved_req_valid <= 1'h0;
       saved_req_bits_addr <= 32'h0;
       cache_valid_0 <= 1'h0;
@@ -1766,85 +1772,68 @@ module ICache(
       cache_valid_29 <= 1'h0;
       cache_valid_30 <= 1'h0;
       cache_valid_31 <= 1'h0;
-      processing_valid <= 1'h0;
-      processing_addr <= 32'h0;
-      processing_index <= 5'h0;
-      processing_tag <= 18'h0;
+      reg_index <= 5'h0;
+      reg_tag <= 18'h0;
+      reg_addr <= 32'h0;
     end
     else begin
-      automatic logic _GEN_1 = io_icache_req_valid & ~can_accept_req;
-      automatic logic _GEN_2;
+      automatic logic current_req_valid;
       automatic logic _GEN_3;
-      automatic logic _GEN_4;
-      automatic logic _GEN_5;
-      _GEN_2 = _GEN_1 | saved_req_valid;
-      _GEN_3 = saved_req_valid & ~processing_valid;
-      _GEN_4 = state & io_io_read_resp_valid;
-      _GEN_5 = state ? _GEN_4 : processing_valid & hit_cache;
-      if (state)
-        state <= ~_GEN_4 & state;
-      else
-        state <= processing_valid & ~hit_cache & io_io_read_req_ready | state;
-      if (_GEN_5)
-        saved_req_valid <= ~(saved_req_valid | _GEN_3) & _GEN_2;
-      else
-        saved_req_valid <= ~_GEN_3 & _GEN_2;
-      if (_GEN_1)
-        saved_req_bits_addr <= io_icache_req_bits_addr;
-      cache_valid_0 <= cache_we & processing_index == 5'h0 | cache_valid_0;
-      cache_valid_1 <= cache_we & processing_index == 5'h1 | cache_valid_1;
-      cache_valid_2 <= cache_we & processing_index == 5'h2 | cache_valid_2;
-      cache_valid_3 <= cache_we & processing_index == 5'h3 | cache_valid_3;
-      cache_valid_4 <= cache_we & processing_index == 5'h4 | cache_valid_4;
-      cache_valid_5 <= cache_we & processing_index == 5'h5 | cache_valid_5;
-      cache_valid_6 <= cache_we & processing_index == 5'h6 | cache_valid_6;
-      cache_valid_7 <= cache_we & processing_index == 5'h7 | cache_valid_7;
-      cache_valid_8 <= cache_we & processing_index == 5'h8 | cache_valid_8;
-      cache_valid_9 <= cache_we & processing_index == 5'h9 | cache_valid_9;
-      cache_valid_10 <= cache_we & processing_index == 5'hA | cache_valid_10;
-      cache_valid_11 <= cache_we & processing_index == 5'hB | cache_valid_11;
-      cache_valid_12 <= cache_we & processing_index == 5'hC | cache_valid_12;
-      cache_valid_13 <= cache_we & processing_index == 5'hD | cache_valid_13;
-      cache_valid_14 <= cache_we & processing_index == 5'hE | cache_valid_14;
-      cache_valid_15 <= cache_we & processing_index == 5'hF | cache_valid_15;
-      cache_valid_16 <= cache_we & processing_index == 5'h10 | cache_valid_16;
-      cache_valid_17 <= cache_we & processing_index == 5'h11 | cache_valid_17;
-      cache_valid_18 <= cache_we & processing_index == 5'h12 | cache_valid_18;
-      cache_valid_19 <= cache_we & processing_index == 5'h13 | cache_valid_19;
-      cache_valid_20 <= cache_we & processing_index == 5'h14 | cache_valid_20;
-      cache_valid_21 <= cache_we & processing_index == 5'h15 | cache_valid_21;
-      cache_valid_22 <= cache_we & processing_index == 5'h16 | cache_valid_22;
-      cache_valid_23 <= cache_we & processing_index == 5'h17 | cache_valid_23;
-      cache_valid_24 <= cache_we & processing_index == 5'h18 | cache_valid_24;
-      cache_valid_25 <= cache_we & processing_index == 5'h19 | cache_valid_25;
-      cache_valid_26 <= cache_we & processing_index == 5'h1A | cache_valid_26;
-      cache_valid_27 <= cache_we & processing_index == 5'h1B | cache_valid_27;
-      cache_valid_28 <= cache_we & processing_index == 5'h1C | cache_valid_28;
-      cache_valid_29 <= cache_we & processing_index == 5'h1D | cache_valid_29;
-      cache_valid_30 <= cache_we & processing_index == 5'h1E | cache_valid_30;
-      cache_valid_31 <= cache_we & (&processing_index) | cache_valid_31;
-      if (_GEN_5) begin
-        processing_valid <= saved_req_valid;
-        if (saved_req_valid) begin
-          processing_addr <= saved_req_bits_addr;
-          processing_index <= saved_req_bits_addr[13:9];
-          processing_tag <= saved_req_bits_addr[31:14];
+      current_req_valid = saved_req_valid | io_icache_req_valid;
+      _GEN_3 = io_icache_req_valid & ~saved_req_valid;
+      if (|state) begin
+        if (_GEN_0) begin
+          if (hit_cache)
+            state <= 2'h0;
+          else if (io_io_read_req_ready)
+            state <= 2'h2;
         end
-        else if (start_read) begin
-          processing_addr <= io_icache_req_bits_addr;
-          processing_index <= io_icache_req_bits_addr[13:9];
-          processing_tag <= io_icache_req_bits_addr[31:14];
-        end
+        else if (_GEN_1 & io_io_read_resp_valid)
+          state <= 2'h0;
       end
-      else begin
-        processing_valid <= start_read | processing_valid;
-        if (start_read) begin
-          processing_addr <=
-            saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
-          processing_index <= current_index;
-          processing_tag <=
-            saved_req_valid ? saved_req_bits_addr[31:14] : io_icache_req_bits_addr[31:14];
-        end
+      else if (current_req_valid)
+        state <= 2'h1;
+      saved_req_valid <= ~io_icache_resp_valid_0 & (_GEN_3 | saved_req_valid);
+      if (io_icache_resp_valid_0)
+        saved_req_bits_addr <= 32'h0;
+      else if (_GEN_3)
+        saved_req_bits_addr <= io_icache_req_bits_addr;
+      cache_valid_0 <= cache_we & index == 5'h0 | cache_valid_0;
+      cache_valid_1 <= cache_we & index == 5'h1 | cache_valid_1;
+      cache_valid_2 <= cache_we & index == 5'h2 | cache_valid_2;
+      cache_valid_3 <= cache_we & index == 5'h3 | cache_valid_3;
+      cache_valid_4 <= cache_we & index == 5'h4 | cache_valid_4;
+      cache_valid_5 <= cache_we & index == 5'h5 | cache_valid_5;
+      cache_valid_6 <= cache_we & index == 5'h6 | cache_valid_6;
+      cache_valid_7 <= cache_we & index == 5'h7 | cache_valid_7;
+      cache_valid_8 <= cache_we & index == 5'h8 | cache_valid_8;
+      cache_valid_9 <= cache_we & index == 5'h9 | cache_valid_9;
+      cache_valid_10 <= cache_we & index == 5'hA | cache_valid_10;
+      cache_valid_11 <= cache_we & index == 5'hB | cache_valid_11;
+      cache_valid_12 <= cache_we & index == 5'hC | cache_valid_12;
+      cache_valid_13 <= cache_we & index == 5'hD | cache_valid_13;
+      cache_valid_14 <= cache_we & index == 5'hE | cache_valid_14;
+      cache_valid_15 <= cache_we & index == 5'hF | cache_valid_15;
+      cache_valid_16 <= cache_we & index == 5'h10 | cache_valid_16;
+      cache_valid_17 <= cache_we & index == 5'h11 | cache_valid_17;
+      cache_valid_18 <= cache_we & index == 5'h12 | cache_valid_18;
+      cache_valid_19 <= cache_we & index == 5'h13 | cache_valid_19;
+      cache_valid_20 <= cache_we & index == 5'h14 | cache_valid_20;
+      cache_valid_21 <= cache_we & index == 5'h15 | cache_valid_21;
+      cache_valid_22 <= cache_we & index == 5'h16 | cache_valid_22;
+      cache_valid_23 <= cache_we & index == 5'h17 | cache_valid_23;
+      cache_valid_24 <= cache_we & index == 5'h18 | cache_valid_24;
+      cache_valid_25 <= cache_we & index == 5'h19 | cache_valid_25;
+      cache_valid_26 <= cache_we & index == 5'h1A | cache_valid_26;
+      cache_valid_27 <= cache_we & index == 5'h1B | cache_valid_27;
+      cache_valid_28 <= cache_we & index == 5'h1C | cache_valid_28;
+      cache_valid_29 <= cache_we & index == 5'h1D | cache_valid_29;
+      cache_valid_30 <= cache_we & index == 5'h1E | cache_valid_30;
+      cache_valid_31 <= cache_we & (&index) | cache_valid_31;
+      if (current_req_valid & (~(|state) | _GEN_0)) begin
+        reg_index <= index;
+        reg_tag <= tag;
+        reg_addr <= current_req_bits_addr;
       end
     end
   end // always @(posedge)
@@ -1853,53 +1842,52 @@ module ICache(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:5];
+      automatic logic [31:0] _RANDOM[0:3];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h6; i += 3'h1) begin
-          _RANDOM[i] = `RANDOM;
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          _RANDOM[i[1:0]] = `RANDOM;
         end
-        state = _RANDOM[3'h0][0];
-        saved_req_valid = _RANDOM[3'h0][1];
-        saved_req_bits_addr = {_RANDOM[3'h0][31:2], _RANDOM[3'h1][1:0]};
-        cache_valid_0 = _RANDOM[3'h1][2];
-        cache_valid_1 = _RANDOM[3'h1][3];
-        cache_valid_2 = _RANDOM[3'h1][4];
-        cache_valid_3 = _RANDOM[3'h1][5];
-        cache_valid_4 = _RANDOM[3'h1][6];
-        cache_valid_5 = _RANDOM[3'h1][7];
-        cache_valid_6 = _RANDOM[3'h1][8];
-        cache_valid_7 = _RANDOM[3'h1][9];
-        cache_valid_8 = _RANDOM[3'h1][10];
-        cache_valid_9 = _RANDOM[3'h1][11];
-        cache_valid_10 = _RANDOM[3'h1][12];
-        cache_valid_11 = _RANDOM[3'h1][13];
-        cache_valid_12 = _RANDOM[3'h1][14];
-        cache_valid_13 = _RANDOM[3'h1][15];
-        cache_valid_14 = _RANDOM[3'h1][16];
-        cache_valid_15 = _RANDOM[3'h1][17];
-        cache_valid_16 = _RANDOM[3'h1][18];
-        cache_valid_17 = _RANDOM[3'h1][19];
-        cache_valid_18 = _RANDOM[3'h1][20];
-        cache_valid_19 = _RANDOM[3'h1][21];
-        cache_valid_20 = _RANDOM[3'h1][22];
-        cache_valid_21 = _RANDOM[3'h1][23];
-        cache_valid_22 = _RANDOM[3'h1][24];
-        cache_valid_23 = _RANDOM[3'h1][25];
-        cache_valid_24 = _RANDOM[3'h1][26];
-        cache_valid_25 = _RANDOM[3'h1][27];
-        cache_valid_26 = _RANDOM[3'h1][28];
-        cache_valid_27 = _RANDOM[3'h1][29];
-        cache_valid_28 = _RANDOM[3'h1][30];
-        cache_valid_29 = _RANDOM[3'h1][31];
-        cache_valid_30 = _RANDOM[3'h2][0];
-        cache_valid_31 = _RANDOM[3'h2][1];
-        processing_valid = _RANDOM[3'h3][26];
-        processing_addr = {_RANDOM[3'h3][31:27], _RANDOM[3'h4][26:0]};
-        processing_index = _RANDOM[3'h4][31:27];
-        processing_tag = _RANDOM[3'h5][17:0];
+        state = _RANDOM[2'h0][1:0];
+        saved_req_valid = _RANDOM[2'h0][2];
+        saved_req_bits_addr = {_RANDOM[2'h0][31:3], _RANDOM[2'h1][2:0]};
+        cache_valid_0 = _RANDOM[2'h1][3];
+        cache_valid_1 = _RANDOM[2'h1][4];
+        cache_valid_2 = _RANDOM[2'h1][5];
+        cache_valid_3 = _RANDOM[2'h1][6];
+        cache_valid_4 = _RANDOM[2'h1][7];
+        cache_valid_5 = _RANDOM[2'h1][8];
+        cache_valid_6 = _RANDOM[2'h1][9];
+        cache_valid_7 = _RANDOM[2'h1][10];
+        cache_valid_8 = _RANDOM[2'h1][11];
+        cache_valid_9 = _RANDOM[2'h1][12];
+        cache_valid_10 = _RANDOM[2'h1][13];
+        cache_valid_11 = _RANDOM[2'h1][14];
+        cache_valid_12 = _RANDOM[2'h1][15];
+        cache_valid_13 = _RANDOM[2'h1][16];
+        cache_valid_14 = _RANDOM[2'h1][17];
+        cache_valid_15 = _RANDOM[2'h1][18];
+        cache_valid_16 = _RANDOM[2'h1][19];
+        cache_valid_17 = _RANDOM[2'h1][20];
+        cache_valid_18 = _RANDOM[2'h1][21];
+        cache_valid_19 = _RANDOM[2'h1][22];
+        cache_valid_20 = _RANDOM[2'h1][23];
+        cache_valid_21 = _RANDOM[2'h1][24];
+        cache_valid_22 = _RANDOM[2'h1][25];
+        cache_valid_23 = _RANDOM[2'h1][26];
+        cache_valid_24 = _RANDOM[2'h1][27];
+        cache_valid_25 = _RANDOM[2'h1][28];
+        cache_valid_26 = _RANDOM[2'h1][29];
+        cache_valid_27 = _RANDOM[2'h1][30];
+        cache_valid_28 = _RANDOM[2'h1][31];
+        cache_valid_29 = _RANDOM[2'h2][0];
+        cache_valid_30 = _RANDOM[2'h2][1];
+        cache_valid_31 = _RANDOM[2'h2][2];
+        reg_index = _RANDOM[2'h2][7:3];
+        reg_tag = _RANDOM[2'h2][25:8];
+        reg_addr = {_RANDOM[2'h2][31:26], _RANDOM[2'h3][25:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -1911,17 +1899,17 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_tag_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
-    .W0_data (processing_tag)
+    .W0_data (tag)
   );
   cache_data_32x32 cache_data_0_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_0_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
@@ -1931,7 +1919,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_1_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
@@ -1941,7 +1929,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_2_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
@@ -1951,7 +1939,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_3_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
@@ -1961,7 +1949,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_4_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
@@ -1971,7 +1959,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_5_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
@@ -1981,7 +1969,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_6_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
@@ -1991,7 +1979,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_7_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
@@ -2001,7 +1989,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_8_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[287:256])
@@ -2011,7 +1999,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_9_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[319:288])
@@ -2021,7 +2009,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_10_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[351:320])
@@ -2031,7 +2019,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_11_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[383:352])
@@ -2041,7 +2029,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_12_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[415:384])
@@ -2051,7 +2039,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_13_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[447:416])
@@ -2061,7 +2049,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_14_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[479:448])
@@ -2071,7 +2059,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_15_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[511:480])
@@ -2081,7 +2069,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_16_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[543:512])
@@ -2091,7 +2079,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_17_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[575:544])
@@ -2101,7 +2089,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_18_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[607:576])
@@ -2111,7 +2099,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_19_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[639:608])
@@ -2121,7 +2109,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_20_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[671:640])
@@ -2131,7 +2119,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_21_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[703:672])
@@ -2141,7 +2129,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_22_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[735:704])
@@ -2151,7 +2139,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_23_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[767:736])
@@ -2161,7 +2149,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_24_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[799:768])
@@ -2171,7 +2159,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_25_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[831:800])
@@ -2181,7 +2169,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_26_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[863:832])
@@ -2191,7 +2179,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_27_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[895:864])
@@ -2201,7 +2189,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_28_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[927:896])
@@ -2211,7 +2199,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_29_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[959:928])
@@ -2221,7 +2209,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_30_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[991:960])
@@ -2231,7 +2219,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_31_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1023:992])
@@ -2241,7 +2229,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_32_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1055:1024])
@@ -2251,7 +2239,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_33_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1087:1056])
@@ -2261,7 +2249,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_34_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1119:1088])
@@ -2271,7 +2259,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_35_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1151:1120])
@@ -2281,7 +2269,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_36_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1183:1152])
@@ -2291,7 +2279,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_37_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1215:1184])
@@ -2301,7 +2289,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_38_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1247:1216])
@@ -2311,7 +2299,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_39_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1279:1248])
@@ -2321,7 +2309,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_40_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1311:1280])
@@ -2331,7 +2319,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_41_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1343:1312])
@@ -2341,7 +2329,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_42_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1375:1344])
@@ -2351,7 +2339,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_43_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1407:1376])
@@ -2361,7 +2349,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_44_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1439:1408])
@@ -2371,7 +2359,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_45_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1471:1440])
@@ -2381,7 +2369,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_46_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1503:1472])
@@ -2391,7 +2379,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_47_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1535:1504])
@@ -2401,7 +2389,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_48_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1567:1536])
@@ -2411,7 +2399,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_49_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1599:1568])
@@ -2421,7 +2409,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_50_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1631:1600])
@@ -2431,7 +2419,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_51_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1663:1632])
@@ -2441,7 +2429,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_52_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1695:1664])
@@ -2451,7 +2439,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_53_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1727:1696])
@@ -2461,7 +2449,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_54_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1759:1728])
@@ -2471,7 +2459,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_55_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1791:1760])
@@ -2481,7 +2469,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_56_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1823:1792])
@@ -2491,7 +2479,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_57_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1855:1824])
@@ -2501,7 +2489,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_58_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1887:1856])
@@ -2511,7 +2499,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_59_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1919:1888])
@@ -2521,7 +2509,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_60_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1951:1920])
@@ -2531,7 +2519,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_61_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[1983:1952])
@@ -2541,7 +2529,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_62_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2015:1984])
@@ -2551,7 +2539,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_63_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2047:2016])
@@ -2561,7 +2549,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_64_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2079:2048])
@@ -2571,7 +2559,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_65_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2111:2080])
@@ -2581,7 +2569,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_66_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2143:2112])
@@ -2591,7 +2579,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_67_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2175:2144])
@@ -2601,7 +2589,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_68_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2207:2176])
@@ -2611,7 +2599,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_69_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2239:2208])
@@ -2621,7 +2609,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_70_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2271:2240])
@@ -2631,7 +2619,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_71_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2303:2272])
@@ -2641,7 +2629,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_72_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2335:2304])
@@ -2651,7 +2639,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_73_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2367:2336])
@@ -2661,7 +2649,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_74_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2399:2368])
@@ -2671,7 +2659,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_75_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2431:2400])
@@ -2681,7 +2669,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_76_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2463:2432])
@@ -2691,7 +2679,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_77_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2495:2464])
@@ -2701,7 +2689,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_78_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2527:2496])
@@ -2711,7 +2699,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_79_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2559:2528])
@@ -2721,7 +2709,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_80_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2591:2560])
@@ -2731,7 +2719,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_81_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2623:2592])
@@ -2741,7 +2729,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_82_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2655:2624])
@@ -2751,7 +2739,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_83_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2687:2656])
@@ -2761,7 +2749,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_84_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2719:2688])
@@ -2771,7 +2759,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_85_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2751:2720])
@@ -2781,7 +2769,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_86_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2783:2752])
@@ -2791,7 +2779,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_87_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2815:2784])
@@ -2801,7 +2789,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_88_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2847:2816])
@@ -2811,7 +2799,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_89_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2879:2848])
@@ -2821,7 +2809,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_90_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2911:2880])
@@ -2831,7 +2819,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_91_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2943:2912])
@@ -2841,7 +2829,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_92_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[2975:2944])
@@ -2851,7 +2839,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_93_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3007:2976])
@@ -2861,7 +2849,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_94_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3039:3008])
@@ -2871,7 +2859,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_95_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3071:3040])
@@ -2881,7 +2869,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_96_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3103:3072])
@@ -2891,7 +2879,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_97_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3135:3104])
@@ -2901,7 +2889,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_98_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3167:3136])
@@ -2911,7 +2899,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_99_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3199:3168])
@@ -2921,7 +2909,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_100_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3231:3200])
@@ -2931,7 +2919,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_101_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3263:3232])
@@ -2941,7 +2929,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_102_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3295:3264])
@@ -2951,7 +2939,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_103_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3327:3296])
@@ -2961,7 +2949,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_104_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3359:3328])
@@ -2971,7 +2959,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_105_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3391:3360])
@@ -2981,7 +2969,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_106_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3423:3392])
@@ -2991,7 +2979,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_107_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3455:3424])
@@ -3001,7 +2989,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_108_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3487:3456])
@@ -3011,7 +2999,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_109_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3519:3488])
@@ -3021,7 +3009,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_110_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3551:3520])
@@ -3031,7 +3019,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_111_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3583:3552])
@@ -3041,7 +3029,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_112_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3615:3584])
@@ -3051,7 +3039,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_113_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3647:3616])
@@ -3061,7 +3049,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_114_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3679:3648])
@@ -3071,7 +3059,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_115_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3711:3680])
@@ -3081,7 +3069,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_116_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3743:3712])
@@ -3091,7 +3079,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_117_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3775:3744])
@@ -3101,7 +3089,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_118_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3807:3776])
@@ -3111,7 +3099,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_119_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3839:3808])
@@ -3121,7 +3109,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_120_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3871:3840])
@@ -3131,7 +3119,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_121_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3903:3872])
@@ -3141,7 +3129,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_122_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3935:3904])
@@ -3151,7 +3139,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_123_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3967:3936])
@@ -3161,7 +3149,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_124_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[3999:3968])
@@ -3171,7 +3159,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_125_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[4031:4000])
@@ -3181,7 +3169,7 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_126_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[4063:4032])
@@ -3191,17 +3179,16 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_127_ext_R0_data),
-    .W0_addr (processing_index),
+    .W0_addr (index),
     .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[4095:4064])
   );
-  assign io_icache_req_ready = can_accept_req;
-  assign io_icache_resp_valid = state ? _GEN_0 : processing_valid & hit_cache;
+  assign io_icache_req_ready = ~saved_req_valid & ~(|state) & ~saved_req_valid;
+  assign io_icache_resp_valid = io_icache_resp_valid_0;
   assign io_icache_resp_bits_data =
-    state
-      ? io_io_read_resp_bits_data
-      : {_cache_data_127_ext_R0_data,
+    _GEN_0
+      ? {_cache_data_127_ext_R0_data,
          _cache_data_126_ext_R0_data,
          _cache_data_125_ext_R0_data,
          _cache_data_124_ext_R0_data,
@@ -3328,11 +3315,12 @@ module ICache(
          _cache_data_3_ext_R0_data,
          _cache_data_2_ext_R0_data,
          _cache_data_1_ext_R0_data,
-         _cache_data_0_ext_R0_data};
-  assign io_icache_resp_bits_addr = processing_addr;
-  assign io_io_read_req_valid = ~state & processing_valid & ~hit_cache;
-  assign io_io_read_req_bits_addr = {processing_addr[31:9], 9'h0};
-  assign io_icache_debug_state = state;
+         _cache_data_0_ext_R0_data}
+      : io_io_read_resp_bits_data;
+  assign io_icache_resp_bits_addr = current_req_bits_addr;
+  assign io_io_read_req_valid = (|state) & _GEN_0 & ~hit_cache;
+  assign io_io_read_req_bits_addr = {current_req_bits_addr[31:9], 9'h0};
+  assign io_icache_debug_state = state == 2'h2;
   assign io_icache_debug_hit_cache = hit_cache;
   assign io_icache_debug_cache_we = cache_we;
   assign io_icache_debug_cache_read_tag = _cache_tag_ext_R0_data;
@@ -3453,148 +3441,363 @@ module DCache(
     saved_req_valid ? saved_req_bits_wstrb : io_req_bits_wstrb;
 endmodule
 
-module FetchUnit(
+module PrefetchUnit(
   input           clock,
                   reset,
-  output [31:0]   io_decodeStage_data_inst,
-  output          io_decodeStage_data_valid,
-  output [31:0]   io_decodeStage_data_pc,
+                  io_icache_req_ready,
+  output          io_icache_req_valid,
+  output [31:0]   io_icache_req_bits_addr,
   input           io_icache_resp_valid,
   input  [4095:0] io_icache_resp_bits_data,
   input  [31:0]   io_icache_resp_bits_addr,
-  input           io_signal_fetchUnitSignal_allow_to_go,
-                  io_signal_branchControl_branch,
-  input  [31:0]   io_signal_branchControl_target,
-  input           io_icache_req_ready,
-  output          io_icache_req_valid,
-  output [31:0]   io_icache_req_bits_addr
+  input           io_fetch_ready,
+  output          io_fetch_resp_valid,
+  output [4095:0] io_fetch_resp_bits_data,
+  output [31:0]   io_fetch_resp_bits_addr,
+  input           io_branch,
+  input  [31:0]   io_target
 );
 
-  reg  [31:0] pc;
-  reg  [31:0] prefetchPC;
-  reg  [31:0] reqPC;
-  reg         pendingReq;
-  reg  [31:0] ifid_reg_inst;
-  reg         ifid_reg_valid;
-  reg  [31:0] ifid_reg_pc;
-  reg         canStart_REG;
-  wire        canSendReq = canStart_REG & ~reset & (~pendingReq | io_icache_resp_valid);
-  wire [31:0] nextReqPC =
-    io_signal_branchControl_branch
-      ? io_signal_branchControl_target
-      : pendingReq & io_icache_resp_valid ? prefetchPC : pc;
-  wire        _GEN =
-    io_icache_resp_valid & pendingReq & io_icache_resp_bits_addr == reqPC;
-  wire [31:0] inst =
-    reqPC[8:2] == 7'h7
-      ? io_icache_resp_bits_data[255:224]
-      : reqPC[8:2] == 7'h6
-          ? io_icache_resp_bits_data[223:192]
-          : reqPC[8:2] == 7'h5
-              ? io_icache_resp_bits_data[191:160]
-              : reqPC[8:2] == 7'h4
-                  ? io_icache_resp_bits_data[159:128]
-                  : reqPC[8:2] == 7'h3
-                      ? io_icache_resp_bits_data[127:96]
-                      : reqPC[8:2] == 7'h2
-                          ? io_icache_resp_bits_data[95:64]
-                          : reqPC[8:2] == 7'h1
-                              ? io_icache_resp_bits_data[63:32]
-                              : reqPC[8:2] == 7'h0
-                                  ? io_icache_resp_bits_data[31:0]
-                                  : 32'h0;
-  wire        isExpectedPC = reqPC == pc;
-  wire        _GEN_0 = io_signal_fetchUnitSignal_allow_to_go & ~ifid_reg_valid;
-  wire        _GEN_1 = _GEN & isExpectedPC & _GEN_0;
-  wire        _GEN_2 = _GEN & isExpectedPC;
-  wire        _GEN_3 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
-  reg  [9:0]  missCounter;
+  reg  [31:0]   prefetch_pc;
+  reg  [31:0]   should_rcv_pc;
+  reg  [1:0]    state;
+  reg  [4095:0] inst_buffer_data;
+  reg  [31:0]   inst_buffer_addr;
+  reg           buffer_valid;
+  reg  [31:0]   waiting_for_addr;
+  reg           waiting_valid;
+  wire          resp_matches =
+    ~waiting_valid | io_icache_resp_bits_addr == waiting_for_addr;
+  wire          _GEN = io_icache_resp_valid & resp_matches;
+  wire          is_expected = io_icache_resp_bits_addr == should_rcv_pc;
+  wire          _GEN_0 = is_expected & io_fetch_ready;
+  wire          _GEN_1 = buffer_valid & io_fetch_ready;
+  wire          _GEN_2 = state == 2'h0;
+  wire          _GEN_3 = ~buffer_valid & io_icache_req_ready;
   always @(posedge clock) begin
     automatic logic _GEN_4;
-    _GEN_4 = io_icache_req_ready & canSendReq;
+    _GEN_4 = is_expected & ~io_fetch_ready;
     if (reset) begin
-      pc <= 32'h80000000;
-      prefetchPC <= 32'h80000004;
-      pendingReq <= 1'h0;
-      ifid_reg_inst <= 32'h0;
-      ifid_reg_valid <= 1'h0;
-      ifid_reg_pc <= 32'h0;
-      missCounter <= 10'h0;
+      prefetch_pc <= 32'h80000000;
+      should_rcv_pc <= 32'h80000000;
+      state <= 2'h0;
+      buffer_valid <= 1'h0;
+      waiting_for_addr <= 32'h0;
+      waiting_valid <= 1'h0;
     end
     else begin
-      automatic logic _GEN_5;
-      _GEN_5 = _GEN_2 & ~_GEN_0 | ifid_reg_valid;
-      if (io_signal_branchControl_branch) begin
-        pc <= io_signal_branchControl_target;
-        prefetchPC <= io_signal_branchControl_target + 32'h4;
-        ifid_reg_valid <=
-          ~(ifid_reg_valid & ifid_reg_pc != io_signal_branchControl_target | _GEN_3)
-          & _GEN_5;
+      if (io_branch) begin
+        prefetch_pc <= io_target;
+        should_rcv_pc <= io_target;
+        state <= {1'h0, io_icache_req_ready};
+        if (io_icache_req_ready)
+          waiting_for_addr <= io_target;
+        waiting_valid <= io_icache_req_ready;
       end
       else begin
+        automatic logic [1:0] _GEN_5;
+        automatic logic       _GEN_6 = _GEN_2 & _GEN_3;
+        _GEN_5 = _GEN_0 ? 2'h0 : {_GEN_4, 1'h0};
+        if (_GEN_1) begin
+          automatic logic [31:0] _prefetch_pc_T_2;
+          _prefetch_pc_T_2 = should_rcv_pc + 32'h4;
+          prefetch_pc <= _prefetch_pc_T_2;
+          should_rcv_pc <= _prefetch_pc_T_2;
+        end
+        else if (io_icache_resp_valid & resp_matches & _GEN_0) begin
+          prefetch_pc <= prefetch_pc + 32'h4;
+          should_rcv_pc <= should_rcv_pc + 32'h4;
+        end
         if (_GEN_2) begin
-          if (_GEN_0)
-            pc <= pc + 32'h4;
-          else
-            pc <= pc + 32'h4;
+          if (_GEN_3)
+            state <= 2'h1;
+          else if (_GEN_1)
+            state <= 2'h0;
+          else if (_GEN)
+            state <= _GEN_5;
         end
-        if (_GEN_4) begin
-          if (io_signal_branchControl_branch)
-            prefetchPC <= io_signal_branchControl_target + 32'h4;
-          else
-            prefetchPC <= nextReqPC + 32'h4;
-        end
-        ifid_reg_valid <= ~_GEN_3 & _GEN_5;
+        else if (state != 2'h1 & state == 2'h2 & ~buffer_valid | _GEN_1)
+          state <= 2'h0;
+        else if (_GEN)
+          state <= _GEN_5;
+        if (_GEN_6)
+          waiting_for_addr <= prefetch_pc;
+        waiting_valid <= _GEN_6 | ~_GEN & waiting_valid;
       end
-      pendingReq <= ~((&missCounter) | _GEN) & (_GEN_4 | pendingReq);
-      if (~_GEN_2 | _GEN_0) begin
-      end
-      else begin
-        ifid_reg_inst <= inst;
-        ifid_reg_pc <= reqPC;
-      end
-      if ((&missCounter) | ~(pendingReq & ~io_icache_resp_valid))
-        missCounter <= 10'h0;
-      else
-        missCounter <= missCounter + 10'h1;
+      buffer_valid <= ~(io_branch | _GEN_1) & (_GEN & ~_GEN_0 & _GEN_4 | buffer_valid);
     end
-    if (_GEN_4)
-      reqPC <= nextReqPC;
-    canStart_REG <= ~reset;
+    if (io_branch | ~_GEN | _GEN_0 | ~_GEN_4) begin
+    end
+    else begin
+      inst_buffer_data <= io_icache_resp_bits_data;
+      inst_buffer_addr <= io_icache_resp_bits_addr;
+    end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:5];
+      automatic logic [31:0] _RANDOM[0:132];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h6; i += 3'h1) begin
+        for (logic [7:0] i = 8'h0; i < 8'h85; i += 8'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        pc = _RANDOM[3'h0];
-        prefetchPC = _RANDOM[3'h1];
-        reqPC = _RANDOM[3'h2];
-        pendingReq = _RANDOM[3'h3][0];
-        ifid_reg_inst = {_RANDOM[3'h3][31:1], _RANDOM[3'h4][0]};
-        ifid_reg_valid = _RANDOM[3'h4][1];
-        ifid_reg_pc = {_RANDOM[3'h4][31:2], _RANDOM[3'h5][1:0]};
-        canStart_REG = _RANDOM[3'h5][2];
-        missCounter = _RANDOM[3'h5][12:3];
+        prefetch_pc = _RANDOM[8'h0];
+        should_rcv_pc = _RANDOM[8'h1];
+        state = _RANDOM[8'h2][1:0];
+        inst_buffer_data =
+          {_RANDOM[8'h2][31:2],
+           _RANDOM[8'h3],
+           _RANDOM[8'h4],
+           _RANDOM[8'h5],
+           _RANDOM[8'h6],
+           _RANDOM[8'h7],
+           _RANDOM[8'h8],
+           _RANDOM[8'h9],
+           _RANDOM[8'hA],
+           _RANDOM[8'hB],
+           _RANDOM[8'hC],
+           _RANDOM[8'hD],
+           _RANDOM[8'hE],
+           _RANDOM[8'hF],
+           _RANDOM[8'h10],
+           _RANDOM[8'h11],
+           _RANDOM[8'h12],
+           _RANDOM[8'h13],
+           _RANDOM[8'h14],
+           _RANDOM[8'h15],
+           _RANDOM[8'h16],
+           _RANDOM[8'h17],
+           _RANDOM[8'h18],
+           _RANDOM[8'h19],
+           _RANDOM[8'h1A],
+           _RANDOM[8'h1B],
+           _RANDOM[8'h1C],
+           _RANDOM[8'h1D],
+           _RANDOM[8'h1E],
+           _RANDOM[8'h1F],
+           _RANDOM[8'h20],
+           _RANDOM[8'h21],
+           _RANDOM[8'h22],
+           _RANDOM[8'h23],
+           _RANDOM[8'h24],
+           _RANDOM[8'h25],
+           _RANDOM[8'h26],
+           _RANDOM[8'h27],
+           _RANDOM[8'h28],
+           _RANDOM[8'h29],
+           _RANDOM[8'h2A],
+           _RANDOM[8'h2B],
+           _RANDOM[8'h2C],
+           _RANDOM[8'h2D],
+           _RANDOM[8'h2E],
+           _RANDOM[8'h2F],
+           _RANDOM[8'h30],
+           _RANDOM[8'h31],
+           _RANDOM[8'h32],
+           _RANDOM[8'h33],
+           _RANDOM[8'h34],
+           _RANDOM[8'h35],
+           _RANDOM[8'h36],
+           _RANDOM[8'h37],
+           _RANDOM[8'h38],
+           _RANDOM[8'h39],
+           _RANDOM[8'h3A],
+           _RANDOM[8'h3B],
+           _RANDOM[8'h3C],
+           _RANDOM[8'h3D],
+           _RANDOM[8'h3E],
+           _RANDOM[8'h3F],
+           _RANDOM[8'h40],
+           _RANDOM[8'h41],
+           _RANDOM[8'h42],
+           _RANDOM[8'h43],
+           _RANDOM[8'h44],
+           _RANDOM[8'h45],
+           _RANDOM[8'h46],
+           _RANDOM[8'h47],
+           _RANDOM[8'h48],
+           _RANDOM[8'h49],
+           _RANDOM[8'h4A],
+           _RANDOM[8'h4B],
+           _RANDOM[8'h4C],
+           _RANDOM[8'h4D],
+           _RANDOM[8'h4E],
+           _RANDOM[8'h4F],
+           _RANDOM[8'h50],
+           _RANDOM[8'h51],
+           _RANDOM[8'h52],
+           _RANDOM[8'h53],
+           _RANDOM[8'h54],
+           _RANDOM[8'h55],
+           _RANDOM[8'h56],
+           _RANDOM[8'h57],
+           _RANDOM[8'h58],
+           _RANDOM[8'h59],
+           _RANDOM[8'h5A],
+           _RANDOM[8'h5B],
+           _RANDOM[8'h5C],
+           _RANDOM[8'h5D],
+           _RANDOM[8'h5E],
+           _RANDOM[8'h5F],
+           _RANDOM[8'h60],
+           _RANDOM[8'h61],
+           _RANDOM[8'h62],
+           _RANDOM[8'h63],
+           _RANDOM[8'h64],
+           _RANDOM[8'h65],
+           _RANDOM[8'h66],
+           _RANDOM[8'h67],
+           _RANDOM[8'h68],
+           _RANDOM[8'h69],
+           _RANDOM[8'h6A],
+           _RANDOM[8'h6B],
+           _RANDOM[8'h6C],
+           _RANDOM[8'h6D],
+           _RANDOM[8'h6E],
+           _RANDOM[8'h6F],
+           _RANDOM[8'h70],
+           _RANDOM[8'h71],
+           _RANDOM[8'h72],
+           _RANDOM[8'h73],
+           _RANDOM[8'h74],
+           _RANDOM[8'h75],
+           _RANDOM[8'h76],
+           _RANDOM[8'h77],
+           _RANDOM[8'h78],
+           _RANDOM[8'h79],
+           _RANDOM[8'h7A],
+           _RANDOM[8'h7B],
+           _RANDOM[8'h7C],
+           _RANDOM[8'h7D],
+           _RANDOM[8'h7E],
+           _RANDOM[8'h7F],
+           _RANDOM[8'h80],
+           _RANDOM[8'h81],
+           _RANDOM[8'h82][1:0]};
+        inst_buffer_addr = {_RANDOM[8'h82][31:2], _RANDOM[8'h83][1:0]};
+        buffer_valid = _RANDOM[8'h83][2];
+        waiting_for_addr = {_RANDOM[8'h83][31:3], _RANDOM[8'h84][2:0]};
+        waiting_valid = _RANDOM[8'h84][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN_3 ? ifid_reg_inst : _GEN_1 ? inst : 32'h0;
-  assign io_decodeStage_data_valid = _GEN_3 ? ifid_reg_valid : _GEN_2 & _GEN_0;
-  assign io_decodeStage_data_pc = _GEN_3 ? ifid_reg_pc : _GEN_1 ? reqPC : 32'h0;
-  assign io_icache_req_valid = canSendReq;
-  assign io_icache_req_bits_addr = nextReqPC;
+  assign io_icache_req_valid = io_branch | _GEN_2 & _GEN_3;
+  assign io_icache_req_bits_addr = io_branch ? io_target : prefetch_pc;
+  assign io_fetch_resp_valid = ~io_branch & (_GEN_1 | _GEN & _GEN_0);
+  assign io_fetch_resp_bits_data = _GEN_1 ? inst_buffer_data : io_icache_resp_bits_data;
+  assign io_fetch_resp_bits_addr = _GEN_1 ? inst_buffer_addr : io_icache_resp_bits_addr;
+endmodule
+
+module FetchUnitWithPrefetch(
+  input           clock,
+                  reset,
+  output [31:0]   io_decodeStage_data_inst,
+  output          io_decodeStage_data_valid,
+  output [31:0]   io_decodeStage_data_pc,
+  input           io_signal_fetchUnitSignal_allow_to_go,
+                  io_signal_branchControl_branch,
+  input  [31:0]   io_signal_branchControl_target,
+  input           io_prefetch_resp_valid,
+  input  [4095:0] io_prefetch_resp_bits_data,
+  input  [31:0]   io_prefetch_resp_bits_addr,
+  output          io_fetch_ready
+);
+
+  reg  [31:0] pc;
+  reg  [31:0] ifid_reg_inst;
+  reg         ifid_reg_valid;
+  reg  [31:0] ifid_reg_pc;
+  wire        _GEN = io_prefetch_resp_valid & io_prefetch_resp_bits_addr == pc;
+  wire [31:0] inst =
+    pc[8:2] == 7'h7
+      ? io_prefetch_resp_bits_data[255:224]
+      : pc[8:2] == 7'h6
+          ? io_prefetch_resp_bits_data[223:192]
+          : pc[8:2] == 7'h5
+              ? io_prefetch_resp_bits_data[191:160]
+              : pc[8:2] == 7'h4
+                  ? io_prefetch_resp_bits_data[159:128]
+                  : pc[8:2] == 7'h3
+                      ? io_prefetch_resp_bits_data[127:96]
+                      : pc[8:2] == 7'h2
+                          ? io_prefetch_resp_bits_data[95:64]
+                          : pc[8:2] == 7'h1
+                              ? io_prefetch_resp_bits_data[63:32]
+                              : pc[8:2] == 7'h0
+                                  ? io_prefetch_resp_bits_data[31:0]
+                                  : 32'h0;
+  wire        _GEN_0 = _GEN & io_signal_fetchUnitSignal_allow_to_go;
+  wire        _GEN_1 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
+  always @(posedge clock) begin
+    if (reset) begin
+      pc <= 32'h80000000;
+      ifid_reg_inst <= 32'h0;
+      ifid_reg_valid <= 1'h0;
+      ifid_reg_pc <= 32'h0;
+    end
+    else begin
+      automatic logic _GEN_2 =
+        io_signal_branchControl_branch | ~_GEN | io_signal_fetchUnitSignal_allow_to_go;
+      if (io_signal_branchControl_branch)
+        pc <= io_signal_branchControl_target;
+      else if (_GEN_1)
+        pc <= ifid_reg_pc + 32'h4;
+      else if (_GEN_0)
+        pc <= pc + 32'h4;
+      if (_GEN_2) begin
+      end
+      else
+        ifid_reg_inst <= inst;
+      ifid_reg_valid <=
+        ~(io_signal_branchControl_branch | _GEN_1)
+        & (_GEN & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
+      if (_GEN_2) begin
+      end
+      else
+        ifid_reg_pc <= pc;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:3];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          _RANDOM[i[1:0]] = `RANDOM;
+        end
+        pc = _RANDOM[2'h0];
+        ifid_reg_inst = _RANDOM[2'h1];
+        ifid_reg_valid = _RANDOM[2'h2][0];
+        ifid_reg_pc = {_RANDOM[2'h2][31:1], _RANDOM[2'h3][0]};
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_decodeStage_data_inst =
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_1 ? ifid_reg_inst : _GEN_0 ? inst : 32'h0;
+  assign io_decodeStage_data_valid =
+    ~io_signal_branchControl_branch
+    & (_GEN_1 ? ifid_reg_valid : _GEN & io_signal_fetchUnitSignal_allow_to_go);
+  assign io_decodeStage_data_pc =
+    io_signal_branchControl_branch ? 32'h0 : _GEN_1 ? ifid_reg_pc : _GEN_0 ? pc : 32'h0;
+  assign io_fetch_ready = ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
 endmodule
 
 module DecodeStage(
@@ -5972,8 +6175,12 @@ module Core(
   wire [31:0]   _fetchUnit_io_decodeStage_data_inst;
   wire          _fetchUnit_io_decodeStage_data_valid;
   wire [31:0]   _fetchUnit_io_decodeStage_data_pc;
-  wire          _fetchUnit_io_icache_req_valid;
-  wire [31:0]   _fetchUnit_io_icache_req_bits_addr;
+  wire          _fetchUnit_io_fetch_ready;
+  wire          _prefetchUnit_io_icache_req_valid;
+  wire [31:0]   _prefetchUnit_io_icache_req_bits_addr;
+  wire          _prefetchUnit_io_fetch_resp_valid;
+  wire [4095:0] _prefetchUnit_io_fetch_resp_bits_data;
+  wire [31:0]   _prefetchUnit_io_fetch_resp_bits_addr;
   wire          _dcache_io_req_ready;
   wire          _dcache_io_resp_valid;
   wire [31:0]   _dcache_io_resp_bits_data;
@@ -6041,8 +6248,8 @@ module Core(
     .clock                                (clock),
     .reset                                (reset),
     .io_icache_req_ready                  (_icache_io_icache_req_ready),
-    .io_icache_req_valid                  (_fetchUnit_io_icache_req_valid),
-    .io_icache_req_bits_addr              (_fetchUnit_io_icache_req_bits_addr),
+    .io_icache_req_valid                  (_prefetchUnit_io_icache_req_valid),
+    .io_icache_req_bits_addr              (_prefetchUnit_io_icache_req_bits_addr),
     .io_icache_resp_valid                 (_icache_io_icache_resp_valid),
     .io_icache_resp_bits_data             (_icache_io_icache_resp_bits_data),
     .io_icache_resp_bits_addr             (_icache_io_icache_resp_bits_addr),
@@ -6080,22 +6287,36 @@ module Core(
     .io_io_write_req_bits_data      (_dcache_io_io_write_req_bits_data),
     .io_io_write_req_bits_byte_mask (_dcache_io_io_write_req_bits_byte_mask)
   );
-  FetchUnit fetchUnit (
+  PrefetchUnit prefetchUnit (
+    .clock                    (clock),
+    .reset                    (reset),
+    .io_icache_req_ready      (_icache_io_icache_req_ready),
+    .io_icache_req_valid      (_prefetchUnit_io_icache_req_valid),
+    .io_icache_req_bits_addr  (_prefetchUnit_io_icache_req_bits_addr),
+    .io_icache_resp_valid     (_icache_io_icache_resp_valid),
+    .io_icache_resp_bits_data (_icache_io_icache_resp_bits_data),
+    .io_icache_resp_bits_addr (_icache_io_icache_resp_bits_addr),
+    .io_fetch_ready           (_fetchUnit_io_fetch_ready),
+    .io_fetch_resp_valid      (_prefetchUnit_io_fetch_resp_valid),
+    .io_fetch_resp_bits_data  (_prefetchUnit_io_fetch_resp_bits_data),
+    .io_fetch_resp_bits_addr  (_prefetchUnit_io_fetch_resp_bits_addr),
+    .io_branch                (_controlUnit_io_signals_branchControl_branch),
+    .io_target                (_controlUnit_io_signals_branchControl_target)
+  );
+  FetchUnitWithPrefetch fetchUnit (
     .clock                                 (clock),
     .reset                                 (reset),
     .io_decodeStage_data_inst              (_fetchUnit_io_decodeStage_data_inst),
     .io_decodeStage_data_valid             (_fetchUnit_io_decodeStage_data_valid),
     .io_decodeStage_data_pc                (_fetchUnit_io_decodeStage_data_pc),
-    .io_icache_resp_valid                  (_icache_io_icache_resp_valid),
-    .io_icache_resp_bits_data              (_icache_io_icache_resp_bits_data),
-    .io_icache_resp_bits_addr              (_icache_io_icache_resp_bits_addr),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
     .io_signal_branchControl_branch        (_controlUnit_io_signals_branchControl_branch),
     .io_signal_branchControl_target        (_controlUnit_io_signals_branchControl_target),
-    .io_icache_req_ready                   (_icache_io_icache_req_ready),
-    .io_icache_req_valid                   (_fetchUnit_io_icache_req_valid),
-    .io_icache_req_bits_addr               (_fetchUnit_io_icache_req_bits_addr)
+    .io_prefetch_resp_valid                (_prefetchUnit_io_fetch_resp_valid),
+    .io_prefetch_resp_bits_data            (_prefetchUnit_io_fetch_resp_bits_data),
+    .io_prefetch_resp_bits_addr            (_prefetchUnit_io_fetch_resp_bits_addr),
+    .io_fetch_ready                        (_fetchUnit_io_fetch_ready)
   );
   DecodeStage decodeStage (
     .clock                                        (clock),
