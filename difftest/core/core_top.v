@@ -2135,8 +2135,6 @@ module DecodeStage(
 endmodule
 
 module DecodeUnit(
-  input         clock,
-                reset,
   input  [31:0] io_decodeStage_data_inst,
   input         io_decodeStage_data_valid,
   input  [31:0] io_decodeStage_data_pc,
@@ -2265,29 +2263,13 @@ module DecodeUnit(
     | ((&instrType)
          ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, io_decodeStage_data_inst[25:10], 2'h0}
          : 32'h0);
-  wire [4:0]  reg_waddr =
-    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   wire [4:0]  src2_raddr =
     isR
       ? io_decodeStage_data_inst[14:10]
       : isS | isB ? io_decodeStage_data_inst[4:0] : 5'h0;
   wire        _src1_ren_T = isR | isI;
-  wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  `ifndef SYNTHESIS
-    always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
-        $fwrite(32'h80000002, "[DecodeUnit] Decoding: PC=0x%x, Inst=0x%x\n",
-                io_decodeStage_data_pc, io_decodeStage_data_inst);
-        $fwrite(32'h80000002, "  src1_raddr=%d, src2_raddr=%d, reg_waddr=%d\n",
-                io_decodeStage_data_inst[9:5], src2_raddr, reg_waddr);
-        $fwrite(32'h80000002, "  src1_ren=%d, src2_ren=%d, reg_wen=%d\n", src1_ren,
-                src2_ren, reg_wen);
-      end
-    end // always @(posedge)
-  `endif // not def SYNTHESIS
   assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[9:5] : 5'h0;
   assign io_regfile_src2_raddr = src2_ren ? src2_raddr : 5'h0;
   assign io_executeStage_data_pc = io_decodeStage_data_pc;
@@ -2296,8 +2278,11 @@ module DecodeUnit(
   assign io_executeStage_data_info_valid = io_decodeStage_data_valid & (|instrType);
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
-    reg_wen & io_decodeStage_data_valid & (|instrType);
-  assign io_executeStage_data_info_reg_waddr = reg_waddr;
+    (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & io_decodeStage_data_valid
+    & (|instrType);
+  assign io_executeStage_data_info_reg_waddr =
+    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
+    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   assign io_executeStage_data_info_imm = imm;
   assign io_executeStage_data_info_fusel =
     {1'h0,
@@ -4017,17 +4002,6 @@ module ControlUnit(
         $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
                 io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
                 io_signals_bypassData_src2_data_0);
-      if ((`PRINTF_COND_) & io_executeBranch & ~reset)
-        $fwrite(32'h80000002,
-                "[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n",
-                io_executeTarget);
-      if ((`PRINTF_COND_) & 1'h0) begin
-        $fwrite(32'h80000002,
-                "[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n",
-                32'h0);
-        $fwrite(32'h80000002,
-                "[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n");
-      end
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
@@ -4039,7 +4013,7 @@ module ControlUnit(
   assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
   assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
   assign io_signals_branchControl_branch = io_executeBranch;
-  assign io_signals_branchControl_target = io_executeBranch ? io_executeTarget : 32'h0;
+  assign io_signals_branchControl_target = io_executeTarget;
 endmodule
 
 module Diff(
@@ -4610,8 +4584,6 @@ module Core(
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
   DecodeUnit decodeUnit (
-    .clock                                   (clock),
-    .reset                                   (reset),
     .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),
