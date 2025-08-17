@@ -944,7 +944,6 @@ module ICache(
   output         io_icache_req_ready,
   input          io_icache_req_valid,
   input  [31:0]  io_icache_req_bits_addr,
-  input          io_flush,
   output         io_icache_resp_valid,
   output [255:0] io_icache_resp_bits_data,
   output [31:0]  io_icache_resp_bits_addr,
@@ -1243,14 +1242,12 @@ module ICache(
     check_valid & check_tag == _cache_tag_ext_R0_data & _GEN[check_index];
   wire         io_icache_debug_state_0 = state == 2'h2;
   wire         _GEN_0 = state == 2'h1;
-  wire         _GEN_1 = _GEN_0 & ~io_flush;
-  wire         _GEN_2 = ~(|state) | ~_GEN_1 | hit;
-  wire         _GEN_3 = state == 2'h2;
-  wire         _GEN_4 = _GEN_3 & ~io_flush;
-  wire         _GEN_5 = _GEN_4 & io_io_read_resp_valid;
-  wire         _GEN_6 = _GEN_3 & ~io_flush & io_io_read_resp_valid;
-  wire         _GEN_7 = ~(|state) | _GEN_0;
-  wire         _GEN_8 = ~_GEN_7 & _GEN_5;
+  wire         _GEN_1 = ~(|state) | ~_GEN_0 | hit;
+  wire         _GEN_2 = state == 2'h2;
+  wire         _GEN_3 = _GEN_2 & io_io_read_resp_valid;
+  wire         _GEN_4 = _GEN_2 & io_io_read_resp_valid;
+  wire         _GEN_5 = ~(|state) | _GEN_0;
+  wire         _GEN_6 = ~_GEN_5 & _GEN_3;
   always @(posedge clock) begin
     if (reset) begin
       state <= 2'h0;
@@ -1391,432 +1388,290 @@ module ICache(
       check_valid <= 1'h0;
     end
     else begin
-      automatic logic _GEN_9;
-      automatic logic _GEN_10;
-      automatic logic _GEN_11;
-      _GEN_9 = ~io_flush & check_valid;
-      _GEN_10 = io_icache_req_valid & ~io_flush;
-      _GEN_11 = _GEN_3 & ~io_flush & io_io_read_resp_valid & io_icache_req_valid;
+      automatic logic _GEN_7;
+      _GEN_7 = _GEN_2 & io_io_read_resp_valid & io_icache_req_valid;
       if (|state) begin
-        automatic logic [1:0] _GEN_12;
-        _GEN_12 = {1'h0, io_icache_req_valid};
+        automatic logic [1:0] _GEN_8;
+        _GEN_8 = {1'h0, io_icache_req_valid};
         if (_GEN_0) begin
-          if (io_flush) begin
-            state <= 2'h0;
-            check_valid <= _GEN_9;
-          end
-          else if (hit) begin
-            state <= _GEN_12;
+          if (hit) begin
+            state <= _GEN_8;
             check_valid <= io_icache_req_valid;
           end
           else begin
             if (io_io_read_req_ready)
               state <= 2'h2;
-            else if (io_flush)
-              state <= 2'h0;
-            check_valid <= ~(io_io_read_req_ready | io_flush) & check_valid;
+            check_valid <= ~io_io_read_req_ready & check_valid;
           end
         end
         else begin
-          if (_GEN_6)
-            state <= _GEN_12;
-          else if (io_flush)
-            state <= 2'h0;
-          check_valid <= _GEN_11 | _GEN_9;
+          if (_GEN_4)
+            state <= _GEN_8;
+          check_valid <= _GEN_7 | check_valid;
         end
       end
       else begin
-        if (_GEN_10)
+        if (io_icache_req_valid)
           state <= 2'h1;
-        else if (io_flush)
-          state <= 2'h0;
-        check_valid <= _GEN_10 | _GEN_9;
+        check_valid <= io_icache_req_valid | check_valid;
       end
       cache_valid_0 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h0
-        | cache_valid_0;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h0 | cache_valid_0;
       cache_valid_1 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1
-        | cache_valid_1;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1 | cache_valid_1;
       cache_valid_2 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2
-        | cache_valid_2;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2 | cache_valid_2;
       cache_valid_3 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3
-        | cache_valid_3;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3 | cache_valid_3;
       cache_valid_4 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4
-        | cache_valid_4;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4 | cache_valid_4;
       cache_valid_5 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5
-        | cache_valid_5;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5 | cache_valid_5;
       cache_valid_6 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6
-        | cache_valid_6;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6 | cache_valid_6;
       cache_valid_7 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7
-        | cache_valid_7;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7 | cache_valid_7;
       cache_valid_8 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h8
-        | cache_valid_8;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h8 | cache_valid_8;
       cache_valid_9 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h9
-        | cache_valid_9;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h9 | cache_valid_9;
       cache_valid_10 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hA
-        | cache_valid_10;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hA | cache_valid_10;
       cache_valid_11 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hB
-        | cache_valid_11;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hB | cache_valid_11;
       cache_valid_12 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hC
-        | cache_valid_12;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hC | cache_valid_12;
       cache_valid_13 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hD
-        | cache_valid_13;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hD | cache_valid_13;
       cache_valid_14 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hE
-        | cache_valid_14;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hE | cache_valid_14;
       cache_valid_15 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hF
-        | cache_valid_15;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'hF | cache_valid_15;
       cache_valid_16 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h10
-        | cache_valid_16;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h10 | cache_valid_16;
       cache_valid_17 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h11
-        | cache_valid_17;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h11 | cache_valid_17;
       cache_valid_18 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h12
-        | cache_valid_18;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h12 | cache_valid_18;
       cache_valid_19 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h13
-        | cache_valid_19;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h13 | cache_valid_19;
       cache_valid_20 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h14
-        | cache_valid_20;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h14 | cache_valid_20;
       cache_valid_21 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h15
-        | cache_valid_21;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h15 | cache_valid_21;
       cache_valid_22 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h16
-        | cache_valid_22;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h16 | cache_valid_22;
       cache_valid_23 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h17
-        | cache_valid_23;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h17 | cache_valid_23;
       cache_valid_24 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h18
-        | cache_valid_24;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h18 | cache_valid_24;
       cache_valid_25 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h19
-        | cache_valid_25;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h19 | cache_valid_25;
       cache_valid_26 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1A
-        | cache_valid_26;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1A | cache_valid_26;
       cache_valid_27 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1B
-        | cache_valid_27;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1B | cache_valid_27;
       cache_valid_28 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1C
-        | cache_valid_28;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1C | cache_valid_28;
       cache_valid_29 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1D
-        | cache_valid_29;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1D | cache_valid_29;
       cache_valid_30 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1E
-        | cache_valid_30;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1E | cache_valid_30;
       cache_valid_31 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1F
-        | cache_valid_31;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h1F | cache_valid_31;
       cache_valid_32 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h20
-        | cache_valid_32;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h20 | cache_valid_32;
       cache_valid_33 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h21
-        | cache_valid_33;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h21 | cache_valid_33;
       cache_valid_34 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h22
-        | cache_valid_34;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h22 | cache_valid_34;
       cache_valid_35 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h23
-        | cache_valid_35;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h23 | cache_valid_35;
       cache_valid_36 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h24
-        | cache_valid_36;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h24 | cache_valid_36;
       cache_valid_37 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h25
-        | cache_valid_37;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h25 | cache_valid_37;
       cache_valid_38 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h26
-        | cache_valid_38;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h26 | cache_valid_38;
       cache_valid_39 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h27
-        | cache_valid_39;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h27 | cache_valid_39;
       cache_valid_40 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h28
-        | cache_valid_40;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h28 | cache_valid_40;
       cache_valid_41 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h29
-        | cache_valid_41;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h29 | cache_valid_41;
       cache_valid_42 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2A
-        | cache_valid_42;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2A | cache_valid_42;
       cache_valid_43 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2B
-        | cache_valid_43;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2B | cache_valid_43;
       cache_valid_44 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2C
-        | cache_valid_44;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2C | cache_valid_44;
       cache_valid_45 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2D
-        | cache_valid_45;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2D | cache_valid_45;
       cache_valid_46 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2E
-        | cache_valid_46;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2E | cache_valid_46;
       cache_valid_47 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2F
-        | cache_valid_47;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h2F | cache_valid_47;
       cache_valid_48 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h30
-        | cache_valid_48;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h30 | cache_valid_48;
       cache_valid_49 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h31
-        | cache_valid_49;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h31 | cache_valid_49;
       cache_valid_50 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h32
-        | cache_valid_50;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h32 | cache_valid_50;
       cache_valid_51 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h33
-        | cache_valid_51;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h33 | cache_valid_51;
       cache_valid_52 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h34
-        | cache_valid_52;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h34 | cache_valid_52;
       cache_valid_53 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h35
-        | cache_valid_53;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h35 | cache_valid_53;
       cache_valid_54 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h36
-        | cache_valid_54;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h36 | cache_valid_54;
       cache_valid_55 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h37
-        | cache_valid_55;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h37 | cache_valid_55;
       cache_valid_56 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h38
-        | cache_valid_56;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h38 | cache_valid_56;
       cache_valid_57 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h39
-        | cache_valid_57;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h39 | cache_valid_57;
       cache_valid_58 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3A
-        | cache_valid_58;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3A | cache_valid_58;
       cache_valid_59 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3B
-        | cache_valid_59;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3B | cache_valid_59;
       cache_valid_60 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3C
-        | cache_valid_60;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3C | cache_valid_60;
       cache_valid_61 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3D
-        | cache_valid_61;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3D | cache_valid_61;
       cache_valid_62 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3E
-        | cache_valid_62;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3E | cache_valid_62;
       cache_valid_63 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3F
-        | cache_valid_63;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h3F | cache_valid_63;
       cache_valid_64 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h40
-        | cache_valid_64;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h40 | cache_valid_64;
       cache_valid_65 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h41
-        | cache_valid_65;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h41 | cache_valid_65;
       cache_valid_66 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h42
-        | cache_valid_66;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h42 | cache_valid_66;
       cache_valid_67 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h43
-        | cache_valid_67;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h43 | cache_valid_67;
       cache_valid_68 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h44
-        | cache_valid_68;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h44 | cache_valid_68;
       cache_valid_69 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h45
-        | cache_valid_69;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h45 | cache_valid_69;
       cache_valid_70 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h46
-        | cache_valid_70;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h46 | cache_valid_70;
       cache_valid_71 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h47
-        | cache_valid_71;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h47 | cache_valid_71;
       cache_valid_72 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h48
-        | cache_valid_72;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h48 | cache_valid_72;
       cache_valid_73 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h49
-        | cache_valid_73;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h49 | cache_valid_73;
       cache_valid_74 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4A
-        | cache_valid_74;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4A | cache_valid_74;
       cache_valid_75 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4B
-        | cache_valid_75;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4B | cache_valid_75;
       cache_valid_76 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4C
-        | cache_valid_76;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4C | cache_valid_76;
       cache_valid_77 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4D
-        | cache_valid_77;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4D | cache_valid_77;
       cache_valid_78 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4E
-        | cache_valid_78;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4E | cache_valid_78;
       cache_valid_79 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4F
-        | cache_valid_79;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h4F | cache_valid_79;
       cache_valid_80 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h50
-        | cache_valid_80;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h50 | cache_valid_80;
       cache_valid_81 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h51
-        | cache_valid_81;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h51 | cache_valid_81;
       cache_valid_82 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h52
-        | cache_valid_82;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h52 | cache_valid_82;
       cache_valid_83 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h53
-        | cache_valid_83;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h53 | cache_valid_83;
       cache_valid_84 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h54
-        | cache_valid_84;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h54 | cache_valid_84;
       cache_valid_85 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h55
-        | cache_valid_85;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h55 | cache_valid_85;
       cache_valid_86 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h56
-        | cache_valid_86;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h56 | cache_valid_86;
       cache_valid_87 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h57
-        | cache_valid_87;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h57 | cache_valid_87;
       cache_valid_88 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h58
-        | cache_valid_88;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h58 | cache_valid_88;
       cache_valid_89 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h59
-        | cache_valid_89;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h59 | cache_valid_89;
       cache_valid_90 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5A
-        | cache_valid_90;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5A | cache_valid_90;
       cache_valid_91 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5B
-        | cache_valid_91;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5B | cache_valid_91;
       cache_valid_92 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5C
-        | cache_valid_92;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5C | cache_valid_92;
       cache_valid_93 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5D
-        | cache_valid_93;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5D | cache_valid_93;
       cache_valid_94 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5E
-        | cache_valid_94;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5E | cache_valid_94;
       cache_valid_95 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5F
-        | cache_valid_95;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h5F | cache_valid_95;
       cache_valid_96 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h60
-        | cache_valid_96;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h60 | cache_valid_96;
       cache_valid_97 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h61
-        | cache_valid_97;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h61 | cache_valid_97;
       cache_valid_98 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h62
-        | cache_valid_98;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h62 | cache_valid_98;
       cache_valid_99 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h63
-        | cache_valid_99;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h63 | cache_valid_99;
       cache_valid_100 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h64
-        | cache_valid_100;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h64 | cache_valid_100;
       cache_valid_101 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h65
-        | cache_valid_101;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h65 | cache_valid_101;
       cache_valid_102 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h66
-        | cache_valid_102;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h66 | cache_valid_102;
       cache_valid_103 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h67
-        | cache_valid_103;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h67 | cache_valid_103;
       cache_valid_104 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h68
-        | cache_valid_104;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h68 | cache_valid_104;
       cache_valid_105 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h69
-        | cache_valid_105;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h69 | cache_valid_105;
       cache_valid_106 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6A
-        | cache_valid_106;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6A | cache_valid_106;
       cache_valid_107 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6B
-        | cache_valid_107;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6B | cache_valid_107;
       cache_valid_108 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6C
-        | cache_valid_108;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6C | cache_valid_108;
       cache_valid_109 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6D
-        | cache_valid_109;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6D | cache_valid_109;
       cache_valid_110 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6E
-        | cache_valid_110;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6E | cache_valid_110;
       cache_valid_111 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6F
-        | cache_valid_111;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h6F | cache_valid_111;
       cache_valid_112 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h70
-        | cache_valid_112;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h70 | cache_valid_112;
       cache_valid_113 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h71
-        | cache_valid_113;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h71 | cache_valid_113;
       cache_valid_114 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h72
-        | cache_valid_114;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h72 | cache_valid_114;
       cache_valid_115 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h73
-        | cache_valid_115;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h73 | cache_valid_115;
       cache_valid_116 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h74
-        | cache_valid_116;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h74 | cache_valid_116;
       cache_valid_117 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h75
-        | cache_valid_117;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h75 | cache_valid_117;
       cache_valid_118 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h76
-        | cache_valid_118;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h76 | cache_valid_118;
       cache_valid_119 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h77
-        | cache_valid_119;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h77 | cache_valid_119;
       cache_valid_120 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h78
-        | cache_valid_120;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h78 | cache_valid_120;
       cache_valid_121 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h79
-        | cache_valid_121;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h79 | cache_valid_121;
       cache_valid_122 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7A
-        | cache_valid_122;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7A | cache_valid_122;
       cache_valid_123 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7B
-        | cache_valid_123;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7B | cache_valid_123;
       cache_valid_124 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7C
-        | cache_valid_124;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7C | cache_valid_124;
       cache_valid_125 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7D
-        | cache_valid_125;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7D | cache_valid_125;
       cache_valid_126 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7E
-        | cache_valid_126;
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & miss_index == 7'h7E | cache_valid_126;
       cache_valid_127 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & (&miss_index)
-        | cache_valid_127;
-      if (_GEN_2) begin
+        ~_GEN_5 & _GEN_2 & io_io_read_resp_valid & (&miss_index) | cache_valid_127;
+      if (_GEN_1) begin
       end
       else begin
         miss_index <= check_index;
@@ -1824,8 +1679,8 @@ module ICache(
         miss_addr <= check_addr;
       end
       if ((|state)
-            ? (_GEN_0 ? ~io_flush & hit & io_icache_req_valid : _GEN_11)
-            : _GEN_10) begin
+            ? (_GEN_0 ? hit & io_icache_req_valid : _GEN_7)
+            : io_icache_req_valid) begin
         check_index <= io_icache_req_bits_addr[11:5];
         check_tag <= io_icache_req_bits_addr[31:12];
         check_addr <= io_icache_req_bits_addr;
@@ -1993,7 +1848,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_tag_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (miss_tag)
   );
@@ -2003,7 +1858,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_0_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
   );
@@ -2013,7 +1868,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_1_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
   );
@@ -2023,7 +1878,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_2_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
   );
@@ -2033,7 +1888,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_3_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
   );
@@ -2043,7 +1898,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_4_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
   );
@@ -2053,7 +1908,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_5_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
   );
@@ -2063,7 +1918,7 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_6_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
   );
@@ -2073,17 +1928,13 @@ module ICache(
     .R0_clk  (clock),
     .R0_data (_cache_data_7_ext_R0_data),
     .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_en   (_GEN_6),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
   );
   assign io_icache_req_ready =
-    (|state)
-      ? (_GEN_0
-           ? ~io_flush & hit & io_icache_req_valid
-           : _GEN_4 & io_io_read_resp_valid & io_icache_req_valid)
-      : ~io_flush;
-  assign io_icache_resp_valid = (|state) & (_GEN_0 ? ~io_flush & hit : _GEN_5);
+    ~(|state) | (_GEN_0 ? hit & io_icache_req_valid : _GEN_4 & io_icache_req_valid);
+  assign io_icache_resp_valid = (|state) & (_GEN_0 ? hit : _GEN_3);
   assign io_icache_resp_bits_data =
     _GEN_0
       ? {_cache_data_7_ext_R0_data,
@@ -2095,13 +1946,12 @@ module ICache(
          _cache_data_1_ext_R0_data,
          _cache_data_0_ext_R0_data}
       : io_io_read_resp_bits_data;
-  assign io_icache_resp_bits_addr = _GEN_7 | ~_GEN_6 ? check_addr : miss_addr;
-  assign io_io_read_req_valid = (|state) & _GEN_1 & ~hit;
-  assign io_io_read_req_bits_addr = {_GEN_2 ? miss_addr[31:5] : check_addr[31:5], 5'h0};
+  assign io_icache_resp_bits_addr = _GEN_5 | ~_GEN_4 ? check_addr : miss_addr;
+  assign io_io_read_req_valid = (|state) & _GEN_0 & ~hit;
+  assign io_io_read_req_bits_addr = {_GEN_1 ? miss_addr[31:5] : check_addr[31:5], 5'h0};
   assign io_icache_debug_state = io_icache_debug_state_0;
   assign io_icache_debug_hit_cache = hit;
-  assign io_icache_debug_cache_we =
-    io_icache_debug_state_0 & io_io_read_resp_valid & ~io_flush;
+  assign io_icache_debug_cache_we = io_icache_debug_state_0 & io_io_read_resp_valid;
   assign io_icache_debug_cache_read_tag = _cache_tag_ext_R0_data;
   assign io_icache_debug_icache_req_valid = 1'h0;
   assign io_icache_debug_icache_req_bits_addr = 32'h0;
@@ -2220,6 +2070,115 @@ module DCache(
     saved_req_valid ? saved_req_bits_wstrb : io_req_bits_wstrb;
 endmodule
 
+// VCS coverage exclude_file
+module ram_2x64(
+  input         R0_addr,
+                R0_en,
+                R0_clk,
+  output [63:0] R0_data,
+  input         W0_addr,
+                W0_en,
+                W0_clk,
+  input  [63:0] W0_data
+);
+
+  reg [63:0] Memory[0:1];
+  always @(posedge W0_clk) begin
+    if (W0_en & 1'h1)
+      Memory[W0_addr] <= W0_data;
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_MEM_
+    reg [63:0] _RANDOM_MEM;
+    initial begin
+      `INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_MEM_INIT
+        for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
+          for (logic [6:0] j = 7'h0; j < 7'h40; j += 7'h20) begin
+            _RANDOM_MEM[j +: 32] = `RANDOM;
+          end
+          Memory[i[0]] = _RANDOM_MEM;
+        end
+      `endif // RANDOMIZE_MEM_INIT
+    end // initial
+  `endif // ENABLE_INITIAL_MEM_
+  assign R0_data = R0_en ? Memory[R0_addr] : 64'bx;
+endmodule
+
+module Queue2_IfIdData(
+  input         clock,
+                reset,
+  output        io_enq_ready,
+  input         io_enq_valid,
+  input  [31:0] io_enq_bits_inst,
+                io_enq_bits_pc,
+  input         io_deq_ready,
+  output        io_deq_valid,
+  output [31:0] io_deq_bits_inst,
+                io_deq_bits_pc,
+  output [1:0]  io_count
+);
+
+  wire [63:0] _ram_ext_R0_data;
+  reg         wrap;
+  reg         wrap_1;
+  reg         maybe_full;
+  wire        ptr_match = wrap == wrap_1;
+  wire        empty = ptr_match & ~maybe_full;
+  wire        full = ptr_match & maybe_full;
+  wire        do_enq = ~full & io_enq_valid;
+  always @(posedge clock) begin
+    if (reset) begin
+      wrap <= 1'h0;
+      wrap_1 <= 1'h0;
+      maybe_full <= 1'h0;
+    end
+    else begin
+      automatic logic do_deq = io_deq_ready & ~empty;
+      if (do_enq)
+        wrap <= wrap - 1'h1;
+      if (do_deq)
+        wrap_1 <= wrap_1 - 1'h1;
+      if (~(do_enq == do_deq))
+        maybe_full <= do_enq;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:0];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;
+        wrap = _RANDOM[/*Zero width*/ 1'b0][0];
+        wrap_1 = _RANDOM[/*Zero width*/ 1'b0][1];
+        maybe_full = _RANDOM[/*Zero width*/ 1'b0][2];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  ram_2x64 ram_ext (
+    .R0_addr (wrap_1),
+    .R0_en   (1'h1),
+    .R0_clk  (clock),
+    .R0_data (_ram_ext_R0_data),
+    .W0_addr (wrap),
+    .W0_en   (do_enq),
+    .W0_clk  (clock),
+    .W0_data ({io_enq_bits_pc, io_enq_bits_inst})
+  );
+  assign io_enq_ready = ~full;
+  assign io_deq_valid = ~empty;
+  assign io_deq_bits_inst = _ram_ext_R0_data[31:0];
+  assign io_deq_bits_pc = _ram_ext_R0_data[63:32];
+  assign io_count = {maybe_full & ptr_match, wrap - wrap_1};
+endmodule
+
 module FetchUnit(
   input          clock,
                  reset,
@@ -2237,21 +2196,17 @@ module FetchUnit(
   output [31:0]  io_icache_req_bits_addr
 );
 
-  reg              state;
+  wire             _instQueue_io_enq_ready;
+  wire             _instQueue_io_deq_valid;
+  wire [1:0]       _instQueue_io_count;
   reg  [31:0]      pc;
-  reg              pending_valid;
-  reg  [31:0]      ifid_reg_inst;
-  reg              ifid_reg_valid;
-  reg  [31:0]      ifid_reg_pc;
+  reg  [1:0]       pendingReqs;
   reg              canStart_REG;
   wire             canStart = canStart_REG & ~reset;
-  wire             _GEN =
-    ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_0 =
-    canStart & ~(~io_signal_fetchUnitSignal_allow_to_go & ifid_reg_valid) & ~io_branch;
-  wire             _GEN_1 = io_icache_resp_valid & pending_valid;
-  wire             addr_match = io_icache_resp_bits_addr == pc;
-  wire [7:0][31:0] _GEN_2 =
+  wire             canSendReq =
+    canStart & ~_instQueue_io_enq_ready & ~(pendingReqs[1]) & ~io_branch;
+  wire             _GEN = io_icache_resp_valid & (|pendingReqs) & ~io_branch;
+  wire [7:0][31:0] _GEN_0 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -2260,52 +2215,29 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst = _GEN_2[pc[4:2]];
-  wire             _GEN_3 = io_signal_fetchUnitSignal_allow_to_go & ~ifid_reg_valid;
-  wire             _GEN_4 = state & _GEN_1 & addr_match;
-  wire             _GEN_5 = _GEN_3 & ~io_branch;
+  reg              flushQueue;
   always @(posedge clock) begin
     if (reset) begin
-      state <= 1'h0;
       pc <= 32'h80000000;
-      pending_valid <= 1'h0;
-      ifid_reg_inst <= 32'h0;
-      ifid_reg_valid <= 1'h0;
-      ifid_reg_pc <= 32'h0;
+      pendingReqs <= 2'h0;
+      flushQueue <= 1'h0;
     end
     else begin
-      automatic logic _GEN_6 = _GEN_0 & io_icache_req_ready;
-      automatic logic _GEN_7;
-      automatic logic _GEN_8 = addr_match & _GEN_5 & io_icache_req_ready;
-      _GEN_7 = ~state | ~_GEN_4 | _GEN_3;
-      state <=
-        ~io_branch
-        & (state
-             ? (~state | pending_valid & (~_GEN_1 | _GEN_8)) & state
-             : _GEN_6 | state);
+      automatic logic _GEN_1;
+      _GEN_1 = io_icache_req_ready & canSendReq;
       if (canStart & pc == 32'h0 & ~io_branch)
         pc <= 32'h80000000;
+      else if (_GEN_1)
+        pc <= pc + 32'h4;
       else if (io_branch)
         pc <= io_target;
-      else if (state) begin
-        if (state & _GEN_1 & addr_match & _GEN_3)
-          pc <= pc + 32'h4;
-      end
-      else if (_GEN)
-        pc <= pc + 32'h4;
-      pending_valid <=
-        ~io_branch
-        & (state ? (state & _GEN_1 ? _GEN_8 : pending_valid) : _GEN_6 | pending_valid);
-      if (_GEN_7) begin
-      end
-      else
-        ifid_reg_inst <= inst;
-      ifid_reg_valid <=
-        ~io_branch & (state ? _GEN_4 & ~_GEN_3 | ifid_reg_valid : ~_GEN & ifid_reg_valid);
-      if (_GEN_7) begin
-      end
-      else
-        ifid_reg_pc <= pc;
+      if (_GEN & _instQueue_io_enq_ready)
+        pendingReqs <= pendingReqs - 2'h1;
+      else if (_GEN_1)
+        pendingReqs <= pendingReqs + 2'h1;
+      else if (io_branch)
+        pendingReqs <= 2'h0;
+      flushQueue <= io_branch | (|_instQueue_io_count) & flushQueue;
     end
     canStart_REG <= ~reset;
   end // always @(posedge)
@@ -2314,31 +2246,39 @@ module FetchUnit(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:4];
+      automatic logic [31:0] _RANDOM[0:1];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
-          _RANDOM[i] = `RANDOM;
+        for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
+          _RANDOM[i[0]] = `RANDOM;
         end
-        state = _RANDOM[3'h0][0];
-        pc = {_RANDOM[3'h0][31:1], _RANDOM[3'h1][0]};
-        pending_valid = _RANDOM[3'h2][1];
-        ifid_reg_inst = {_RANDOM[3'h2][31:2], _RANDOM[3'h3][1:0]};
-        ifid_reg_valid = _RANDOM[3'h3][2];
-        ifid_reg_pc = {_RANDOM[3'h3][31:3], _RANDOM[3'h4][2:0]};
-        canStart_REG = _RANDOM[3'h4][3];
+        pc = _RANDOM[1'h0];
+        pendingReqs = _RANDOM[1'h1][1:0];
+        canStart_REG = _RANDOM[1'h1][2];
+        flushQueue = _RANDOM[1'h1][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = state ? inst : ifid_reg_inst;
-  assign io_decodeStage_data_valid = state ? _GEN_4 & _GEN_3 : _GEN & ifid_reg_valid;
-  assign io_decodeStage_data_pc = state ? pc : ifid_reg_pc;
-  assign io_icache_req_valid = state ? _GEN_4 & _GEN_5 : _GEN_0;
+  Queue2_IfIdData instQueue (
+    .clock            (clock),
+    .reset            (reset),
+    .io_enq_ready     (_instQueue_io_enq_ready),
+    .io_enq_valid     (~flushQueue & _GEN),
+    .io_enq_bits_inst (_GEN_0[io_icache_resp_bits_addr[4:2]]),
+    .io_enq_bits_pc   (io_icache_resp_bits_addr),
+    .io_deq_ready     (flushQueue | io_signal_fetchUnitSignal_allow_to_go & ~io_branch),
+    .io_deq_valid     (_instQueue_io_deq_valid),
+    .io_deq_bits_inst (io_decodeStage_data_inst),
+    .io_deq_bits_pc   (io_decodeStage_data_pc),
+    .io_count         (_instQueue_io_count)
+  );
+  assign io_decodeStage_data_valid = _instQueue_io_deq_valid & ~io_branch;
+  assign io_icache_req_valid = canSendReq;
   assign io_icache_req_bits_addr = pc;
 endmodule
 
@@ -4754,7 +4694,6 @@ module Core(
     .io_icache_req_ready                  (_icache_io_icache_req_ready),
     .io_icache_req_valid                  (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr              (_fetchUnit_io_icache_req_bits_addr),
-    .io_flush                             (_executeUnit_io_branch),
     .io_icache_resp_valid                 (_icache_io_icache_resp_valid),
     .io_icache_resp_bits_data             (_icache_io_icache_resp_bits_data),
     .io_icache_resp_bits_addr             (_icache_io_icache_resp_bits_addr),

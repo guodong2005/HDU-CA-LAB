@@ -15,25 +15,35 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  // PC管理
-  val pc = RegInit(PC_INIT)
-
-  // 使用一个大小为2的队列来缓存指令
-  // 队列存储的是 (inst, pc, valid) 元组
-  val instQueue = Module(new Queue(new IfIdData(), entries = 2))
-
-  // 跟踪未完成的请求数量（最多2个）
-  val pendingReqs = RegInit(0.U(2.W))
-
-  // 控制信号
-  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
-
   // 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
   io.canStart := canStart
 
-  // 指令提取辅助函数
+  // PC管理
+  val pc = RegInit(PC_INIT)
+
+  // 简单的2项循环队列
+  val queue       = Reg(Vec(2, new IfIdData()))
+  val queue_valid = RegInit(VecInit(Seq.fill(2)(false.B)))
+  val queue_pc    = Reg(Vec(2, UInt(XLEN.W))) // 记录每个队列项对应的请求PC
+
+  // 队列指针 - 只需要1位因为队列大小是2
+  val head = RegInit(0.U(1.W)) // 指向下一个要输出的位置
+  val tail = head ^ 1.U // 指向下一个要写入的位置
+
+  // 队列状态
+  val isEmpty = !queue_valid(head)
+  val isFull  = queue_valid(tail)
+
+  // 等待响应标志
+  val waitingResp = RegInit(false.B)
+  val reqPC       = RegInit(PC_INIT)
+
+  // 控制信号
+  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
+
+  // 指令提取函数
   def extractInst(data: UInt, pc: UInt): UInt = {
     val instIdx = pc(ICACHE_OFFSET_WIDTH - 1, 2)
     MuxLookup(instIdx, 0.U)(
@@ -50,83 +60,67 @@ class FetchUnit extends Module {
     )
   }
 
-  // ========== 分支处理 ==========
-  // 分支时清空队列和请求
-  when(io.branch) {
-    pc                     := io.target
-    pendingReqs            := 0.U
-    instQueue.io.deq.ready := true.B // 清空队列
-    // 队列会自动清空（通过flush信号或连续出队）
-  }
-
-  // ========== 请求发送逻辑 ==========
-  // 当队列有空间且有未完成请求的空间时，发送新请求
-  val canSendReq = canStart &&
-    !instQueue.io.enq.ready.asBool && // 队列未满
-    pendingReqs < 2.U && // 未达到最大请求数
-    !io.branch // 没有分支
-
-  io.icache_req.valid     := canSendReq
+  // ========== 请求发送 ==========
+  // 队列不满且没有等待响应时发送请求
+  io.icache_req.valid     := canStart && !isFull && !waitingResp && !io.branch
   io.icache_req.bits.addr := pc
 
-  // 更新PC和pending计数
   when(io.icache_req.fire) {
+    reqPC       := pc
     pc          := pc + 4.U
-    pendingReqs := pendingReqs + 1.U
+    waitingResp := true.B
   }
 
-  // ========== 响应处理逻辑 ==========
-  // 接收ICache响应并放入队列
-  instQueue.io.enq.valid := false.B
-  instQueue.io.enq.bits  := DontCare
-
-  when(io.icache_resp.valid && pendingReqs > 0.U && !io.branch) {
+  // ========== 响应接收 ==========
+  when(io.icache_resp.valid && waitingResp && !io.branch) {
+    // 检查响应的PC是否匹配我们请求的PC
     val resp_addr = io.icache_resp.bits.addr
-    val inst      = extractInst(io.icache_resp.bits.data, resp_addr)
+    when(resp_addr === reqPC) {
+      // 将指令写入队列的tail位置
+      val inst = extractInst(io.icache_resp.bits.data, reqPC)
+      queue(tail).inst  := inst
+      queue(tail).pc    := reqPC
+      queue(tail).valid := true.B
+      queue_valid(tail) := true.B
+      queue_pc(tail)    := reqPC
 
-    // 将指令加入队列
-    instQueue.io.enq.valid      := true.B
-    instQueue.io.enq.bits.inst  := inst
-    instQueue.io.enq.bits.pc    := resp_addr
-    instQueue.io.enq.bits.valid := true.B
-
-    // 更新pending计数
-    when(instQueue.io.enq.ready) {
-      pendingReqs := pendingReqs - 1.U
+      waitingResp := false.B
     }
-  }.elsewhen(io.icache_resp.valid && (pendingReqs === 0.U || io.branch)) {
-    // 收到了不需要的响应（可能是分支前的），忽略它
-    // 不做任何操作
+    // 如果PC不匹配，忽略这个响应（可能是分支前的）
   }
 
-  // ========== 输出到Decode阶段 ==========
-  // 从队列出队到decode阶段
-  instQueue.io.deq.ready := decodeReady && !io.branch
+  // ========== 输出到Decode ==========
+  io.decodeStage.data.valid := !isEmpty && decodeReady && !io.branch
+  io.decodeStage.data.inst  := queue(head).inst
+  io.decodeStage.data.pc    := queue(head).pc
 
-  io.decodeStage.data.valid := instQueue.io.deq.valid && !io.branch
-  io.decodeStage.data.inst  := instQueue.io.deq.bits.inst
-  io.decodeStage.data.pc    := instQueue.io.deq.bits.pc
-
-  // ========== 初始化处理 ==========
-  when(canStart && pc === 0.U && !io.branch) {
-    pc := PC_INIT
+  // 出队操作
+  when(!isEmpty && decodeReady && !io.branch) {
+    queue_valid(head) := false.B
+    head              := head ^ 1.U // 移动到下一个位置
   }
 
-  // ========== 分支时的队列清空机制 ==========
-  // 为了确保分支时队列被完全清空，我们需要一个flush机制
-  val flushQueue = RegInit(false.B)
+  // ========== 分支处理 ==========
   when(io.branch) {
-    flushQueue := true.B
-  }.elsewhen(instQueue.io.count === 0.U) {
-    flushQueue := false.B
+    // 更新PC
+    pc    := io.target
+    reqPC := io.target
+
+    // 清空队列
+    queue_valid.foreach(_ := false.B)
+    waitingResp           := false.B
+    head                  := 0.U // 重置队列指针
   }
 
-  when(flushQueue) {
-    instQueue.io.deq.ready := true.B
-    instQueue.io.enq.valid := false.B
+  // ========== 初始化 ==========
+  when(canStart && pc === 0.U && !io.branch) {
+    pc    := PC_INIT
+    reqPC := PC_INIT
   }
 
-  // ========== Debug信号 ==========
-  dontTouch(pendingReqs)
-  dontTouch(instQueue.io.count)
+  // Debug
+  dontTouch(head)
+  dontTouch(isEmpty)
+  dontTouch(isFull)
+  dontTouch(waitingResp)
 }
