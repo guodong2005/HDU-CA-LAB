@@ -15,21 +15,17 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  // State definitions
-  val sIDLE :: sWAIT_HIT :: sWAIT_MISS :: Nil = Enum(3)
-  val state                                   = RegInit(sIDLE)
+  // 简化状态定义 - 只需要两个状态
+  val sIDLE :: sWAIT_RESP :: Nil = Enum(2)
+  val state                      = RegInit(sIDLE)
 
   // PC管理
   val pc      = RegInit(PC_INIT) // 当前要取的PC
-  val next_pc = RegInit(PC_INIT + 4.U) // 下一个要取的PC（用于流水线）
+  val next_pc = RegInit(PC_INIT + 4.U) // 下一个要取的PC
 
   // 请求追踪
   val pending_pc    = RegInit(0.U(XLEN.W)) // 等待响应的PC
   val pending_valid = RegInit(false.B) // 是否有未完成的请求
-
-  // Miss tracking
-  val miss_cycles   = RegInit(0.U(8.W)) // 用于检测cache miss（响应延迟）
-  val miss_detected = RegInit(false.B) // 检测到cache miss
 
   // 指令缓冲
   val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
@@ -42,6 +38,23 @@ class FetchUnit extends Module {
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
   io.canStart := canStart && state === sIDLE
+
+  // 指令提取辅助函数
+  def extractInst(data: UInt, pc: UInt): UInt = {
+    val instIdx = pc(ICACHE_OFFSET_WIDTH - 1, 2)
+    MuxLookup(instIdx, 0.U)(
+      Seq(
+        0.U -> data(31, 0),
+        1.U -> data(63, 32),
+        2.U -> data(95, 64),
+        3.U -> data(127, 96),
+        4.U -> data(159, 128),
+        5.U -> data(191, 160),
+        6.U -> data(223, 192),
+        7.U -> data(255, 224)
+      )
+    )
+  }
 
   // 默认输出
   io.icache_req.valid       := false.B
@@ -57,9 +70,12 @@ class FetchUnit extends Module {
       when(ifid_reg.valid && decodeReady && !io.branch) {
         io.decodeStage.data := ifid_reg
         ifid_reg.valid      := false.B
+        // 缓存的指令被消费，更新PC
+        pc      := pc + 4.U
+        next_pc := next_pc + 4.U
       }
 
-      // 发送新请求
+      // 发送新请求（只有在没有stall且没有缓存指令时）
       when(canStart && !stall && !io.branch) {
         io.icache_req.valid     := true.B
         io.icache_req.bits.addr := pc
@@ -67,47 +83,35 @@ class FetchUnit extends Module {
         when(io.icache_req.ready) {
           pending_pc    := pc
           pending_valid := true.B
-          miss_cycles   := 0.U
-          miss_detected := false.B
-          state         := sWAIT_HIT
-
-          // 预先更新PC（乐观假设会hit）
-          pc      := next_pc
-          next_pc := next_pc + 4.U
+          state         := sWAIT_RESP
+          // 注意：这里不预先更新PC，等指令真正被消费时再更新
         }
       }
     }
 
-    is(sWAIT_HIT) {
-      // 等待ICache响应，检测是否hit
-      when(io.icache_resp.valid) {
+    is(sWAIT_RESP) {
+      // 等待ICache响应
+      when(io.icache_resp.valid && pending_valid) {
         // 检查响应地址是否匹配
         val resp_addr  = io.icache_resp.bits.addr
         val addr_match = resp_addr === pending_pc
 
         when(addr_match) {
-          // 地址匹配 - 这是我们等待的响应
-          val instIdx = pending_pc(ICACHE_OFFSET_WIDTH - 1, 2)
-          val inst = MuxLookup(instIdx, 0.U)(
-            Seq(
-              0.U -> io.icache_resp.bits.data(31, 0),
-              1.U -> io.icache_resp.bits.data(63, 32),
-              2.U -> io.icache_resp.bits.data(95, 64),
-              3.U -> io.icache_resp.bits.data(127, 96),
-              4.U -> io.icache_resp.bits.data(159, 128),
-              5.U -> io.icache_resp.bits.data(191, 160),
-              6.U -> io.icache_resp.bits.data(223, 192),
-              7.U -> io.icache_resp.bits.data(255, 224)
-            )
-          )
+          // 地址匹配 - 处理指令
+          val inst = extractInst(io.icache_resp.bits.data, pending_pc)
 
           when(decodeReady && !ifid_reg.valid) {
-            // 直接传递
+            // 直接传递给decode阶段，可以更新PC
             io.decodeStage.data.inst  := inst
             io.decodeStage.data.pc    := pending_pc
             io.decodeStage.data.valid := true.B
+
+            // 指令被消费，更新PC
+            pc      := pc + 4.U
+            next_pc := next_pc + 4.U
+
           }.otherwise {
-            // 缓存
+            // decode阶段not ready，缓存指令，不更新PC
             ifid_reg.inst  := inst
             ifid_reg.pc    := pending_pc
             ifid_reg.valid := true.B
@@ -115,18 +119,15 @@ class FetchUnit extends Module {
 
           pending_valid := false.B
 
-          // 如果没有stall，可以继续发送下一个请求（流水线化）
-          when(!stall && !io.branch) {
+          // 如果指令被直接消费且没有分支，继续流水线操作
+          when(decodeReady && !ifid_reg.valid && !io.branch) {
             io.icache_req.valid     := true.B
             io.icache_req.bits.addr := pc
 
             when(io.icache_req.ready) {
               pending_pc    := pc
               pending_valid := true.B
-              miss_cycles   := 0.U
-              pc            := next_pc
-              next_pc       := next_pc + 4.U
-              state         := sWAIT_HIT // 保持在WAIT_HIT状态（流水线）
+              // 保持在sWAIT_RESP状态继续流水线
             }.otherwise {
               state := sIDLE
             }
@@ -134,88 +135,32 @@ class FetchUnit extends Module {
             state := sIDLE
           }
         }.otherwise {
-          // 地址不匹配 - 这是被废弃的请求的响应，忽略它
-          // 继续等待正确的响应或重新开始
-          when(pending_valid) {
-            // 如果仍有有效的pending请求，继续等待
-            miss_cycles := miss_cycles + 1.U
-          }.otherwise {
-            // 没有pending请求（可能因为分支），回到IDLE
+          // 地址不匹配 - 这是过期的响应，忽略
+          // 如果没有有效的pending请求，回到IDLE
+          when(!pending_valid) {
             state := sIDLE
           }
         }
-      }.otherwise {
-        // 检测cache miss（响应延迟超过阈值）
-        miss_cycles := miss_cycles + 1.U
-        when(miss_cycles > 2.U) { // 假设hit应该在2-3周期内响应
-          miss_detected := true.B
-          state         := sWAIT_MISS
-        }
       }
-    }
 
-    is(sWAIT_MISS) {
-      // Cache miss状态 - 等待内存响应，不发送新请求
-      when(io.icache_resp.valid) {
-        // 检查响应地址是否匹配
-        val resp_addr  = io.icache_resp.bits.addr
-        val addr_match = resp_addr === pending_pc
-
-        when(addr_match) {
-          // 地址匹配 - 处理响应
-          val instIdx = pending_pc(ICACHE_OFFSET_WIDTH - 1, 2)
-          val inst = MuxLookup(instIdx, 0.U)(
-            Seq(
-              0.U -> io.icache_resp.bits.data(31, 0),
-              1.U -> io.icache_resp.bits.data(63, 32),
-              2.U -> io.icache_resp.bits.data(95, 64),
-              3.U -> io.icache_resp.bits.data(127, 96),
-              4.U -> io.icache_resp.bits.data(159, 128),
-              5.U -> io.icache_resp.bits.data(191, 160),
-              6.U -> io.icache_resp.bits.data(223, 192),
-              7.U -> io.icache_resp.bits.data(255, 224)
-            )
-          )
-
-          when(decodeReady && !ifid_reg.valid) {
-            io.decodeStage.data.inst  := inst
-            io.decodeStage.data.pc    := pending_pc
-            io.decodeStage.data.valid := true.B
-          }.otherwise {
-            ifid_reg.inst  := inst
-            ifid_reg.pc    := pending_pc
-            ifid_reg.valid := true.B
-          }
-
-          pending_valid := false.B
-          miss_detected := false.B
-          state         := sIDLE
-        }.otherwise {
-          // 地址不匹配 - 忽略这个响应
-          // 如果没有pending请求了，回到IDLE
-          when(!pending_valid) {
-            state         := sIDLE
-            miss_detected := false.B
-          }
-          // 否则继续等待正确的响应
-        }
+      // 如果pending请求无效（可能被分支清除），回到IDLE
+      when(!pending_valid) {
+        state := sIDLE
       }
     }
   }
 
   // ========== 分支处理 ==========
   when(io.branch) {
-    // 立即更新PC
+    // 立即更新PC到目标地址
     pc      := io.target
     next_pc := io.target + 4.U
 
-    // 清空流水线
+    // 清空流水线状态
     pending_valid  := false.B
     ifid_reg.valid := false.B
-    miss_cycles    := 0.U
-    miss_detected  := false.B
 
-    // 如果在等待状态，回到IDLE
+    // 强制回到IDLE状态重新开始
     state := sIDLE
   }
 
@@ -229,6 +174,4 @@ class FetchUnit extends Module {
   dontTouch(state)
   dontTouch(pending_pc)
   dontTouch(pending_valid)
-  dontTouch(miss_detected)
-  dontTouch(miss_cycles)
 }
