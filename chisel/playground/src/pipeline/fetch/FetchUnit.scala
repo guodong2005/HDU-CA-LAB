@@ -15,28 +15,23 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  // 简化状态定义 - 只需要两个状态
-  val sIDLE :: sWAIT_RESP :: Nil = Enum(2)
-  val state                      = RegInit(sIDLE)
-
   // PC管理
-  val pc      = RegInit(PC_INIT) // 当前要取的PC
-  val next_pc = RegInit(PC_INIT + 4.U) // 下一个要取的PC
+  val pc = RegInit(PC_INIT)
 
-  // 请求追踪 - 只需要知道是否有未完成的请求
-  val pending_valid = RegInit(false.B) // 是否有未完成的请求
+  // 使用一个大小为2的队列来缓存指令
+  // 队列存储的是 (inst, pc, valid) 元组
+  val instQueue = Module(new Queue(new IfIdData(), entries = 2))
 
-  // 指令缓冲
-  val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
+  // 跟踪未完成的请求数量（最多2个）
+  val pendingReqs = RegInit(0.U(2.W))
 
   // 控制信号
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
-  val stall       = !decodeReady && ifid_reg.valid
 
   // 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
-  io.canStart := canStart && state === sIDLE
+  io.canStart := canStart
 
   // 指令提取辅助函数
   def extractInst(data: UInt, pc: UInt): UInt = {
@@ -55,121 +50,83 @@ class FetchUnit extends Module {
     )
   }
 
-  // 默认输出
-  io.icache_req.valid       := false.B
-  io.icache_req.bits.addr   := pc
-  io.decodeStage.data.valid := false.B
-  io.decodeStage.data.inst  := DontCare
-  io.decodeStage.data.pc    := DontCare
-
-  // ========== 主状态机 ==========
-  switch(state) {
-    is(sIDLE) {
-      // 处理缓存的指令
-      when(ifid_reg.valid && decodeReady && !io.branch) {
-        io.decodeStage.data := ifid_reg
-        ifid_reg.valid      := false.B
-        // 缓存的指令被消费，更新PC
-        pc      := pc + 4.U
-        next_pc := next_pc + 4.U
-      }
-
-      // 发送新请求（只有在没有stall且没有缓存指令时）
-      when(canStart && !stall && !io.branch) {
-        io.icache_req.valid     := true.B
-        io.icache_req.bits.addr := pc
-
-        when(io.icache_req.ready) {
-          pending_valid := true.B
-          state         := sWAIT_RESP
-          // 注意：这里不预先更新PC，等指令真正被消费时再更新
-        }
-      }
-    }
-
-    is(sWAIT_RESP) {
-      // 等待ICache响应
-      when(io.icache_resp.valid && pending_valid) {
-        // 检查响应地址是否匹配当前需要的PC
-        // 这样可以自动过滤掉分支前的无效响应
-        val resp_addr  = io.icache_resp.bits.addr
-        val addr_match = resp_addr === pc
-
-        when(addr_match) {
-          // 地址匹配 - 处理我们需要的指令
-          val inst = extractInst(io.icache_resp.bits.data, pc)
-
-          when(decodeReady && !ifid_reg.valid) {
-            // 直接传递给decode阶段，可以更新PC
-            io.decodeStage.data.inst  := inst
-            io.decodeStage.data.pc    := pc
-            io.decodeStage.data.valid := true.B
-
-            // 指令被消费，更新PC
-            pc      := pc + 4.U
-            next_pc := next_pc + 4.U
-
-          }.otherwise {
-            // decode阶段not ready，缓存指令，不更新PC
-            ifid_reg.inst  := inst
-            ifid_reg.pc    := pc
-            ifid_reg.valid := true.B
-          }
-
-          pending_valid := false.B
-
-          // 如果指令被直接消费且没有分支，继续流水线操作
-          when(decodeReady && !ifid_reg.valid && !io.branch) {
-            io.icache_req.valid     := true.B
-            io.icache_req.bits.addr := pc
-
-            when(io.icache_req.ready) {
-              pending_valid := true.B
-              // 保持在sWAIT_RESP状态继续流水线
-            }.otherwise {
-              state := sIDLE
-            }
-          }.otherwise {
-            state := sIDLE
-          }
-        }.otherwise {
-          // 地址不匹配 - 这是过期的响应（比如分支前的请求）
-          // 忽略这个响应，继续等待或重新请求
-          // 由于地址不匹配，说明这不是我们要的数据
-          // 需要重新发送正确地址的请求
-          pending_valid := false.B
-          state         := sIDLE
-        }
-      }
-
-      // 如果pending请求无效（可能被分支清除），回到IDLE
-      when(!pending_valid) {
-        state := sIDLE
-      }
-    }
-  }
-
   // ========== 分支处理 ==========
+  // 分支时清空队列和请求
   when(io.branch) {
-    // 立即更新PC到目标地址
-    pc      := io.target
-    next_pc := io.target + 4.U
-
-    // 清空流水线状态
-    pending_valid  := false.B // 使之前的请求无效
-    ifid_reg.valid := false.B
-
-    // 强制回到IDLE状态重新开始
-    state := sIDLE
+    pc                     := io.target
+    pendingReqs            := 0.U
+    instQueue.io.deq.ready := true.B // 清空队列
+    // 队列会自动清空（通过flush信号或连续出队）
   }
+
+  // ========== 请求发送逻辑 ==========
+  // 当队列有空间且有未完成请求的空间时，发送新请求
+  val canSendReq = canStart &&
+    !instQueue.io.enq.ready.asBool && // 队列未满
+    pendingReqs < 2.U && // 未达到最大请求数
+    !io.branch // 没有分支
+
+  io.icache_req.valid     := canSendReq
+  io.icache_req.bits.addr := pc
+
+  // 更新PC和pending计数
+  when(io.icache_req.fire) {
+    pc          := pc + 4.U
+    pendingReqs := pendingReqs + 1.U
+  }
+
+  // ========== 响应处理逻辑 ==========
+  // 接收ICache响应并放入队列
+  instQueue.io.enq.valid := false.B
+  instQueue.io.enq.bits  := DontCare
+
+  when(io.icache_resp.valid && pendingReqs > 0.U && !io.branch) {
+    val resp_addr = io.icache_resp.bits.addr
+    val inst      = extractInst(io.icache_resp.bits.data, resp_addr)
+
+    // 将指令加入队列
+    instQueue.io.enq.valid      := true.B
+    instQueue.io.enq.bits.inst  := inst
+    instQueue.io.enq.bits.pc    := resp_addr
+    instQueue.io.enq.bits.valid := true.B
+
+    // 更新pending计数
+    when(instQueue.io.enq.ready) {
+      pendingReqs := pendingReqs - 1.U
+    }
+  }.elsewhen(io.icache_resp.valid && (pendingReqs === 0.U || io.branch)) {
+    // 收到了不需要的响应（可能是分支前的），忽略它
+    // 不做任何操作
+  }
+
+  // ========== 输出到Decode阶段 ==========
+  // 从队列出队到decode阶段
+  instQueue.io.deq.ready := decodeReady && !io.branch
+
+  io.decodeStage.data.valid := instQueue.io.deq.valid && !io.branch
+  io.decodeStage.data.inst  := instQueue.io.deq.bits.inst
+  io.decodeStage.data.pc    := instQueue.io.deq.bits.pc
 
   // ========== 初始化处理 ==========
   when(canStart && pc === 0.U && !io.branch) {
-    pc      := PC_INIT
-    next_pc := PC_INIT + 4.U
+    pc := PC_INIT
+  }
+
+  // ========== 分支时的队列清空机制 ==========
+  // 为了确保分支时队列被完全清空，我们需要一个flush机制
+  val flushQueue = RegInit(false.B)
+  when(io.branch) {
+    flushQueue := true.B
+  }.elsewhen(instQueue.io.count === 0.U) {
+    flushQueue := false.B
+  }
+
+  when(flushQueue) {
+    instQueue.io.deq.ready := true.B
+    instQueue.io.enq.valid := false.B
   }
 
   // ========== Debug信号 ==========
-  dontTouch(state)
-  dontTouch(pending_valid)
+  dontTouch(pendingReqs)
+  dontTouch(instQueue.io.count)
 }
