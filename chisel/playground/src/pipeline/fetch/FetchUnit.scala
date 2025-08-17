@@ -12,6 +12,9 @@ class FetchUnit extends Module {
     val icache_req  = Decoupled(new ICacheReq)
     val canStart    = Output(Bool())
   })
+  io.decodeStage.data.inst  := false.B
+  io.decodeStage.data.pc    := 0.U
+  io.decodeStage.data.valid := false.B
 
   // ========== State Definitions ==========
   val pc         = RegInit(PC_INIT) // 当前正确的PC
