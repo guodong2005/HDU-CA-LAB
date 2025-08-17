@@ -177,183 +177,127 @@ class ICacheIO extends Bundle {
 //   io.icache_debug.cache_read_tag := cache_read_tag
 //   io.icache_debug.icache_req     := saved_req
 // }
+
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
-  val sIDLE :: sWAIT_RESP :: Nil = Enum(2)
-  val state                      = RegInit(sIDLE)
+  val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
+  val state                                    = RegInit(sIDLE)
 
   val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  // ========== Request Stage Registers ==========
-  // 将请求信息保存到寄存器，下一周期才检查hit
-  val req_valid_r = RegInit(false.B)
-  val req_addr_r  = RegInit(0.U(32.W))
-  val req_index_r = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
-  val req_tag_r   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  // 优化1: 提前计算index和tag，减少组合逻辑深度
+  val req_index = io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  val req_tag   = io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
 
-  // ========== Pipeline Stage Registers ==========
-  // 用于流水线化的寄存器，保存正在处理的请求
-  val processing_valid = RegInit(false.B)
-  val processing_addr  = RegInit(0.U(32.W))
-  val processing_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
-  val processing_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  val saved_index = saved_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  val saved_tag   = saved_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
 
-  // ========== Address Decomposition ==========
-  def getIndex(addr: UInt): UInt = addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
-  def getTag(addr:   UInt): UInt = addr(31, 32 - ICACHE_TAG_WIDTH)
+  // 优化2: 使用寄存器保存上一周期的index和tag
+  val reg_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
+  val reg_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  val reg_addr  = RegInit(0.U(32.W))
 
-  val req_index   = getIndex(io.icache_req.bits.addr)
-  val req_tag     = getTag(io.icache_req.bits.addr)
-  val saved_index = getIndex(saved_req.bits.addr)
-  val saved_tag   = getTag(saved_req.bits.addr)
-
-  // ========== Current Request Logic ==========
   val current_req_valid = saved_req.valid || io.icache_req.valid
   val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
-  val current_index     = Mux(saved_req.valid, saved_index, req_index)
-  val current_tag       = Mux(saved_req.valid, saved_tag, req_tag)
+  val index             = Mux(saved_req.valid, saved_index, req_index)
+  val tag               = Mux(saved_req.valid, saved_tag, req_tag)
 
-  // ========== Memory Read Logic ==========
-  // 当有新请求时立即启动内存读取（推测性读取）
-  val start_read = (state === sIDLE) && current_req_valid && !processing_valid
-  val read_index = Mux(start_read, current_index, processing_index)
+  // 优化3: 提前启动内存读取
+  val speculative_read = state === sIDLE && io.icache_req.valid && !saved_req.valid
+  val read_index       = Mux(speculative_read, req_index, index)
 
   val cache_read_tag  = cache_tag.read(read_index)
   val cache_read_data = VecInit(cache_data.map(_.read(read_index)))
 
-  // ========== Hit Detection (使用寄存器延迟一周期) ==========
-  // Hit检查使用上一周期保存的地址信息
-  val hit_cache = processing_valid &&
-    (processing_tag === cache_read_tag) &&
-    cache_valid(processing_index)
+  // 优化4: 简化hit判断逻辑，使用寄存器中的值
+  val hit_cache = (reg_tag === cache_read_tag) &&
+    cache_valid(reg_index) &&
+    (reg_addr === current_req_bits.addr)
 
-  // ========== Request Acceptance Logic ==========
-  // 可以接受新请求的条件：
-  // 1. 没有saved_req
-  // 2. 当前没有正在处理的请求，或者正在处理的请求即将完成
-  val can_accept_req = !saved_req.valid &&
-    (!processing_valid || (processing_valid && (hit_cache || state === sWAIT_RESP)))
+  // 更新寄存器
+  when(current_req_valid && (state === sIDLE || state === sCHECK_HIT)) {
+    reg_index := index
+    reg_tag   := tag
+    reg_addr  := current_req_bits.addr
+  }
 
-  io.icache_req.ready := can_accept_req
+  val read_data        = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+  val cache_we         = WireInit(false.B)
+  val cache_valid_we   = WireInit(false.B)
+  val cache_write_tag  = tag
+  val cache_write_data = read_data
 
-  // ========== Request Register Management ==========
-  // 保存无法立即处理的请求
-  when(io.icache_req.valid && !can_accept_req) {
+  // Default assignments
+  io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
+  io.icache_resp.valid     := false.B
+  io.icache_resp.bits.data := DontCare
+  io.icache_resp.bits.addr := current_req_bits.addr
+  io.io_read_req.valid     := false.B
+  io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+  io.io_read_resp.ready    := true.B
+
+  // Request register control
+  when(io.icache_req.valid && !saved_req.valid) {
     saved_req.valid := true.B
     saved_req.bits  := io.icache_req.bits
   }
 
-  // 清除saved_req
-  when(saved_req.valid && !processing_valid) {
+  when(io.icache_resp.valid) {
     saved_req.valid := false.B
+    saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
   }
 
-  // ========== Pipeline Register Updates ==========
-  when(start_read) {
-    // 将当前请求移入处理流水线
-    processing_valid := true.B
-    processing_addr  := current_req_bits.addr
-    processing_index := current_index
-    processing_tag   := current_tag
-
-    // 启动内存读取（已经在read_index逻辑中处理）
+  when(saved_req.valid) {
+    io.icache_req.ready := false.B
   }
 
-  // ========== Response Logic ==========
-  io.icache_resp.valid     := false.B
-  io.icache_resp.bits.data := DontCare
-  io.icache_resp.bits.addr := processing_addr
-
-  // ========== Memory Interface ==========
-  io.io_read_req.valid     := false.B
-  io.io_read_req.bits.addr := Cat(processing_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
-  io.io_read_resp.ready    := true.B
-
-  // ========== Write Logic ==========
-  val cache_we          = WireInit(false.B)
-  val cache_valid_we    = WireInit(false.B)
-  val cache_write_index = processing_index
-  val cache_write_tag   = processing_tag
-  val read_data         = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
-  val cache_write_data  = read_data
-
-  // ========== State Machine ==========
+  // State machine
   switch(state) {
     is(sIDLE) {
-      when(processing_valid) {
-        // 检查是否命中（使用延迟一周期的tag比较结果）
-        when(hit_cache) {
-          // Cache hit - 返回数据
-          io.icache_resp.valid     := true.B
-          io.icache_resp.bits.data := cache_read_data.asUInt
-          io.icache_resp.bits.addr := processing_addr
+      when(current_req_valid) {
+        state := sCHECK_HIT
+      }
+    }
 
-          // 清除processing寄存器，为下一个请求腾出空间
-          processing_valid := false.B
-
-          // 如果有saved_req，立即开始处理
-          when(saved_req.valid) {
-            processing_valid := true.B
-            processing_addr  := saved_req.bits.addr
-            processing_index := saved_index
-            processing_tag   := saved_tag
-            saved_req.valid  := false.B
-          }
-        }.otherwise {
-          // Cache miss - 发起内存请求
-          io.io_read_req.valid := true.B
-          when(io.io_read_req.ready) {
-            state := sWAIT_RESP
-          }
+    is(sCHECK_HIT) {
+      when(hit_cache) {
+        io.icache_resp.valid     := true.B
+        io.icache_resp.bits.data := cache_read_data.asUInt
+        state                    := sIDLE
+      }.otherwise {
+        io.io_read_req.valid := true.B
+        when(io.io_read_req.ready) {
+          state := sWAIT_RESP
         }
       }
     }
 
     is(sWAIT_RESP) {
       when(io.io_read_resp.valid) {
-        // 返回内存数据
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := read_data.asUInt
-        io.icache_resp.bits.addr := processing_addr
-
-        // 写入cache
-        cache_we       := true.B
-        cache_valid_we := true.B
-
-        // 清除processing寄存器
-        processing_valid := false.B
-        state            := sIDLE
-
-        // 如果有saved_req，立即开始处理
-        when(saved_req.valid) {
-          processing_valid := true.B
-          processing_addr  := saved_req.bits.addr
-          processing_index := saved_index
-          processing_tag   := saved_tag
-          saved_req.valid  := false.B
-        }
+        io.icache_resp.bits.addr := current_req_bits.addr
+        cache_we                 := true.B
+        cache_valid_we           := true.B
+        state                    := sIDLE
       }
     }
   }
 
-  // ========== Cache Write Operations ==========
   when(cache_we) {
-    cache_tag.write(cache_write_index, cache_write_tag)
-    cache_data.zip(cache_write_data).foreach {
-      case (mem, data) =>
-        mem.write(cache_write_index, data)
-    }
+    cache_tag.write(index, cache_write_tag)
+    cache_data.zip(cache_write_data).foreach { case (mem, data) => mem.write(index, data) }
   }
 
   when(cache_valid_we) {
-    cache_valid(cache_write_index) := true.B
+    cache_valid(index) := true.B
   }
 
-  // ========== Debug Signals ==========
+  // Debug
   dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
   io.icache_debug.hit_cache      := hit_cache
@@ -361,6 +305,7 @@ class ICache extends Module {
   io.icache_debug.cache_read_tag := cache_read_tag
   io.icache_debug.icache_req     := saved_req
 }
+
 // ============================================================================
 // DCache Module (Simplified)
 // ============================================================================
