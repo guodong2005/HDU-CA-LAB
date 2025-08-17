@@ -24,7 +24,6 @@ class FetchUnit extends Module {
 
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
-  val alignedPC   = pc
   val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
 
   // 启动条件
@@ -32,9 +31,9 @@ class FetchUnit extends Module {
   val canStart         = RegNext(canStartInternal) && canStartInternal
   io.canStart := state === sIdle && !stall && RegNext(canStart)
 
-  // 当前请求的指令索引和地址匹配
+  // 当前请求的指令索引，响应地址直接匹配请求的PC
   val currentInstIdx = pc(ICACHE_OFFSET_WIDTH - 1, 2)
-  val respMatchAddr  = io.icache_resp.bits.addr === alignedPC
+  val respMatchAddr  = io.icache_resp.bits.addr === pc // 直接匹配pc，不是对齐后的地址
 
   // 从cache line中提取指令的组合逻辑
   def extractInst(data: UInt, idx: UInt): UInt = {
@@ -54,7 +53,7 @@ class FetchUnit extends Module {
 
   // 等待状态下的指令提取
   val waitingInstIdx   = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
-  val waitingMatchAddr = io.icache_resp.bits.addr === (reqPC & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U)
+  val waitingMatchAddr = io.icache_resp.bits.addr === reqPC // 直接匹配reqPC
 
   // 默认输出
   io.icache_req.bits.addr := pc
@@ -145,35 +144,19 @@ class FetchUnit extends Module {
 }
 
 /*
-关键改进点：
+修正要点：
 
-1. 单周期响应检测：
-   - 在sIdle状态发送请求的同时检查io.icache_resp.valid
-   - 如果同周期返回响应且地址匹配，直接处理
-   - 避免不必要的状态转换
+1. 地址匹配修正：
+   - respMatchAddr: io.icache_resp.bits.addr === pc (原来是alignedPC)
+   - waitingMatchAddr: io.icache_resp.bits.addr === reqPC (原来用了复杂的对齐计算)
 
-2. 组合逻辑路径：
-   icache_req.valid → ICache hit检测 → icache_resp.valid → FetchUnit处理
-   整个路径在同一个周期完成
+2. 逻辑简化：
+   - 直接匹配发送出去的地址，不需要额外的对齐计算
+   - ICache内部会处理地址对齐，FetchUnit只需要匹配请求的原始地址
 
-3. 连续请求能力：
-   - hit情况下保持在sIdle状态
-   - 每周期可以处理一个hit请求
-   - 支持指令流的连续fetch
+3. 正确性：
+   - 确保响应确实对应当前或等待中的请求
+   - 避免处理不匹配的响应数据
 
-4. 兼容性：
-   - 仍然支持多周期响应（miss情况）
-   - 自动适应icache的响应时序
-
-5. 性能提升：
-   - hit延迟：从2周期减少到1周期
-   - 吞吐量：连续hit时每周期一条指令
-   - 分支恢复：分支后立即发送新请求
-
-配合寄存器实现的ICache，这样的FetchUnit可以实现：
-- 单周期指令fetch（hit情况）
-- 连续的指令流处理能力
-- 最小的分支延迟
-
-注意：需要确保ICache的icache_resp.valid在请求的同周期就能正确返回（对于hit情况）
+这样修改后，逻辑更加清晰简单，也更容易验证正确性。
  */

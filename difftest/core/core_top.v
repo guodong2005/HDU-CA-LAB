@@ -2864,7 +2864,7 @@ module FetchUnit(
   wire             io_canStart_0 =
     ~(|state) & ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid)
     & io_canStart_REG;
-  wire             _GEN = io_icache_resp_valid & ~(|io_icache_resp_bits_addr);
+  wire             _GEN = io_icache_resp_valid & io_icache_resp_bits_addr == pc;
   wire [7:0][31:0] _GEN_0 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
@@ -2879,7 +2879,7 @@ module FetchUnit(
     io_canStart_0 & io_icache_req_ready & _GEN & io_signal_fetchUnitSignal_allow_to_go;
   wire             _GEN_2 = io_canStart_0 & io_icache_req_ready & _GEN;
   wire             _GEN_3 = state == 2'h1;
-  wire             _GEN_4 = io_icache_resp_valid & ~(|io_icache_resp_bits_addr);
+  wire             _GEN_4 = io_icache_resp_valid & io_icache_resp_bits_addr == 32'h0;
   wire [7:0][31:0] _GEN_5 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
