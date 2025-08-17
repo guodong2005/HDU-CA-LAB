@@ -66,6 +66,7 @@ class ICacheDebugIO extends Bundle {
 
 class ICacheIO extends Bundle {
   val icache_req   = Flipped(Decoupled(new ICacheReq))
+  val flush        = Input(Bool())
   val icache_resp  = Valid(new InstPacket)
   val io_read_req  = Decoupled(new ICacheReq)
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
@@ -100,6 +101,9 @@ class ICache extends Module {
   val check_addr  = RegInit(0.U(32.W))
   val check_valid = RegInit(false.B)
 
+  // 新增：标记是否有未完成的内存请求
+  val mem_req_pending = RegInit(false.B)
+
   // Memory read control
   // In IDLE: read speculatively if request comes
   // In CHECK_HIT: read for next request if hit and new request comes
@@ -118,7 +122,7 @@ class ICache extends Module {
     cache_valid(check_index)
 
   // Write control for cache update
-  val cache_we   = state === sWAIT_RESP && io.io_read_resp.valid
+  val cache_we   = state === sWAIT_RESP && io.io_read_resp.valid && !io.flush
   val write_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
 
   // Default IO assignments
@@ -131,12 +135,22 @@ class ICache extends Module {
   io.io_read_req.bits.addr := Cat(miss_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
 
+  // ========== Flush处理 ==========
+  when(io.flush) {
+    // 清除所有待处理的请求状态
+    check_valid     := false.B
+    mem_req_pending := false.B
+
+    // 强制回到IDLE状态
+    state := sIDLE
+  }
+
   // State machine
   switch(state) {
     is(sIDLE) {
-      io.icache_req.ready := true.B
+      io.icache_req.ready := !io.flush // flush时不接受新请求
 
-      when(io.icache_req.valid) {
+      when(io.icache_req.valid && !io.flush) {
         // Start memory read and save request info
         check_index := req_index
         check_tag   := req_tag
@@ -147,66 +161,72 @@ class ICache extends Module {
     }
 
     is(sCHECK_HIT) {
-      when(hit) {
-        // Cache hit
-        io.icache_resp.valid     := true.B
-        io.icache_resp.bits.data := cache_read_data.asUInt
-        io.icache_resp.bits.addr := check_addr
+      when(!io.flush) { // flush时立即退出
+        when(hit) {
+          // Cache hit
+          io.icache_resp.valid     := true.B
+          io.icache_resp.bits.data := cache_read_data.asUInt
+          io.icache_resp.bits.addr := check_addr
 
-        // Pipeline: accept new request if available
-        when(io.icache_req.valid) {
-          io.icache_req.ready := true.B
-          // Update check registers for next request
-          check_index := req_index
-          check_tag   := req_tag
-          check_addr  := req_addr
-          check_valid := true.B
-          state       := sCHECK_HIT // Stay in CHECK_HIT for pipelining
+          // Pipeline: accept new request if available
+          when(io.icache_req.valid) {
+            io.icache_req.ready := true.B
+            // Update check registers for next request
+            check_index := req_index
+            check_tag   := req_tag
+            check_addr  := req_addr
+            check_valid := true.B
+            state       := sCHECK_HIT // Stay in CHECK_HIT for pipelining
+          }.otherwise {
+            check_valid := false.B
+            state       := sIDLE
+          }
         }.otherwise {
-          check_valid := false.B
-          state       := sIDLE
-        }
-      }.otherwise {
-        // Cache miss - save miss info and request memory
-        miss_index := check_index
-        miss_tag   := check_tag
-        miss_addr  := check_addr
+          // Cache miss - save miss info and request memory
+          miss_index := check_index
+          miss_tag   := check_tag
+          miss_addr  := check_addr
 
-        io.io_read_req.valid     := true.B
-        io.io_read_req.bits.addr := Cat(check_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+          io.io_read_req.valid     := true.B
+          io.io_read_req.bits.addr := Cat(check_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
 
-        when(io.io_read_req.ready) {
-          check_valid := false.B
-          state       := sWAIT_RESP
+          when(io.io_read_req.ready) {
+            check_valid     := false.B
+            mem_req_pending := true.B // 标记有未完成的内存请求
+            state           := sWAIT_RESP
+          }
         }
       }
     }
 
     is(sWAIT_RESP) {
-      when(io.io_read_resp.valid) {
-        // Return data and update cache
-        io.icache_resp.valid     := true.B
-        io.icache_resp.bits.data := write_data.asUInt
-        io.icache_resp.bits.addr := miss_addr
+      when(!io.flush) { // flush时会在顶层flush处理中退出
+        when(io.io_read_resp.valid) {
+          // 只有在没有flush的情况下才处理响应
+          io.icache_resp.valid     := true.B
+          io.icache_resp.bits.data := write_data.asUInt
+          io.icache_resp.bits.addr := miss_addr
 
-        // Write to cache
-        cache_tag.write(miss_index, miss_tag)
-        cache_data.zip(write_data).foreach {
-          case (mem, data) =>
-            mem.write(miss_index, data)
-        }
-        cache_valid(miss_index) := true.B
+          // Write to cache
+          cache_tag.write(miss_index, miss_tag)
+          cache_data.zip(write_data).foreach {
+            case (mem, data) =>
+              mem.write(miss_index, data)
+          }
+          cache_valid(miss_index) := true.B
+          mem_req_pending         := false.B // 清除未完成请求标记
 
-        // Check if new request is waiting
-        when(io.icache_req.valid) {
-          io.icache_req.ready := true.B
-          check_index         := req_index
-          check_tag           := req_tag
-          check_addr          := req_addr
-          check_valid         := true.B
-          state               := sCHECK_HIT
-        }.otherwise {
-          state := sIDLE
+          // Check if new request is waiting
+          when(io.icache_req.valid) {
+            io.icache_req.ready := true.B
+            check_index         := req_index
+            check_tag           := req_tag
+            check_addr          := req_addr
+            check_valid         := true.B
+            state               := sCHECK_HIT
+          }.otherwise {
+            state := sIDLE
+          }
         }
       }
     }
@@ -220,7 +240,6 @@ class ICache extends Module {
   io.icache_debug.cache_read_tag := cache_read_tag
   io.icache_debug.icache_req     := DontCare
 }
-
 // ============================================================================
 // DCache Module (Simplified)
 // ============================================================================

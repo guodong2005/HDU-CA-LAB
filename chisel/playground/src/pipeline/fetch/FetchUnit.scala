@@ -15,17 +15,28 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  // 队列结构 - 长度为2的PC队列
-  val pc_queue    = RegInit(VecInit(Seq.fill(2)(0.U(XLEN.W))))
-  val valid_queue = RegInit(VecInit(false.B, false.B))
-  val head        = RegInit(0.U(1.W))
-  val tail        = RegInit(1.U(1.W))
+  // 简化状态定义 - 只需要两个状态
+  val sIDLE :: sWAIT_RESP :: Nil = Enum(2)
+  val state                      = RegInit(sIDLE)
+
+  // PC管理
+  val pc      = RegInit(PC_INIT) // 当前要取的PC
+  val next_pc = RegInit(PC_INIT + 4.U) // 下一个要取的PC
+
+  // 请求追踪 - 只需要知道是否有未完成的请求
+  val pending_valid = RegInit(false.B) // 是否有未完成的请求
+
+  // 指令缓冲
+  val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
 
   // 控制信号
-  val decodeReady      = io.signal.fetchUnitSignal.allow_to_go
+  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
+  val stall       = !decodeReady && ifid_reg.valid
+
+  // 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
-  io.canStart := canStart
+  io.canStart := canStart && state === sIDLE
 
   // 指令提取辅助函数
   def extractInst(data: UInt, pc: UInt): UInt = {
@@ -44,69 +55,121 @@ class FetchUnit extends Module {
     )
   }
 
-  // 默认输出 - 每个周期都尝试发送请求
-  io.icache_req.valid     := canStart && !io.branch
-  io.icache_req.bits.addr := pc_queue(head)
-
-  // 默认不发送指令
+  // 默认输出
+  io.icache_req.valid       := false.B
+  io.icache_req.bits.addr   := pc
   io.decodeStage.data.valid := false.B
   io.decodeStage.data.inst  := DontCare
   io.decodeStage.data.pc    := DontCare
-  val stall = !io.signal.fetchUnitSignal.allow_to_go
 
-  // ========== 响应处理 ==========
-  when(io.icache_resp.valid && valid_queue(tail)) {
-    val resp_addr  = io.icache_resp.bits.addr
-    val addr_match = resp_addr === pc_queue(tail)
+  // ========== 主状态机 ==========
+  switch(state) {
+    is(sIDLE) {
+      // 处理缓存的指令
+      when(ifid_reg.valid && decodeReady && !io.branch) {
+        io.decodeStage.data := ifid_reg
+        ifid_reg.valid      := false.B
+        // 缓存的指令被消费，更新PC
+        pc      := pc + 4.U
+        next_pc := next_pc + 4.U
+      }
 
-    when(addr_match) {
-      // 地址匹配，提取指令并发送给decode阶段
-      val inst = extractInst(io.icache_resp.bits.data, pc_queue(tail))
+      // 发送新请求（只有在没有stall且没有缓存指令时）
+      when(canStart && !stall && !io.branch) {
+        io.icache_req.valid     := true.B
+        io.icache_req.bits.addr := pc
 
-      io.decodeStage.data.inst  := inst
-      io.decodeStage.data.pc    := pc_queue(tail)
-      io.decodeStage.data.valid := true.B
-
-      // 如果decode阶段ready且没有stall，流水线正常推进
-      when(!stall && !io.branch) {
-        // 交换head和tail
-        head := head ^ 1.U
-        tail := tail ^ 1.U
-        // 更新新head位置的PC
-        pc_queue(head ^ 1.U) := pc_queue(tail) + 4.U
+        when(io.icache_req.ready) {
+          pending_valid := true.B
+          state         := sWAIT_RESP
+          // 注意：这里不预先更新PC，等指令真正被消费时再更新
+        }
       }
     }
-  }.elsewhen(!valid_queue(tail) && valid_queue(head)) {
-    pc_queue(tail) := pc_queue(tail) + 4.U // 下一个周期的 head
-    head           := head ^ 1.U
-    tail           := tail ^ 1.U
 
+    is(sWAIT_RESP) {
+      // 等待ICache响应
+      when(io.icache_resp.valid && pending_valid) {
+        // 检查响应地址是否匹配当前需要的PC
+        // 这样可以自动过滤掉分支前的无效响应
+        val resp_addr  = io.icache_resp.bits.addr
+        val addr_match = resp_addr === pc
+
+        when(addr_match) {
+          // 地址匹配 - 处理我们需要的指令
+          val inst = extractInst(io.icache_resp.bits.data, pc)
+
+          when(decodeReady && !ifid_reg.valid) {
+            // 直接传递给decode阶段，可以更新PC
+            io.decodeStage.data.inst  := inst
+            io.decodeStage.data.pc    := pc
+            io.decodeStage.data.valid := true.B
+
+            // 指令被消费，更新PC
+            pc      := pc + 4.U
+            next_pc := next_pc + 4.U
+
+          }.otherwise {
+            // decode阶段not ready，缓存指令，不更新PC
+            ifid_reg.inst  := inst
+            ifid_reg.pc    := pc
+            ifid_reg.valid := true.B
+          }
+
+          pending_valid := false.B
+
+          // 如果指令被直接消费且没有分支，继续流水线操作
+          when(decodeReady && !ifid_reg.valid && !io.branch) {
+            io.icache_req.valid     := true.B
+            io.icache_req.bits.addr := pc
+
+            when(io.icache_req.ready) {
+              pending_valid := true.B
+              // 保持在sWAIT_RESP状态继续流水线
+            }.otherwise {
+              state := sIDLE
+            }
+          }.otherwise {
+            state := sIDLE
+          }
+        }.otherwise {
+          // 地址不匹配 - 这是过期的响应（比如分支前的请求）
+          // 忽略这个响应，继续等待或重新请求
+          // 由于地址不匹配，说明这不是我们要的数据
+          // 需要重新发送正确地址的请求
+          pending_valid := false.B
+          state         := sIDLE
+        }
+      }
+
+      // 如果pending请求无效（可能被分支清除），回到IDLE
+      when(!pending_valid) {
+        state := sIDLE
+      }
+    }
   }
 
   // ========== 分支处理 ==========
   when(io.branch) {
-    // flush队列：pc[head] = target, valid[tail] = false
-    pc_queue(0)       := io.target
-    valid_queue(tail) := false.B
-    pc_queue(tail)    := false.B
-    // 重置head和tail指针
-    head := 0.U
-    tail := 1.U
+    // 立即更新PC到目标地址
+    pc      := io.target
+    next_pc := io.target + 4.U
+
+    // 清空流水线状态
+    pending_valid  := false.B // 使之前的请求无效
+    ifid_reg.valid := false.B
+
+    // 强制回到IDLE状态重新开始
+    state := sIDLE
   }
-  when(stall) {
-    pc_queue(head)    := pc_queue(tail)
-    valid_queue(head) := true.B
-    valid_queue(tail) := false.B
-  }
+
   // ========== 初始化处理 ==========
-  when(canStart && pc_queue(head) === 0.U && !io.branch) {
-    pc_queue(0)    := PC_INIT
-    valid_queue(0) := true.B
+  when(canStart && pc === 0.U && !io.branch) {
+    pc      := PC_INIT
+    next_pc := PC_INIT + 4.U
   }
 
   // ========== Debug信号 ==========
-  dontTouch(head)
-  dontTouch(tail)
-  dontTouch(pc_queue)
-  dontTouch(valid_queue)
+  dontTouch(state)
+  dontTouch(pending_valid)
 }
