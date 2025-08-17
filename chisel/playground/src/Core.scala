@@ -63,6 +63,7 @@ class Core extends Module {
   // ICache connections to IoControl
   iocontrol.io.icache_read_req <> icache.io.io_read_req
   iocontrol.io.icache_read_resp <> icache.io.io_read_resp
+  icache.io.flush := executeUnit.io.branch
 
   // ============================================================================
   // ICache and FetchUnit connections (Optimized for pipelining)
