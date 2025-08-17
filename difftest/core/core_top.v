@@ -2087,26 +2087,22 @@ module FetchUnit(
   output [31:0]  io_icache_req_bits_addr
 );
 
-  reg  [1:0]       state;
+  reg              state;
   reg  [31:0]      pc;
-  reg  [31:0]      next_pc;
   reg  [31:0]      pending_pc;
   reg              pending_valid;
-  reg  [7:0]       miss_cycles;
-  reg              miss_detected;
   reg  [31:0]      ifid_reg_inst;
   reg              ifid_reg_valid;
   reg  [31:0]      ifid_reg_pc;
-  wire             stall = ~io_signal_fetchUnitSignal_allow_to_go & ifid_reg_valid;
   reg              canStart_REG;
   wire             canStart = canStart_REG & ~reset;
-  wire             _GEN = state == 2'h0;
-  wire             _GEN_0 =
+  wire             _GEN =
     ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_1 = canStart & ~stall & ~io_branch;
-  wire             _GEN_2 = state == 2'h1;
+  wire             _GEN_0 =
+    canStart & ~(~io_signal_fetchUnitSignal_allow_to_go & ifid_reg_valid) & ~io_branch;
+  wire             _GEN_1 = io_icache_resp_valid & pending_valid;
   wire             addr_match = io_icache_resp_bits_addr == pending_pc;
-  wire [7:0][31:0] _GEN_3 =
+  wire [7:0][31:0] _GEN_2 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -2115,137 +2111,55 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst = _GEN_3[pending_pc[4:2]];
-  wire             _GEN_4 = io_signal_fetchUnitSignal_allow_to_go & ~ifid_reg_valid;
-  wire             _GEN_5 = io_icache_resp_valid & addr_match;
-  wire             _GEN_6 = ~stall & ~io_branch;
-  wire             _GEN_7 = state == 2'h2;
-  wire             addr_match_1 = io_icache_resp_bits_addr == pending_pc;
-  wire [7:0][31:0] _GEN_8 =
-    {{io_icache_resp_bits_data[255:224]},
-     {io_icache_resp_bits_data[223:192]},
-     {io_icache_resp_bits_data[191:160]},
-     {io_icache_resp_bits_data[159:128]},
-     {io_icache_resp_bits_data[127:96]},
-     {io_icache_resp_bits_data[95:64]},
-     {io_icache_resp_bits_data[63:32]},
-     {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst_1 = _GEN_8[pending_pc[4:2]];
-  wire             _GEN_9 = _GEN_7 & io_icache_resp_valid & addr_match_1;
+  wire [31:0]      inst = _GEN_2[pending_pc[4:2]];
+  wire             _GEN_3 = io_signal_fetchUnitSignal_allow_to_go & ~ifid_reg_valid;
+  wire             _GEN_4 = state & _GEN_1 & addr_match;
+  wire             _GEN_5 = _GEN_3 & ~io_branch;
   always @(posedge clock) begin
     if (reset) begin
-      state <= 2'h0;
+      state <= 1'h0;
       pc <= 32'h80000000;
-      next_pc <= 32'h80000004;
       pending_pc <= 32'h0;
       pending_valid <= 1'h0;
-      miss_cycles <= 8'h0;
-      miss_detected <= 1'h0;
       ifid_reg_inst <= 32'h0;
       ifid_reg_valid <= 1'h0;
       ifid_reg_pc <= 32'h0;
     end
     else begin
-      automatic logic _GEN_10;
-      automatic logic _GEN_11;
-      automatic logic _GEN_12;
-      automatic logic _GEN_13;
-      automatic logic _GEN_14;
-      automatic logic _GEN_15;
-      automatic logic _GEN_16;
-      automatic logic _GEN_17;
-      _GEN_10 = _GEN_1 & io_icache_req_ready;
-      _GEN_11 = ~_GEN_5 | _GEN_4;
-      _GEN_12 = _GEN_6 & io_icache_req_ready;
-      _GEN_13 = _GEN_2 & io_icache_resp_valid & addr_match & _GEN_12;
-      _GEN_14 = _GEN ? _GEN_10 : _GEN_13;
-      _GEN_15 = miss_cycles > 8'h2;
-      _GEN_16 = ~_GEN_9 | _GEN_4;
-      _GEN_17 = _GEN_7 & io_icache_resp_valid & (addr_match_1 | ~pending_valid);
-      if (io_branch) begin
-        state <= 2'h0;
-        miss_cycles <= 8'h0;
-      end
-      else if (_GEN) begin
-        if (_GEN_10) begin
-          state <= 2'h1;
-          miss_cycles <= 8'h0;
-        end
-      end
-      else if (_GEN_2) begin
-        if (io_icache_resp_valid) begin
-          if (addr_match) begin
-            state <= {1'h0, _GEN_12};
-            if (_GEN_12)
-              miss_cycles <= 8'h0;
-          end
-          else if (pending_valid)
-            miss_cycles <= miss_cycles + 8'h1;
-          else
-            state <= 2'h0;
-        end
-        else begin
-          if (_GEN_15)
-            state <= 2'h2;
-          miss_cycles <= miss_cycles + 8'h1;
-        end
-      end
-      else if (_GEN_17)
-        state <= 2'h0;
-      if (canStart & pc == 32'h0 & ~io_branch) begin
+      automatic logic _GEN_6 = _GEN_0 & io_icache_req_ready;
+      automatic logic _GEN_7;
+      automatic logic _GEN_8 = _GEN_5 & io_icache_req_ready;
+      _GEN_7 = ~state | ~_GEN_4 | _GEN_3;
+      state <=
+        ~io_branch
+        & (state
+             ? pending_valid
+               & (_GEN_1 ? (addr_match ? _GEN_8 & state : pending_valid & state) : state)
+             : _GEN_6 | state);
+      if (canStart & pc == 32'h0 & ~io_branch)
         pc <= 32'h80000000;
-        next_pc <= 32'h80000004;
-      end
-      else if (io_branch) begin
+      else if (io_branch)
         pc <= io_target;
-        next_pc <= io_target + 32'h4;
+      else if (state) begin
+        if (state & _GEN_1 & addr_match & _GEN_3)
+          pc <= pc + 32'h4;
       end
-      else begin
-        if (_GEN_14)
-          pc <= next_pc;
-        if (_GEN) begin
-          if (_GEN_10)
-            next_pc <= next_pc + 32'h4;
-        end
-        else if (_GEN_13)
-          next_pc <= next_pc + 32'h4;
-      end
-      if (_GEN_14)
+      else if (_GEN)
+        pc <= pc + 32'h4;
+      if (state ? state & _GEN_1 & addr_match & _GEN_8 : _GEN_6)
         pending_pc <= pc;
       pending_valid <=
         ~io_branch
-        & (_GEN
-             ? _GEN_10 | pending_valid
-             : _GEN_2
-                 ? (_GEN_5 ? _GEN_6 & io_icache_req_ready : pending_valid)
-                 : ~_GEN_9 & pending_valid);
-      miss_detected <=
-        ~io_branch
-        & (_GEN
-             ? ~_GEN_10 & miss_detected
-             : _GEN_2
-                 ? ~io_icache_resp_valid & _GEN_15 | miss_detected
-                 : ~_GEN_17 & miss_detected);
-      if (~_GEN) begin
-        if (_GEN_2) begin
-          if (_GEN_11) begin
-          end
-          else
-            ifid_reg_inst <= inst;
-        end
-        else if (_GEN_16) begin
-        end
-        else
-          ifid_reg_inst <= inst_1;
+        & (state
+             ? (_GEN_4 ? _GEN_5 & io_icache_req_ready : pending_valid)
+             : _GEN_6 | pending_valid);
+      if (_GEN_7) begin
       end
+      else
+        ifid_reg_inst <= inst;
       ifid_reg_valid <=
-        ~io_branch
-        & (_GEN
-             ? ~_GEN_0 & ifid_reg_valid
-             : _GEN_2
-                 ? _GEN_5 & ~_GEN_4 | ifid_reg_valid
-                 : _GEN_9 & ~_GEN_4 | ifid_reg_valid);
-      if (_GEN | (_GEN_2 ? _GEN_11 : _GEN_16)) begin
+        ~io_branch & (state ? _GEN_4 & ~_GEN_3 | ifid_reg_valid : ~_GEN & ifid_reg_valid);
+      if (_GEN_7) begin
       end
       else
         ifid_reg_pc <= pending_pc;
@@ -2265,28 +2179,24 @@ module FetchUnit(
         for (logic [2:0] i = 3'h0; i < 3'h6; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[3'h0][1:0];
-        pc = {_RANDOM[3'h0][31:2], _RANDOM[3'h1][1:0]};
-        next_pc = {_RANDOM[3'h1][31:2], _RANDOM[3'h2][1:0]};
-        pending_pc = {_RANDOM[3'h2][31:2], _RANDOM[3'h3][1:0]};
-        pending_valid = _RANDOM[3'h3][2];
-        miss_cycles = _RANDOM[3'h3][10:3];
-        miss_detected = _RANDOM[3'h3][11];
-        ifid_reg_inst = {_RANDOM[3'h3][31:12], _RANDOM[3'h4][11:0]};
-        ifid_reg_valid = _RANDOM[3'h4][12];
-        ifid_reg_pc = {_RANDOM[3'h4][31:13], _RANDOM[3'h5][12:0]};
-        canStart_REG = _RANDOM[3'h5][13];
+        state = _RANDOM[3'h0][0];
+        pc = {_RANDOM[3'h0][31:1], _RANDOM[3'h1][0]};
+        pending_pc = {_RANDOM[3'h2][31:1], _RANDOM[3'h3][0]};
+        pending_valid = _RANDOM[3'h3][1];
+        ifid_reg_inst = {_RANDOM[3'h3][31:2], _RANDOM[3'h4][1:0]};
+        ifid_reg_valid = _RANDOM[3'h4][2];
+        ifid_reg_pc = {_RANDOM[3'h4][31:3], _RANDOM[3'h5][2:0]};
+        canStart_REG = _RANDOM[3'h5][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN ? ifid_reg_inst : _GEN_2 ? inst : inst_1;
-  assign io_decodeStage_data_valid =
-    _GEN ? _GEN_0 & ifid_reg_valid : _GEN_2 ? _GEN_5 & _GEN_4 : _GEN_9 & _GEN_4;
-  assign io_decodeStage_data_pc = _GEN ? ifid_reg_pc : pending_pc;
-  assign io_icache_req_valid = _GEN ? _GEN_1 : _GEN_2 & _GEN_5 & _GEN_6;
+  assign io_decodeStage_data_inst = state ? inst : ifid_reg_inst;
+  assign io_decodeStage_data_valid = state ? _GEN_4 & _GEN_3 : _GEN & ifid_reg_valid;
+  assign io_decodeStage_data_pc = state ? pending_pc : ifid_reg_pc;
+  assign io_icache_req_valid = state ? _GEN_4 & _GEN_5 : _GEN_0;
   assign io_icache_req_bits_addr = pc;
 endmodule
 
