@@ -67,45 +67,45 @@
 `endif // not def PRINTF_COND_
 
 module IoControl(
-  input           clock,
-                  reset,
-  output          io_icache_read_req_ready,
-  input           io_icache_read_req_valid,
-  input  [31:0]   io_icache_read_req_bits_addr,
-  output          io_icache_read_resp_valid,
-  output [4095:0] io_icache_read_resp_bits_data,
-  output          io_dcache_read_req_ready,
-  input           io_dcache_read_req_valid,
-  input  [31:0]   io_dcache_read_req_bits_addr,
-  output          io_dcache_read_resp_valid,
-  output [31:0]   io_dcache_read_resp_bits_data,
-  output          io_dcache_write_req_ready,
-  input           io_dcache_write_req_valid,
-  input  [31:0]   io_dcache_write_req_bits_addr,
-                  io_dcache_write_req_bits_data,
-  input  [3:0]    io_dcache_write_req_bits_byte_mask,
-  input  [31:0]   io_base_ram_ctrl_data_in,
-  output [31:0]   io_base_ram_ctrl_ctrl_data_out,
-  output [19:0]   io_base_ram_ctrl_ctrl_addr,
-  output [3:0]    io_base_ram_ctrl_ctrl_be_n,
-  output          io_base_ram_ctrl_ctrl_ce_n,
-                  io_base_ram_ctrl_ctrl_oe_n,
-                  io_base_ram_ctrl_ctrl_we_n,
-                  io_base_ram_ctrl_ctrl_data_en,
-  input  [31:0]   io_ext_ram_ctrl_data_in,
-  output [31:0]   io_ext_ram_ctrl_ctrl_data_out,
-  output [19:0]   io_ext_ram_ctrl_ctrl_addr,
-  output [3:0]    io_ext_ram_ctrl_ctrl_be_n,
-  output          io_ext_ram_ctrl_ctrl_ce_n,
-                  io_ext_ram_ctrl_ctrl_oe_n,
-                  io_ext_ram_ctrl_ctrl_we_n,
-                  io_ext_ram_ctrl_ctrl_data_en,
-  input           io_rxd_uart_ready,
-  output          io_rxd_uart_clear,
-  input  [7:0]    io_rxd_uart_data,
-  output          io_txd_uart_start,
-  output [7:0]    io_txd_uart_data,
-  input           io_txd_uart_busy
+  input          clock,
+                 reset,
+  output         io_icache_read_req_ready,
+  input          io_icache_read_req_valid,
+  input  [31:0]  io_icache_read_req_bits_addr,
+  output         io_icache_read_resp_valid,
+  output [255:0] io_icache_read_resp_bits_data,
+  output         io_dcache_read_req_ready,
+  input          io_dcache_read_req_valid,
+  input  [31:0]  io_dcache_read_req_bits_addr,
+  output         io_dcache_read_resp_valid,
+  output [31:0]  io_dcache_read_resp_bits_data,
+  output         io_dcache_write_req_ready,
+  input          io_dcache_write_req_valid,
+  input  [31:0]  io_dcache_write_req_bits_addr,
+                 io_dcache_write_req_bits_data,
+  input  [3:0]   io_dcache_write_req_bits_byte_mask,
+  input  [31:0]  io_base_ram_ctrl_data_in,
+  output [31:0]  io_base_ram_ctrl_ctrl_data_out,
+  output [19:0]  io_base_ram_ctrl_ctrl_addr,
+  output [3:0]   io_base_ram_ctrl_ctrl_be_n,
+  output         io_base_ram_ctrl_ctrl_ce_n,
+                 io_base_ram_ctrl_ctrl_oe_n,
+                 io_base_ram_ctrl_ctrl_we_n,
+                 io_base_ram_ctrl_ctrl_data_en,
+  input  [31:0]  io_ext_ram_ctrl_data_in,
+  output [31:0]  io_ext_ram_ctrl_ctrl_data_out,
+  output [19:0]  io_ext_ram_ctrl_ctrl_addr,
+  output [3:0]   io_ext_ram_ctrl_ctrl_be_n,
+  output         io_ext_ram_ctrl_ctrl_ce_n,
+                 io_ext_ram_ctrl_ctrl_oe_n,
+                 io_ext_ram_ctrl_ctrl_we_n,
+                 io_ext_ram_ctrl_ctrl_data_en,
+  input          io_rxd_uart_ready,
+  output         io_rxd_uart_clear,
+  input  [7:0]   io_rxd_uart_data,
+  output         io_txd_uart_start,
+  output [7:0]   io_txd_uart_data,
+  input          io_txd_uart_busy
 );
 
   reg  [31:0] base_ram_ctrl_data_out;
@@ -144,126 +144,6 @@ module IoControl(
   reg  [31:0] icache_buffer_5;
   reg  [31:0] icache_buffer_6;
   reg  [31:0] icache_buffer_7;
-  reg  [31:0] icache_buffer_8;
-  reg  [31:0] icache_buffer_9;
-  reg  [31:0] icache_buffer_10;
-  reg  [31:0] icache_buffer_11;
-  reg  [31:0] icache_buffer_12;
-  reg  [31:0] icache_buffer_13;
-  reg  [31:0] icache_buffer_14;
-  reg  [31:0] icache_buffer_15;
-  reg  [31:0] icache_buffer_16;
-  reg  [31:0] icache_buffer_17;
-  reg  [31:0] icache_buffer_18;
-  reg  [31:0] icache_buffer_19;
-  reg  [31:0] icache_buffer_20;
-  reg  [31:0] icache_buffer_21;
-  reg  [31:0] icache_buffer_22;
-  reg  [31:0] icache_buffer_23;
-  reg  [31:0] icache_buffer_24;
-  reg  [31:0] icache_buffer_25;
-  reg  [31:0] icache_buffer_26;
-  reg  [31:0] icache_buffer_27;
-  reg  [31:0] icache_buffer_28;
-  reg  [31:0] icache_buffer_29;
-  reg  [31:0] icache_buffer_30;
-  reg  [31:0] icache_buffer_31;
-  reg  [31:0] icache_buffer_32;
-  reg  [31:0] icache_buffer_33;
-  reg  [31:0] icache_buffer_34;
-  reg  [31:0] icache_buffer_35;
-  reg  [31:0] icache_buffer_36;
-  reg  [31:0] icache_buffer_37;
-  reg  [31:0] icache_buffer_38;
-  reg  [31:0] icache_buffer_39;
-  reg  [31:0] icache_buffer_40;
-  reg  [31:0] icache_buffer_41;
-  reg  [31:0] icache_buffer_42;
-  reg  [31:0] icache_buffer_43;
-  reg  [31:0] icache_buffer_44;
-  reg  [31:0] icache_buffer_45;
-  reg  [31:0] icache_buffer_46;
-  reg  [31:0] icache_buffer_47;
-  reg  [31:0] icache_buffer_48;
-  reg  [31:0] icache_buffer_49;
-  reg  [31:0] icache_buffer_50;
-  reg  [31:0] icache_buffer_51;
-  reg  [31:0] icache_buffer_52;
-  reg  [31:0] icache_buffer_53;
-  reg  [31:0] icache_buffer_54;
-  reg  [31:0] icache_buffer_55;
-  reg  [31:0] icache_buffer_56;
-  reg  [31:0] icache_buffer_57;
-  reg  [31:0] icache_buffer_58;
-  reg  [31:0] icache_buffer_59;
-  reg  [31:0] icache_buffer_60;
-  reg  [31:0] icache_buffer_61;
-  reg  [31:0] icache_buffer_62;
-  reg  [31:0] icache_buffer_63;
-  reg  [31:0] icache_buffer_64;
-  reg  [31:0] icache_buffer_65;
-  reg  [31:0] icache_buffer_66;
-  reg  [31:0] icache_buffer_67;
-  reg  [31:0] icache_buffer_68;
-  reg  [31:0] icache_buffer_69;
-  reg  [31:0] icache_buffer_70;
-  reg  [31:0] icache_buffer_71;
-  reg  [31:0] icache_buffer_72;
-  reg  [31:0] icache_buffer_73;
-  reg  [31:0] icache_buffer_74;
-  reg  [31:0] icache_buffer_75;
-  reg  [31:0] icache_buffer_76;
-  reg  [31:0] icache_buffer_77;
-  reg  [31:0] icache_buffer_78;
-  reg  [31:0] icache_buffer_79;
-  reg  [31:0] icache_buffer_80;
-  reg  [31:0] icache_buffer_81;
-  reg  [31:0] icache_buffer_82;
-  reg  [31:0] icache_buffer_83;
-  reg  [31:0] icache_buffer_84;
-  reg  [31:0] icache_buffer_85;
-  reg  [31:0] icache_buffer_86;
-  reg  [31:0] icache_buffer_87;
-  reg  [31:0] icache_buffer_88;
-  reg  [31:0] icache_buffer_89;
-  reg  [31:0] icache_buffer_90;
-  reg  [31:0] icache_buffer_91;
-  reg  [31:0] icache_buffer_92;
-  reg  [31:0] icache_buffer_93;
-  reg  [31:0] icache_buffer_94;
-  reg  [31:0] icache_buffer_95;
-  reg  [31:0] icache_buffer_96;
-  reg  [31:0] icache_buffer_97;
-  reg  [31:0] icache_buffer_98;
-  reg  [31:0] icache_buffer_99;
-  reg  [31:0] icache_buffer_100;
-  reg  [31:0] icache_buffer_101;
-  reg  [31:0] icache_buffer_102;
-  reg  [31:0] icache_buffer_103;
-  reg  [31:0] icache_buffer_104;
-  reg  [31:0] icache_buffer_105;
-  reg  [31:0] icache_buffer_106;
-  reg  [31:0] icache_buffer_107;
-  reg  [31:0] icache_buffer_108;
-  reg  [31:0] icache_buffer_109;
-  reg  [31:0] icache_buffer_110;
-  reg  [31:0] icache_buffer_111;
-  reg  [31:0] icache_buffer_112;
-  reg  [31:0] icache_buffer_113;
-  reg  [31:0] icache_buffer_114;
-  reg  [31:0] icache_buffer_115;
-  reg  [31:0] icache_buffer_116;
-  reg  [31:0] icache_buffer_117;
-  reg  [31:0] icache_buffer_118;
-  reg  [31:0] icache_buffer_119;
-  reg  [31:0] icache_buffer_120;
-  reg  [31:0] icache_buffer_121;
-  reg  [31:0] icache_buffer_122;
-  reg  [31:0] icache_buffer_123;
-  reg  [31:0] icache_buffer_124;
-  reg  [31:0] icache_buffer_125;
-  reg  [31:0] icache_buffer_126;
-  reg  [31:0] icache_buffer_127;
   reg         icache_data_valid;
   reg  [31:0] dcache_buffer;
   reg         dcache_data_valid;
@@ -318,126 +198,6 @@ module IoControl(
       icache_buffer_5 <= 32'h0;
       icache_buffer_6 <= 32'h0;
       icache_buffer_7 <= 32'h0;
-      icache_buffer_8 <= 32'h0;
-      icache_buffer_9 <= 32'h0;
-      icache_buffer_10 <= 32'h0;
-      icache_buffer_11 <= 32'h0;
-      icache_buffer_12 <= 32'h0;
-      icache_buffer_13 <= 32'h0;
-      icache_buffer_14 <= 32'h0;
-      icache_buffer_15 <= 32'h0;
-      icache_buffer_16 <= 32'h0;
-      icache_buffer_17 <= 32'h0;
-      icache_buffer_18 <= 32'h0;
-      icache_buffer_19 <= 32'h0;
-      icache_buffer_20 <= 32'h0;
-      icache_buffer_21 <= 32'h0;
-      icache_buffer_22 <= 32'h0;
-      icache_buffer_23 <= 32'h0;
-      icache_buffer_24 <= 32'h0;
-      icache_buffer_25 <= 32'h0;
-      icache_buffer_26 <= 32'h0;
-      icache_buffer_27 <= 32'h0;
-      icache_buffer_28 <= 32'h0;
-      icache_buffer_29 <= 32'h0;
-      icache_buffer_30 <= 32'h0;
-      icache_buffer_31 <= 32'h0;
-      icache_buffer_32 <= 32'h0;
-      icache_buffer_33 <= 32'h0;
-      icache_buffer_34 <= 32'h0;
-      icache_buffer_35 <= 32'h0;
-      icache_buffer_36 <= 32'h0;
-      icache_buffer_37 <= 32'h0;
-      icache_buffer_38 <= 32'h0;
-      icache_buffer_39 <= 32'h0;
-      icache_buffer_40 <= 32'h0;
-      icache_buffer_41 <= 32'h0;
-      icache_buffer_42 <= 32'h0;
-      icache_buffer_43 <= 32'h0;
-      icache_buffer_44 <= 32'h0;
-      icache_buffer_45 <= 32'h0;
-      icache_buffer_46 <= 32'h0;
-      icache_buffer_47 <= 32'h0;
-      icache_buffer_48 <= 32'h0;
-      icache_buffer_49 <= 32'h0;
-      icache_buffer_50 <= 32'h0;
-      icache_buffer_51 <= 32'h0;
-      icache_buffer_52 <= 32'h0;
-      icache_buffer_53 <= 32'h0;
-      icache_buffer_54 <= 32'h0;
-      icache_buffer_55 <= 32'h0;
-      icache_buffer_56 <= 32'h0;
-      icache_buffer_57 <= 32'h0;
-      icache_buffer_58 <= 32'h0;
-      icache_buffer_59 <= 32'h0;
-      icache_buffer_60 <= 32'h0;
-      icache_buffer_61 <= 32'h0;
-      icache_buffer_62 <= 32'h0;
-      icache_buffer_63 <= 32'h0;
-      icache_buffer_64 <= 32'h0;
-      icache_buffer_65 <= 32'h0;
-      icache_buffer_66 <= 32'h0;
-      icache_buffer_67 <= 32'h0;
-      icache_buffer_68 <= 32'h0;
-      icache_buffer_69 <= 32'h0;
-      icache_buffer_70 <= 32'h0;
-      icache_buffer_71 <= 32'h0;
-      icache_buffer_72 <= 32'h0;
-      icache_buffer_73 <= 32'h0;
-      icache_buffer_74 <= 32'h0;
-      icache_buffer_75 <= 32'h0;
-      icache_buffer_76 <= 32'h0;
-      icache_buffer_77 <= 32'h0;
-      icache_buffer_78 <= 32'h0;
-      icache_buffer_79 <= 32'h0;
-      icache_buffer_80 <= 32'h0;
-      icache_buffer_81 <= 32'h0;
-      icache_buffer_82 <= 32'h0;
-      icache_buffer_83 <= 32'h0;
-      icache_buffer_84 <= 32'h0;
-      icache_buffer_85 <= 32'h0;
-      icache_buffer_86 <= 32'h0;
-      icache_buffer_87 <= 32'h0;
-      icache_buffer_88 <= 32'h0;
-      icache_buffer_89 <= 32'h0;
-      icache_buffer_90 <= 32'h0;
-      icache_buffer_91 <= 32'h0;
-      icache_buffer_92 <= 32'h0;
-      icache_buffer_93 <= 32'h0;
-      icache_buffer_94 <= 32'h0;
-      icache_buffer_95 <= 32'h0;
-      icache_buffer_96 <= 32'h0;
-      icache_buffer_97 <= 32'h0;
-      icache_buffer_98 <= 32'h0;
-      icache_buffer_99 <= 32'h0;
-      icache_buffer_100 <= 32'h0;
-      icache_buffer_101 <= 32'h0;
-      icache_buffer_102 <= 32'h0;
-      icache_buffer_103 <= 32'h0;
-      icache_buffer_104 <= 32'h0;
-      icache_buffer_105 <= 32'h0;
-      icache_buffer_106 <= 32'h0;
-      icache_buffer_107 <= 32'h0;
-      icache_buffer_108 <= 32'h0;
-      icache_buffer_109 <= 32'h0;
-      icache_buffer_110 <= 32'h0;
-      icache_buffer_111 <= 32'h0;
-      icache_buffer_112 <= 32'h0;
-      icache_buffer_113 <= 32'h0;
-      icache_buffer_114 <= 32'h0;
-      icache_buffer_115 <= 32'h0;
-      icache_buffer_116 <= 32'h0;
-      icache_buffer_117 <= 32'h0;
-      icache_buffer_118 <= 32'h0;
-      icache_buffer_119 <= 32'h0;
-      icache_buffer_120 <= 32'h0;
-      icache_buffer_121 <= 32'h0;
-      icache_buffer_122 <= 32'h0;
-      icache_buffer_123 <= 32'h0;
-      icache_buffer_124 <= 32'h0;
-      icache_buffer_125 <= 32'h0;
-      icache_buffer_126 <= 32'h0;
-      icache_buffer_127 <= 32'h0;
       icache_data_valid <= 1'h0;
       dcache_buffer <= 32'h0;
       dcache_data_valid <= 1'h0;
@@ -461,10 +221,10 @@ module IoControl(
       automatic logic       _GEN_1;
       automatic logic       _GEN_2;
       automatic logic       _GEN_3;
+      automatic logic       _GEN_4;
       automatic logic [2:0] _tail_idx_T_1;
       automatic logic [2:0] tail_idx;
       automatic logic       uart_empty;
-      automatic logic       _GEN_4;
       automatic logic       _GEN_5;
       automatic logic       _GEN_6;
       automatic logic       _GEN_7;
@@ -493,257 +253,297 @@ module IoControl(
       automatic logic       _GEN_30;
       automatic logic       _GEN_31;
       automatic logic       _GEN_32;
+      automatic logic       _GEN_33;
+      automatic logic       _GEN_34;
+      automatic logic       _GEN_35;
       _GEN = system_ready & io_icache_read_req_valid;
-      _GEN_0 = system_ready & io_dcache_read_req_valid;
-      _GEN_1 = _GEN_0 | dcache_read_req_valid;
-      _GEN_2 = system_ready & io_dcache_write_req_valid;
-      _GEN_3 = _GEN_2 | dcache_write_req_valid;
+      _GEN_0 = _GEN | icache_req_valid;
+      _GEN_1 = system_ready & io_dcache_read_req_valid;
+      _GEN_2 = _GEN_1 | dcache_read_req_valid;
+      _GEN_3 = system_ready & io_dcache_write_req_valid;
+      _GEN_4 = _GEN_3 | dcache_write_req_valid;
       _tail_idx_T_1 = uart_tail[7:5] | uart_tail[3:1];
       tail_idx =
         {|(uart_tail[7:4]), |(_tail_idx_T_1[2:1]), _tail_idx_T_1[2] | _tail_idx_T_1[0]};
       uart_empty = _uart_empty_T & ~maybe_full;
-      _GEN_4 = dcache_write_req_addr[31:22] == 10'h200;
-      _GEN_5 = dcache_write_req_addr[31:22] == 10'h201;
-      _GEN_6 = _GEN_4 | _GEN_5;
-      _GEN_7 = dcache_write_req_addr == 32'hBFD003F8;
-      _GEN_8 = _GEN_7 & ~io_txd_uart_busy;
-      _GEN_9 = _GEN_7 & io_txd_uart_busy;
-      _GEN_10 = dcache_read_req_addr[31:22] == 10'h200;
-      _GEN_11 = dcache_read_req_addr[31:22] == 10'h201;
-      _GEN_12 = _GEN_10 | _GEN_11;
-      _GEN_13 = dcache_read_req_addr == 32'hBFD003F8;
-      _GEN_14 =
-        (|state) | dcache_write_req_valid | ~dcache_read_req_valid | _GEN_12
-        | ~(_GEN_13 & ~uart_empty);
-      _GEN_15 = dcache_write_req_valid | ~dcache_read_req_valid | _GEN_12;
-      _GEN_16 = icache_req_addr[31:22] == 10'h200;
-      _GEN_17 = icache_req_addr[31:22] == 10'h201;
-      _GEN_18 = _GEN_16 | _GEN_17;
-      _GEN_19 = dcache_write_req_valid | dcache_read_req_valid;
-      _GEN_20 = state == 3'h1;
-      _GEN_21 = wait_counter == 4'h5;
-      _GEN_22 = (|state) | _GEN_19 | ~icache_req_valid | _GEN_18;
-      _GEN_23 = state == 3'h5;
-      _GEN_24 = state == 3'h2;
-      _GEN_25 = _GEN_20 | _GEN_23;
-      _GEN_26 = _GEN_25 | ~(_GEN_24 & _GEN_21);
-      _GEN_27 = state == 3'h3;
-      _GEN_28 = wait_counter < 4'h2;
-      _GEN_29 = wait_counter == 4'h2;
-      _GEN_30 = _GEN_28 | _GEN_29;
-      _GEN_31 = state != 3'h6;
-      _GEN_32 = _GEN_24 | _GEN_27 | state == 3'h4;
+      _GEN_5 = dcache_write_req_addr[31:22] == 10'h200;
+      _GEN_6 = dcache_write_req_addr[31:22] == 10'h201;
+      _GEN_7 = _GEN_5 | _GEN_6;
+      _GEN_8 = dcache_write_req_addr == 32'hBFD003F8;
+      _GEN_9 = _GEN_8 & ~io_txd_uart_busy;
+      _GEN_10 = _GEN_8 & io_txd_uart_busy;
+      _GEN_11 = dcache_read_req_addr[31:22] == 10'h200;
+      _GEN_12 = dcache_read_req_addr[31:22] == 10'h201;
+      _GEN_13 = _GEN_11 | _GEN_12;
+      _GEN_14 = dcache_read_req_addr == 32'hBFD003F8;
+      _GEN_15 =
+        (|state) | dcache_write_req_valid | ~dcache_read_req_valid | _GEN_13
+        | ~(_GEN_14 & ~uart_empty);
+      _GEN_16 = dcache_write_req_valid | ~dcache_read_req_valid | _GEN_13;
+      _GEN_17 = icache_req_addr[31:22] == 10'h200;
+      _GEN_18 = icache_req_addr[31:22] == 10'h201;
+      _GEN_19 = _GEN_17 | _GEN_18;
+      _GEN_20 = dcache_write_req_valid | dcache_read_req_valid;
+      _GEN_21 = _GEN_20 | ~icache_req_valid | _GEN_19;
+      _GEN_22 = state == 3'h1;
+      _GEN_23 = wait_counter == 4'h5;
+      _GEN_24 = (&icache_offset) & _GEN_23;
+      _GEN_25 = _GEN_22 & _GEN_24;
+      _GEN_26 = state == 3'h5;
+      _GEN_27 = state == 3'h2;
+      _GEN_28 = _GEN_22 | _GEN_26;
+      _GEN_29 = _GEN_28 | ~(_GEN_27 & _GEN_23);
+      _GEN_30 = state == 3'h3;
+      _GEN_31 = wait_counter < 4'h2;
+      _GEN_32 = wait_counter == 4'h2;
+      _GEN_33 = _GEN_31 | _GEN_32;
+      _GEN_34 = state != 3'h6;
+      _GEN_35 = _GEN_27 | _GEN_30 | state == 3'h4;
       if (|state) begin
-        automatic logic        _next_addr_T;
-        automatic logic [31:0] data_1;
-        automatic logic        _GEN_33;
-        automatic logic        _data_T_2;
-        automatic logic        _GEN_34;
-        automatic logic        _GEN_35;
+        automatic logic        _data_T;
         automatic logic        _GEN_36;
+        automatic logic        _next_addr_T;
+        automatic logic [31:0] _GEN_37;
+        automatic logic        _GEN_38;
+        automatic logic        _data_T_2;
+        automatic logic        _GEN_39;
+        automatic logic        _GEN_40;
+        automatic logic        _GEN_41;
+        _data_T = current_ram == 2'h1;
+        _GEN_36 = ~_GEN_23 | _data_T;
         _next_addr_T = current_ram == 2'h1;
-        data_1 = _next_addr_T ? io_base_ram_ctrl_data_in : io_ext_ram_ctrl_data_in;
-        _GEN_33 = ~_GEN_21 | _next_addr_T;
+        _GEN_37 =
+          ((&icache_offset) ? _data_T : _next_addr_T)
+            ? io_base_ram_ctrl_data_in
+            : io_ext_ram_ctrl_data_in;
+        _GEN_38 = ~_GEN_23 | _next_addr_T;
         _data_T_2 = current_ram == 2'h1;
-        _GEN_34 = ~_GEN_21 | _data_T_2;
-        _GEN_35 = current_ram == 2'h1;
-        _GEN_36 = _GEN_23 | (_GEN_24 ? _GEN_34 : ~_GEN_27 | _GEN_30 | ~_GEN_21 | _GEN_35);
-        if (_GEN_20) begin
-          automatic logic [19:0] _next_addr_T_2;
-          automatic logic        _GEN_37;
-          _next_addr_T_2 =
-            (_next_addr_T ? base_ram_ctrl_addr : ext_ram_ctrl_addr) + 20'h1;
-          _GEN_37 = _GEN_21 & _next_addr_T;
-          if (_GEN_37) begin
+        _GEN_39 = ~_GEN_23 | _data_T_2;
+        _GEN_40 = current_ram == 2'h1;
+        _GEN_41 = _GEN_26 | (_GEN_27 ? _GEN_39 : ~_GEN_30 | _GEN_33 | ~_GEN_23 | _GEN_40);
+        if (_GEN_22) begin
+          automatic logic _GEN_42;
+          automatic logic _GEN_43;
+          _GEN_42 = _GEN_23 & _data_T;
+          _GEN_43 = _GEN_23 & _next_addr_T;
+          if ((&icache_offset) ? _GEN_42 : _GEN_43)
             base_ram_ctrl_data_out <= 32'h0;
-            base_ram_ctrl_addr <= _next_addr_T_2;
-            base_ram_ctrl_be_n <= 4'h0;
-          end
-          base_ram_ctrl_ce_n <= ~_GEN_37 & base_ram_ctrl_ce_n;
-          base_ram_ctrl_oe_n <= ~_GEN_37 & base_ram_ctrl_oe_n;
-          base_ram_ctrl_we_n <= _GEN_37 | base_ram_ctrl_we_n;
-          base_ram_ctrl_data_en <= ~_GEN_37 & base_ram_ctrl_data_en;
-          if (_GEN_33) begin
-          end
-          else begin
-            ext_ram_ctrl_addr <= _next_addr_T_2;
-            ext_ram_ctrl_be_n <= 4'h0;
-          end
-          ext_ram_ctrl_ce_n <= _GEN_33 & ext_ram_ctrl_ce_n;
-          ext_ram_ctrl_oe_n <= _GEN_33 & ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_21 & ~_next_addr_T | ext_ram_ctrl_we_n;
-          ext_ram_ctrl_data_en <= _GEN_33 & ext_ram_ctrl_data_en;
-        end
-        else begin
-          if (~_GEN_23) begin
-            if (_GEN_24) begin
-              automatic logic _GEN_38;
-              automatic logic _GEN_39;
-              _GEN_38 = _GEN_21 & _data_T_2;
-              _GEN_39 = _GEN_21 & ~_data_T_2;
-              if (_GEN_38) begin
-                base_ram_ctrl_data_out <= 32'h0;
-                base_ram_ctrl_addr <= 20'h0;
-                base_ram_ctrl_be_n <= 4'hF;
-              end
-              base_ram_ctrl_ce_n <= _GEN_38 | base_ram_ctrl_ce_n;
-              base_ram_ctrl_oe_n <= _GEN_38 | base_ram_ctrl_oe_n;
-              base_ram_ctrl_we_n <= _GEN_38 | base_ram_ctrl_we_n;
-              base_ram_ctrl_data_en <= ~_GEN_38 & base_ram_ctrl_data_en;
-              ext_ram_ctrl_ce_n <= _GEN_39 | ext_ram_ctrl_ce_n;
-              ext_ram_ctrl_oe_n <= _GEN_39 | ext_ram_ctrl_oe_n;
-              ext_ram_ctrl_we_n <= _GEN_39 | ext_ram_ctrl_we_n;
-              ext_ram_ctrl_data_en <= _GEN_34 & ext_ram_ctrl_data_en;
+          if (&icache_offset) begin
+            automatic logic _GEN_44;
+            _GEN_44 = _GEN_23 & ~_data_T;
+            if (_GEN_42) begin
+              base_ram_ctrl_addr <= 20'h0;
+              base_ram_ctrl_be_n <= 4'hF;
+            end
+            base_ram_ctrl_ce_n <= _GEN_42 | base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= _GEN_42 | base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_42 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_42 & base_ram_ctrl_data_en;
+            if (_GEN_36) begin
             end
             else begin
-              automatic logic _GEN_40;
-              _GEN_40 = _GEN_21 & _GEN_35;
-              if (~_GEN_27 | _GEN_30 | ~_GEN_40) begin
+              ext_ram_ctrl_addr <= 20'h0;
+              ext_ram_ctrl_be_n <= 4'hF;
+            end
+            ext_ram_ctrl_ce_n <= _GEN_44 | ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_44 | ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= _GEN_44 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_36 & ext_ram_ctrl_data_en;
+          end
+          else begin
+            automatic logic [19:0] _next_addr_T_2;
+            _next_addr_T_2 =
+              (_next_addr_T ? base_ram_ctrl_addr : ext_ram_ctrl_addr) + 20'h1;
+            if (_GEN_43) begin
+              base_ram_ctrl_addr <= _next_addr_T_2;
+              base_ram_ctrl_be_n <= 4'h0;
+            end
+            base_ram_ctrl_ce_n <= ~_GEN_43 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_43 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_43 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_43 & base_ram_ctrl_data_en;
+            if (_GEN_38) begin
+            end
+            else begin
+              ext_ram_ctrl_addr <= _next_addr_T_2;
+              ext_ram_ctrl_be_n <= 4'h0;
+            end
+            ext_ram_ctrl_ce_n <= _GEN_38 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_38 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= _GEN_23 & ~_next_addr_T | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_38 & ext_ram_ctrl_data_en;
+          end
+        end
+        else begin
+          if (~_GEN_26) begin
+            if (_GEN_27) begin
+              automatic logic _GEN_45;
+              automatic logic _GEN_46;
+              _GEN_45 = _GEN_23 & _data_T_2;
+              _GEN_46 = _GEN_23 & ~_data_T_2;
+              if (_GEN_45) begin
+                base_ram_ctrl_data_out <= 32'h0;
+                base_ram_ctrl_addr <= 20'h0;
+                base_ram_ctrl_be_n <= 4'hF;
+              end
+              base_ram_ctrl_ce_n <= _GEN_45 | base_ram_ctrl_ce_n;
+              base_ram_ctrl_oe_n <= _GEN_45 | base_ram_ctrl_oe_n;
+              base_ram_ctrl_we_n <= _GEN_45 | base_ram_ctrl_we_n;
+              base_ram_ctrl_data_en <= ~_GEN_45 & base_ram_ctrl_data_en;
+              ext_ram_ctrl_ce_n <= _GEN_46 | ext_ram_ctrl_ce_n;
+              ext_ram_ctrl_oe_n <= _GEN_46 | ext_ram_ctrl_oe_n;
+              ext_ram_ctrl_we_n <= _GEN_46 | ext_ram_ctrl_we_n;
+              ext_ram_ctrl_data_en <= _GEN_39 & ext_ram_ctrl_data_en;
+            end
+            else begin
+              automatic logic _GEN_47;
+              _GEN_47 = _GEN_23 & _GEN_40;
+              if (~_GEN_30 | _GEN_33 | ~_GEN_47) begin
               end
               else begin
                 base_ram_ctrl_data_out <= 32'h0;
                 base_ram_ctrl_addr <= 20'h0;
                 base_ram_ctrl_be_n <= 4'hF;
               end
-              if (~_GEN_27 | _GEN_28) begin
+              if (~_GEN_30 | _GEN_31) begin
               end
-              else if (_GEN_29) begin
-                base_ram_ctrl_ce_n <= ~_GEN_35 & base_ram_ctrl_ce_n;
-                base_ram_ctrl_oe_n <= _GEN_35 | base_ram_ctrl_oe_n;
-                base_ram_ctrl_we_n <= _GEN_35 | base_ram_ctrl_we_n;
-                base_ram_ctrl_data_en <= _GEN_35 | base_ram_ctrl_data_en;
-                ext_ram_ctrl_ce_n <= _GEN_35 & ext_ram_ctrl_ce_n;
-                ext_ram_ctrl_oe_n <= ~_GEN_35 | ext_ram_ctrl_oe_n;
-                ext_ram_ctrl_we_n <= ~_GEN_35 | ext_ram_ctrl_we_n;
-                ext_ram_ctrl_data_en <= ~_GEN_35 | ext_ram_ctrl_data_en;
-              end
-              else begin
-                automatic logic _GEN_41;
-                _GEN_41 = _GEN_21 & ~_GEN_35;
-                base_ram_ctrl_ce_n <= _GEN_40 | base_ram_ctrl_ce_n;
+              else if (_GEN_32) begin
+                base_ram_ctrl_ce_n <= ~_GEN_40 & base_ram_ctrl_ce_n;
                 base_ram_ctrl_oe_n <= _GEN_40 | base_ram_ctrl_oe_n;
                 base_ram_ctrl_we_n <= _GEN_40 | base_ram_ctrl_we_n;
-                base_ram_ctrl_data_en <= ~_GEN_40 & base_ram_ctrl_data_en;
-                ext_ram_ctrl_ce_n <= _GEN_41 | ext_ram_ctrl_ce_n;
-                ext_ram_ctrl_oe_n <= _GEN_41 | ext_ram_ctrl_oe_n;
-                ext_ram_ctrl_we_n <= _GEN_41 | ext_ram_ctrl_we_n;
-                ext_ram_ctrl_data_en <= (~_GEN_21 | _GEN_35) & ext_ram_ctrl_data_en;
+                base_ram_ctrl_data_en <= _GEN_40 | base_ram_ctrl_data_en;
+                ext_ram_ctrl_ce_n <= _GEN_40 & ext_ram_ctrl_ce_n;
+                ext_ram_ctrl_oe_n <= ~_GEN_40 | ext_ram_ctrl_oe_n;
+                ext_ram_ctrl_we_n <= ~_GEN_40 | ext_ram_ctrl_we_n;
+                ext_ram_ctrl_data_en <= ~_GEN_40 | ext_ram_ctrl_data_en;
+              end
+              else begin
+                automatic logic _GEN_48;
+                _GEN_48 = _GEN_23 & ~_GEN_40;
+                base_ram_ctrl_ce_n <= _GEN_47 | base_ram_ctrl_ce_n;
+                base_ram_ctrl_oe_n <= _GEN_47 | base_ram_ctrl_oe_n;
+                base_ram_ctrl_we_n <= _GEN_47 | base_ram_ctrl_we_n;
+                base_ram_ctrl_data_en <= ~_GEN_47 & base_ram_ctrl_data_en;
+                ext_ram_ctrl_ce_n <= _GEN_48 | ext_ram_ctrl_ce_n;
+                ext_ram_ctrl_oe_n <= _GEN_48 | ext_ram_ctrl_oe_n;
+                ext_ram_ctrl_we_n <= _GEN_48 | ext_ram_ctrl_we_n;
+                ext_ram_ctrl_data_en <= (~_GEN_23 | _GEN_40) & ext_ram_ctrl_data_en;
               end
             end
           end
-          if (_GEN_36) begin
+          if (_GEN_41) begin
           end
           else begin
             ext_ram_ctrl_addr <= 20'h0;
             ext_ram_ctrl_be_n <= 4'hF;
           end
         end
-        if (_GEN_20 ? _GEN_33 : _GEN_36) begin
+        if (_GEN_22 ? ((&icache_offset) ? _GEN_36 : _GEN_38) : _GEN_41) begin
         end
         else
           ext_ram_ctrl_data_out <= 32'h0;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h0)
-          icache_buffer_0 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h1)
-          icache_buffer_1 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h2)
-          icache_buffer_2 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h3)
-          icache_buffer_3 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h4)
-          icache_buffer_4 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h5)
-          icache_buffer_5 <= data_1;
-        if (_GEN_20 & _GEN_21 & icache_offset == 3'h6)
-          icache_buffer_6 <= data_1;
-        if (_GEN_20 & _GEN_21 & (&icache_offset))
-          icache_buffer_7 <= data_1;
-        if (_GEN_26) begin
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h0)
+          icache_buffer_0 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h1)
+          icache_buffer_1 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h2)
+          icache_buffer_2 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h3)
+          icache_buffer_3 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h4)
+          icache_buffer_4 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h5)
+          icache_buffer_5 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h6)
+          icache_buffer_6 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & (&icache_offset))
+          icache_buffer_7 <= _GEN_37;
+        if (_GEN_29) begin
         end
         else
           dcache_buffer <= _data_T_2 ? io_base_ram_ctrl_data_in : io_ext_ram_ctrl_data_in;
       end
       else begin
         if (dcache_write_req_valid) begin
-          automatic logic _GEN_42;
-          automatic logic _GEN_43;
-          _GEN_42 = _GEN_4 | ~_GEN_5;
-          _GEN_43 = ~_GEN_4 & _GEN_5;
-          if (_GEN_4) begin
+          automatic logic _GEN_49;
+          automatic logic _GEN_50;
+          _GEN_49 = _GEN_5 | ~_GEN_6;
+          _GEN_50 = ~_GEN_5 & _GEN_6;
+          if (_GEN_5) begin
             base_ram_ctrl_data_out <= dcache_write_req_data;
             base_ram_ctrl_addr <= dcache_write_req_addr[21:2];
             base_ram_ctrl_be_n <= ~dcache_write_req_mask;
           end
-          base_ram_ctrl_ce_n <= ~_GEN_4 & base_ram_ctrl_ce_n;
-          base_ram_ctrl_oe_n <= _GEN_4 | base_ram_ctrl_oe_n;
-          base_ram_ctrl_we_n <= ~_GEN_4 & base_ram_ctrl_we_n;
-          base_ram_ctrl_data_en <= _GEN_4 | base_ram_ctrl_data_en;
-          if (_GEN_42) begin
+          base_ram_ctrl_ce_n <= ~_GEN_5 & base_ram_ctrl_ce_n;
+          base_ram_ctrl_oe_n <= _GEN_5 | base_ram_ctrl_oe_n;
+          base_ram_ctrl_we_n <= ~_GEN_5 & base_ram_ctrl_we_n;
+          base_ram_ctrl_data_en <= _GEN_5 | base_ram_ctrl_data_en;
+          if (_GEN_49) begin
           end
           else begin
             ext_ram_ctrl_data_out <= dcache_write_req_data;
             ext_ram_ctrl_addr <= dcache_write_req_addr[21:2];
             ext_ram_ctrl_be_n <= ~dcache_write_req_mask;
           end
-          ext_ram_ctrl_ce_n <= _GEN_42 & ext_ram_ctrl_ce_n;
-          ext_ram_ctrl_oe_n <= _GEN_43 | ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_42 & ext_ram_ctrl_we_n;
-          ext_ram_ctrl_data_en <= _GEN_43 | ext_ram_ctrl_data_en;
+          ext_ram_ctrl_ce_n <= _GEN_49 & ext_ram_ctrl_ce_n;
+          ext_ram_ctrl_oe_n <= _GEN_50 | ext_ram_ctrl_oe_n;
+          ext_ram_ctrl_we_n <= _GEN_49 & ext_ram_ctrl_we_n;
+          ext_ram_ctrl_data_en <= _GEN_50 | ext_ram_ctrl_data_en;
         end
         else begin
-          automatic logic _GEN_44;
-          automatic logic _GEN_45;
-          automatic logic _GEN_46;
-          automatic logic _GEN_47;
-          _GEN_44 = _GEN_10 | ~_GEN_11;
-          _GEN_45 = icache_req_valid & _GEN_16;
-          _GEN_46 = dcache_read_req_valid ? _GEN_10 : _GEN_45;
-          _GEN_47 = ~icache_req_valid | _GEN_16 | ~_GEN_17;
-          if (_GEN_46)
+          automatic logic _GEN_51;
+          automatic logic _GEN_52;
+          automatic logic _GEN_53;
+          automatic logic _GEN_54;
+          _GEN_51 = _GEN_11 | ~_GEN_12;
+          _GEN_52 = icache_req_valid & _GEN_17;
+          _GEN_53 = dcache_read_req_valid ? _GEN_11 : _GEN_52;
+          _GEN_54 = ~icache_req_valid | _GEN_17 | ~_GEN_18;
+          if (_GEN_53)
             base_ram_ctrl_data_out <= 32'h0;
           if (dcache_read_req_valid) begin
-            if (_GEN_10)
+            if (_GEN_11)
               base_ram_ctrl_addr <= dcache_read_req_addr[21:2];
-            base_ram_ctrl_ce_n <= ~_GEN_10 & base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= ~_GEN_10 & base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_10 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_10 & base_ram_ctrl_data_en;
-            if (_GEN_44) begin
+            base_ram_ctrl_ce_n <= ~_GEN_11 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_11 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_11 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_11 & base_ram_ctrl_data_en;
+            if (_GEN_51) begin
             end
             else
               ext_ram_ctrl_addr <= dcache_read_req_addr[21:2];
-            ext_ram_ctrl_ce_n <= _GEN_44 & ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_44 & ext_ram_ctrl_oe_n;
-            ext_ram_ctrl_we_n <= ~_GEN_10 & _GEN_11 | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_44 & ext_ram_ctrl_data_en;
+            ext_ram_ctrl_ce_n <= _GEN_51 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_51 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= ~_GEN_11 & _GEN_12 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_51 & ext_ram_ctrl_data_en;
           end
           else begin
-            if (_GEN_45)
+            if (_GEN_52)
               base_ram_ctrl_addr <= icache_req_addr[21:2];
-            base_ram_ctrl_ce_n <= ~_GEN_45 & base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= ~_GEN_45 & base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_45 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_45 & base_ram_ctrl_data_en;
-            if (_GEN_47) begin
+            base_ram_ctrl_ce_n <= ~_GEN_52 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_52 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_52 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_52 & base_ram_ctrl_data_en;
+            if (_GEN_54) begin
             end
             else
               ext_ram_ctrl_addr <= icache_req_addr[21:2];
-            ext_ram_ctrl_ce_n <= _GEN_47 & ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_47 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_ce_n <= _GEN_54 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_54 & ext_ram_ctrl_oe_n;
             ext_ram_ctrl_we_n <=
-              icache_req_valid & ~_GEN_16 & _GEN_17 | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_47 & ext_ram_ctrl_data_en;
+              icache_req_valid & ~_GEN_17 & _GEN_18 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_54 & ext_ram_ctrl_data_en;
           end
-          if (_GEN_46)
+          if (_GEN_53)
             base_ram_ctrl_be_n <= 4'h0;
-          if (dcache_read_req_valid ? _GEN_44 : _GEN_47) begin
+          if (dcache_read_req_valid ? _GEN_51 : _GEN_54) begin
           end
           else begin
             ext_ram_ctrl_data_out <= 32'h0;
             ext_ram_ctrl_be_n <= 4'h0;
           end
         end
-        if (_GEN_19 | ~icache_req_valid | _GEN_18) begin
+        if (_GEN_21) begin
         end
         else begin
           icache_buffer_0 <= 32'h0;
@@ -755,13 +555,13 @@ module IoControl(
           icache_buffer_6 <= 32'h0;
           icache_buffer_7 <= 32'h0;
         end
-        if (_GEN_15) begin
+        if (_GEN_16) begin
         end
         else begin
           automatic logic [2:0]      _head_idx_T_1;
-          automatic logic [7:0][7:0] _GEN_48;
+          automatic logic [7:0][7:0] _GEN_55;
           _head_idx_T_1 = uart_head[7:5] | uart_head[3:1];
-          _GEN_48 =
+          _GEN_55 =
             {{uart_buffer_7_data},
              {uart_buffer_6_data},
              {uart_buffer_5_data},
@@ -771,11 +571,11 @@ module IoControl(
              {uart_buffer_1_data},
              {uart_buffer_0_data}};
           dcache_buffer <=
-            _GEN_13
+            _GEN_14
               ? (uart_empty
                    ? 32'h0
                    : {24'h0,
-                      _GEN_48[{|(uart_head[7:4]),
+                      _GEN_55[{|(uart_head[7:4]),
                                |(_head_idx_T_1[2:1]),
                                _head_idx_T_1[2] | _head_idx_T_1[0]}]})
               : dcache_read_req_addr == 32'hBFD003FC
@@ -799,243 +599,126 @@ module IoControl(
       end
       else begin
         if (|state) begin
-          automatic logic [7:0][2:0] _GEN_49;
-          _GEN_49 =
+          automatic logic [7:0][2:0] _GEN_56;
+          _GEN_56 =
             {{state},
              {3'h0},
              {3'h0},
              {3'h6},
-             {_GEN_30 | ~_GEN_21 ? state : 3'h6},
-             {_GEN_21 ? 3'h6 : state},
-             {state},
+             {_GEN_33 | ~_GEN_23 ? state : 3'h6},
+             {_GEN_23 ? 3'h6 : state},
+             {_GEN_24 ? 3'h5 : state},
              {state}};
-          state <= _GEN_49[state];
-          if (_GEN_20) begin
-            if (_GEN_21)
+          state <= _GEN_56[state];
+          if (_GEN_22) begin
+            if (&icache_offset) begin
+              if (~_GEN_23)
+                wait_counter <= wait_counter + 4'h1;
+            end
+            else if (_GEN_23)
               wait_counter <= 4'h0;
             else
               wait_counter <= wait_counter + 4'h1;
           end
-          else if (~_GEN_23) begin
-            if (_GEN_24) begin
-              if (~_GEN_21)
+          else if (~_GEN_26) begin
+            if (_GEN_27) begin
+              if (~_GEN_23)
                 wait_counter <= wait_counter + 4'h1;
             end
-            else if (_GEN_27) begin
-              if (_GEN_28)
+            else if (_GEN_30) begin
+              if (_GEN_31)
                 wait_counter <= wait_counter + 4'h1;
-              else if (_GEN_29)
+              else if (_GEN_32)
                 wait_counter <= wait_counter + 4'h1;
-              else if (~_GEN_21)
+              else if (~_GEN_23)
                 wait_counter <= wait_counter + 4'h1;
             end
           end
-          if (_GEN_20 & _GEN_21)
+          if (~_GEN_22 | (&icache_offset) | ~_GEN_23) begin
+          end
+          else
             icache_offset <= icache_offset + 3'h1;
-          if (_GEN_20 | ~(_GEN_23 | ~(_GEN_32 | _GEN_31))) begin
+          if (_GEN_22 | ~(_GEN_26 | ~(_GEN_35 | _GEN_34))) begin
           end
           else
             current_ram <= 2'h0;
         end
         else begin
-          automatic logic _GEN_50;
-          _GEN_50 = icache_req_valid & _GEN_18;
+          automatic logic _GEN_57;
+          _GEN_57 = icache_req_valid & _GEN_19;
           if (dcache_write_req_valid) begin
-            if (_GEN_6)
+            if (_GEN_7)
               state <= 3'h3;
-            else if (_GEN_9) begin
+            else if (_GEN_10) begin
             end
             else
               state <= 3'h6;
           end
           else if (dcache_read_req_valid)
-            state <= {~_GEN_12, 2'h2};
+            state <= {~_GEN_13, 2'h2};
           else if (icache_req_valid)
-            state <= {~_GEN_18, 2'h1};
-          if (dcache_write_req_valid ? _GEN_6 : dcache_read_req_valid ? _GEN_12 : _GEN_50)
+            state <= {~_GEN_19, 2'h1};
+          if (dcache_write_req_valid ? _GEN_7 : dcache_read_req_valid ? _GEN_13 : _GEN_57)
             wait_counter <= 4'h0;
-          if (_GEN_19 | ~_GEN_50) begin
+          if (_GEN_20 | ~_GEN_57) begin
           end
           else
             icache_offset <= 3'h0;
           if (dcache_write_req_valid) begin
-            if (_GEN_4)
+            if (_GEN_5)
               current_ram <= 2'h1;
-            else if (_GEN_5)
+            else if (_GEN_6)
               current_ram <= 2'h2;
           end
           else if (dcache_read_req_valid) begin
-            if (_GEN_10)
+            if (_GEN_11)
               current_ram <= 2'h1;
-            else if (_GEN_11)
+            else if (_GEN_12)
               current_ram <= 2'h2;
           end
           else if (icache_req_valid) begin
-            if (_GEN_16)
+            if (_GEN_17)
               current_ram <= 2'h1;
-            else if (_GEN_17)
+            else if (_GEN_18)
               current_ram <= 2'h2;
           end
         end
         if (_GEN)
           icache_req_addr <= io_icache_read_req_bits_addr;
-        if (_GEN_0)
+        if (_GEN_1)
           dcache_read_req_addr <= io_dcache_read_req_bits_addr;
-        if (_GEN_2) begin
+        if (_GEN_3) begin
           dcache_write_req_addr <= io_dcache_write_req_bits_addr;
           dcache_write_req_data <= io_dcache_write_req_bits_data;
           dcache_write_req_mask <= io_dcache_write_req_bits_byte_mask;
         end
-        if (_GEN_14) begin
+        if (_GEN_15) begin
         end
         else
           uart_head <= {uart_head[6:0], uart_head[7]};
         if (io_rxd_uart_clear_0)
           uart_tail <= {uart_tail[6:0], uart_tail[7]};
-        if (~(~(|state) & dcache_write_req_valid) | _GEN_6 | ~_GEN_8) begin
+        if (~(~(|state) & dcache_write_req_valid) | _GEN_7 | ~_GEN_9) begin
         end
         else
           txd_uart_data <= dcache_write_req_data[7:0];
       end
-      icache_req_valid <= ~reset & _GEN_22 & (_GEN | icache_req_valid);
-      dcache_read_req_valid <= ~reset & ((|state) ? _GEN_26 & _GEN_1 : _GEN_15 & _GEN_1);
+      icache_req_valid <= ~reset & ((|state) ? ~_GEN_25 & _GEN_0 : _GEN_21 & _GEN_0);
+      dcache_read_req_valid <= ~reset & ((|state) ? _GEN_29 & _GEN_2 : _GEN_16 & _GEN_2);
       dcache_write_req_valid <=
         ~reset
         & ((|state)
-             ? (_GEN_20 | _GEN_23 | _GEN_24 | ~_GEN_27 | _GEN_30 | ~_GEN_21) & _GEN_3
-             : (~dcache_write_req_valid | _GEN_6 | _GEN_9) & _GEN_3);
-      if (_GEN_22) begin
-      end
-      else begin
-        icache_buffer_8 <= 32'h0;
-        icache_buffer_9 <= 32'h0;
-        icache_buffer_10 <= 32'h0;
-        icache_buffer_11 <= 32'h0;
-        icache_buffer_12 <= 32'h0;
-        icache_buffer_13 <= 32'h0;
-        icache_buffer_14 <= 32'h0;
-        icache_buffer_15 <= 32'h0;
-        icache_buffer_16 <= 32'h0;
-        icache_buffer_17 <= 32'h0;
-        icache_buffer_18 <= 32'h0;
-        icache_buffer_19 <= 32'h0;
-        icache_buffer_20 <= 32'h0;
-        icache_buffer_21 <= 32'h0;
-        icache_buffer_22 <= 32'h0;
-        icache_buffer_23 <= 32'h0;
-        icache_buffer_24 <= 32'h0;
-        icache_buffer_25 <= 32'h0;
-        icache_buffer_26 <= 32'h0;
-        icache_buffer_27 <= 32'h0;
-        icache_buffer_28 <= 32'h0;
-        icache_buffer_29 <= 32'h0;
-        icache_buffer_30 <= 32'h0;
-        icache_buffer_31 <= 32'h0;
-        icache_buffer_32 <= 32'h0;
-        icache_buffer_33 <= 32'h0;
-        icache_buffer_34 <= 32'h0;
-        icache_buffer_35 <= 32'h0;
-        icache_buffer_36 <= 32'h0;
-        icache_buffer_37 <= 32'h0;
-        icache_buffer_38 <= 32'h0;
-        icache_buffer_39 <= 32'h0;
-        icache_buffer_40 <= 32'h0;
-        icache_buffer_41 <= 32'h0;
-        icache_buffer_42 <= 32'h0;
-        icache_buffer_43 <= 32'h0;
-        icache_buffer_44 <= 32'h0;
-        icache_buffer_45 <= 32'h0;
-        icache_buffer_46 <= 32'h0;
-        icache_buffer_47 <= 32'h0;
-        icache_buffer_48 <= 32'h0;
-        icache_buffer_49 <= 32'h0;
-        icache_buffer_50 <= 32'h0;
-        icache_buffer_51 <= 32'h0;
-        icache_buffer_52 <= 32'h0;
-        icache_buffer_53 <= 32'h0;
-        icache_buffer_54 <= 32'h0;
-        icache_buffer_55 <= 32'h0;
-        icache_buffer_56 <= 32'h0;
-        icache_buffer_57 <= 32'h0;
-        icache_buffer_58 <= 32'h0;
-        icache_buffer_59 <= 32'h0;
-        icache_buffer_60 <= 32'h0;
-        icache_buffer_61 <= 32'h0;
-        icache_buffer_62 <= 32'h0;
-        icache_buffer_63 <= 32'h0;
-        icache_buffer_64 <= 32'h0;
-        icache_buffer_65 <= 32'h0;
-        icache_buffer_66 <= 32'h0;
-        icache_buffer_67 <= 32'h0;
-        icache_buffer_68 <= 32'h0;
-        icache_buffer_69 <= 32'h0;
-        icache_buffer_70 <= 32'h0;
-        icache_buffer_71 <= 32'h0;
-        icache_buffer_72 <= 32'h0;
-        icache_buffer_73 <= 32'h0;
-        icache_buffer_74 <= 32'h0;
-        icache_buffer_75 <= 32'h0;
-        icache_buffer_76 <= 32'h0;
-        icache_buffer_77 <= 32'h0;
-        icache_buffer_78 <= 32'h0;
-        icache_buffer_79 <= 32'h0;
-        icache_buffer_80 <= 32'h0;
-        icache_buffer_81 <= 32'h0;
-        icache_buffer_82 <= 32'h0;
-        icache_buffer_83 <= 32'h0;
-        icache_buffer_84 <= 32'h0;
-        icache_buffer_85 <= 32'h0;
-        icache_buffer_86 <= 32'h0;
-        icache_buffer_87 <= 32'h0;
-        icache_buffer_88 <= 32'h0;
-        icache_buffer_89 <= 32'h0;
-        icache_buffer_90 <= 32'h0;
-        icache_buffer_91 <= 32'h0;
-        icache_buffer_92 <= 32'h0;
-        icache_buffer_93 <= 32'h0;
-        icache_buffer_94 <= 32'h0;
-        icache_buffer_95 <= 32'h0;
-        icache_buffer_96 <= 32'h0;
-        icache_buffer_97 <= 32'h0;
-        icache_buffer_98 <= 32'h0;
-        icache_buffer_99 <= 32'h0;
-        icache_buffer_100 <= 32'h0;
-        icache_buffer_101 <= 32'h0;
-        icache_buffer_102 <= 32'h0;
-        icache_buffer_103 <= 32'h0;
-        icache_buffer_104 <= 32'h0;
-        icache_buffer_105 <= 32'h0;
-        icache_buffer_106 <= 32'h0;
-        icache_buffer_107 <= 32'h0;
-        icache_buffer_108 <= 32'h0;
-        icache_buffer_109 <= 32'h0;
-        icache_buffer_110 <= 32'h0;
-        icache_buffer_111 <= 32'h0;
-        icache_buffer_112 <= 32'h0;
-        icache_buffer_113 <= 32'h0;
-        icache_buffer_114 <= 32'h0;
-        icache_buffer_115 <= 32'h0;
-        icache_buffer_116 <= 32'h0;
-        icache_buffer_117 <= 32'h0;
-        icache_buffer_118 <= 32'h0;
-        icache_buffer_119 <= 32'h0;
-        icache_buffer_120 <= 32'h0;
-        icache_buffer_121 <= 32'h0;
-        icache_buffer_122 <= 32'h0;
-        icache_buffer_123 <= 32'h0;
-        icache_buffer_124 <= 32'h0;
-        icache_buffer_125 <= 32'h0;
-        icache_buffer_126 <= 32'h0;
-        icache_buffer_127 <= 32'h0;
-      end
-      icache_data_valid <= ~reset & ~(|state) & ~_GEN_19 & icache_req_valid & ~_GEN_18;
+             ? (_GEN_22 | _GEN_26 | _GEN_27 | ~_GEN_30 | _GEN_33 | ~_GEN_23) & _GEN_4
+             : (~dcache_write_req_valid | _GEN_7 | _GEN_10) & _GEN_4);
+      icache_data_valid <=
+        ~reset & ((|state) ? _GEN_25 : ~_GEN_20 & icache_req_valid & ~_GEN_19);
       dcache_data_valid <=
         ~reset
         & ((|state)
-             ? ~_GEN_25 & (_GEN_24 | _GEN_27 & ~_GEN_30) & _GEN_21
+             ? ~_GEN_28 & (_GEN_27 | _GEN_30 & ~_GEN_33) & _GEN_23
              : dcache_write_req_valid
-                 ? ~_GEN_6 & (~_GEN_7 | ~io_txd_uart_busy)
-                 : dcache_read_req_valid & ~_GEN_12);
+                 ? ~_GEN_7 & (~_GEN_8 | ~io_txd_uart_busy)
+                 : dcache_read_req_valid & ~_GEN_13);
       if (io_rxd_uart_clear_0 & tail_idx == 3'h0)
         uart_buffer_0_data <= io_rxd_uart_data;
       if (io_rxd_uart_clear_0 & tail_idx == 3'h1)
@@ -1052,12 +735,12 @@ module IoControl(
         uart_buffer_6_data <= io_rxd_uart_data;
       if (io_rxd_uart_clear_0 & (&tail_idx))
         uart_buffer_7_data <= io_rxd_uart_data;
-      maybe_full <= ~reset & _GEN_14 & (io_rxd_uart_clear_0 | maybe_full);
+      maybe_full <= ~reset & _GEN_15 & (io_rxd_uart_clear_0 | maybe_full);
       txd_uart_start <=
         ~reset
         & ((|state)
-             ? (_GEN_20 | _GEN_23 | _GEN_32 | _GEN_31) & txd_uart_start
-             : dcache_write_req_valid & ~_GEN_6 & _GEN_8 | txd_uart_start);
+             ? (_GEN_22 | _GEN_26 | _GEN_35 | _GEN_34) & txd_uart_start
+             : dcache_write_req_valid & ~_GEN_7 & _GEN_9 | txd_uart_start);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -1065,184 +748,64 @@ module IoControl(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:140];
+      automatic logic [31:0] _RANDOM[0:20];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [7:0] i = 8'h0; i < 8'h8D; i += 8'h1) begin
+        for (logic [4:0] i = 5'h0; i < 5'h15; i += 5'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        base_ram_ctrl_data_out = _RANDOM[8'h0];
-        base_ram_ctrl_addr = _RANDOM[8'h1][19:0];
-        base_ram_ctrl_be_n = _RANDOM[8'h1][23:20];
-        base_ram_ctrl_ce_n = _RANDOM[8'h1][24];
-        base_ram_ctrl_oe_n = _RANDOM[8'h1][25];
-        base_ram_ctrl_we_n = _RANDOM[8'h1][26];
-        base_ram_ctrl_data_en = _RANDOM[8'h1][27];
-        ext_ram_ctrl_data_out = {_RANDOM[8'h1][31:28], _RANDOM[8'h2][27:0]};
-        ext_ram_ctrl_addr = {_RANDOM[8'h2][31:28], _RANDOM[8'h3][15:0]};
-        ext_ram_ctrl_be_n = _RANDOM[8'h3][19:16];
-        ext_ram_ctrl_ce_n = _RANDOM[8'h3][20];
-        ext_ram_ctrl_oe_n = _RANDOM[8'h3][21];
-        ext_ram_ctrl_we_n = _RANDOM[8'h3][22];
-        ext_ram_ctrl_data_en = _RANDOM[8'h3][23];
-        state = _RANDOM[8'h3][26:24];
-        wait_counter = _RANDOM[8'h3][30:27];
-        icache_offset = {_RANDOM[8'h3][31], _RANDOM[8'h4][1:0]};
-        icache_req_valid = _RANDOM[8'h4][2];
-        icache_req_addr = {_RANDOM[8'h4][31:3], _RANDOM[8'h5][2:0]};
-        dcache_read_req_valid = _RANDOM[8'h5][3];
-        dcache_read_req_addr = {_RANDOM[8'h5][31:4], _RANDOM[8'h6][3:0]};
-        dcache_write_req_valid = _RANDOM[8'h6][4];
-        dcache_write_req_addr = {_RANDOM[8'h6][31:5], _RANDOM[8'h7][4:0]};
-        dcache_write_req_data = {_RANDOM[8'h7][31:5], _RANDOM[8'h8][4:0]};
-        dcache_write_req_mask = _RANDOM[8'h8][8:5];
-        current_ram = _RANDOM[8'h8][12:11];
-        icache_buffer_0 = {_RANDOM[8'h8][31:13], _RANDOM[8'h9][12:0]};
-        icache_buffer_1 = {_RANDOM[8'h9][31:13], _RANDOM[8'hA][12:0]};
-        icache_buffer_2 = {_RANDOM[8'hA][31:13], _RANDOM[8'hB][12:0]};
-        icache_buffer_3 = {_RANDOM[8'hB][31:13], _RANDOM[8'hC][12:0]};
-        icache_buffer_4 = {_RANDOM[8'hC][31:13], _RANDOM[8'hD][12:0]};
-        icache_buffer_5 = {_RANDOM[8'hD][31:13], _RANDOM[8'hE][12:0]};
-        icache_buffer_6 = {_RANDOM[8'hE][31:13], _RANDOM[8'hF][12:0]};
-        icache_buffer_7 = {_RANDOM[8'hF][31:13], _RANDOM[8'h10][12:0]};
-        icache_buffer_8 = {_RANDOM[8'h10][31:13], _RANDOM[8'h11][12:0]};
-        icache_buffer_9 = {_RANDOM[8'h11][31:13], _RANDOM[8'h12][12:0]};
-        icache_buffer_10 = {_RANDOM[8'h12][31:13], _RANDOM[8'h13][12:0]};
-        icache_buffer_11 = {_RANDOM[8'h13][31:13], _RANDOM[8'h14][12:0]};
-        icache_buffer_12 = {_RANDOM[8'h14][31:13], _RANDOM[8'h15][12:0]};
-        icache_buffer_13 = {_RANDOM[8'h15][31:13], _RANDOM[8'h16][12:0]};
-        icache_buffer_14 = {_RANDOM[8'h16][31:13], _RANDOM[8'h17][12:0]};
-        icache_buffer_15 = {_RANDOM[8'h17][31:13], _RANDOM[8'h18][12:0]};
-        icache_buffer_16 = {_RANDOM[8'h18][31:13], _RANDOM[8'h19][12:0]};
-        icache_buffer_17 = {_RANDOM[8'h19][31:13], _RANDOM[8'h1A][12:0]};
-        icache_buffer_18 = {_RANDOM[8'h1A][31:13], _RANDOM[8'h1B][12:0]};
-        icache_buffer_19 = {_RANDOM[8'h1B][31:13], _RANDOM[8'h1C][12:0]};
-        icache_buffer_20 = {_RANDOM[8'h1C][31:13], _RANDOM[8'h1D][12:0]};
-        icache_buffer_21 = {_RANDOM[8'h1D][31:13], _RANDOM[8'h1E][12:0]};
-        icache_buffer_22 = {_RANDOM[8'h1E][31:13], _RANDOM[8'h1F][12:0]};
-        icache_buffer_23 = {_RANDOM[8'h1F][31:13], _RANDOM[8'h20][12:0]};
-        icache_buffer_24 = {_RANDOM[8'h20][31:13], _RANDOM[8'h21][12:0]};
-        icache_buffer_25 = {_RANDOM[8'h21][31:13], _RANDOM[8'h22][12:0]};
-        icache_buffer_26 = {_RANDOM[8'h22][31:13], _RANDOM[8'h23][12:0]};
-        icache_buffer_27 = {_RANDOM[8'h23][31:13], _RANDOM[8'h24][12:0]};
-        icache_buffer_28 = {_RANDOM[8'h24][31:13], _RANDOM[8'h25][12:0]};
-        icache_buffer_29 = {_RANDOM[8'h25][31:13], _RANDOM[8'h26][12:0]};
-        icache_buffer_30 = {_RANDOM[8'h26][31:13], _RANDOM[8'h27][12:0]};
-        icache_buffer_31 = {_RANDOM[8'h27][31:13], _RANDOM[8'h28][12:0]};
-        icache_buffer_32 = {_RANDOM[8'h28][31:13], _RANDOM[8'h29][12:0]};
-        icache_buffer_33 = {_RANDOM[8'h29][31:13], _RANDOM[8'h2A][12:0]};
-        icache_buffer_34 = {_RANDOM[8'h2A][31:13], _RANDOM[8'h2B][12:0]};
-        icache_buffer_35 = {_RANDOM[8'h2B][31:13], _RANDOM[8'h2C][12:0]};
-        icache_buffer_36 = {_RANDOM[8'h2C][31:13], _RANDOM[8'h2D][12:0]};
-        icache_buffer_37 = {_RANDOM[8'h2D][31:13], _RANDOM[8'h2E][12:0]};
-        icache_buffer_38 = {_RANDOM[8'h2E][31:13], _RANDOM[8'h2F][12:0]};
-        icache_buffer_39 = {_RANDOM[8'h2F][31:13], _RANDOM[8'h30][12:0]};
-        icache_buffer_40 = {_RANDOM[8'h30][31:13], _RANDOM[8'h31][12:0]};
-        icache_buffer_41 = {_RANDOM[8'h31][31:13], _RANDOM[8'h32][12:0]};
-        icache_buffer_42 = {_RANDOM[8'h32][31:13], _RANDOM[8'h33][12:0]};
-        icache_buffer_43 = {_RANDOM[8'h33][31:13], _RANDOM[8'h34][12:0]};
-        icache_buffer_44 = {_RANDOM[8'h34][31:13], _RANDOM[8'h35][12:0]};
-        icache_buffer_45 = {_RANDOM[8'h35][31:13], _RANDOM[8'h36][12:0]};
-        icache_buffer_46 = {_RANDOM[8'h36][31:13], _RANDOM[8'h37][12:0]};
-        icache_buffer_47 = {_RANDOM[8'h37][31:13], _RANDOM[8'h38][12:0]};
-        icache_buffer_48 = {_RANDOM[8'h38][31:13], _RANDOM[8'h39][12:0]};
-        icache_buffer_49 = {_RANDOM[8'h39][31:13], _RANDOM[8'h3A][12:0]};
-        icache_buffer_50 = {_RANDOM[8'h3A][31:13], _RANDOM[8'h3B][12:0]};
-        icache_buffer_51 = {_RANDOM[8'h3B][31:13], _RANDOM[8'h3C][12:0]};
-        icache_buffer_52 = {_RANDOM[8'h3C][31:13], _RANDOM[8'h3D][12:0]};
-        icache_buffer_53 = {_RANDOM[8'h3D][31:13], _RANDOM[8'h3E][12:0]};
-        icache_buffer_54 = {_RANDOM[8'h3E][31:13], _RANDOM[8'h3F][12:0]};
-        icache_buffer_55 = {_RANDOM[8'h3F][31:13], _RANDOM[8'h40][12:0]};
-        icache_buffer_56 = {_RANDOM[8'h40][31:13], _RANDOM[8'h41][12:0]};
-        icache_buffer_57 = {_RANDOM[8'h41][31:13], _RANDOM[8'h42][12:0]};
-        icache_buffer_58 = {_RANDOM[8'h42][31:13], _RANDOM[8'h43][12:0]};
-        icache_buffer_59 = {_RANDOM[8'h43][31:13], _RANDOM[8'h44][12:0]};
-        icache_buffer_60 = {_RANDOM[8'h44][31:13], _RANDOM[8'h45][12:0]};
-        icache_buffer_61 = {_RANDOM[8'h45][31:13], _RANDOM[8'h46][12:0]};
-        icache_buffer_62 = {_RANDOM[8'h46][31:13], _RANDOM[8'h47][12:0]};
-        icache_buffer_63 = {_RANDOM[8'h47][31:13], _RANDOM[8'h48][12:0]};
-        icache_buffer_64 = {_RANDOM[8'h48][31:13], _RANDOM[8'h49][12:0]};
-        icache_buffer_65 = {_RANDOM[8'h49][31:13], _RANDOM[8'h4A][12:0]};
-        icache_buffer_66 = {_RANDOM[8'h4A][31:13], _RANDOM[8'h4B][12:0]};
-        icache_buffer_67 = {_RANDOM[8'h4B][31:13], _RANDOM[8'h4C][12:0]};
-        icache_buffer_68 = {_RANDOM[8'h4C][31:13], _RANDOM[8'h4D][12:0]};
-        icache_buffer_69 = {_RANDOM[8'h4D][31:13], _RANDOM[8'h4E][12:0]};
-        icache_buffer_70 = {_RANDOM[8'h4E][31:13], _RANDOM[8'h4F][12:0]};
-        icache_buffer_71 = {_RANDOM[8'h4F][31:13], _RANDOM[8'h50][12:0]};
-        icache_buffer_72 = {_RANDOM[8'h50][31:13], _RANDOM[8'h51][12:0]};
-        icache_buffer_73 = {_RANDOM[8'h51][31:13], _RANDOM[8'h52][12:0]};
-        icache_buffer_74 = {_RANDOM[8'h52][31:13], _RANDOM[8'h53][12:0]};
-        icache_buffer_75 = {_RANDOM[8'h53][31:13], _RANDOM[8'h54][12:0]};
-        icache_buffer_76 = {_RANDOM[8'h54][31:13], _RANDOM[8'h55][12:0]};
-        icache_buffer_77 = {_RANDOM[8'h55][31:13], _RANDOM[8'h56][12:0]};
-        icache_buffer_78 = {_RANDOM[8'h56][31:13], _RANDOM[8'h57][12:0]};
-        icache_buffer_79 = {_RANDOM[8'h57][31:13], _RANDOM[8'h58][12:0]};
-        icache_buffer_80 = {_RANDOM[8'h58][31:13], _RANDOM[8'h59][12:0]};
-        icache_buffer_81 = {_RANDOM[8'h59][31:13], _RANDOM[8'h5A][12:0]};
-        icache_buffer_82 = {_RANDOM[8'h5A][31:13], _RANDOM[8'h5B][12:0]};
-        icache_buffer_83 = {_RANDOM[8'h5B][31:13], _RANDOM[8'h5C][12:0]};
-        icache_buffer_84 = {_RANDOM[8'h5C][31:13], _RANDOM[8'h5D][12:0]};
-        icache_buffer_85 = {_RANDOM[8'h5D][31:13], _RANDOM[8'h5E][12:0]};
-        icache_buffer_86 = {_RANDOM[8'h5E][31:13], _RANDOM[8'h5F][12:0]};
-        icache_buffer_87 = {_RANDOM[8'h5F][31:13], _RANDOM[8'h60][12:0]};
-        icache_buffer_88 = {_RANDOM[8'h60][31:13], _RANDOM[8'h61][12:0]};
-        icache_buffer_89 = {_RANDOM[8'h61][31:13], _RANDOM[8'h62][12:0]};
-        icache_buffer_90 = {_RANDOM[8'h62][31:13], _RANDOM[8'h63][12:0]};
-        icache_buffer_91 = {_RANDOM[8'h63][31:13], _RANDOM[8'h64][12:0]};
-        icache_buffer_92 = {_RANDOM[8'h64][31:13], _RANDOM[8'h65][12:0]};
-        icache_buffer_93 = {_RANDOM[8'h65][31:13], _RANDOM[8'h66][12:0]};
-        icache_buffer_94 = {_RANDOM[8'h66][31:13], _RANDOM[8'h67][12:0]};
-        icache_buffer_95 = {_RANDOM[8'h67][31:13], _RANDOM[8'h68][12:0]};
-        icache_buffer_96 = {_RANDOM[8'h68][31:13], _RANDOM[8'h69][12:0]};
-        icache_buffer_97 = {_RANDOM[8'h69][31:13], _RANDOM[8'h6A][12:0]};
-        icache_buffer_98 = {_RANDOM[8'h6A][31:13], _RANDOM[8'h6B][12:0]};
-        icache_buffer_99 = {_RANDOM[8'h6B][31:13], _RANDOM[8'h6C][12:0]};
-        icache_buffer_100 = {_RANDOM[8'h6C][31:13], _RANDOM[8'h6D][12:0]};
-        icache_buffer_101 = {_RANDOM[8'h6D][31:13], _RANDOM[8'h6E][12:0]};
-        icache_buffer_102 = {_RANDOM[8'h6E][31:13], _RANDOM[8'h6F][12:0]};
-        icache_buffer_103 = {_RANDOM[8'h6F][31:13], _RANDOM[8'h70][12:0]};
-        icache_buffer_104 = {_RANDOM[8'h70][31:13], _RANDOM[8'h71][12:0]};
-        icache_buffer_105 = {_RANDOM[8'h71][31:13], _RANDOM[8'h72][12:0]};
-        icache_buffer_106 = {_RANDOM[8'h72][31:13], _RANDOM[8'h73][12:0]};
-        icache_buffer_107 = {_RANDOM[8'h73][31:13], _RANDOM[8'h74][12:0]};
-        icache_buffer_108 = {_RANDOM[8'h74][31:13], _RANDOM[8'h75][12:0]};
-        icache_buffer_109 = {_RANDOM[8'h75][31:13], _RANDOM[8'h76][12:0]};
-        icache_buffer_110 = {_RANDOM[8'h76][31:13], _RANDOM[8'h77][12:0]};
-        icache_buffer_111 = {_RANDOM[8'h77][31:13], _RANDOM[8'h78][12:0]};
-        icache_buffer_112 = {_RANDOM[8'h78][31:13], _RANDOM[8'h79][12:0]};
-        icache_buffer_113 = {_RANDOM[8'h79][31:13], _RANDOM[8'h7A][12:0]};
-        icache_buffer_114 = {_RANDOM[8'h7A][31:13], _RANDOM[8'h7B][12:0]};
-        icache_buffer_115 = {_RANDOM[8'h7B][31:13], _RANDOM[8'h7C][12:0]};
-        icache_buffer_116 = {_RANDOM[8'h7C][31:13], _RANDOM[8'h7D][12:0]};
-        icache_buffer_117 = {_RANDOM[8'h7D][31:13], _RANDOM[8'h7E][12:0]};
-        icache_buffer_118 = {_RANDOM[8'h7E][31:13], _RANDOM[8'h7F][12:0]};
-        icache_buffer_119 = {_RANDOM[8'h7F][31:13], _RANDOM[8'h80][12:0]};
-        icache_buffer_120 = {_RANDOM[8'h80][31:13], _RANDOM[8'h81][12:0]};
-        icache_buffer_121 = {_RANDOM[8'h81][31:13], _RANDOM[8'h82][12:0]};
-        icache_buffer_122 = {_RANDOM[8'h82][31:13], _RANDOM[8'h83][12:0]};
-        icache_buffer_123 = {_RANDOM[8'h83][31:13], _RANDOM[8'h84][12:0]};
-        icache_buffer_124 = {_RANDOM[8'h84][31:13], _RANDOM[8'h85][12:0]};
-        icache_buffer_125 = {_RANDOM[8'h85][31:13], _RANDOM[8'h86][12:0]};
-        icache_buffer_126 = {_RANDOM[8'h86][31:13], _RANDOM[8'h87][12:0]};
-        icache_buffer_127 = {_RANDOM[8'h87][31:13], _RANDOM[8'h88][12:0]};
-        icache_data_valid = _RANDOM[8'h88][13];
-        dcache_buffer = {_RANDOM[8'h88][31:14], _RANDOM[8'h89][13:0]};
-        dcache_data_valid = _RANDOM[8'h89][14];
-        uart_buffer_0_data = _RANDOM[8'h89][22:15];
-        uart_buffer_1_data = _RANDOM[8'h89][30:23];
-        uart_buffer_2_data = {_RANDOM[8'h89][31], _RANDOM[8'h8A][6:0]};
-        uart_buffer_3_data = _RANDOM[8'h8A][14:7];
-        uart_buffer_4_data = _RANDOM[8'h8A][22:15];
-        uart_buffer_5_data = _RANDOM[8'h8A][30:23];
-        uart_buffer_6_data = {_RANDOM[8'h8A][31], _RANDOM[8'h8B][6:0]};
-        uart_buffer_7_data = _RANDOM[8'h8B][14:7];
-        uart_head = _RANDOM[8'h8B][22:15];
-        uart_tail = _RANDOM[8'h8B][30:23];
-        maybe_full = _RANDOM[8'h8B][31];
-        txd_uart_start = _RANDOM[8'h8C][0];
-        txd_uart_data = _RANDOM[8'h8C][8:1];
+        base_ram_ctrl_data_out = _RANDOM[5'h0];
+        base_ram_ctrl_addr = _RANDOM[5'h1][19:0];
+        base_ram_ctrl_be_n = _RANDOM[5'h1][23:20];
+        base_ram_ctrl_ce_n = _RANDOM[5'h1][24];
+        base_ram_ctrl_oe_n = _RANDOM[5'h1][25];
+        base_ram_ctrl_we_n = _RANDOM[5'h1][26];
+        base_ram_ctrl_data_en = _RANDOM[5'h1][27];
+        ext_ram_ctrl_data_out = {_RANDOM[5'h1][31:28], _RANDOM[5'h2][27:0]};
+        ext_ram_ctrl_addr = {_RANDOM[5'h2][31:28], _RANDOM[5'h3][15:0]};
+        ext_ram_ctrl_be_n = _RANDOM[5'h3][19:16];
+        ext_ram_ctrl_ce_n = _RANDOM[5'h3][20];
+        ext_ram_ctrl_oe_n = _RANDOM[5'h3][21];
+        ext_ram_ctrl_we_n = _RANDOM[5'h3][22];
+        ext_ram_ctrl_data_en = _RANDOM[5'h3][23];
+        state = _RANDOM[5'h3][26:24];
+        wait_counter = _RANDOM[5'h3][30:27];
+        icache_offset = {_RANDOM[5'h3][31], _RANDOM[5'h4][1:0]};
+        icache_req_valid = _RANDOM[5'h4][2];
+        icache_req_addr = {_RANDOM[5'h4][31:3], _RANDOM[5'h5][2:0]};
+        dcache_read_req_valid = _RANDOM[5'h5][3];
+        dcache_read_req_addr = {_RANDOM[5'h5][31:4], _RANDOM[5'h6][3:0]};
+        dcache_write_req_valid = _RANDOM[5'h6][4];
+        dcache_write_req_addr = {_RANDOM[5'h6][31:5], _RANDOM[5'h7][4:0]};
+        dcache_write_req_data = {_RANDOM[5'h7][31:5], _RANDOM[5'h8][4:0]};
+        dcache_write_req_mask = _RANDOM[5'h8][8:5];
+        current_ram = _RANDOM[5'h8][12:11];
+        icache_buffer_0 = {_RANDOM[5'h8][31:13], _RANDOM[5'h9][12:0]};
+        icache_buffer_1 = {_RANDOM[5'h9][31:13], _RANDOM[5'hA][12:0]};
+        icache_buffer_2 = {_RANDOM[5'hA][31:13], _RANDOM[5'hB][12:0]};
+        icache_buffer_3 = {_RANDOM[5'hB][31:13], _RANDOM[5'hC][12:0]};
+        icache_buffer_4 = {_RANDOM[5'hC][31:13], _RANDOM[5'hD][12:0]};
+        icache_buffer_5 = {_RANDOM[5'hD][31:13], _RANDOM[5'hE][12:0]};
+        icache_buffer_6 = {_RANDOM[5'hE][31:13], _RANDOM[5'hF][12:0]};
+        icache_buffer_7 = {_RANDOM[5'hF][31:13], _RANDOM[5'h10][12:0]};
+        icache_data_valid = _RANDOM[5'h10][13];
+        dcache_buffer = {_RANDOM[5'h10][31:14], _RANDOM[5'h11][13:0]};
+        dcache_data_valid = _RANDOM[5'h11][14];
+        uart_buffer_0_data = _RANDOM[5'h11][22:15];
+        uart_buffer_1_data = _RANDOM[5'h11][30:23];
+        uart_buffer_2_data = {_RANDOM[5'h11][31], _RANDOM[5'h12][6:0]};
+        uart_buffer_3_data = _RANDOM[5'h12][14:7];
+        uart_buffer_4_data = _RANDOM[5'h12][22:15];
+        uart_buffer_5_data = _RANDOM[5'h12][30:23];
+        uart_buffer_6_data = {_RANDOM[5'h12][31], _RANDOM[5'h13][6:0]};
+        uart_buffer_7_data = _RANDOM[5'h13][14:7];
+        uart_head = _RANDOM[5'h13][22:15];
+        uart_tail = _RANDOM[5'h13][30:23];
+        maybe_full = _RANDOM[5'h13][31];
+        txd_uart_start = _RANDOM[5'h14][0];
+        txd_uart_data = _RANDOM[5'h14][8:1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -1252,127 +815,7 @@ module IoControl(
   assign io_icache_read_req_ready = system_ready;
   assign io_icache_read_resp_valid = icache_data_valid;
   assign io_icache_read_resp_bits_data =
-    {icache_buffer_127,
-     icache_buffer_126,
-     icache_buffer_125,
-     icache_buffer_124,
-     icache_buffer_123,
-     icache_buffer_122,
-     icache_buffer_121,
-     icache_buffer_120,
-     icache_buffer_119,
-     icache_buffer_118,
-     icache_buffer_117,
-     icache_buffer_116,
-     icache_buffer_115,
-     icache_buffer_114,
-     icache_buffer_113,
-     icache_buffer_112,
-     icache_buffer_111,
-     icache_buffer_110,
-     icache_buffer_109,
-     icache_buffer_108,
-     icache_buffer_107,
-     icache_buffer_106,
-     icache_buffer_105,
-     icache_buffer_104,
-     icache_buffer_103,
-     icache_buffer_102,
-     icache_buffer_101,
-     icache_buffer_100,
-     icache_buffer_99,
-     icache_buffer_98,
-     icache_buffer_97,
-     icache_buffer_96,
-     icache_buffer_95,
-     icache_buffer_94,
-     icache_buffer_93,
-     icache_buffer_92,
-     icache_buffer_91,
-     icache_buffer_90,
-     icache_buffer_89,
-     icache_buffer_88,
-     icache_buffer_87,
-     icache_buffer_86,
-     icache_buffer_85,
-     icache_buffer_84,
-     icache_buffer_83,
-     icache_buffer_82,
-     icache_buffer_81,
-     icache_buffer_80,
-     icache_buffer_79,
-     icache_buffer_78,
-     icache_buffer_77,
-     icache_buffer_76,
-     icache_buffer_75,
-     icache_buffer_74,
-     icache_buffer_73,
-     icache_buffer_72,
-     icache_buffer_71,
-     icache_buffer_70,
-     icache_buffer_69,
-     icache_buffer_68,
-     icache_buffer_67,
-     icache_buffer_66,
-     icache_buffer_65,
-     icache_buffer_64,
-     icache_buffer_63,
-     icache_buffer_62,
-     icache_buffer_61,
-     icache_buffer_60,
-     icache_buffer_59,
-     icache_buffer_58,
-     icache_buffer_57,
-     icache_buffer_56,
-     icache_buffer_55,
-     icache_buffer_54,
-     icache_buffer_53,
-     icache_buffer_52,
-     icache_buffer_51,
-     icache_buffer_50,
-     icache_buffer_49,
-     icache_buffer_48,
-     icache_buffer_47,
-     icache_buffer_46,
-     icache_buffer_45,
-     icache_buffer_44,
-     icache_buffer_43,
-     icache_buffer_42,
-     icache_buffer_41,
-     icache_buffer_40,
-     icache_buffer_39,
-     icache_buffer_38,
-     icache_buffer_37,
-     icache_buffer_36,
-     icache_buffer_35,
-     icache_buffer_34,
-     icache_buffer_33,
-     icache_buffer_32,
-     icache_buffer_31,
-     icache_buffer_30,
-     icache_buffer_29,
-     icache_buffer_28,
-     icache_buffer_27,
-     icache_buffer_26,
-     icache_buffer_25,
-     icache_buffer_24,
-     icache_buffer_23,
-     icache_buffer_22,
-     icache_buffer_21,
-     icache_buffer_20,
-     icache_buffer_19,
-     icache_buffer_18,
-     icache_buffer_17,
-     icache_buffer_16,
-     icache_buffer_15,
-     icache_buffer_14,
-     icache_buffer_13,
-     icache_buffer_12,
-     icache_buffer_11,
-     icache_buffer_10,
-     icache_buffer_9,
-     icache_buffer_8,
-     icache_buffer_7,
+    {icache_buffer_7,
      icache_buffer_6,
      icache_buffer_5,
      icache_buffer_4,
@@ -1404,20 +847,20 @@ module IoControl(
 endmodule
 
 // VCS coverage exclude_file
-module cache_tag_32x18(
-  input  [4:0]  R0_addr,
+module cache_tag_128x20(
+  input  [6:0]  R0_addr,
   input         R0_en,
                 R0_clk,
-  output [17:0] R0_data,
-  input  [4:0]  W0_addr,
+  output [19:0] R0_data,
+  input  [6:0]  W0_addr,
   input         W0_en,
                 W0_clk,
-  input  [17:0] W0_data
+  input  [19:0] W0_data
 );
 
-  reg [17:0] Memory[0:31];
+  reg [19:0] Memory[0:127];
   reg        _R0_en_d0;
-  reg [4:0]  _R0_addr_d0;
+  reg [6:0]  _R0_addr_d0;
   always @(posedge R0_clk) begin
     _R0_en_d0 <= R0_en;
     _R0_addr_d0 <= R0_addr;
@@ -1434,36 +877,36 @@ module cache_tag_32x18(
     initial begin
       `INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_MEM_INIT
-        for (logic [5:0] i = 6'h0; i < 6'h20; i += 6'h1) begin
+        for (logic [7:0] i = 8'h0; i < 8'h80; i += 8'h1) begin
           _RANDOM_MEM = `RANDOM;
-          Memory[i[4:0]] = _RANDOM_MEM[17:0];
+          Memory[i[6:0]] = _RANDOM_MEM[19:0];
         end
       `endif // RANDOMIZE_MEM_INIT
       `ifdef RANDOMIZE_REG_INIT
         _RANDOM = {`RANDOM};
         _R0_en_d0 = _RANDOM[0];
-        _R0_addr_d0 = _RANDOM[5:1];
+        _R0_addr_d0 = _RANDOM[7:1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
   `endif // ENABLE_INITIAL_MEM_
-  assign R0_data = _R0_en_d0 ? Memory[_R0_addr_d0] : 18'bx;
+  assign R0_data = _R0_en_d0 ? Memory[_R0_addr_d0] : 20'bx;
 endmodule
 
 // VCS coverage exclude_file
-module cache_data_32x32(
-  input  [4:0]  R0_addr,
+module cache_data_128x32(
+  input  [6:0]  R0_addr,
   input         R0_en,
                 R0_clk,
   output [31:0] R0_data,
-  input  [4:0]  W0_addr,
+  input  [6:0]  W0_addr,
   input         W0_en,
                 W0_clk,
   input  [31:0] W0_data
 );
 
-  reg [31:0] Memory[0:31];
+  reg [31:0] Memory[0:127];
   reg        _R0_en_d0;
-  reg [4:0]  _R0_addr_d0;
+  reg [6:0]  _R0_addr_d0;
   always @(posedge R0_clk) begin
     _R0_en_d0 <= R0_en;
     _R0_addr_d0 <= R0_addr;
@@ -1480,15 +923,15 @@ module cache_data_32x32(
     initial begin
       `INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_MEM_INIT
-        for (logic [5:0] i = 6'h0; i < 6'h20; i += 6'h1) begin
+        for (logic [7:0] i = 8'h0; i < 8'h80; i += 8'h1) begin
           _RANDOM_MEM = `RANDOM;
-          Memory[i[4:0]] = _RANDOM_MEM;
+          Memory[i[6:0]] = _RANDOM_MEM;
         end
       `endif // RANDOMIZE_MEM_INIT
       `ifdef RANDOMIZE_REG_INIT
         _RANDOM = {`RANDOM};
         _R0_en_d0 = _RANDOM[0];
-        _R0_addr_d0 = _RANDOM[5:1];
+        _R0_addr_d0 = _RANDOM[7:1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
   `endif // ENABLE_INITIAL_MEM_
@@ -1496,206 +939,278 @@ module cache_data_32x32(
 endmodule
 
 module ICache(
-  input           clock,
-                  reset,
-  output          io_icache_req_ready,
-  input           io_icache_req_valid,
-  input  [31:0]   io_icache_req_bits_addr,
-  output          io_icache_resp_valid,
-  output [4095:0] io_icache_resp_bits_data,
-  output [31:0]   io_icache_resp_bits_addr,
-  input           io_io_read_req_ready,
-  output          io_io_read_req_valid,
-  output [31:0]   io_io_read_req_bits_addr,
-  input           io_io_read_resp_valid,
-  input  [4095:0] io_io_read_resp_bits_data,
-  output          io_icache_debug_state,
-                  io_icache_debug_hit_cache,
-                  io_icache_debug_cache_we,
-  output [17:0]   io_icache_debug_cache_read_tag,
-  output          io_icache_debug_icache_req_valid,
-  output [31:0]   io_icache_debug_icache_req_bits_addr
+  input          clock,
+                 reset,
+  output         io_icache_req_ready,
+  input          io_icache_req_valid,
+  input  [31:0]  io_icache_req_bits_addr,
+  output         io_icache_resp_valid,
+  output [255:0] io_icache_resp_bits_data,
+  output [31:0]  io_icache_resp_bits_addr,
+  input          io_io_read_req_ready,
+  output         io_io_read_req_valid,
+  output [31:0]  io_io_read_req_bits_addr,
+  input          io_io_read_resp_valid,
+  input  [255:0] io_io_read_resp_bits_data,
+  output         io_icache_debug_state,
+                 io_icache_debug_hit_cache,
+                 io_icache_debug_cache_we,
+  output [19:0]  io_icache_debug_cache_read_tag,
+  output         io_icache_debug_icache_req_valid,
+  output [31:0]  io_icache_debug_icache_req_bits_addr
 );
 
-  wire [31:0] _cache_data_127_ext_R0_data;
-  wire [31:0] _cache_data_126_ext_R0_data;
-  wire [31:0] _cache_data_125_ext_R0_data;
-  wire [31:0] _cache_data_124_ext_R0_data;
-  wire [31:0] _cache_data_123_ext_R0_data;
-  wire [31:0] _cache_data_122_ext_R0_data;
-  wire [31:0] _cache_data_121_ext_R0_data;
-  wire [31:0] _cache_data_120_ext_R0_data;
-  wire [31:0] _cache_data_119_ext_R0_data;
-  wire [31:0] _cache_data_118_ext_R0_data;
-  wire [31:0] _cache_data_117_ext_R0_data;
-  wire [31:0] _cache_data_116_ext_R0_data;
-  wire [31:0] _cache_data_115_ext_R0_data;
-  wire [31:0] _cache_data_114_ext_R0_data;
-  wire [31:0] _cache_data_113_ext_R0_data;
-  wire [31:0] _cache_data_112_ext_R0_data;
-  wire [31:0] _cache_data_111_ext_R0_data;
-  wire [31:0] _cache_data_110_ext_R0_data;
-  wire [31:0] _cache_data_109_ext_R0_data;
-  wire [31:0] _cache_data_108_ext_R0_data;
-  wire [31:0] _cache_data_107_ext_R0_data;
-  wire [31:0] _cache_data_106_ext_R0_data;
-  wire [31:0] _cache_data_105_ext_R0_data;
-  wire [31:0] _cache_data_104_ext_R0_data;
-  wire [31:0] _cache_data_103_ext_R0_data;
-  wire [31:0] _cache_data_102_ext_R0_data;
-  wire [31:0] _cache_data_101_ext_R0_data;
-  wire [31:0] _cache_data_100_ext_R0_data;
-  wire [31:0] _cache_data_99_ext_R0_data;
-  wire [31:0] _cache_data_98_ext_R0_data;
-  wire [31:0] _cache_data_97_ext_R0_data;
-  wire [31:0] _cache_data_96_ext_R0_data;
-  wire [31:0] _cache_data_95_ext_R0_data;
-  wire [31:0] _cache_data_94_ext_R0_data;
-  wire [31:0] _cache_data_93_ext_R0_data;
-  wire [31:0] _cache_data_92_ext_R0_data;
-  wire [31:0] _cache_data_91_ext_R0_data;
-  wire [31:0] _cache_data_90_ext_R0_data;
-  wire [31:0] _cache_data_89_ext_R0_data;
-  wire [31:0] _cache_data_88_ext_R0_data;
-  wire [31:0] _cache_data_87_ext_R0_data;
-  wire [31:0] _cache_data_86_ext_R0_data;
-  wire [31:0] _cache_data_85_ext_R0_data;
-  wire [31:0] _cache_data_84_ext_R0_data;
-  wire [31:0] _cache_data_83_ext_R0_data;
-  wire [31:0] _cache_data_82_ext_R0_data;
-  wire [31:0] _cache_data_81_ext_R0_data;
-  wire [31:0] _cache_data_80_ext_R0_data;
-  wire [31:0] _cache_data_79_ext_R0_data;
-  wire [31:0] _cache_data_78_ext_R0_data;
-  wire [31:0] _cache_data_77_ext_R0_data;
-  wire [31:0] _cache_data_76_ext_R0_data;
-  wire [31:0] _cache_data_75_ext_R0_data;
-  wire [31:0] _cache_data_74_ext_R0_data;
-  wire [31:0] _cache_data_73_ext_R0_data;
-  wire [31:0] _cache_data_72_ext_R0_data;
-  wire [31:0] _cache_data_71_ext_R0_data;
-  wire [31:0] _cache_data_70_ext_R0_data;
-  wire [31:0] _cache_data_69_ext_R0_data;
-  wire [31:0] _cache_data_68_ext_R0_data;
-  wire [31:0] _cache_data_67_ext_R0_data;
-  wire [31:0] _cache_data_66_ext_R0_data;
-  wire [31:0] _cache_data_65_ext_R0_data;
-  wire [31:0] _cache_data_64_ext_R0_data;
-  wire [31:0] _cache_data_63_ext_R0_data;
-  wire [31:0] _cache_data_62_ext_R0_data;
-  wire [31:0] _cache_data_61_ext_R0_data;
-  wire [31:0] _cache_data_60_ext_R0_data;
-  wire [31:0] _cache_data_59_ext_R0_data;
-  wire [31:0] _cache_data_58_ext_R0_data;
-  wire [31:0] _cache_data_57_ext_R0_data;
-  wire [31:0] _cache_data_56_ext_R0_data;
-  wire [31:0] _cache_data_55_ext_R0_data;
-  wire [31:0] _cache_data_54_ext_R0_data;
-  wire [31:0] _cache_data_53_ext_R0_data;
-  wire [31:0] _cache_data_52_ext_R0_data;
-  wire [31:0] _cache_data_51_ext_R0_data;
-  wire [31:0] _cache_data_50_ext_R0_data;
-  wire [31:0] _cache_data_49_ext_R0_data;
-  wire [31:0] _cache_data_48_ext_R0_data;
-  wire [31:0] _cache_data_47_ext_R0_data;
-  wire [31:0] _cache_data_46_ext_R0_data;
-  wire [31:0] _cache_data_45_ext_R0_data;
-  wire [31:0] _cache_data_44_ext_R0_data;
-  wire [31:0] _cache_data_43_ext_R0_data;
-  wire [31:0] _cache_data_42_ext_R0_data;
-  wire [31:0] _cache_data_41_ext_R0_data;
-  wire [31:0] _cache_data_40_ext_R0_data;
-  wire [31:0] _cache_data_39_ext_R0_data;
-  wire [31:0] _cache_data_38_ext_R0_data;
-  wire [31:0] _cache_data_37_ext_R0_data;
-  wire [31:0] _cache_data_36_ext_R0_data;
-  wire [31:0] _cache_data_35_ext_R0_data;
-  wire [31:0] _cache_data_34_ext_R0_data;
-  wire [31:0] _cache_data_33_ext_R0_data;
-  wire [31:0] _cache_data_32_ext_R0_data;
-  wire [31:0] _cache_data_31_ext_R0_data;
-  wire [31:0] _cache_data_30_ext_R0_data;
-  wire [31:0] _cache_data_29_ext_R0_data;
-  wire [31:0] _cache_data_28_ext_R0_data;
-  wire [31:0] _cache_data_27_ext_R0_data;
-  wire [31:0] _cache_data_26_ext_R0_data;
-  wire [31:0] _cache_data_25_ext_R0_data;
-  wire [31:0] _cache_data_24_ext_R0_data;
-  wire [31:0] _cache_data_23_ext_R0_data;
-  wire [31:0] _cache_data_22_ext_R0_data;
-  wire [31:0] _cache_data_21_ext_R0_data;
-  wire [31:0] _cache_data_20_ext_R0_data;
-  wire [31:0] _cache_data_19_ext_R0_data;
-  wire [31:0] _cache_data_18_ext_R0_data;
-  wire [31:0] _cache_data_17_ext_R0_data;
-  wire [31:0] _cache_data_16_ext_R0_data;
-  wire [31:0] _cache_data_15_ext_R0_data;
-  wire [31:0] _cache_data_14_ext_R0_data;
-  wire [31:0] _cache_data_13_ext_R0_data;
-  wire [31:0] _cache_data_12_ext_R0_data;
-  wire [31:0] _cache_data_11_ext_R0_data;
-  wire [31:0] _cache_data_10_ext_R0_data;
-  wire [31:0] _cache_data_9_ext_R0_data;
-  wire [31:0] _cache_data_8_ext_R0_data;
-  wire [31:0] _cache_data_7_ext_R0_data;
-  wire [31:0] _cache_data_6_ext_R0_data;
-  wire [31:0] _cache_data_5_ext_R0_data;
-  wire [31:0] _cache_data_4_ext_R0_data;
-  wire [31:0] _cache_data_3_ext_R0_data;
-  wire [31:0] _cache_data_2_ext_R0_data;
-  wire [31:0] _cache_data_1_ext_R0_data;
-  wire [31:0] _cache_data_0_ext_R0_data;
-  wire [17:0] _cache_tag_ext_R0_data;
-  reg  [1:0]  state;
-  reg         saved_req_valid;
-  reg  [31:0] saved_req_bits_addr;
-  reg         cache_valid_0;
-  reg         cache_valid_1;
-  reg         cache_valid_2;
-  reg         cache_valid_3;
-  reg         cache_valid_4;
-  reg         cache_valid_5;
-  reg         cache_valid_6;
-  reg         cache_valid_7;
-  reg         cache_valid_8;
-  reg         cache_valid_9;
-  reg         cache_valid_10;
-  reg         cache_valid_11;
-  reg         cache_valid_12;
-  reg         cache_valid_13;
-  reg         cache_valid_14;
-  reg         cache_valid_15;
-  reg         cache_valid_16;
-  reg         cache_valid_17;
-  reg         cache_valid_18;
-  reg         cache_valid_19;
-  reg         cache_valid_20;
-  reg         cache_valid_21;
-  reg         cache_valid_22;
-  reg         cache_valid_23;
-  reg         cache_valid_24;
-  reg         cache_valid_25;
-  reg         cache_valid_26;
-  reg         cache_valid_27;
-  reg         cache_valid_28;
-  reg         cache_valid_29;
-  reg         cache_valid_30;
-  reg         cache_valid_31;
-  reg  [4:0]  reg_index;
-  reg  [17:0] reg_tag;
-  reg  [31:0] reg_addr;
-  wire [31:0] current_req_bits_addr =
+  wire [31:0]  _cache_data_7_ext_R0_data;
+  wire [31:0]  _cache_data_6_ext_R0_data;
+  wire [31:0]  _cache_data_5_ext_R0_data;
+  wire [31:0]  _cache_data_4_ext_R0_data;
+  wire [31:0]  _cache_data_3_ext_R0_data;
+  wire [31:0]  _cache_data_2_ext_R0_data;
+  wire [31:0]  _cache_data_1_ext_R0_data;
+  wire [31:0]  _cache_data_0_ext_R0_data;
+  wire [19:0]  _cache_tag_ext_R0_data;
+  reg  [1:0]   state;
+  reg          saved_req_valid;
+  reg  [31:0]  saved_req_bits_addr;
+  reg          cache_valid_0;
+  reg          cache_valid_1;
+  reg          cache_valid_2;
+  reg          cache_valid_3;
+  reg          cache_valid_4;
+  reg          cache_valid_5;
+  reg          cache_valid_6;
+  reg          cache_valid_7;
+  reg          cache_valid_8;
+  reg          cache_valid_9;
+  reg          cache_valid_10;
+  reg          cache_valid_11;
+  reg          cache_valid_12;
+  reg          cache_valid_13;
+  reg          cache_valid_14;
+  reg          cache_valid_15;
+  reg          cache_valid_16;
+  reg          cache_valid_17;
+  reg          cache_valid_18;
+  reg          cache_valid_19;
+  reg          cache_valid_20;
+  reg          cache_valid_21;
+  reg          cache_valid_22;
+  reg          cache_valid_23;
+  reg          cache_valid_24;
+  reg          cache_valid_25;
+  reg          cache_valid_26;
+  reg          cache_valid_27;
+  reg          cache_valid_28;
+  reg          cache_valid_29;
+  reg          cache_valid_30;
+  reg          cache_valid_31;
+  reg          cache_valid_32;
+  reg          cache_valid_33;
+  reg          cache_valid_34;
+  reg          cache_valid_35;
+  reg          cache_valid_36;
+  reg          cache_valid_37;
+  reg          cache_valid_38;
+  reg          cache_valid_39;
+  reg          cache_valid_40;
+  reg          cache_valid_41;
+  reg          cache_valid_42;
+  reg          cache_valid_43;
+  reg          cache_valid_44;
+  reg          cache_valid_45;
+  reg          cache_valid_46;
+  reg          cache_valid_47;
+  reg          cache_valid_48;
+  reg          cache_valid_49;
+  reg          cache_valid_50;
+  reg          cache_valid_51;
+  reg          cache_valid_52;
+  reg          cache_valid_53;
+  reg          cache_valid_54;
+  reg          cache_valid_55;
+  reg          cache_valid_56;
+  reg          cache_valid_57;
+  reg          cache_valid_58;
+  reg          cache_valid_59;
+  reg          cache_valid_60;
+  reg          cache_valid_61;
+  reg          cache_valid_62;
+  reg          cache_valid_63;
+  reg          cache_valid_64;
+  reg          cache_valid_65;
+  reg          cache_valid_66;
+  reg          cache_valid_67;
+  reg          cache_valid_68;
+  reg          cache_valid_69;
+  reg          cache_valid_70;
+  reg          cache_valid_71;
+  reg          cache_valid_72;
+  reg          cache_valid_73;
+  reg          cache_valid_74;
+  reg          cache_valid_75;
+  reg          cache_valid_76;
+  reg          cache_valid_77;
+  reg          cache_valid_78;
+  reg          cache_valid_79;
+  reg          cache_valid_80;
+  reg          cache_valid_81;
+  reg          cache_valid_82;
+  reg          cache_valid_83;
+  reg          cache_valid_84;
+  reg          cache_valid_85;
+  reg          cache_valid_86;
+  reg          cache_valid_87;
+  reg          cache_valid_88;
+  reg          cache_valid_89;
+  reg          cache_valid_90;
+  reg          cache_valid_91;
+  reg          cache_valid_92;
+  reg          cache_valid_93;
+  reg          cache_valid_94;
+  reg          cache_valid_95;
+  reg          cache_valid_96;
+  reg          cache_valid_97;
+  reg          cache_valid_98;
+  reg          cache_valid_99;
+  reg          cache_valid_100;
+  reg          cache_valid_101;
+  reg          cache_valid_102;
+  reg          cache_valid_103;
+  reg          cache_valid_104;
+  reg          cache_valid_105;
+  reg          cache_valid_106;
+  reg          cache_valid_107;
+  reg          cache_valid_108;
+  reg          cache_valid_109;
+  reg          cache_valid_110;
+  reg          cache_valid_111;
+  reg          cache_valid_112;
+  reg          cache_valid_113;
+  reg          cache_valid_114;
+  reg          cache_valid_115;
+  reg          cache_valid_116;
+  reg          cache_valid_117;
+  reg          cache_valid_118;
+  reg          cache_valid_119;
+  reg          cache_valid_120;
+  reg          cache_valid_121;
+  reg          cache_valid_122;
+  reg          cache_valid_123;
+  reg          cache_valid_124;
+  reg          cache_valid_125;
+  reg          cache_valid_126;
+  reg          cache_valid_127;
+  reg  [6:0]   reg_index;
+  reg  [19:0]  reg_tag;
+  reg  [31:0]  reg_addr;
+  wire [31:0]  current_req_bits_addr =
     saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
-  wire [4:0]  index =
-    saved_req_valid ? saved_req_bits_addr[13:9] : io_icache_req_bits_addr[13:9];
-  wire [17:0] tag =
-    saved_req_valid ? saved_req_bits_addr[31:14] : io_icache_req_bits_addr[31:14];
-  wire [4:0]  read_index =
+  wire [6:0]   index =
+    saved_req_valid ? saved_req_bits_addr[11:5] : io_icache_req_bits_addr[11:5];
+  wire [19:0]  tag =
+    saved_req_valid ? saved_req_bits_addr[31:12] : io_icache_req_bits_addr[31:12];
+  wire [6:0]   read_index =
     ~(|state) & io_icache_req_valid & ~saved_req_valid | ~saved_req_valid
-      ? io_icache_req_bits_addr[13:9]
-      : saved_req_bits_addr[13:9];
-  wire [31:0] _GEN =
-    {{cache_valid_31},
+      ? io_icache_req_bits_addr[11:5]
+      : saved_req_bits_addr[11:5];
+  wire [127:0] _GEN =
+    {{cache_valid_127},
+     {cache_valid_126},
+     {cache_valid_125},
+     {cache_valid_124},
+     {cache_valid_123},
+     {cache_valid_122},
+     {cache_valid_121},
+     {cache_valid_120},
+     {cache_valid_119},
+     {cache_valid_118},
+     {cache_valid_117},
+     {cache_valid_116},
+     {cache_valid_115},
+     {cache_valid_114},
+     {cache_valid_113},
+     {cache_valid_112},
+     {cache_valid_111},
+     {cache_valid_110},
+     {cache_valid_109},
+     {cache_valid_108},
+     {cache_valid_107},
+     {cache_valid_106},
+     {cache_valid_105},
+     {cache_valid_104},
+     {cache_valid_103},
+     {cache_valid_102},
+     {cache_valid_101},
+     {cache_valid_100},
+     {cache_valid_99},
+     {cache_valid_98},
+     {cache_valid_97},
+     {cache_valid_96},
+     {cache_valid_95},
+     {cache_valid_94},
+     {cache_valid_93},
+     {cache_valid_92},
+     {cache_valid_91},
+     {cache_valid_90},
+     {cache_valid_89},
+     {cache_valid_88},
+     {cache_valid_87},
+     {cache_valid_86},
+     {cache_valid_85},
+     {cache_valid_84},
+     {cache_valid_83},
+     {cache_valid_82},
+     {cache_valid_81},
+     {cache_valid_80},
+     {cache_valid_79},
+     {cache_valid_78},
+     {cache_valid_77},
+     {cache_valid_76},
+     {cache_valid_75},
+     {cache_valid_74},
+     {cache_valid_73},
+     {cache_valid_72},
+     {cache_valid_71},
+     {cache_valid_70},
+     {cache_valid_69},
+     {cache_valid_68},
+     {cache_valid_67},
+     {cache_valid_66},
+     {cache_valid_65},
+     {cache_valid_64},
+     {cache_valid_63},
+     {cache_valid_62},
+     {cache_valid_61},
+     {cache_valid_60},
+     {cache_valid_59},
+     {cache_valid_58},
+     {cache_valid_57},
+     {cache_valid_56},
+     {cache_valid_55},
+     {cache_valid_54},
+     {cache_valid_53},
+     {cache_valid_52},
+     {cache_valid_51},
+     {cache_valid_50},
+     {cache_valid_49},
+     {cache_valid_48},
+     {cache_valid_47},
+     {cache_valid_46},
+     {cache_valid_45},
+     {cache_valid_44},
+     {cache_valid_43},
+     {cache_valid_42},
+     {cache_valid_41},
+     {cache_valid_40},
+     {cache_valid_39},
+     {cache_valid_38},
+     {cache_valid_37},
+     {cache_valid_36},
+     {cache_valid_35},
+     {cache_valid_34},
+     {cache_valid_33},
+     {cache_valid_32},
+     {cache_valid_31},
      {cache_valid_30},
      {cache_valid_29},
      {cache_valid_28},
@@ -1727,14 +1242,14 @@ module ICache(
      {cache_valid_2},
      {cache_valid_1},
      {cache_valid_0}};
-  wire        hit_cache =
+  wire         hit_cache =
     reg_tag == _cache_tag_ext_R0_data & _GEN[reg_index]
     & reg_addr == current_req_bits_addr;
-  wire        _GEN_0 = state == 2'h1;
-  wire        _GEN_1 = state == 2'h2;
-  wire        _GEN_2 = _GEN_1 & io_io_read_resp_valid;
-  wire        io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
-  wire        cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
+  wire         _GEN_0 = state == 2'h1;
+  wire         _GEN_1 = state == 2'h2;
+  wire         _GEN_2 = _GEN_1 & io_io_read_resp_valid;
+  wire         io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
+  wire         cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
   always @(posedge clock) begin
     if (reset) begin
       state <= 2'h0;
@@ -1772,8 +1287,104 @@ module ICache(
       cache_valid_29 <= 1'h0;
       cache_valid_30 <= 1'h0;
       cache_valid_31 <= 1'h0;
-      reg_index <= 5'h0;
-      reg_tag <= 18'h0;
+      cache_valid_32 <= 1'h0;
+      cache_valid_33 <= 1'h0;
+      cache_valid_34 <= 1'h0;
+      cache_valid_35 <= 1'h0;
+      cache_valid_36 <= 1'h0;
+      cache_valid_37 <= 1'h0;
+      cache_valid_38 <= 1'h0;
+      cache_valid_39 <= 1'h0;
+      cache_valid_40 <= 1'h0;
+      cache_valid_41 <= 1'h0;
+      cache_valid_42 <= 1'h0;
+      cache_valid_43 <= 1'h0;
+      cache_valid_44 <= 1'h0;
+      cache_valid_45 <= 1'h0;
+      cache_valid_46 <= 1'h0;
+      cache_valid_47 <= 1'h0;
+      cache_valid_48 <= 1'h0;
+      cache_valid_49 <= 1'h0;
+      cache_valid_50 <= 1'h0;
+      cache_valid_51 <= 1'h0;
+      cache_valid_52 <= 1'h0;
+      cache_valid_53 <= 1'h0;
+      cache_valid_54 <= 1'h0;
+      cache_valid_55 <= 1'h0;
+      cache_valid_56 <= 1'h0;
+      cache_valid_57 <= 1'h0;
+      cache_valid_58 <= 1'h0;
+      cache_valid_59 <= 1'h0;
+      cache_valid_60 <= 1'h0;
+      cache_valid_61 <= 1'h0;
+      cache_valid_62 <= 1'h0;
+      cache_valid_63 <= 1'h0;
+      cache_valid_64 <= 1'h0;
+      cache_valid_65 <= 1'h0;
+      cache_valid_66 <= 1'h0;
+      cache_valid_67 <= 1'h0;
+      cache_valid_68 <= 1'h0;
+      cache_valid_69 <= 1'h0;
+      cache_valid_70 <= 1'h0;
+      cache_valid_71 <= 1'h0;
+      cache_valid_72 <= 1'h0;
+      cache_valid_73 <= 1'h0;
+      cache_valid_74 <= 1'h0;
+      cache_valid_75 <= 1'h0;
+      cache_valid_76 <= 1'h0;
+      cache_valid_77 <= 1'h0;
+      cache_valid_78 <= 1'h0;
+      cache_valid_79 <= 1'h0;
+      cache_valid_80 <= 1'h0;
+      cache_valid_81 <= 1'h0;
+      cache_valid_82 <= 1'h0;
+      cache_valid_83 <= 1'h0;
+      cache_valid_84 <= 1'h0;
+      cache_valid_85 <= 1'h0;
+      cache_valid_86 <= 1'h0;
+      cache_valid_87 <= 1'h0;
+      cache_valid_88 <= 1'h0;
+      cache_valid_89 <= 1'h0;
+      cache_valid_90 <= 1'h0;
+      cache_valid_91 <= 1'h0;
+      cache_valid_92 <= 1'h0;
+      cache_valid_93 <= 1'h0;
+      cache_valid_94 <= 1'h0;
+      cache_valid_95 <= 1'h0;
+      cache_valid_96 <= 1'h0;
+      cache_valid_97 <= 1'h0;
+      cache_valid_98 <= 1'h0;
+      cache_valid_99 <= 1'h0;
+      cache_valid_100 <= 1'h0;
+      cache_valid_101 <= 1'h0;
+      cache_valid_102 <= 1'h0;
+      cache_valid_103 <= 1'h0;
+      cache_valid_104 <= 1'h0;
+      cache_valid_105 <= 1'h0;
+      cache_valid_106 <= 1'h0;
+      cache_valid_107 <= 1'h0;
+      cache_valid_108 <= 1'h0;
+      cache_valid_109 <= 1'h0;
+      cache_valid_110 <= 1'h0;
+      cache_valid_111 <= 1'h0;
+      cache_valid_112 <= 1'h0;
+      cache_valid_113 <= 1'h0;
+      cache_valid_114 <= 1'h0;
+      cache_valid_115 <= 1'h0;
+      cache_valid_116 <= 1'h0;
+      cache_valid_117 <= 1'h0;
+      cache_valid_118 <= 1'h0;
+      cache_valid_119 <= 1'h0;
+      cache_valid_120 <= 1'h0;
+      cache_valid_121 <= 1'h0;
+      cache_valid_122 <= 1'h0;
+      cache_valid_123 <= 1'h0;
+      cache_valid_124 <= 1'h0;
+      cache_valid_125 <= 1'h0;
+      cache_valid_126 <= 1'h0;
+      cache_valid_127 <= 1'h0;
+      reg_index <= 7'h0;
+      reg_tag <= 20'h0;
       reg_addr <= 32'h0;
     end
     else begin
@@ -1798,38 +1409,134 @@ module ICache(
         saved_req_bits_addr <= 32'h0;
       else if (_GEN_3)
         saved_req_bits_addr <= io_icache_req_bits_addr;
-      cache_valid_0 <= cache_we & index == 5'h0 | cache_valid_0;
-      cache_valid_1 <= cache_we & index == 5'h1 | cache_valid_1;
-      cache_valid_2 <= cache_we & index == 5'h2 | cache_valid_2;
-      cache_valid_3 <= cache_we & index == 5'h3 | cache_valid_3;
-      cache_valid_4 <= cache_we & index == 5'h4 | cache_valid_4;
-      cache_valid_5 <= cache_we & index == 5'h5 | cache_valid_5;
-      cache_valid_6 <= cache_we & index == 5'h6 | cache_valid_6;
-      cache_valid_7 <= cache_we & index == 5'h7 | cache_valid_7;
-      cache_valid_8 <= cache_we & index == 5'h8 | cache_valid_8;
-      cache_valid_9 <= cache_we & index == 5'h9 | cache_valid_9;
-      cache_valid_10 <= cache_we & index == 5'hA | cache_valid_10;
-      cache_valid_11 <= cache_we & index == 5'hB | cache_valid_11;
-      cache_valid_12 <= cache_we & index == 5'hC | cache_valid_12;
-      cache_valid_13 <= cache_we & index == 5'hD | cache_valid_13;
-      cache_valid_14 <= cache_we & index == 5'hE | cache_valid_14;
-      cache_valid_15 <= cache_we & index == 5'hF | cache_valid_15;
-      cache_valid_16 <= cache_we & index == 5'h10 | cache_valid_16;
-      cache_valid_17 <= cache_we & index == 5'h11 | cache_valid_17;
-      cache_valid_18 <= cache_we & index == 5'h12 | cache_valid_18;
-      cache_valid_19 <= cache_we & index == 5'h13 | cache_valid_19;
-      cache_valid_20 <= cache_we & index == 5'h14 | cache_valid_20;
-      cache_valid_21 <= cache_we & index == 5'h15 | cache_valid_21;
-      cache_valid_22 <= cache_we & index == 5'h16 | cache_valid_22;
-      cache_valid_23 <= cache_we & index == 5'h17 | cache_valid_23;
-      cache_valid_24 <= cache_we & index == 5'h18 | cache_valid_24;
-      cache_valid_25 <= cache_we & index == 5'h19 | cache_valid_25;
-      cache_valid_26 <= cache_we & index == 5'h1A | cache_valid_26;
-      cache_valid_27 <= cache_we & index == 5'h1B | cache_valid_27;
-      cache_valid_28 <= cache_we & index == 5'h1C | cache_valid_28;
-      cache_valid_29 <= cache_we & index == 5'h1D | cache_valid_29;
-      cache_valid_30 <= cache_we & index == 5'h1E | cache_valid_30;
-      cache_valid_31 <= cache_we & (&index) | cache_valid_31;
+      cache_valid_0 <= cache_we & index == 7'h0 | cache_valid_0;
+      cache_valid_1 <= cache_we & index == 7'h1 | cache_valid_1;
+      cache_valid_2 <= cache_we & index == 7'h2 | cache_valid_2;
+      cache_valid_3 <= cache_we & index == 7'h3 | cache_valid_3;
+      cache_valid_4 <= cache_we & index == 7'h4 | cache_valid_4;
+      cache_valid_5 <= cache_we & index == 7'h5 | cache_valid_5;
+      cache_valid_6 <= cache_we & index == 7'h6 | cache_valid_6;
+      cache_valid_7 <= cache_we & index == 7'h7 | cache_valid_7;
+      cache_valid_8 <= cache_we & index == 7'h8 | cache_valid_8;
+      cache_valid_9 <= cache_we & index == 7'h9 | cache_valid_9;
+      cache_valid_10 <= cache_we & index == 7'hA | cache_valid_10;
+      cache_valid_11 <= cache_we & index == 7'hB | cache_valid_11;
+      cache_valid_12 <= cache_we & index == 7'hC | cache_valid_12;
+      cache_valid_13 <= cache_we & index == 7'hD | cache_valid_13;
+      cache_valid_14 <= cache_we & index == 7'hE | cache_valid_14;
+      cache_valid_15 <= cache_we & index == 7'hF | cache_valid_15;
+      cache_valid_16 <= cache_we & index == 7'h10 | cache_valid_16;
+      cache_valid_17 <= cache_we & index == 7'h11 | cache_valid_17;
+      cache_valid_18 <= cache_we & index == 7'h12 | cache_valid_18;
+      cache_valid_19 <= cache_we & index == 7'h13 | cache_valid_19;
+      cache_valid_20 <= cache_we & index == 7'h14 | cache_valid_20;
+      cache_valid_21 <= cache_we & index == 7'h15 | cache_valid_21;
+      cache_valid_22 <= cache_we & index == 7'h16 | cache_valid_22;
+      cache_valid_23 <= cache_we & index == 7'h17 | cache_valid_23;
+      cache_valid_24 <= cache_we & index == 7'h18 | cache_valid_24;
+      cache_valid_25 <= cache_we & index == 7'h19 | cache_valid_25;
+      cache_valid_26 <= cache_we & index == 7'h1A | cache_valid_26;
+      cache_valid_27 <= cache_we & index == 7'h1B | cache_valid_27;
+      cache_valid_28 <= cache_we & index == 7'h1C | cache_valid_28;
+      cache_valid_29 <= cache_we & index == 7'h1D | cache_valid_29;
+      cache_valid_30 <= cache_we & index == 7'h1E | cache_valid_30;
+      cache_valid_31 <= cache_we & index == 7'h1F | cache_valid_31;
+      cache_valid_32 <= cache_we & index == 7'h20 | cache_valid_32;
+      cache_valid_33 <= cache_we & index == 7'h21 | cache_valid_33;
+      cache_valid_34 <= cache_we & index == 7'h22 | cache_valid_34;
+      cache_valid_35 <= cache_we & index == 7'h23 | cache_valid_35;
+      cache_valid_36 <= cache_we & index == 7'h24 | cache_valid_36;
+      cache_valid_37 <= cache_we & index == 7'h25 | cache_valid_37;
+      cache_valid_38 <= cache_we & index == 7'h26 | cache_valid_38;
+      cache_valid_39 <= cache_we & index == 7'h27 | cache_valid_39;
+      cache_valid_40 <= cache_we & index == 7'h28 | cache_valid_40;
+      cache_valid_41 <= cache_we & index == 7'h29 | cache_valid_41;
+      cache_valid_42 <= cache_we & index == 7'h2A | cache_valid_42;
+      cache_valid_43 <= cache_we & index == 7'h2B | cache_valid_43;
+      cache_valid_44 <= cache_we & index == 7'h2C | cache_valid_44;
+      cache_valid_45 <= cache_we & index == 7'h2D | cache_valid_45;
+      cache_valid_46 <= cache_we & index == 7'h2E | cache_valid_46;
+      cache_valid_47 <= cache_we & index == 7'h2F | cache_valid_47;
+      cache_valid_48 <= cache_we & index == 7'h30 | cache_valid_48;
+      cache_valid_49 <= cache_we & index == 7'h31 | cache_valid_49;
+      cache_valid_50 <= cache_we & index == 7'h32 | cache_valid_50;
+      cache_valid_51 <= cache_we & index == 7'h33 | cache_valid_51;
+      cache_valid_52 <= cache_we & index == 7'h34 | cache_valid_52;
+      cache_valid_53 <= cache_we & index == 7'h35 | cache_valid_53;
+      cache_valid_54 <= cache_we & index == 7'h36 | cache_valid_54;
+      cache_valid_55 <= cache_we & index == 7'h37 | cache_valid_55;
+      cache_valid_56 <= cache_we & index == 7'h38 | cache_valid_56;
+      cache_valid_57 <= cache_we & index == 7'h39 | cache_valid_57;
+      cache_valid_58 <= cache_we & index == 7'h3A | cache_valid_58;
+      cache_valid_59 <= cache_we & index == 7'h3B | cache_valid_59;
+      cache_valid_60 <= cache_we & index == 7'h3C | cache_valid_60;
+      cache_valid_61 <= cache_we & index == 7'h3D | cache_valid_61;
+      cache_valid_62 <= cache_we & index == 7'h3E | cache_valid_62;
+      cache_valid_63 <= cache_we & index == 7'h3F | cache_valid_63;
+      cache_valid_64 <= cache_we & index == 7'h40 | cache_valid_64;
+      cache_valid_65 <= cache_we & index == 7'h41 | cache_valid_65;
+      cache_valid_66 <= cache_we & index == 7'h42 | cache_valid_66;
+      cache_valid_67 <= cache_we & index == 7'h43 | cache_valid_67;
+      cache_valid_68 <= cache_we & index == 7'h44 | cache_valid_68;
+      cache_valid_69 <= cache_we & index == 7'h45 | cache_valid_69;
+      cache_valid_70 <= cache_we & index == 7'h46 | cache_valid_70;
+      cache_valid_71 <= cache_we & index == 7'h47 | cache_valid_71;
+      cache_valid_72 <= cache_we & index == 7'h48 | cache_valid_72;
+      cache_valid_73 <= cache_we & index == 7'h49 | cache_valid_73;
+      cache_valid_74 <= cache_we & index == 7'h4A | cache_valid_74;
+      cache_valid_75 <= cache_we & index == 7'h4B | cache_valid_75;
+      cache_valid_76 <= cache_we & index == 7'h4C | cache_valid_76;
+      cache_valid_77 <= cache_we & index == 7'h4D | cache_valid_77;
+      cache_valid_78 <= cache_we & index == 7'h4E | cache_valid_78;
+      cache_valid_79 <= cache_we & index == 7'h4F | cache_valid_79;
+      cache_valid_80 <= cache_we & index == 7'h50 | cache_valid_80;
+      cache_valid_81 <= cache_we & index == 7'h51 | cache_valid_81;
+      cache_valid_82 <= cache_we & index == 7'h52 | cache_valid_82;
+      cache_valid_83 <= cache_we & index == 7'h53 | cache_valid_83;
+      cache_valid_84 <= cache_we & index == 7'h54 | cache_valid_84;
+      cache_valid_85 <= cache_we & index == 7'h55 | cache_valid_85;
+      cache_valid_86 <= cache_we & index == 7'h56 | cache_valid_86;
+      cache_valid_87 <= cache_we & index == 7'h57 | cache_valid_87;
+      cache_valid_88 <= cache_we & index == 7'h58 | cache_valid_88;
+      cache_valid_89 <= cache_we & index == 7'h59 | cache_valid_89;
+      cache_valid_90 <= cache_we & index == 7'h5A | cache_valid_90;
+      cache_valid_91 <= cache_we & index == 7'h5B | cache_valid_91;
+      cache_valid_92 <= cache_we & index == 7'h5C | cache_valid_92;
+      cache_valid_93 <= cache_we & index == 7'h5D | cache_valid_93;
+      cache_valid_94 <= cache_we & index == 7'h5E | cache_valid_94;
+      cache_valid_95 <= cache_we & index == 7'h5F | cache_valid_95;
+      cache_valid_96 <= cache_we & index == 7'h60 | cache_valid_96;
+      cache_valid_97 <= cache_we & index == 7'h61 | cache_valid_97;
+      cache_valid_98 <= cache_we & index == 7'h62 | cache_valid_98;
+      cache_valid_99 <= cache_we & index == 7'h63 | cache_valid_99;
+      cache_valid_100 <= cache_we & index == 7'h64 | cache_valid_100;
+      cache_valid_101 <= cache_we & index == 7'h65 | cache_valid_101;
+      cache_valid_102 <= cache_we & index == 7'h66 | cache_valid_102;
+      cache_valid_103 <= cache_we & index == 7'h67 | cache_valid_103;
+      cache_valid_104 <= cache_we & index == 7'h68 | cache_valid_104;
+      cache_valid_105 <= cache_we & index == 7'h69 | cache_valid_105;
+      cache_valid_106 <= cache_we & index == 7'h6A | cache_valid_106;
+      cache_valid_107 <= cache_we & index == 7'h6B | cache_valid_107;
+      cache_valid_108 <= cache_we & index == 7'h6C | cache_valid_108;
+      cache_valid_109 <= cache_we & index == 7'h6D | cache_valid_109;
+      cache_valid_110 <= cache_we & index == 7'h6E | cache_valid_110;
+      cache_valid_111 <= cache_we & index == 7'h6F | cache_valid_111;
+      cache_valid_112 <= cache_we & index == 7'h70 | cache_valid_112;
+      cache_valid_113 <= cache_we & index == 7'h71 | cache_valid_113;
+      cache_valid_114 <= cache_we & index == 7'h72 | cache_valid_114;
+      cache_valid_115 <= cache_we & index == 7'h73 | cache_valid_115;
+      cache_valid_116 <= cache_we & index == 7'h74 | cache_valid_116;
+      cache_valid_117 <= cache_we & index == 7'h75 | cache_valid_117;
+      cache_valid_118 <= cache_we & index == 7'h76 | cache_valid_118;
+      cache_valid_119 <= cache_we & index == 7'h77 | cache_valid_119;
+      cache_valid_120 <= cache_we & index == 7'h78 | cache_valid_120;
+      cache_valid_121 <= cache_we & index == 7'h79 | cache_valid_121;
+      cache_valid_122 <= cache_we & index == 7'h7A | cache_valid_122;
+      cache_valid_123 <= cache_we & index == 7'h7B | cache_valid_123;
+      cache_valid_124 <= cache_we & index == 7'h7C | cache_valid_124;
+      cache_valid_125 <= cache_we & index == 7'h7D | cache_valid_125;
+      cache_valid_126 <= cache_we & index == 7'h7E | cache_valid_126;
+      cache_valid_127 <= cache_we & (&index) | cache_valid_127;
       if (current_req_valid & (~(|state) | _GEN_0)) begin
         reg_index <= index;
         reg_tag <= tag;
@@ -1842,59 +1549,155 @@ module ICache(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:3];
+      automatic logic [31:0] _RANDOM[0:6];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
-          _RANDOM[i[1:0]] = `RANDOM;
+        for (logic [2:0] i = 3'h0; i < 3'h7; i += 3'h1) begin
+          _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[2'h0][1:0];
-        saved_req_valid = _RANDOM[2'h0][2];
-        saved_req_bits_addr = {_RANDOM[2'h0][31:3], _RANDOM[2'h1][2:0]};
-        cache_valid_0 = _RANDOM[2'h1][3];
-        cache_valid_1 = _RANDOM[2'h1][4];
-        cache_valid_2 = _RANDOM[2'h1][5];
-        cache_valid_3 = _RANDOM[2'h1][6];
-        cache_valid_4 = _RANDOM[2'h1][7];
-        cache_valid_5 = _RANDOM[2'h1][8];
-        cache_valid_6 = _RANDOM[2'h1][9];
-        cache_valid_7 = _RANDOM[2'h1][10];
-        cache_valid_8 = _RANDOM[2'h1][11];
-        cache_valid_9 = _RANDOM[2'h1][12];
-        cache_valid_10 = _RANDOM[2'h1][13];
-        cache_valid_11 = _RANDOM[2'h1][14];
-        cache_valid_12 = _RANDOM[2'h1][15];
-        cache_valid_13 = _RANDOM[2'h1][16];
-        cache_valid_14 = _RANDOM[2'h1][17];
-        cache_valid_15 = _RANDOM[2'h1][18];
-        cache_valid_16 = _RANDOM[2'h1][19];
-        cache_valid_17 = _RANDOM[2'h1][20];
-        cache_valid_18 = _RANDOM[2'h1][21];
-        cache_valid_19 = _RANDOM[2'h1][22];
-        cache_valid_20 = _RANDOM[2'h1][23];
-        cache_valid_21 = _RANDOM[2'h1][24];
-        cache_valid_22 = _RANDOM[2'h1][25];
-        cache_valid_23 = _RANDOM[2'h1][26];
-        cache_valid_24 = _RANDOM[2'h1][27];
-        cache_valid_25 = _RANDOM[2'h1][28];
-        cache_valid_26 = _RANDOM[2'h1][29];
-        cache_valid_27 = _RANDOM[2'h1][30];
-        cache_valid_28 = _RANDOM[2'h1][31];
-        cache_valid_29 = _RANDOM[2'h2][0];
-        cache_valid_30 = _RANDOM[2'h2][1];
-        cache_valid_31 = _RANDOM[2'h2][2];
-        reg_index = _RANDOM[2'h2][7:3];
-        reg_tag = _RANDOM[2'h2][25:8];
-        reg_addr = {_RANDOM[2'h2][31:26], _RANDOM[2'h3][25:0]};
+        state = _RANDOM[3'h0][1:0];
+        saved_req_valid = _RANDOM[3'h0][2];
+        saved_req_bits_addr = {_RANDOM[3'h0][31:3], _RANDOM[3'h1][2:0]};
+        cache_valid_0 = _RANDOM[3'h1][3];
+        cache_valid_1 = _RANDOM[3'h1][4];
+        cache_valid_2 = _RANDOM[3'h1][5];
+        cache_valid_3 = _RANDOM[3'h1][6];
+        cache_valid_4 = _RANDOM[3'h1][7];
+        cache_valid_5 = _RANDOM[3'h1][8];
+        cache_valid_6 = _RANDOM[3'h1][9];
+        cache_valid_7 = _RANDOM[3'h1][10];
+        cache_valid_8 = _RANDOM[3'h1][11];
+        cache_valid_9 = _RANDOM[3'h1][12];
+        cache_valid_10 = _RANDOM[3'h1][13];
+        cache_valid_11 = _RANDOM[3'h1][14];
+        cache_valid_12 = _RANDOM[3'h1][15];
+        cache_valid_13 = _RANDOM[3'h1][16];
+        cache_valid_14 = _RANDOM[3'h1][17];
+        cache_valid_15 = _RANDOM[3'h1][18];
+        cache_valid_16 = _RANDOM[3'h1][19];
+        cache_valid_17 = _RANDOM[3'h1][20];
+        cache_valid_18 = _RANDOM[3'h1][21];
+        cache_valid_19 = _RANDOM[3'h1][22];
+        cache_valid_20 = _RANDOM[3'h1][23];
+        cache_valid_21 = _RANDOM[3'h1][24];
+        cache_valid_22 = _RANDOM[3'h1][25];
+        cache_valid_23 = _RANDOM[3'h1][26];
+        cache_valid_24 = _RANDOM[3'h1][27];
+        cache_valid_25 = _RANDOM[3'h1][28];
+        cache_valid_26 = _RANDOM[3'h1][29];
+        cache_valid_27 = _RANDOM[3'h1][30];
+        cache_valid_28 = _RANDOM[3'h1][31];
+        cache_valid_29 = _RANDOM[3'h2][0];
+        cache_valid_30 = _RANDOM[3'h2][1];
+        cache_valid_31 = _RANDOM[3'h2][2];
+        cache_valid_32 = _RANDOM[3'h2][3];
+        cache_valid_33 = _RANDOM[3'h2][4];
+        cache_valid_34 = _RANDOM[3'h2][5];
+        cache_valid_35 = _RANDOM[3'h2][6];
+        cache_valid_36 = _RANDOM[3'h2][7];
+        cache_valid_37 = _RANDOM[3'h2][8];
+        cache_valid_38 = _RANDOM[3'h2][9];
+        cache_valid_39 = _RANDOM[3'h2][10];
+        cache_valid_40 = _RANDOM[3'h2][11];
+        cache_valid_41 = _RANDOM[3'h2][12];
+        cache_valid_42 = _RANDOM[3'h2][13];
+        cache_valid_43 = _RANDOM[3'h2][14];
+        cache_valid_44 = _RANDOM[3'h2][15];
+        cache_valid_45 = _RANDOM[3'h2][16];
+        cache_valid_46 = _RANDOM[3'h2][17];
+        cache_valid_47 = _RANDOM[3'h2][18];
+        cache_valid_48 = _RANDOM[3'h2][19];
+        cache_valid_49 = _RANDOM[3'h2][20];
+        cache_valid_50 = _RANDOM[3'h2][21];
+        cache_valid_51 = _RANDOM[3'h2][22];
+        cache_valid_52 = _RANDOM[3'h2][23];
+        cache_valid_53 = _RANDOM[3'h2][24];
+        cache_valid_54 = _RANDOM[3'h2][25];
+        cache_valid_55 = _RANDOM[3'h2][26];
+        cache_valid_56 = _RANDOM[3'h2][27];
+        cache_valid_57 = _RANDOM[3'h2][28];
+        cache_valid_58 = _RANDOM[3'h2][29];
+        cache_valid_59 = _RANDOM[3'h2][30];
+        cache_valid_60 = _RANDOM[3'h2][31];
+        cache_valid_61 = _RANDOM[3'h3][0];
+        cache_valid_62 = _RANDOM[3'h3][1];
+        cache_valid_63 = _RANDOM[3'h3][2];
+        cache_valid_64 = _RANDOM[3'h3][3];
+        cache_valid_65 = _RANDOM[3'h3][4];
+        cache_valid_66 = _RANDOM[3'h3][5];
+        cache_valid_67 = _RANDOM[3'h3][6];
+        cache_valid_68 = _RANDOM[3'h3][7];
+        cache_valid_69 = _RANDOM[3'h3][8];
+        cache_valid_70 = _RANDOM[3'h3][9];
+        cache_valid_71 = _RANDOM[3'h3][10];
+        cache_valid_72 = _RANDOM[3'h3][11];
+        cache_valid_73 = _RANDOM[3'h3][12];
+        cache_valid_74 = _RANDOM[3'h3][13];
+        cache_valid_75 = _RANDOM[3'h3][14];
+        cache_valid_76 = _RANDOM[3'h3][15];
+        cache_valid_77 = _RANDOM[3'h3][16];
+        cache_valid_78 = _RANDOM[3'h3][17];
+        cache_valid_79 = _RANDOM[3'h3][18];
+        cache_valid_80 = _RANDOM[3'h3][19];
+        cache_valid_81 = _RANDOM[3'h3][20];
+        cache_valid_82 = _RANDOM[3'h3][21];
+        cache_valid_83 = _RANDOM[3'h3][22];
+        cache_valid_84 = _RANDOM[3'h3][23];
+        cache_valid_85 = _RANDOM[3'h3][24];
+        cache_valid_86 = _RANDOM[3'h3][25];
+        cache_valid_87 = _RANDOM[3'h3][26];
+        cache_valid_88 = _RANDOM[3'h3][27];
+        cache_valid_89 = _RANDOM[3'h3][28];
+        cache_valid_90 = _RANDOM[3'h3][29];
+        cache_valid_91 = _RANDOM[3'h3][30];
+        cache_valid_92 = _RANDOM[3'h3][31];
+        cache_valid_93 = _RANDOM[3'h4][0];
+        cache_valid_94 = _RANDOM[3'h4][1];
+        cache_valid_95 = _RANDOM[3'h4][2];
+        cache_valid_96 = _RANDOM[3'h4][3];
+        cache_valid_97 = _RANDOM[3'h4][4];
+        cache_valid_98 = _RANDOM[3'h4][5];
+        cache_valid_99 = _RANDOM[3'h4][6];
+        cache_valid_100 = _RANDOM[3'h4][7];
+        cache_valid_101 = _RANDOM[3'h4][8];
+        cache_valid_102 = _RANDOM[3'h4][9];
+        cache_valid_103 = _RANDOM[3'h4][10];
+        cache_valid_104 = _RANDOM[3'h4][11];
+        cache_valid_105 = _RANDOM[3'h4][12];
+        cache_valid_106 = _RANDOM[3'h4][13];
+        cache_valid_107 = _RANDOM[3'h4][14];
+        cache_valid_108 = _RANDOM[3'h4][15];
+        cache_valid_109 = _RANDOM[3'h4][16];
+        cache_valid_110 = _RANDOM[3'h4][17];
+        cache_valid_111 = _RANDOM[3'h4][18];
+        cache_valid_112 = _RANDOM[3'h4][19];
+        cache_valid_113 = _RANDOM[3'h4][20];
+        cache_valid_114 = _RANDOM[3'h4][21];
+        cache_valid_115 = _RANDOM[3'h4][22];
+        cache_valid_116 = _RANDOM[3'h4][23];
+        cache_valid_117 = _RANDOM[3'h4][24];
+        cache_valid_118 = _RANDOM[3'h4][25];
+        cache_valid_119 = _RANDOM[3'h4][26];
+        cache_valid_120 = _RANDOM[3'h4][27];
+        cache_valid_121 = _RANDOM[3'h4][28];
+        cache_valid_122 = _RANDOM[3'h4][29];
+        cache_valid_123 = _RANDOM[3'h4][30];
+        cache_valid_124 = _RANDOM[3'h4][31];
+        cache_valid_125 = _RANDOM[3'h5][0];
+        cache_valid_126 = _RANDOM[3'h5][1];
+        cache_valid_127 = _RANDOM[3'h5][2];
+        reg_index = _RANDOM[3'h5][9:3];
+        reg_tag = _RANDOM[3'h5][29:10];
+        reg_addr = {_RANDOM[3'h5][31:30], _RANDOM[3'h6][29:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  cache_tag_32x18 cache_tag_ext (
+  cache_tag_128x20 cache_tag_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1904,7 +1707,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (tag)
   );
-  cache_data_32x32 cache_data_0_ext (
+  cache_data_128x32 cache_data_0_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1914,7 +1717,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
   );
-  cache_data_32x32 cache_data_1_ext (
+  cache_data_128x32 cache_data_1_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1924,7 +1727,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
   );
-  cache_data_32x32 cache_data_2_ext (
+  cache_data_128x32 cache_data_2_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1934,7 +1737,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
   );
-  cache_data_32x32 cache_data_3_ext (
+  cache_data_128x32 cache_data_3_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1944,7 +1747,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
   );
-  cache_data_32x32 cache_data_4_ext (
+  cache_data_128x32 cache_data_4_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1954,7 +1757,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
   );
-  cache_data_32x32 cache_data_5_ext (
+  cache_data_128x32 cache_data_5_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1964,7 +1767,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
   );
-  cache_data_32x32 cache_data_6_ext (
+  cache_data_128x32 cache_data_6_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1974,7 +1777,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
   );
-  cache_data_32x32 cache_data_7_ext (
+  cache_data_128x32 cache_data_7_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1984,1331 +1787,11 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
   );
-  cache_data_32x32 cache_data_8_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_8_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[287:256])
-  );
-  cache_data_32x32 cache_data_9_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_9_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[319:288])
-  );
-  cache_data_32x32 cache_data_10_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_10_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[351:320])
-  );
-  cache_data_32x32 cache_data_11_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_11_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[383:352])
-  );
-  cache_data_32x32 cache_data_12_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_12_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[415:384])
-  );
-  cache_data_32x32 cache_data_13_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_13_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[447:416])
-  );
-  cache_data_32x32 cache_data_14_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_14_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[479:448])
-  );
-  cache_data_32x32 cache_data_15_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_15_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[511:480])
-  );
-  cache_data_32x32 cache_data_16_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_16_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[543:512])
-  );
-  cache_data_32x32 cache_data_17_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_17_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[575:544])
-  );
-  cache_data_32x32 cache_data_18_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_18_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[607:576])
-  );
-  cache_data_32x32 cache_data_19_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_19_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[639:608])
-  );
-  cache_data_32x32 cache_data_20_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_20_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[671:640])
-  );
-  cache_data_32x32 cache_data_21_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_21_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[703:672])
-  );
-  cache_data_32x32 cache_data_22_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_22_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[735:704])
-  );
-  cache_data_32x32 cache_data_23_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_23_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[767:736])
-  );
-  cache_data_32x32 cache_data_24_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_24_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[799:768])
-  );
-  cache_data_32x32 cache_data_25_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_25_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[831:800])
-  );
-  cache_data_32x32 cache_data_26_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_26_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[863:832])
-  );
-  cache_data_32x32 cache_data_27_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_27_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[895:864])
-  );
-  cache_data_32x32 cache_data_28_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_28_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[927:896])
-  );
-  cache_data_32x32 cache_data_29_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_29_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[959:928])
-  );
-  cache_data_32x32 cache_data_30_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_30_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[991:960])
-  );
-  cache_data_32x32 cache_data_31_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_31_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1023:992])
-  );
-  cache_data_32x32 cache_data_32_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_32_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1055:1024])
-  );
-  cache_data_32x32 cache_data_33_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_33_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1087:1056])
-  );
-  cache_data_32x32 cache_data_34_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_34_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1119:1088])
-  );
-  cache_data_32x32 cache_data_35_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_35_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1151:1120])
-  );
-  cache_data_32x32 cache_data_36_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_36_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1183:1152])
-  );
-  cache_data_32x32 cache_data_37_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_37_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1215:1184])
-  );
-  cache_data_32x32 cache_data_38_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_38_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1247:1216])
-  );
-  cache_data_32x32 cache_data_39_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_39_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1279:1248])
-  );
-  cache_data_32x32 cache_data_40_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_40_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1311:1280])
-  );
-  cache_data_32x32 cache_data_41_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_41_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1343:1312])
-  );
-  cache_data_32x32 cache_data_42_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_42_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1375:1344])
-  );
-  cache_data_32x32 cache_data_43_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_43_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1407:1376])
-  );
-  cache_data_32x32 cache_data_44_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_44_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1439:1408])
-  );
-  cache_data_32x32 cache_data_45_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_45_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1471:1440])
-  );
-  cache_data_32x32 cache_data_46_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_46_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1503:1472])
-  );
-  cache_data_32x32 cache_data_47_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_47_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1535:1504])
-  );
-  cache_data_32x32 cache_data_48_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_48_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1567:1536])
-  );
-  cache_data_32x32 cache_data_49_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_49_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1599:1568])
-  );
-  cache_data_32x32 cache_data_50_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_50_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1631:1600])
-  );
-  cache_data_32x32 cache_data_51_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_51_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1663:1632])
-  );
-  cache_data_32x32 cache_data_52_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_52_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1695:1664])
-  );
-  cache_data_32x32 cache_data_53_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_53_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1727:1696])
-  );
-  cache_data_32x32 cache_data_54_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_54_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1759:1728])
-  );
-  cache_data_32x32 cache_data_55_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_55_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1791:1760])
-  );
-  cache_data_32x32 cache_data_56_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_56_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1823:1792])
-  );
-  cache_data_32x32 cache_data_57_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_57_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1855:1824])
-  );
-  cache_data_32x32 cache_data_58_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_58_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1887:1856])
-  );
-  cache_data_32x32 cache_data_59_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_59_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1919:1888])
-  );
-  cache_data_32x32 cache_data_60_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_60_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1951:1920])
-  );
-  cache_data_32x32 cache_data_61_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_61_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[1983:1952])
-  );
-  cache_data_32x32 cache_data_62_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_62_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2015:1984])
-  );
-  cache_data_32x32 cache_data_63_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_63_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2047:2016])
-  );
-  cache_data_32x32 cache_data_64_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_64_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2079:2048])
-  );
-  cache_data_32x32 cache_data_65_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_65_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2111:2080])
-  );
-  cache_data_32x32 cache_data_66_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_66_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2143:2112])
-  );
-  cache_data_32x32 cache_data_67_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_67_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2175:2144])
-  );
-  cache_data_32x32 cache_data_68_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_68_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2207:2176])
-  );
-  cache_data_32x32 cache_data_69_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_69_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2239:2208])
-  );
-  cache_data_32x32 cache_data_70_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_70_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2271:2240])
-  );
-  cache_data_32x32 cache_data_71_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_71_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2303:2272])
-  );
-  cache_data_32x32 cache_data_72_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_72_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2335:2304])
-  );
-  cache_data_32x32 cache_data_73_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_73_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2367:2336])
-  );
-  cache_data_32x32 cache_data_74_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_74_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2399:2368])
-  );
-  cache_data_32x32 cache_data_75_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_75_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2431:2400])
-  );
-  cache_data_32x32 cache_data_76_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_76_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2463:2432])
-  );
-  cache_data_32x32 cache_data_77_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_77_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2495:2464])
-  );
-  cache_data_32x32 cache_data_78_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_78_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2527:2496])
-  );
-  cache_data_32x32 cache_data_79_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_79_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2559:2528])
-  );
-  cache_data_32x32 cache_data_80_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_80_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2591:2560])
-  );
-  cache_data_32x32 cache_data_81_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_81_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2623:2592])
-  );
-  cache_data_32x32 cache_data_82_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_82_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2655:2624])
-  );
-  cache_data_32x32 cache_data_83_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_83_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2687:2656])
-  );
-  cache_data_32x32 cache_data_84_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_84_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2719:2688])
-  );
-  cache_data_32x32 cache_data_85_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_85_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2751:2720])
-  );
-  cache_data_32x32 cache_data_86_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_86_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2783:2752])
-  );
-  cache_data_32x32 cache_data_87_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_87_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2815:2784])
-  );
-  cache_data_32x32 cache_data_88_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_88_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2847:2816])
-  );
-  cache_data_32x32 cache_data_89_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_89_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2879:2848])
-  );
-  cache_data_32x32 cache_data_90_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_90_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2911:2880])
-  );
-  cache_data_32x32 cache_data_91_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_91_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2943:2912])
-  );
-  cache_data_32x32 cache_data_92_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_92_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[2975:2944])
-  );
-  cache_data_32x32 cache_data_93_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_93_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3007:2976])
-  );
-  cache_data_32x32 cache_data_94_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_94_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3039:3008])
-  );
-  cache_data_32x32 cache_data_95_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_95_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3071:3040])
-  );
-  cache_data_32x32 cache_data_96_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_96_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3103:3072])
-  );
-  cache_data_32x32 cache_data_97_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_97_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3135:3104])
-  );
-  cache_data_32x32 cache_data_98_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_98_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3167:3136])
-  );
-  cache_data_32x32 cache_data_99_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_99_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3199:3168])
-  );
-  cache_data_32x32 cache_data_100_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_100_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3231:3200])
-  );
-  cache_data_32x32 cache_data_101_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_101_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3263:3232])
-  );
-  cache_data_32x32 cache_data_102_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_102_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3295:3264])
-  );
-  cache_data_32x32 cache_data_103_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_103_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3327:3296])
-  );
-  cache_data_32x32 cache_data_104_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_104_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3359:3328])
-  );
-  cache_data_32x32 cache_data_105_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_105_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3391:3360])
-  );
-  cache_data_32x32 cache_data_106_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_106_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3423:3392])
-  );
-  cache_data_32x32 cache_data_107_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_107_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3455:3424])
-  );
-  cache_data_32x32 cache_data_108_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_108_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3487:3456])
-  );
-  cache_data_32x32 cache_data_109_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_109_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3519:3488])
-  );
-  cache_data_32x32 cache_data_110_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_110_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3551:3520])
-  );
-  cache_data_32x32 cache_data_111_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_111_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3583:3552])
-  );
-  cache_data_32x32 cache_data_112_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_112_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3615:3584])
-  );
-  cache_data_32x32 cache_data_113_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_113_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3647:3616])
-  );
-  cache_data_32x32 cache_data_114_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_114_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3679:3648])
-  );
-  cache_data_32x32 cache_data_115_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_115_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3711:3680])
-  );
-  cache_data_32x32 cache_data_116_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_116_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3743:3712])
-  );
-  cache_data_32x32 cache_data_117_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_117_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3775:3744])
-  );
-  cache_data_32x32 cache_data_118_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_118_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3807:3776])
-  );
-  cache_data_32x32 cache_data_119_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_119_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3839:3808])
-  );
-  cache_data_32x32 cache_data_120_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_120_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3871:3840])
-  );
-  cache_data_32x32 cache_data_121_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_121_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3903:3872])
-  );
-  cache_data_32x32 cache_data_122_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_122_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3935:3904])
-  );
-  cache_data_32x32 cache_data_123_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_123_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3967:3936])
-  );
-  cache_data_32x32 cache_data_124_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_124_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[3999:3968])
-  );
-  cache_data_32x32 cache_data_125_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_125_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[4031:4000])
-  );
-  cache_data_32x32 cache_data_126_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_126_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[4063:4032])
-  );
-  cache_data_32x32 cache_data_127_ext (
-    .R0_addr (read_index),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_cache_data_127_ext_R0_data),
-    .W0_addr (index),
-    .W0_en   (cache_we),
-    .W0_clk  (clock),
-    .W0_data (io_io_read_resp_bits_data[4095:4064])
-  );
   assign io_icache_req_ready = ~saved_req_valid & ~(|state) & ~saved_req_valid;
   assign io_icache_resp_valid = io_icache_resp_valid_0;
   assign io_icache_resp_bits_data =
     _GEN_0
-      ? {_cache_data_127_ext_R0_data,
-         _cache_data_126_ext_R0_data,
-         _cache_data_125_ext_R0_data,
-         _cache_data_124_ext_R0_data,
-         _cache_data_123_ext_R0_data,
-         _cache_data_122_ext_R0_data,
-         _cache_data_121_ext_R0_data,
-         _cache_data_120_ext_R0_data,
-         _cache_data_119_ext_R0_data,
-         _cache_data_118_ext_R0_data,
-         _cache_data_117_ext_R0_data,
-         _cache_data_116_ext_R0_data,
-         _cache_data_115_ext_R0_data,
-         _cache_data_114_ext_R0_data,
-         _cache_data_113_ext_R0_data,
-         _cache_data_112_ext_R0_data,
-         _cache_data_111_ext_R0_data,
-         _cache_data_110_ext_R0_data,
-         _cache_data_109_ext_R0_data,
-         _cache_data_108_ext_R0_data,
-         _cache_data_107_ext_R0_data,
-         _cache_data_106_ext_R0_data,
-         _cache_data_105_ext_R0_data,
-         _cache_data_104_ext_R0_data,
-         _cache_data_103_ext_R0_data,
-         _cache_data_102_ext_R0_data,
-         _cache_data_101_ext_R0_data,
-         _cache_data_100_ext_R0_data,
-         _cache_data_99_ext_R0_data,
-         _cache_data_98_ext_R0_data,
-         _cache_data_97_ext_R0_data,
-         _cache_data_96_ext_R0_data,
-         _cache_data_95_ext_R0_data,
-         _cache_data_94_ext_R0_data,
-         _cache_data_93_ext_R0_data,
-         _cache_data_92_ext_R0_data,
-         _cache_data_91_ext_R0_data,
-         _cache_data_90_ext_R0_data,
-         _cache_data_89_ext_R0_data,
-         _cache_data_88_ext_R0_data,
-         _cache_data_87_ext_R0_data,
-         _cache_data_86_ext_R0_data,
-         _cache_data_85_ext_R0_data,
-         _cache_data_84_ext_R0_data,
-         _cache_data_83_ext_R0_data,
-         _cache_data_82_ext_R0_data,
-         _cache_data_81_ext_R0_data,
-         _cache_data_80_ext_R0_data,
-         _cache_data_79_ext_R0_data,
-         _cache_data_78_ext_R0_data,
-         _cache_data_77_ext_R0_data,
-         _cache_data_76_ext_R0_data,
-         _cache_data_75_ext_R0_data,
-         _cache_data_74_ext_R0_data,
-         _cache_data_73_ext_R0_data,
-         _cache_data_72_ext_R0_data,
-         _cache_data_71_ext_R0_data,
-         _cache_data_70_ext_R0_data,
-         _cache_data_69_ext_R0_data,
-         _cache_data_68_ext_R0_data,
-         _cache_data_67_ext_R0_data,
-         _cache_data_66_ext_R0_data,
-         _cache_data_65_ext_R0_data,
-         _cache_data_64_ext_R0_data,
-         _cache_data_63_ext_R0_data,
-         _cache_data_62_ext_R0_data,
-         _cache_data_61_ext_R0_data,
-         _cache_data_60_ext_R0_data,
-         _cache_data_59_ext_R0_data,
-         _cache_data_58_ext_R0_data,
-         _cache_data_57_ext_R0_data,
-         _cache_data_56_ext_R0_data,
-         _cache_data_55_ext_R0_data,
-         _cache_data_54_ext_R0_data,
-         _cache_data_53_ext_R0_data,
-         _cache_data_52_ext_R0_data,
-         _cache_data_51_ext_R0_data,
-         _cache_data_50_ext_R0_data,
-         _cache_data_49_ext_R0_data,
-         _cache_data_48_ext_R0_data,
-         _cache_data_47_ext_R0_data,
-         _cache_data_46_ext_R0_data,
-         _cache_data_45_ext_R0_data,
-         _cache_data_44_ext_R0_data,
-         _cache_data_43_ext_R0_data,
-         _cache_data_42_ext_R0_data,
-         _cache_data_41_ext_R0_data,
-         _cache_data_40_ext_R0_data,
-         _cache_data_39_ext_R0_data,
-         _cache_data_38_ext_R0_data,
-         _cache_data_37_ext_R0_data,
-         _cache_data_36_ext_R0_data,
-         _cache_data_35_ext_R0_data,
-         _cache_data_34_ext_R0_data,
-         _cache_data_33_ext_R0_data,
-         _cache_data_32_ext_R0_data,
-         _cache_data_31_ext_R0_data,
-         _cache_data_30_ext_R0_data,
-         _cache_data_29_ext_R0_data,
-         _cache_data_28_ext_R0_data,
-         _cache_data_27_ext_R0_data,
-         _cache_data_26_ext_R0_data,
-         _cache_data_25_ext_R0_data,
-         _cache_data_24_ext_R0_data,
-         _cache_data_23_ext_R0_data,
-         _cache_data_22_ext_R0_data,
-         _cache_data_21_ext_R0_data,
-         _cache_data_20_ext_R0_data,
-         _cache_data_19_ext_R0_data,
-         _cache_data_18_ext_R0_data,
-         _cache_data_17_ext_R0_data,
-         _cache_data_16_ext_R0_data,
-         _cache_data_15_ext_R0_data,
-         _cache_data_14_ext_R0_data,
-         _cache_data_13_ext_R0_data,
-         _cache_data_12_ext_R0_data,
-         _cache_data_11_ext_R0_data,
-         _cache_data_10_ext_R0_data,
-         _cache_data_9_ext_R0_data,
-         _cache_data_8_ext_R0_data,
-         _cache_data_7_ext_R0_data,
+      ? {_cache_data_7_ext_R0_data,
          _cache_data_6_ext_R0_data,
          _cache_data_5_ext_R0_data,
          _cache_data_4_ext_R0_data,
@@ -3319,7 +1802,7 @@ module ICache(
       : io_io_read_resp_bits_data;
   assign io_icache_resp_bits_addr = current_req_bits_addr;
   assign io_io_read_req_valid = (|state) & _GEN_0 & ~hit_cache;
-  assign io_io_read_req_bits_addr = {current_req_bits_addr[31:9], 9'h0};
+  assign io_io_read_req_bits_addr = {current_req_bits_addr[31:5], 5'h0};
   assign io_icache_debug_state = state == 2'h2;
   assign io_icache_debug_hit_cache = hit_cache;
   assign io_icache_debug_cache_we = cache_we;
@@ -3442,38 +1925,38 @@ module DCache(
 endmodule
 
 module PrefetchUnit(
-  input           clock,
-                  reset,
-                  io_icache_req_ready,
-  output          io_icache_req_valid,
-  output [31:0]   io_icache_req_bits_addr,
-  input           io_icache_resp_valid,
-  input  [4095:0] io_icache_resp_bits_data,
-  input  [31:0]   io_icache_resp_bits_addr,
-  input           io_fetch_ready,
-  output          io_fetch_resp_valid,
-  output [4095:0] io_fetch_resp_bits_data,
-  output [31:0]   io_fetch_resp_bits_addr,
-  input           io_branch,
-  input  [31:0]   io_target
+  input          clock,
+                 reset,
+                 io_icache_req_ready,
+  output         io_icache_req_valid,
+  output [31:0]  io_icache_req_bits_addr,
+  input          io_icache_resp_valid,
+  input  [255:0] io_icache_resp_bits_data,
+  input  [31:0]  io_icache_resp_bits_addr,
+  input          io_fetch_ready,
+  output         io_fetch_resp_valid,
+  output [255:0] io_fetch_resp_bits_data,
+  output [31:0]  io_fetch_resp_bits_addr,
+  input          io_branch,
+  input  [31:0]  io_target
 );
 
-  reg  [31:0]   prefetch_pc;
-  reg  [31:0]   should_rcv_pc;
-  reg  [1:0]    state;
-  reg  [4095:0] inst_buffer_data;
-  reg  [31:0]   inst_buffer_addr;
-  reg           buffer_valid;
-  reg  [31:0]   waiting_for_addr;
-  reg           waiting_valid;
-  wire          resp_matches =
+  reg  [31:0]  prefetch_pc;
+  reg  [31:0]  should_rcv_pc;
+  reg  [1:0]   state;
+  reg  [255:0] inst_buffer_data;
+  reg  [31:0]  inst_buffer_addr;
+  reg          buffer_valid;
+  reg  [31:0]  waiting_for_addr;
+  reg          waiting_valid;
+  wire         resp_matches =
     ~waiting_valid | io_icache_resp_bits_addr == waiting_for_addr;
-  wire          _GEN = io_icache_resp_valid & resp_matches;
-  wire          is_expected = io_icache_resp_bits_addr == should_rcv_pc;
-  wire          _GEN_0 = is_expected & io_fetch_ready;
-  wire          _GEN_1 = buffer_valid & io_fetch_ready;
-  wire          _GEN_2 = state == 2'h0;
-  wire          _GEN_3 = ~buffer_valid & io_icache_req_ready;
+  wire         _GEN = io_icache_resp_valid & resp_matches;
+  wire         is_expected = io_icache_resp_bits_addr == should_rcv_pc;
+  wire         _GEN_0 = is_expected & io_fetch_ready;
+  wire         _GEN_1 = buffer_valid & io_fetch_ready;
+  wire         _GEN_2 = state == 2'h0;
+  wire         _GEN_3 = ~buffer_valid & io_icache_req_ready;
   always @(posedge clock) begin
     automatic logic _GEN_4;
     _GEN_4 = is_expected & ~io_fetch_ready;
@@ -3538,151 +2021,31 @@ module PrefetchUnit(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:132];
+      automatic logic [31:0] _RANDOM[0:12];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [7:0] i = 8'h0; i < 8'h85; i += 8'h1) begin
+        for (logic [3:0] i = 4'h0; i < 4'hD; i += 4'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        prefetch_pc = _RANDOM[8'h0];
-        should_rcv_pc = _RANDOM[8'h1];
-        state = _RANDOM[8'h2][1:0];
+        prefetch_pc = _RANDOM[4'h0];
+        should_rcv_pc = _RANDOM[4'h1];
+        state = _RANDOM[4'h2][1:0];
         inst_buffer_data =
-          {_RANDOM[8'h2][31:2],
-           _RANDOM[8'h3],
-           _RANDOM[8'h4],
-           _RANDOM[8'h5],
-           _RANDOM[8'h6],
-           _RANDOM[8'h7],
-           _RANDOM[8'h8],
-           _RANDOM[8'h9],
-           _RANDOM[8'hA],
-           _RANDOM[8'hB],
-           _RANDOM[8'hC],
-           _RANDOM[8'hD],
-           _RANDOM[8'hE],
-           _RANDOM[8'hF],
-           _RANDOM[8'h10],
-           _RANDOM[8'h11],
-           _RANDOM[8'h12],
-           _RANDOM[8'h13],
-           _RANDOM[8'h14],
-           _RANDOM[8'h15],
-           _RANDOM[8'h16],
-           _RANDOM[8'h17],
-           _RANDOM[8'h18],
-           _RANDOM[8'h19],
-           _RANDOM[8'h1A],
-           _RANDOM[8'h1B],
-           _RANDOM[8'h1C],
-           _RANDOM[8'h1D],
-           _RANDOM[8'h1E],
-           _RANDOM[8'h1F],
-           _RANDOM[8'h20],
-           _RANDOM[8'h21],
-           _RANDOM[8'h22],
-           _RANDOM[8'h23],
-           _RANDOM[8'h24],
-           _RANDOM[8'h25],
-           _RANDOM[8'h26],
-           _RANDOM[8'h27],
-           _RANDOM[8'h28],
-           _RANDOM[8'h29],
-           _RANDOM[8'h2A],
-           _RANDOM[8'h2B],
-           _RANDOM[8'h2C],
-           _RANDOM[8'h2D],
-           _RANDOM[8'h2E],
-           _RANDOM[8'h2F],
-           _RANDOM[8'h30],
-           _RANDOM[8'h31],
-           _RANDOM[8'h32],
-           _RANDOM[8'h33],
-           _RANDOM[8'h34],
-           _RANDOM[8'h35],
-           _RANDOM[8'h36],
-           _RANDOM[8'h37],
-           _RANDOM[8'h38],
-           _RANDOM[8'h39],
-           _RANDOM[8'h3A],
-           _RANDOM[8'h3B],
-           _RANDOM[8'h3C],
-           _RANDOM[8'h3D],
-           _RANDOM[8'h3E],
-           _RANDOM[8'h3F],
-           _RANDOM[8'h40],
-           _RANDOM[8'h41],
-           _RANDOM[8'h42],
-           _RANDOM[8'h43],
-           _RANDOM[8'h44],
-           _RANDOM[8'h45],
-           _RANDOM[8'h46],
-           _RANDOM[8'h47],
-           _RANDOM[8'h48],
-           _RANDOM[8'h49],
-           _RANDOM[8'h4A],
-           _RANDOM[8'h4B],
-           _RANDOM[8'h4C],
-           _RANDOM[8'h4D],
-           _RANDOM[8'h4E],
-           _RANDOM[8'h4F],
-           _RANDOM[8'h50],
-           _RANDOM[8'h51],
-           _RANDOM[8'h52],
-           _RANDOM[8'h53],
-           _RANDOM[8'h54],
-           _RANDOM[8'h55],
-           _RANDOM[8'h56],
-           _RANDOM[8'h57],
-           _RANDOM[8'h58],
-           _RANDOM[8'h59],
-           _RANDOM[8'h5A],
-           _RANDOM[8'h5B],
-           _RANDOM[8'h5C],
-           _RANDOM[8'h5D],
-           _RANDOM[8'h5E],
-           _RANDOM[8'h5F],
-           _RANDOM[8'h60],
-           _RANDOM[8'h61],
-           _RANDOM[8'h62],
-           _RANDOM[8'h63],
-           _RANDOM[8'h64],
-           _RANDOM[8'h65],
-           _RANDOM[8'h66],
-           _RANDOM[8'h67],
-           _RANDOM[8'h68],
-           _RANDOM[8'h69],
-           _RANDOM[8'h6A],
-           _RANDOM[8'h6B],
-           _RANDOM[8'h6C],
-           _RANDOM[8'h6D],
-           _RANDOM[8'h6E],
-           _RANDOM[8'h6F],
-           _RANDOM[8'h70],
-           _RANDOM[8'h71],
-           _RANDOM[8'h72],
-           _RANDOM[8'h73],
-           _RANDOM[8'h74],
-           _RANDOM[8'h75],
-           _RANDOM[8'h76],
-           _RANDOM[8'h77],
-           _RANDOM[8'h78],
-           _RANDOM[8'h79],
-           _RANDOM[8'h7A],
-           _RANDOM[8'h7B],
-           _RANDOM[8'h7C],
-           _RANDOM[8'h7D],
-           _RANDOM[8'h7E],
-           _RANDOM[8'h7F],
-           _RANDOM[8'h80],
-           _RANDOM[8'h81],
-           _RANDOM[8'h82][1:0]};
-        inst_buffer_addr = {_RANDOM[8'h82][31:2], _RANDOM[8'h83][1:0]};
-        buffer_valid = _RANDOM[8'h83][2];
-        waiting_for_addr = {_RANDOM[8'h83][31:3], _RANDOM[8'h84][2:0]};
-        waiting_valid = _RANDOM[8'h84][3];
+          {_RANDOM[4'h2][31:2],
+           _RANDOM[4'h3],
+           _RANDOM[4'h4],
+           _RANDOM[4'h5],
+           _RANDOM[4'h6],
+           _RANDOM[4'h7],
+           _RANDOM[4'h8],
+           _RANDOM[4'h9],
+           _RANDOM[4'hA][1:0]};
+        inst_buffer_addr = {_RANDOM[4'hA][31:2], _RANDOM[4'hB][1:0]};
+        buffer_valid = _RANDOM[4'hB][2];
+        waiting_for_addr = {_RANDOM[4'hB][31:3], _RANDOM[4'hC][2:0]};
+        waiting_valid = _RANDOM[4'hC][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -3697,45 +2060,37 @@ module PrefetchUnit(
 endmodule
 
 module FetchUnitWithPrefetch(
-  input           clock,
-                  reset,
-  output [31:0]   io_decodeStage_data_inst,
-  output          io_decodeStage_data_valid,
-  output [31:0]   io_decodeStage_data_pc,
-  input           io_signal_fetchUnitSignal_allow_to_go,
-                  io_signal_branchControl_branch,
-  input  [31:0]   io_signal_branchControl_target,
-  input           io_prefetch_resp_valid,
-  input  [4095:0] io_prefetch_resp_bits_data,
-  input  [31:0]   io_prefetch_resp_bits_addr,
-  output          io_fetch_ready
+  input          clock,
+                 reset,
+  output [31:0]  io_decodeStage_data_inst,
+  output         io_decodeStage_data_valid,
+  output [31:0]  io_decodeStage_data_pc,
+  input          io_signal_fetchUnitSignal_allow_to_go,
+                 io_signal_branchControl_branch,
+  input  [31:0]  io_signal_branchControl_target,
+  input          io_prefetch_resp_valid,
+  input  [255:0] io_prefetch_resp_bits_data,
+  input  [31:0]  io_prefetch_resp_bits_addr,
+  output         io_fetch_ready
 );
 
-  reg  [31:0] pc;
-  reg  [31:0] ifid_reg_inst;
-  reg         ifid_reg_valid;
-  reg  [31:0] ifid_reg_pc;
-  wire        _GEN = io_prefetch_resp_valid & io_prefetch_resp_bits_addr == pc;
-  wire [31:0] inst =
-    pc[8:2] == 7'h7
-      ? io_prefetch_resp_bits_data[255:224]
-      : pc[8:2] == 7'h6
-          ? io_prefetch_resp_bits_data[223:192]
-          : pc[8:2] == 7'h5
-              ? io_prefetch_resp_bits_data[191:160]
-              : pc[8:2] == 7'h4
-                  ? io_prefetch_resp_bits_data[159:128]
-                  : pc[8:2] == 7'h3
-                      ? io_prefetch_resp_bits_data[127:96]
-                      : pc[8:2] == 7'h2
-                          ? io_prefetch_resp_bits_data[95:64]
-                          : pc[8:2] == 7'h1
-                              ? io_prefetch_resp_bits_data[63:32]
-                              : pc[8:2] == 7'h0
-                                  ? io_prefetch_resp_bits_data[31:0]
-                                  : 32'h0;
-  wire        _GEN_0 = _GEN & io_signal_fetchUnitSignal_allow_to_go;
-  wire        _GEN_1 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
+  reg  [31:0]      pc;
+  reg  [31:0]      ifid_reg_inst;
+  reg              ifid_reg_valid;
+  reg  [31:0]      ifid_reg_pc;
+  wire             _GEN = io_prefetch_resp_valid & io_prefetch_resp_bits_addr == pc;
+  wire [7:0][31:0] _GEN_0 =
+    {{io_prefetch_resp_bits_data[255:224]},
+     {io_prefetch_resp_bits_data[223:192]},
+     {io_prefetch_resp_bits_data[191:160]},
+     {io_prefetch_resp_bits_data[159:128]},
+     {io_prefetch_resp_bits_data[127:96]},
+     {io_prefetch_resp_bits_data[95:64]},
+     {io_prefetch_resp_bits_data[63:32]},
+     {io_prefetch_resp_bits_data[31:0]}};
+  wire [31:0]      inst = _GEN_0[pc[4:2]];
+  wire             _GEN_1 = _GEN & io_signal_fetchUnitSignal_allow_to_go;
+  wire             _GEN_2 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
   always @(posedge clock) begin
     if (reset) begin
       pc <= 32'h80000000;
@@ -3744,22 +2099,22 @@ module FetchUnitWithPrefetch(
       ifid_reg_pc <= 32'h0;
     end
     else begin
-      automatic logic _GEN_2 =
+      automatic logic _GEN_3 =
         io_signal_branchControl_branch | ~_GEN | io_signal_fetchUnitSignal_allow_to_go;
       if (io_signal_branchControl_branch)
         pc <= io_signal_branchControl_target;
-      else if (_GEN_1)
+      else if (_GEN_2)
         pc <= ifid_reg_pc + 32'h4;
-      else if (_GEN_0)
+      else if (_GEN_1)
         pc <= pc + 32'h4;
-      if (_GEN_2) begin
+      if (_GEN_3) begin
       end
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
-        ~(io_signal_branchControl_branch | _GEN_1)
+        ~(io_signal_branchControl_branch | _GEN_2)
         & (_GEN & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
-      if (_GEN_2) begin
+      if (_GEN_3) begin
       end
       else
         ifid_reg_pc <= pc;
@@ -3791,12 +2146,12 @@ module FetchUnitWithPrefetch(
   assign io_decodeStage_data_inst =
     io_signal_branchControl_branch
       ? 32'h0
-      : _GEN_1 ? ifid_reg_inst : _GEN_0 ? inst : 32'h0;
+      : _GEN_2 ? ifid_reg_inst : _GEN_1 ? inst : 32'h0;
   assign io_decodeStage_data_valid =
     ~io_signal_branchControl_branch
-    & (_GEN_1 ? ifid_reg_valid : _GEN & io_signal_fetchUnitSignal_allow_to_go);
+    & (_GEN_2 ? ifid_reg_valid : _GEN & io_signal_fetchUnitSignal_allow_to_go);
   assign io_decodeStage_data_pc =
-    io_signal_branchControl_branch ? 32'h0 : _GEN_1 ? ifid_reg_pc : _GEN_0 ? pc : 32'h0;
+    io_signal_branchControl_branch ? 32'h0 : _GEN_2 ? ifid_reg_pc : _GEN_1 ? pc : 32'h0;
   assign io_fetch_ready = ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
 endmodule
 
@@ -6047,162 +4402,162 @@ module Core(
                 io_diff_gRegState_31
 );
 
-  wire          _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
-  wire          _controlUnit_io_signals_fetchUnitSignal_do_flush;
-  wire          _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
-  wire          _controlUnit_io_signals_decodeUnitSignal_do_flush;
-  wire          _controlUnit_io_signals_bypassData_src1_bypass;
-  wire          _controlUnit_io_signals_bypassData_src2_bypass;
-  wire [31:0]   _controlUnit_io_signals_bypassData_src1_data;
-  wire [31:0]   _controlUnit_io_signals_bypassData_src2_data;
-  wire          _controlUnit_io_signals_branchControl_branch;
-  wire [31:0]   _controlUnit_io_signals_branchControl_target;
-  wire          _writeBackUnit_io_regfile_wen;
-  wire [4:0]    _writeBackUnit_io_regfile_waddr;
-  wire [31:0]   _writeBackUnit_io_regfile_wdata;
-  wire [31:0]   _writeBackUnit_io_debug_pc;
-  wire [3:0]    _writeBackUnit_io_debug_commit;
-  wire [4:0]    _writeBackUnit_io_debug_rf_wnum;
-  wire [31:0]   _writeBackUnit_io_debug_rf_wdata;
-  wire          _writeBackUnit_io_debug_wen;
-  wire [31:0]   _writeBackUnit_io_info_instr;
-  wire [7:0]    _writeBackUnit_io_info_diffout_storeEvent_valid;
-  wire [31:0]   _writeBackUnit_io_info_diffout_storeEvent_storePAddr;
-  wire [31:0]   _writeBackUnit_io_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]   _writeBackUnit_io_info_diffout_storeEvent_storeData;
-  wire [7:0]    _writeBackUnit_io_info_diffout_loadEvent_valid;
-  wire [31:0]   _writeBackUnit_io_info_diffout_loadEvent_paddr;
-  wire [31:0]   _writeBackUnit_io_info_diffout_loadEvent_vaddr;
-  wire [31:0]   _writeBackUnit_io_result;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_pc;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_instr;
-  wire          _writeBackStage_io_writeBackUnit_data_info_valid;
-  wire          _writeBackStage_io_writeBackUnit_data_info_reg_wen;
-  wire [4:0]    _writeBackStage_io_writeBackUnit_data_info_reg_waddr;
-  wire [7:0]    _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData;
-  wire [7:0]    _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr;
-  wire [31:0]   _writeBackStage_io_writeBackUnit_data_rd_info_wdata;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_pc;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_instr;
-  wire          _executeUnit_io_writeBackStage_data_info_valid;
-  wire          _executeUnit_io_writeBackStage_data_info_reg_wen;
-  wire [4:0]    _executeUnit_io_writeBackStage_data_info_reg_waddr;
-  wire [7:0]    _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;
-  wire [7:0]    _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
-  wire [31:0]   _executeUnit_io_writeBackStage_data_rd_info_wdata;
-  wire          _executeUnit_io_ready;
-  wire          _executeUnit_io_branch;
-  wire [31:0]   _executeUnit_io_target;
-  wire          _executeUnit_io_dcache_req_valid;
-  wire [31:0]   _executeUnit_io_dcache_req_bits_addr;
-  wire          _executeUnit_io_dcache_req_bits_write;
-  wire [31:0]   _executeUnit_io_dcache_req_bits_wdata;
-  wire [3:0]    _executeUnit_io_dcache_req_bits_wstrb;
-  wire [31:0]   _executeUnit_io_result;
-  wire [31:0]   _executeStage_io_executeUnit_data_pc;
-  wire [31:0]   _executeStage_io_executeUnit_data_info_instr;
-  wire          _executeStage_io_executeUnit_data_info_valid;
-  wire [4:0]    _executeStage_io_executeUnit_data_info_op;
-  wire          _executeStage_io_executeUnit_data_info_reg_wen;
-  wire [4:0]    _executeStage_io_executeUnit_data_info_reg_waddr;
-  wire [31:0]   _executeStage_io_executeUnit_data_info_imm;
-  wire [2:0]    _executeStage_io_executeUnit_data_info_fusel;
-  wire [31:0]   _executeStage_io_executeUnit_data_src_info_src1_data;
-  wire [31:0]   _executeStage_io_executeUnit_data_src_info_src2_data;
-  wire [31:0]   _regfile_io_read_src1_rdata;
-  wire [31:0]   _regfile_io_read_src2_rdata;
-  wire [31:0]   _regfile_io_regs_out_0;
-  wire [31:0]   _regfile_io_regs_out_1;
-  wire [31:0]   _regfile_io_regs_out_2;
-  wire [31:0]   _regfile_io_regs_out_3;
-  wire [31:0]   _regfile_io_regs_out_4;
-  wire [31:0]   _regfile_io_regs_out_5;
-  wire [31:0]   _regfile_io_regs_out_6;
-  wire [31:0]   _regfile_io_regs_out_7;
-  wire [31:0]   _regfile_io_regs_out_8;
-  wire [31:0]   _regfile_io_regs_out_9;
-  wire [31:0]   _regfile_io_regs_out_10;
-  wire [31:0]   _regfile_io_regs_out_11;
-  wire [31:0]   _regfile_io_regs_out_12;
-  wire [31:0]   _regfile_io_regs_out_13;
-  wire [31:0]   _regfile_io_regs_out_14;
-  wire [31:0]   _regfile_io_regs_out_15;
-  wire [31:0]   _regfile_io_regs_out_16;
-  wire [31:0]   _regfile_io_regs_out_17;
-  wire [31:0]   _regfile_io_regs_out_18;
-  wire [31:0]   _regfile_io_regs_out_19;
-  wire [31:0]   _regfile_io_regs_out_20;
-  wire [31:0]   _regfile_io_regs_out_21;
-  wire [31:0]   _regfile_io_regs_out_22;
-  wire [31:0]   _regfile_io_regs_out_23;
-  wire [31:0]   _regfile_io_regs_out_24;
-  wire [31:0]   _regfile_io_regs_out_25;
-  wire [31:0]   _regfile_io_regs_out_26;
-  wire [31:0]   _regfile_io_regs_out_27;
-  wire [31:0]   _regfile_io_regs_out_28;
-  wire [31:0]   _regfile_io_regs_out_29;
-  wire [31:0]   _regfile_io_regs_out_30;
-  wire [31:0]   _regfile_io_regs_out_31;
-  wire [4:0]    _decodeUnit_io_regfile_src1_raddr;
-  wire [4:0]    _decodeUnit_io_regfile_src2_raddr;
-  wire [31:0]   _decodeUnit_io_executeStage_data_pc;
-  wire [31:0]   _decodeUnit_io_executeStage_data_info_instr;
-  wire          _decodeUnit_io_executeStage_data_info_valid;
-  wire [4:0]    _decodeUnit_io_executeStage_data_info_op;
-  wire          _decodeUnit_io_executeStage_data_info_reg_wen;
-  wire [4:0]    _decodeUnit_io_executeStage_data_info_reg_waddr;
-  wire [31:0]   _decodeUnit_io_executeStage_data_info_imm;
-  wire [2:0]    _decodeUnit_io_executeStage_data_info_fusel;
-  wire [31:0]   _decodeUnit_io_executeStage_data_src_info_src1_data;
-  wire [31:0]   _decodeUnit_io_executeStage_data_src_info_src2_data;
-  wire [4:0]    _decodeUnit_io_registerInfo_src1_raddr;
-  wire [4:0]    _decodeUnit_io_registerInfo_src2_raddr;
-  wire          _decodeUnit_io_registerInfo_src1_ren;
-  wire          _decodeUnit_io_registerInfo_src2_ren;
-  wire [31:0]   _decodeStage_io_decodeUnit_data_inst;
-  wire          _decodeStage_io_decodeUnit_data_valid;
-  wire [31:0]   _decodeStage_io_decodeUnit_data_pc;
-  wire [31:0]   _fetchUnit_io_decodeStage_data_inst;
-  wire          _fetchUnit_io_decodeStage_data_valid;
-  wire [31:0]   _fetchUnit_io_decodeStage_data_pc;
-  wire          _fetchUnit_io_fetch_ready;
-  wire          _prefetchUnit_io_icache_req_valid;
-  wire [31:0]   _prefetchUnit_io_icache_req_bits_addr;
-  wire          _prefetchUnit_io_fetch_resp_valid;
-  wire [4095:0] _prefetchUnit_io_fetch_resp_bits_data;
-  wire [31:0]   _prefetchUnit_io_fetch_resp_bits_addr;
-  wire          _dcache_io_req_ready;
-  wire          _dcache_io_resp_valid;
-  wire [31:0]   _dcache_io_resp_bits_data;
-  wire          _dcache_io_io_read_req_valid;
-  wire [31:0]   _dcache_io_io_read_req_bits_addr;
-  wire          _dcache_io_io_write_req_valid;
-  wire [31:0]   _dcache_io_io_write_req_bits_addr;
-  wire [31:0]   _dcache_io_io_write_req_bits_data;
-  wire [3:0]    _dcache_io_io_write_req_bits_byte_mask;
-  wire          _icache_io_icache_req_ready;
-  wire          _icache_io_icache_resp_valid;
-  wire [4095:0] _icache_io_icache_resp_bits_data;
-  wire [31:0]   _icache_io_icache_resp_bits_addr;
-  wire          _icache_io_io_read_req_valid;
-  wire [31:0]   _icache_io_io_read_req_bits_addr;
-  wire          _iocontrol_io_icache_read_req_ready;
-  wire          _iocontrol_io_icache_read_resp_valid;
-  wire [4095:0] _iocontrol_io_icache_read_resp_bits_data;
-  wire          _iocontrol_io_dcache_read_req_ready;
-  wire          _iocontrol_io_dcache_read_resp_valid;
-  wire [31:0]   _iocontrol_io_dcache_read_resp_bits_data;
-  wire          _iocontrol_io_dcache_write_req_ready;
+  wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
+  wire         _controlUnit_io_signals_fetchUnitSignal_do_flush;
+  wire         _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
+  wire         _controlUnit_io_signals_decodeUnitSignal_do_flush;
+  wire         _controlUnit_io_signals_bypassData_src1_bypass;
+  wire         _controlUnit_io_signals_bypassData_src2_bypass;
+  wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
+  wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_branchControl_branch;
+  wire [31:0]  _controlUnit_io_signals_branchControl_target;
+  wire         _writeBackUnit_io_regfile_wen;
+  wire [4:0]   _writeBackUnit_io_regfile_waddr;
+  wire [31:0]  _writeBackUnit_io_regfile_wdata;
+  wire [31:0]  _writeBackUnit_io_debug_pc;
+  wire [3:0]   _writeBackUnit_io_debug_commit;
+  wire [4:0]   _writeBackUnit_io_debug_rf_wnum;
+  wire [31:0]  _writeBackUnit_io_debug_rf_wdata;
+  wire         _writeBackUnit_io_debug_wen;
+  wire [31:0]  _writeBackUnit_io_info_instr;
+  wire [7:0]   _writeBackUnit_io_info_diffout_storeEvent_valid;
+  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storePAddr;
+  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeVAddr;
+  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeData;
+  wire [7:0]   _writeBackUnit_io_info_diffout_loadEvent_valid;
+  wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_paddr;
+  wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_vaddr;
+  wire [31:0]  _writeBackUnit_io_result;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_pc;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_instr;
+  wire         _writeBackStage_io_writeBackUnit_data_info_valid;
+  wire         _writeBackStage_io_writeBackUnit_data_info_reg_wen;
+  wire [4:0]   _writeBackStage_io_writeBackUnit_data_info_reg_waddr;
+  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData;
+  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr;
+  wire [31:0]  _writeBackStage_io_writeBackUnit_data_rd_info_wdata;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_pc;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_instr;
+  wire         _executeUnit_io_writeBackStage_data_info_valid;
+  wire         _executeUnit_io_writeBackStage_data_info_reg_wen;
+  wire [4:0]   _executeUnit_io_writeBackStage_data_info_reg_waddr;
+  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;
+  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
+  wire [31:0]  _executeUnit_io_writeBackStage_data_rd_info_wdata;
+  wire         _executeUnit_io_ready;
+  wire         _executeUnit_io_branch;
+  wire [31:0]  _executeUnit_io_target;
+  wire         _executeUnit_io_dcache_req_valid;
+  wire [31:0]  _executeUnit_io_dcache_req_bits_addr;
+  wire         _executeUnit_io_dcache_req_bits_write;
+  wire [31:0]  _executeUnit_io_dcache_req_bits_wdata;
+  wire [3:0]   _executeUnit_io_dcache_req_bits_wstrb;
+  wire [31:0]  _executeUnit_io_result;
+  wire [31:0]  _executeStage_io_executeUnit_data_pc;
+  wire [31:0]  _executeStage_io_executeUnit_data_info_instr;
+  wire         _executeStage_io_executeUnit_data_info_valid;
+  wire [4:0]   _executeStage_io_executeUnit_data_info_op;
+  wire         _executeStage_io_executeUnit_data_info_reg_wen;
+  wire [4:0]   _executeStage_io_executeUnit_data_info_reg_waddr;
+  wire [31:0]  _executeStage_io_executeUnit_data_info_imm;
+  wire [2:0]   _executeStage_io_executeUnit_data_info_fusel;
+  wire [31:0]  _executeStage_io_executeUnit_data_src_info_src1_data;
+  wire [31:0]  _executeStage_io_executeUnit_data_src_info_src2_data;
+  wire [31:0]  _regfile_io_read_src1_rdata;
+  wire [31:0]  _regfile_io_read_src2_rdata;
+  wire [31:0]  _regfile_io_regs_out_0;
+  wire [31:0]  _regfile_io_regs_out_1;
+  wire [31:0]  _regfile_io_regs_out_2;
+  wire [31:0]  _regfile_io_regs_out_3;
+  wire [31:0]  _regfile_io_regs_out_4;
+  wire [31:0]  _regfile_io_regs_out_5;
+  wire [31:0]  _regfile_io_regs_out_6;
+  wire [31:0]  _regfile_io_regs_out_7;
+  wire [31:0]  _regfile_io_regs_out_8;
+  wire [31:0]  _regfile_io_regs_out_9;
+  wire [31:0]  _regfile_io_regs_out_10;
+  wire [31:0]  _regfile_io_regs_out_11;
+  wire [31:0]  _regfile_io_regs_out_12;
+  wire [31:0]  _regfile_io_regs_out_13;
+  wire [31:0]  _regfile_io_regs_out_14;
+  wire [31:0]  _regfile_io_regs_out_15;
+  wire [31:0]  _regfile_io_regs_out_16;
+  wire [31:0]  _regfile_io_regs_out_17;
+  wire [31:0]  _regfile_io_regs_out_18;
+  wire [31:0]  _regfile_io_regs_out_19;
+  wire [31:0]  _regfile_io_regs_out_20;
+  wire [31:0]  _regfile_io_regs_out_21;
+  wire [31:0]  _regfile_io_regs_out_22;
+  wire [31:0]  _regfile_io_regs_out_23;
+  wire [31:0]  _regfile_io_regs_out_24;
+  wire [31:0]  _regfile_io_regs_out_25;
+  wire [31:0]  _regfile_io_regs_out_26;
+  wire [31:0]  _regfile_io_regs_out_27;
+  wire [31:0]  _regfile_io_regs_out_28;
+  wire [31:0]  _regfile_io_regs_out_29;
+  wire [31:0]  _regfile_io_regs_out_30;
+  wire [31:0]  _regfile_io_regs_out_31;
+  wire [4:0]   _decodeUnit_io_regfile_src1_raddr;
+  wire [4:0]   _decodeUnit_io_regfile_src2_raddr;
+  wire [31:0]  _decodeUnit_io_executeStage_data_pc;
+  wire [31:0]  _decodeUnit_io_executeStage_data_info_instr;
+  wire         _decodeUnit_io_executeStage_data_info_valid;
+  wire [4:0]   _decodeUnit_io_executeStage_data_info_op;
+  wire         _decodeUnit_io_executeStage_data_info_reg_wen;
+  wire [4:0]   _decodeUnit_io_executeStage_data_info_reg_waddr;
+  wire [31:0]  _decodeUnit_io_executeStage_data_info_imm;
+  wire [2:0]   _decodeUnit_io_executeStage_data_info_fusel;
+  wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src1_data;
+  wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src2_data;
+  wire [4:0]   _decodeUnit_io_registerInfo_src1_raddr;
+  wire [4:0]   _decodeUnit_io_registerInfo_src2_raddr;
+  wire         _decodeUnit_io_registerInfo_src1_ren;
+  wire         _decodeUnit_io_registerInfo_src2_ren;
+  wire [31:0]  _decodeStage_io_decodeUnit_data_inst;
+  wire         _decodeStage_io_decodeUnit_data_valid;
+  wire [31:0]  _decodeStage_io_decodeUnit_data_pc;
+  wire [31:0]  _fetchUnit_io_decodeStage_data_inst;
+  wire         _fetchUnit_io_decodeStage_data_valid;
+  wire [31:0]  _fetchUnit_io_decodeStage_data_pc;
+  wire         _fetchUnit_io_fetch_ready;
+  wire         _prefetchUnit_io_icache_req_valid;
+  wire [31:0]  _prefetchUnit_io_icache_req_bits_addr;
+  wire         _prefetchUnit_io_fetch_resp_valid;
+  wire [255:0] _prefetchUnit_io_fetch_resp_bits_data;
+  wire [31:0]  _prefetchUnit_io_fetch_resp_bits_addr;
+  wire         _dcache_io_req_ready;
+  wire         _dcache_io_resp_valid;
+  wire [31:0]  _dcache_io_resp_bits_data;
+  wire         _dcache_io_io_read_req_valid;
+  wire [31:0]  _dcache_io_io_read_req_bits_addr;
+  wire         _dcache_io_io_write_req_valid;
+  wire [31:0]  _dcache_io_io_write_req_bits_addr;
+  wire [31:0]  _dcache_io_io_write_req_bits_data;
+  wire [3:0]   _dcache_io_io_write_req_bits_byte_mask;
+  wire         _icache_io_icache_req_ready;
+  wire         _icache_io_icache_resp_valid;
+  wire [255:0] _icache_io_icache_resp_bits_data;
+  wire [31:0]  _icache_io_icache_resp_bits_addr;
+  wire         _icache_io_io_read_req_valid;
+  wire [31:0]  _icache_io_io_read_req_bits_addr;
+  wire         _iocontrol_io_icache_read_req_ready;
+  wire         _iocontrol_io_icache_read_resp_valid;
+  wire [255:0] _iocontrol_io_icache_read_resp_bits_data;
+  wire         _iocontrol_io_dcache_read_req_ready;
+  wire         _iocontrol_io_dcache_read_resp_valid;
+  wire [31:0]  _iocontrol_io_dcache_read_resp_bits_data;
+  wire         _iocontrol_io_dcache_write_req_ready;
   IoControl iocontrol (
     .clock                              (clock),
     .reset                              (reset),

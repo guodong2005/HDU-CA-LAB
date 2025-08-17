@@ -28,7 +28,7 @@ class Core extends Module {
   val prefetchUnit = Module(new PrefetchUnit())
 
   // ===== Modified: Use FetchUnitWithPrefetch instead of FetchUnit =====
-  val fetchUnit = Module(new FetchUnitWithPrefetch())
+  val fetchUnit = Module(new FetchUnit())
 
   val decodeStage    = Module(new DecodeStage())
   val decodeUnit     = Module(new DecodeUnit())
