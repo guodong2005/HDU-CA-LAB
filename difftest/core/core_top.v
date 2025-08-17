@@ -4176,23 +4176,21 @@ module ControlUnit(
   wire        _src2_forward_from_ex_T = io_executeInfo_valid & io_executeInfo_reg_wen;
   wire        _src2_forward_from_wb_T = io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
   wire [1:0]  src1_forward_sel =
-    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_src1_ren
-    & io_decodeRegisterInfo_src1_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h2
-      : {1'h0,
-         _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+    _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr) & io_decodeRegisterInfo_src1_ren
+    & io_decodeRegisterInfo_src1_raddr == io_executeInfo_reg_waddr
+      ? 2'h1
+      : {_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
            & io_decodeRegisterInfo_src1_ren
-           & io_decodeRegisterInfo_src1_raddr == io_executeInfo_reg_waddr};
+           & io_decodeRegisterInfo_src1_raddr == io_writeBackInfo_reg_waddr,
+         1'h0};
   wire [1:0]  src2_forward_sel =
-    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_src2_ren
-    & io_decodeRegisterInfo_src2_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h2
-      : {1'h0,
-         _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+    _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr) & io_decodeRegisterInfo_src2_ren
+    & io_decodeRegisterInfo_src2_raddr == io_executeInfo_reg_waddr
+      ? 2'h1
+      : {_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
            & io_decodeRegisterInfo_src2_ren
-           & io_decodeRegisterInfo_src2_raddr == io_executeInfo_reg_waddr};
+           & io_decodeRegisterInfo_src2_raddr == io_writeBackInfo_reg_waddr,
+         1'h0};
   wire [31:0] io_signals_bypassData_src1_data_0 =
     src1_forward_sel == 2'h1
       ? io_executeResult
