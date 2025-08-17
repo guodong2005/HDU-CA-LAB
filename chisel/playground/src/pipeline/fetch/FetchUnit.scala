@@ -30,8 +30,9 @@ class FetchUnit extends Module {
   val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
 
   // 控制信号
-  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
-  val canSendReq  = !ifid_reg.valid || decodeReady // 可以发送新请求的条件
+  val decodeReady   = io.signal.fetchUnitSignal.allow_to_go
+  val bufferStalled = ifid_reg.valid && !decodeReady // 缓冲区被阻塞
+  val canAcceptInst = !ifid_reg.valid || decodeReady // 可以接受新指令
 
   // 启动条件
   val canStartInternal = !reset.asBool
@@ -71,8 +72,8 @@ class FetchUnit extends Module {
         ifid_reg.valid      := false.B
       }
 
-      // 发送新请求（只要条件允许就发送）
-      when(canStart && canSendReq && !io.branch) {
+      // 发送新请求 - 只有在没有阻塞时才发送
+      when(canStart && !bufferStalled && !io.branch) {
         io.icache_req.valid     := true.B
         io.icache_req.bits.addr := req_pc
 
@@ -87,7 +88,8 @@ class FetchUnit extends Module {
 
     is(sWAIT_RESP) {
       // 首先处理缓存的指令（如果有的话）
-      when(ifid_reg.valid && decodeReady && !io.branch) {
+      val ifid_consumed = ifid_reg.valid && decodeReady && !io.branch
+      when(ifid_consumed) {
         io.decodeStage.data := ifid_reg
         ifid_reg.valid      := false.B
       }
@@ -101,49 +103,51 @@ class FetchUnit extends Module {
           // 地址匹配 - 处理响应的指令
           val inst = extractInst(io.icache_resp.bits.data, wait_pc)
 
-          when(!ifid_reg.valid && decodeReady) {
-            // 直接传递给decode阶段
+          // 注意：要考虑同周期可能刚消费了缓冲指令
+          val buffer_available = !ifid_reg.valid || ifid_consumed
+
+          when(buffer_available && decodeReady && !ifid_consumed) {
+            // 直接传递给decode阶段（只有在没有同时消费缓冲指令时）
             io.decodeStage.data.inst  := inst
             io.decodeStage.data.pc    := wait_pc
             io.decodeStage.data.valid := true.B
-          }.otherwise {
-            // 缓存指令（只有在缓冲区为空时才缓存）
-            when(!ifid_reg.valid) {
-              ifid_reg.inst  := inst
-              ifid_reg.pc    := wait_pc
-              ifid_reg.valid := true.B
-            }
-            // 如果缓冲区已满且decode not ready，指令会丢失
-            // 这种情况应该通过canSendReq避免
+          }.elsewhen(buffer_available) {
+            // 缓存指令
+            ifid_reg.inst  := inst
+            ifid_reg.pc    := wait_pc
+            ifid_reg.valid := true.B
           }
+          // 如果缓冲区不可用，指令会丢失 - 这不应该发生
 
           pending_valid := false.B
 
-          // 关键优化：立即尝试发送下一个请求
-          // 条件：没有分支，且（缓冲区为空 或 decode ready）
-          when(!io.branch && canSendReq) {
+          // 决定是否继续发送请求
+          // 关键：只有在没有阻塞时才发送新请求
+          val nextBufferStalled = (buffer_available && !decodeReady && !ifid_consumed) ||
+            (!buffer_available)
+
+          when(!io.branch && !nextBufferStalled) {
             io.icache_req.valid     := true.B
             io.icache_req.bits.addr := req_pc
 
             when(io.icache_req.ready) {
               pending_valid := true.B
-              wait_pc       := req_pc // 更新等待地址
-              req_pc        := req_pc + 4.U // 更新请求地址
-              // 保持在sWAIT_RESP状态，实现连续流水线
+              wait_pc       := req_pc
+              req_pc        := req_pc + 4.U
+              // 保持在sWAIT_RESP状态
             }.otherwise {
               state := sIDLE
             }
           }.otherwise {
             state := sIDLE
           }
-        }.otherwise {
-          // 地址不匹配 - 过期的响应
         }
+        // 地址不匹配时不做任何事，继续等待正确的响应
       }
 
-      // 即使在等待响应时，如果没有pending请求，也可以发送新请求
-      // 这处理了响应已经到达但还没处理的情况
-      when(!pending_valid && canSendReq && !io.branch) {
+      // 没有pending请求时，检查是否可以发送新请求
+      // 重要：只有在缓冲区不阻塞时才发送
+      when(!pending_valid && !bufferStalled && !io.branch) {
         io.icache_req.valid     := true.B
         io.icache_req.bits.addr := req_pc
 
@@ -151,7 +155,13 @@ class FetchUnit extends Module {
           pending_valid := true.B
           wait_pc       := req_pc
           req_pc        := req_pc + 4.U
+        }.otherwise {
+          // 无法发送新请求，回到IDLE
+          state := sIDLE
         }
+      }.elsewhen(!pending_valid && bufferStalled) {
+        // 缓冲区阻塞且没有pending，回到IDLE等待
+        state := sIDLE
       }
     }
   }
@@ -181,4 +191,5 @@ class FetchUnit extends Module {
   dontTouch(pending_valid)
   dontTouch(wait_pc)
   dontTouch(req_pc)
+  dontTouch(bufferStalled)
 }
