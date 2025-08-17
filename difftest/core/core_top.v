@@ -847,20 +847,20 @@ module IoControl(
 endmodule
 
 // VCS coverage exclude_file
-module cache_tag_128x20(
-  input  [6:0]  R0_addr,
+module cache_tag_32x22(
+  input  [4:0]  R0_addr,
   input         R0_en,
                 R0_clk,
-  output [19:0] R0_data,
-  input  [6:0]  W0_addr,
+  output [21:0] R0_data,
+  input  [4:0]  W0_addr,
   input         W0_en,
                 W0_clk,
-  input  [19:0] W0_data
+  input  [21:0] W0_data
 );
 
-  reg [19:0] Memory[0:127];
+  reg [21:0] Memory[0:31];
   reg        _R0_en_d0;
-  reg [6:0]  _R0_addr_d0;
+  reg [4:0]  _R0_addr_d0;
   always @(posedge R0_clk) begin
     _R0_en_d0 <= R0_en;
     _R0_addr_d0 <= R0_addr;
@@ -877,36 +877,36 @@ module cache_tag_128x20(
     initial begin
       `INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_MEM_INIT
-        for (logic [7:0] i = 8'h0; i < 8'h80; i += 8'h1) begin
+        for (logic [5:0] i = 6'h0; i < 6'h20; i += 6'h1) begin
           _RANDOM_MEM = `RANDOM;
-          Memory[i[6:0]] = _RANDOM_MEM[19:0];
+          Memory[i[4:0]] = _RANDOM_MEM[21:0];
         end
       `endif // RANDOMIZE_MEM_INIT
       `ifdef RANDOMIZE_REG_INIT
         _RANDOM = {`RANDOM};
         _R0_en_d0 = _RANDOM[0];
-        _R0_addr_d0 = _RANDOM[7:1];
+        _R0_addr_d0 = _RANDOM[5:1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
   `endif // ENABLE_INITIAL_MEM_
-  assign R0_data = _R0_en_d0 ? Memory[_R0_addr_d0] : 20'bx;
+  assign R0_data = _R0_en_d0 ? Memory[_R0_addr_d0] : 22'bx;
 endmodule
 
 // VCS coverage exclude_file
-module cache_data_128x32(
-  input  [6:0]  R0_addr,
+module cache_data_32x32(
+  input  [4:0]  R0_addr,
   input         R0_en,
                 R0_clk,
   output [31:0] R0_data,
-  input  [6:0]  W0_addr,
+  input  [4:0]  W0_addr,
   input         W0_en,
                 W0_clk,
   input  [31:0] W0_data
 );
 
-  reg [31:0] Memory[0:127];
+  reg [31:0] Memory[0:31];
   reg        _R0_en_d0;
-  reg [6:0]  _R0_addr_d0;
+  reg [4:0]  _R0_addr_d0;
   always @(posedge R0_clk) begin
     _R0_en_d0 <= R0_en;
     _R0_addr_d0 <= R0_addr;
@@ -923,15 +923,15 @@ module cache_data_128x32(
     initial begin
       `INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_MEM_INIT
-        for (logic [7:0] i = 8'h0; i < 8'h80; i += 8'h1) begin
+        for (logic [5:0] i = 6'h0; i < 6'h20; i += 6'h1) begin
           _RANDOM_MEM = `RANDOM;
-          Memory[i[6:0]] = _RANDOM_MEM;
+          Memory[i[4:0]] = _RANDOM_MEM;
         end
       `endif // RANDOMIZE_MEM_INIT
       `ifdef RANDOMIZE_REG_INIT
         _RANDOM = {`RANDOM};
         _R0_en_d0 = _RANDOM[0];
-        _R0_addr_d0 = _RANDOM[7:1];
+        _R0_addr_d0 = _RANDOM[5:1];
       `endif // RANDOMIZE_REG_INIT
     end // initial
   `endif // ENABLE_INITIAL_MEM_
@@ -955,262 +955,70 @@ module ICache(
   output         io_icache_debug_state,
                  io_icache_debug_hit_cache,
                  io_icache_debug_cache_we,
-  output [19:0]  io_icache_debug_cache_read_tag,
+  output [21:0]  io_icache_debug_cache_read_tag,
   output         io_icache_debug_icache_req_valid,
   output [31:0]  io_icache_debug_icache_req_bits_addr
 );
 
-  wire [31:0]  _cache_data_7_ext_R0_data;
-  wire [31:0]  _cache_data_6_ext_R0_data;
-  wire [31:0]  _cache_data_5_ext_R0_data;
-  wire [31:0]  _cache_data_4_ext_R0_data;
-  wire [31:0]  _cache_data_3_ext_R0_data;
-  wire [31:0]  _cache_data_2_ext_R0_data;
-  wire [31:0]  _cache_data_1_ext_R0_data;
-  wire [31:0]  _cache_data_0_ext_R0_data;
-  wire [19:0]  _cache_tag_ext_R0_data;
-  reg  [1:0]   state;
-  reg          saved_req_valid;
-  reg  [31:0]  saved_req_bits_addr;
-  reg          cache_valid_0;
-  reg          cache_valid_1;
-  reg          cache_valid_2;
-  reg          cache_valid_3;
-  reg          cache_valid_4;
-  reg          cache_valid_5;
-  reg          cache_valid_6;
-  reg          cache_valid_7;
-  reg          cache_valid_8;
-  reg          cache_valid_9;
-  reg          cache_valid_10;
-  reg          cache_valid_11;
-  reg          cache_valid_12;
-  reg          cache_valid_13;
-  reg          cache_valid_14;
-  reg          cache_valid_15;
-  reg          cache_valid_16;
-  reg          cache_valid_17;
-  reg          cache_valid_18;
-  reg          cache_valid_19;
-  reg          cache_valid_20;
-  reg          cache_valid_21;
-  reg          cache_valid_22;
-  reg          cache_valid_23;
-  reg          cache_valid_24;
-  reg          cache_valid_25;
-  reg          cache_valid_26;
-  reg          cache_valid_27;
-  reg          cache_valid_28;
-  reg          cache_valid_29;
-  reg          cache_valid_30;
-  reg          cache_valid_31;
-  reg          cache_valid_32;
-  reg          cache_valid_33;
-  reg          cache_valid_34;
-  reg          cache_valid_35;
-  reg          cache_valid_36;
-  reg          cache_valid_37;
-  reg          cache_valid_38;
-  reg          cache_valid_39;
-  reg          cache_valid_40;
-  reg          cache_valid_41;
-  reg          cache_valid_42;
-  reg          cache_valid_43;
-  reg          cache_valid_44;
-  reg          cache_valid_45;
-  reg          cache_valid_46;
-  reg          cache_valid_47;
-  reg          cache_valid_48;
-  reg          cache_valid_49;
-  reg          cache_valid_50;
-  reg          cache_valid_51;
-  reg          cache_valid_52;
-  reg          cache_valid_53;
-  reg          cache_valid_54;
-  reg          cache_valid_55;
-  reg          cache_valid_56;
-  reg          cache_valid_57;
-  reg          cache_valid_58;
-  reg          cache_valid_59;
-  reg          cache_valid_60;
-  reg          cache_valid_61;
-  reg          cache_valid_62;
-  reg          cache_valid_63;
-  reg          cache_valid_64;
-  reg          cache_valid_65;
-  reg          cache_valid_66;
-  reg          cache_valid_67;
-  reg          cache_valid_68;
-  reg          cache_valid_69;
-  reg          cache_valid_70;
-  reg          cache_valid_71;
-  reg          cache_valid_72;
-  reg          cache_valid_73;
-  reg          cache_valid_74;
-  reg          cache_valid_75;
-  reg          cache_valid_76;
-  reg          cache_valid_77;
-  reg          cache_valid_78;
-  reg          cache_valid_79;
-  reg          cache_valid_80;
-  reg          cache_valid_81;
-  reg          cache_valid_82;
-  reg          cache_valid_83;
-  reg          cache_valid_84;
-  reg          cache_valid_85;
-  reg          cache_valid_86;
-  reg          cache_valid_87;
-  reg          cache_valid_88;
-  reg          cache_valid_89;
-  reg          cache_valid_90;
-  reg          cache_valid_91;
-  reg          cache_valid_92;
-  reg          cache_valid_93;
-  reg          cache_valid_94;
-  reg          cache_valid_95;
-  reg          cache_valid_96;
-  reg          cache_valid_97;
-  reg          cache_valid_98;
-  reg          cache_valid_99;
-  reg          cache_valid_100;
-  reg          cache_valid_101;
-  reg          cache_valid_102;
-  reg          cache_valid_103;
-  reg          cache_valid_104;
-  reg          cache_valid_105;
-  reg          cache_valid_106;
-  reg          cache_valid_107;
-  reg          cache_valid_108;
-  reg          cache_valid_109;
-  reg          cache_valid_110;
-  reg          cache_valid_111;
-  reg          cache_valid_112;
-  reg          cache_valid_113;
-  reg          cache_valid_114;
-  reg          cache_valid_115;
-  reg          cache_valid_116;
-  reg          cache_valid_117;
-  reg          cache_valid_118;
-  reg          cache_valid_119;
-  reg          cache_valid_120;
-  reg          cache_valid_121;
-  reg          cache_valid_122;
-  reg          cache_valid_123;
-  reg          cache_valid_124;
-  reg          cache_valid_125;
-  reg          cache_valid_126;
-  reg          cache_valid_127;
-  reg  [6:0]   reg_index;
-  reg  [19:0]  reg_tag;
-  reg  [31:0]  reg_addr;
-  wire [31:0]  current_req_bits_addr =
+  wire [31:0] _cache_data_7_ext_R0_data;
+  wire [31:0] _cache_data_6_ext_R0_data;
+  wire [31:0] _cache_data_5_ext_R0_data;
+  wire [31:0] _cache_data_4_ext_R0_data;
+  wire [31:0] _cache_data_3_ext_R0_data;
+  wire [31:0] _cache_data_2_ext_R0_data;
+  wire [31:0] _cache_data_1_ext_R0_data;
+  wire [31:0] _cache_data_0_ext_R0_data;
+  wire [21:0] _cache_tag_ext_R0_data;
+  reg  [1:0]  state;
+  reg         saved_req_valid;
+  reg  [31:0] saved_req_bits_addr;
+  reg         cache_valid_0;
+  reg         cache_valid_1;
+  reg         cache_valid_2;
+  reg         cache_valid_3;
+  reg         cache_valid_4;
+  reg         cache_valid_5;
+  reg         cache_valid_6;
+  reg         cache_valid_7;
+  reg         cache_valid_8;
+  reg         cache_valid_9;
+  reg         cache_valid_10;
+  reg         cache_valid_11;
+  reg         cache_valid_12;
+  reg         cache_valid_13;
+  reg         cache_valid_14;
+  reg         cache_valid_15;
+  reg         cache_valid_16;
+  reg         cache_valid_17;
+  reg         cache_valid_18;
+  reg         cache_valid_19;
+  reg         cache_valid_20;
+  reg         cache_valid_21;
+  reg         cache_valid_22;
+  reg         cache_valid_23;
+  reg         cache_valid_24;
+  reg         cache_valid_25;
+  reg         cache_valid_26;
+  reg         cache_valid_27;
+  reg         cache_valid_28;
+  reg         cache_valid_29;
+  reg         cache_valid_30;
+  reg         cache_valid_31;
+  reg  [4:0]  reg_index;
+  reg  [21:0] reg_tag;
+  reg  [31:0] reg_addr;
+  wire [31:0] current_req_bits_addr =
     saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
-  wire [6:0]   index =
-    saved_req_valid ? saved_req_bits_addr[11:5] : io_icache_req_bits_addr[11:5];
-  wire [19:0]  tag =
-    saved_req_valid ? saved_req_bits_addr[31:12] : io_icache_req_bits_addr[31:12];
-  wire [6:0]   read_index =
+  wire [4:0]  index =
+    saved_req_valid ? saved_req_bits_addr[9:5] : io_icache_req_bits_addr[9:5];
+  wire [21:0] tag =
+    saved_req_valid ? saved_req_bits_addr[31:10] : io_icache_req_bits_addr[31:10];
+  wire [4:0]  read_index =
     ~(|state) & io_icache_req_valid & ~saved_req_valid | ~saved_req_valid
-      ? io_icache_req_bits_addr[11:5]
-      : saved_req_bits_addr[11:5];
-  wire [127:0] _GEN =
-    {{cache_valid_127},
-     {cache_valid_126},
-     {cache_valid_125},
-     {cache_valid_124},
-     {cache_valid_123},
-     {cache_valid_122},
-     {cache_valid_121},
-     {cache_valid_120},
-     {cache_valid_119},
-     {cache_valid_118},
-     {cache_valid_117},
-     {cache_valid_116},
-     {cache_valid_115},
-     {cache_valid_114},
-     {cache_valid_113},
-     {cache_valid_112},
-     {cache_valid_111},
-     {cache_valid_110},
-     {cache_valid_109},
-     {cache_valid_108},
-     {cache_valid_107},
-     {cache_valid_106},
-     {cache_valid_105},
-     {cache_valid_104},
-     {cache_valid_103},
-     {cache_valid_102},
-     {cache_valid_101},
-     {cache_valid_100},
-     {cache_valid_99},
-     {cache_valid_98},
-     {cache_valid_97},
-     {cache_valid_96},
-     {cache_valid_95},
-     {cache_valid_94},
-     {cache_valid_93},
-     {cache_valid_92},
-     {cache_valid_91},
-     {cache_valid_90},
-     {cache_valid_89},
-     {cache_valid_88},
-     {cache_valid_87},
-     {cache_valid_86},
-     {cache_valid_85},
-     {cache_valid_84},
-     {cache_valid_83},
-     {cache_valid_82},
-     {cache_valid_81},
-     {cache_valid_80},
-     {cache_valid_79},
-     {cache_valid_78},
-     {cache_valid_77},
-     {cache_valid_76},
-     {cache_valid_75},
-     {cache_valid_74},
-     {cache_valid_73},
-     {cache_valid_72},
-     {cache_valid_71},
-     {cache_valid_70},
-     {cache_valid_69},
-     {cache_valid_68},
-     {cache_valid_67},
-     {cache_valid_66},
-     {cache_valid_65},
-     {cache_valid_64},
-     {cache_valid_63},
-     {cache_valid_62},
-     {cache_valid_61},
-     {cache_valid_60},
-     {cache_valid_59},
-     {cache_valid_58},
-     {cache_valid_57},
-     {cache_valid_56},
-     {cache_valid_55},
-     {cache_valid_54},
-     {cache_valid_53},
-     {cache_valid_52},
-     {cache_valid_51},
-     {cache_valid_50},
-     {cache_valid_49},
-     {cache_valid_48},
-     {cache_valid_47},
-     {cache_valid_46},
-     {cache_valid_45},
-     {cache_valid_44},
-     {cache_valid_43},
-     {cache_valid_42},
-     {cache_valid_41},
-     {cache_valid_40},
-     {cache_valid_39},
-     {cache_valid_38},
-     {cache_valid_37},
-     {cache_valid_36},
-     {cache_valid_35},
-     {cache_valid_34},
-     {cache_valid_33},
-     {cache_valid_32},
-     {cache_valid_31},
+      ? io_icache_req_bits_addr[9:5]
+      : saved_req_bits_addr[9:5];
+  wire [31:0] _GEN =
+    {{cache_valid_31},
      {cache_valid_30},
      {cache_valid_29},
      {cache_valid_28},
@@ -1242,14 +1050,14 @@ module ICache(
      {cache_valid_2},
      {cache_valid_1},
      {cache_valid_0}};
-  wire         hit_cache =
+  wire        hit_cache =
     reg_tag == _cache_tag_ext_R0_data & _GEN[reg_index]
     & reg_addr == current_req_bits_addr;
-  wire         _GEN_0 = state == 2'h1;
-  wire         _GEN_1 = state == 2'h2;
-  wire         _GEN_2 = _GEN_1 & io_io_read_resp_valid;
-  wire         io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
-  wire         cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
+  wire        _GEN_0 = state == 2'h1;
+  wire        _GEN_1 = state == 2'h2;
+  wire        _GEN_2 = _GEN_1 & io_io_read_resp_valid;
+  wire        io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
+  wire        cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
   always @(posedge clock) begin
     if (reset) begin
       state <= 2'h0;
@@ -1287,104 +1095,8 @@ module ICache(
       cache_valid_29 <= 1'h0;
       cache_valid_30 <= 1'h0;
       cache_valid_31 <= 1'h0;
-      cache_valid_32 <= 1'h0;
-      cache_valid_33 <= 1'h0;
-      cache_valid_34 <= 1'h0;
-      cache_valid_35 <= 1'h0;
-      cache_valid_36 <= 1'h0;
-      cache_valid_37 <= 1'h0;
-      cache_valid_38 <= 1'h0;
-      cache_valid_39 <= 1'h0;
-      cache_valid_40 <= 1'h0;
-      cache_valid_41 <= 1'h0;
-      cache_valid_42 <= 1'h0;
-      cache_valid_43 <= 1'h0;
-      cache_valid_44 <= 1'h0;
-      cache_valid_45 <= 1'h0;
-      cache_valid_46 <= 1'h0;
-      cache_valid_47 <= 1'h0;
-      cache_valid_48 <= 1'h0;
-      cache_valid_49 <= 1'h0;
-      cache_valid_50 <= 1'h0;
-      cache_valid_51 <= 1'h0;
-      cache_valid_52 <= 1'h0;
-      cache_valid_53 <= 1'h0;
-      cache_valid_54 <= 1'h0;
-      cache_valid_55 <= 1'h0;
-      cache_valid_56 <= 1'h0;
-      cache_valid_57 <= 1'h0;
-      cache_valid_58 <= 1'h0;
-      cache_valid_59 <= 1'h0;
-      cache_valid_60 <= 1'h0;
-      cache_valid_61 <= 1'h0;
-      cache_valid_62 <= 1'h0;
-      cache_valid_63 <= 1'h0;
-      cache_valid_64 <= 1'h0;
-      cache_valid_65 <= 1'h0;
-      cache_valid_66 <= 1'h0;
-      cache_valid_67 <= 1'h0;
-      cache_valid_68 <= 1'h0;
-      cache_valid_69 <= 1'h0;
-      cache_valid_70 <= 1'h0;
-      cache_valid_71 <= 1'h0;
-      cache_valid_72 <= 1'h0;
-      cache_valid_73 <= 1'h0;
-      cache_valid_74 <= 1'h0;
-      cache_valid_75 <= 1'h0;
-      cache_valid_76 <= 1'h0;
-      cache_valid_77 <= 1'h0;
-      cache_valid_78 <= 1'h0;
-      cache_valid_79 <= 1'h0;
-      cache_valid_80 <= 1'h0;
-      cache_valid_81 <= 1'h0;
-      cache_valid_82 <= 1'h0;
-      cache_valid_83 <= 1'h0;
-      cache_valid_84 <= 1'h0;
-      cache_valid_85 <= 1'h0;
-      cache_valid_86 <= 1'h0;
-      cache_valid_87 <= 1'h0;
-      cache_valid_88 <= 1'h0;
-      cache_valid_89 <= 1'h0;
-      cache_valid_90 <= 1'h0;
-      cache_valid_91 <= 1'h0;
-      cache_valid_92 <= 1'h0;
-      cache_valid_93 <= 1'h0;
-      cache_valid_94 <= 1'h0;
-      cache_valid_95 <= 1'h0;
-      cache_valid_96 <= 1'h0;
-      cache_valid_97 <= 1'h0;
-      cache_valid_98 <= 1'h0;
-      cache_valid_99 <= 1'h0;
-      cache_valid_100 <= 1'h0;
-      cache_valid_101 <= 1'h0;
-      cache_valid_102 <= 1'h0;
-      cache_valid_103 <= 1'h0;
-      cache_valid_104 <= 1'h0;
-      cache_valid_105 <= 1'h0;
-      cache_valid_106 <= 1'h0;
-      cache_valid_107 <= 1'h0;
-      cache_valid_108 <= 1'h0;
-      cache_valid_109 <= 1'h0;
-      cache_valid_110 <= 1'h0;
-      cache_valid_111 <= 1'h0;
-      cache_valid_112 <= 1'h0;
-      cache_valid_113 <= 1'h0;
-      cache_valid_114 <= 1'h0;
-      cache_valid_115 <= 1'h0;
-      cache_valid_116 <= 1'h0;
-      cache_valid_117 <= 1'h0;
-      cache_valid_118 <= 1'h0;
-      cache_valid_119 <= 1'h0;
-      cache_valid_120 <= 1'h0;
-      cache_valid_121 <= 1'h0;
-      cache_valid_122 <= 1'h0;
-      cache_valid_123 <= 1'h0;
-      cache_valid_124 <= 1'h0;
-      cache_valid_125 <= 1'h0;
-      cache_valid_126 <= 1'h0;
-      cache_valid_127 <= 1'h0;
-      reg_index <= 7'h0;
-      reg_tag <= 20'h0;
+      reg_index <= 5'h0;
+      reg_tag <= 22'h0;
       reg_addr <= 32'h0;
     end
     else begin
@@ -1409,134 +1121,38 @@ module ICache(
         saved_req_bits_addr <= 32'h0;
       else if (_GEN_3)
         saved_req_bits_addr <= io_icache_req_bits_addr;
-      cache_valid_0 <= cache_we & index == 7'h0 | cache_valid_0;
-      cache_valid_1 <= cache_we & index == 7'h1 | cache_valid_1;
-      cache_valid_2 <= cache_we & index == 7'h2 | cache_valid_2;
-      cache_valid_3 <= cache_we & index == 7'h3 | cache_valid_3;
-      cache_valid_4 <= cache_we & index == 7'h4 | cache_valid_4;
-      cache_valid_5 <= cache_we & index == 7'h5 | cache_valid_5;
-      cache_valid_6 <= cache_we & index == 7'h6 | cache_valid_6;
-      cache_valid_7 <= cache_we & index == 7'h7 | cache_valid_7;
-      cache_valid_8 <= cache_we & index == 7'h8 | cache_valid_8;
-      cache_valid_9 <= cache_we & index == 7'h9 | cache_valid_9;
-      cache_valid_10 <= cache_we & index == 7'hA | cache_valid_10;
-      cache_valid_11 <= cache_we & index == 7'hB | cache_valid_11;
-      cache_valid_12 <= cache_we & index == 7'hC | cache_valid_12;
-      cache_valid_13 <= cache_we & index == 7'hD | cache_valid_13;
-      cache_valid_14 <= cache_we & index == 7'hE | cache_valid_14;
-      cache_valid_15 <= cache_we & index == 7'hF | cache_valid_15;
-      cache_valid_16 <= cache_we & index == 7'h10 | cache_valid_16;
-      cache_valid_17 <= cache_we & index == 7'h11 | cache_valid_17;
-      cache_valid_18 <= cache_we & index == 7'h12 | cache_valid_18;
-      cache_valid_19 <= cache_we & index == 7'h13 | cache_valid_19;
-      cache_valid_20 <= cache_we & index == 7'h14 | cache_valid_20;
-      cache_valid_21 <= cache_we & index == 7'h15 | cache_valid_21;
-      cache_valid_22 <= cache_we & index == 7'h16 | cache_valid_22;
-      cache_valid_23 <= cache_we & index == 7'h17 | cache_valid_23;
-      cache_valid_24 <= cache_we & index == 7'h18 | cache_valid_24;
-      cache_valid_25 <= cache_we & index == 7'h19 | cache_valid_25;
-      cache_valid_26 <= cache_we & index == 7'h1A | cache_valid_26;
-      cache_valid_27 <= cache_we & index == 7'h1B | cache_valid_27;
-      cache_valid_28 <= cache_we & index == 7'h1C | cache_valid_28;
-      cache_valid_29 <= cache_we & index == 7'h1D | cache_valid_29;
-      cache_valid_30 <= cache_we & index == 7'h1E | cache_valid_30;
-      cache_valid_31 <= cache_we & index == 7'h1F | cache_valid_31;
-      cache_valid_32 <= cache_we & index == 7'h20 | cache_valid_32;
-      cache_valid_33 <= cache_we & index == 7'h21 | cache_valid_33;
-      cache_valid_34 <= cache_we & index == 7'h22 | cache_valid_34;
-      cache_valid_35 <= cache_we & index == 7'h23 | cache_valid_35;
-      cache_valid_36 <= cache_we & index == 7'h24 | cache_valid_36;
-      cache_valid_37 <= cache_we & index == 7'h25 | cache_valid_37;
-      cache_valid_38 <= cache_we & index == 7'h26 | cache_valid_38;
-      cache_valid_39 <= cache_we & index == 7'h27 | cache_valid_39;
-      cache_valid_40 <= cache_we & index == 7'h28 | cache_valid_40;
-      cache_valid_41 <= cache_we & index == 7'h29 | cache_valid_41;
-      cache_valid_42 <= cache_we & index == 7'h2A | cache_valid_42;
-      cache_valid_43 <= cache_we & index == 7'h2B | cache_valid_43;
-      cache_valid_44 <= cache_we & index == 7'h2C | cache_valid_44;
-      cache_valid_45 <= cache_we & index == 7'h2D | cache_valid_45;
-      cache_valid_46 <= cache_we & index == 7'h2E | cache_valid_46;
-      cache_valid_47 <= cache_we & index == 7'h2F | cache_valid_47;
-      cache_valid_48 <= cache_we & index == 7'h30 | cache_valid_48;
-      cache_valid_49 <= cache_we & index == 7'h31 | cache_valid_49;
-      cache_valid_50 <= cache_we & index == 7'h32 | cache_valid_50;
-      cache_valid_51 <= cache_we & index == 7'h33 | cache_valid_51;
-      cache_valid_52 <= cache_we & index == 7'h34 | cache_valid_52;
-      cache_valid_53 <= cache_we & index == 7'h35 | cache_valid_53;
-      cache_valid_54 <= cache_we & index == 7'h36 | cache_valid_54;
-      cache_valid_55 <= cache_we & index == 7'h37 | cache_valid_55;
-      cache_valid_56 <= cache_we & index == 7'h38 | cache_valid_56;
-      cache_valid_57 <= cache_we & index == 7'h39 | cache_valid_57;
-      cache_valid_58 <= cache_we & index == 7'h3A | cache_valid_58;
-      cache_valid_59 <= cache_we & index == 7'h3B | cache_valid_59;
-      cache_valid_60 <= cache_we & index == 7'h3C | cache_valid_60;
-      cache_valid_61 <= cache_we & index == 7'h3D | cache_valid_61;
-      cache_valid_62 <= cache_we & index == 7'h3E | cache_valid_62;
-      cache_valid_63 <= cache_we & index == 7'h3F | cache_valid_63;
-      cache_valid_64 <= cache_we & index == 7'h40 | cache_valid_64;
-      cache_valid_65 <= cache_we & index == 7'h41 | cache_valid_65;
-      cache_valid_66 <= cache_we & index == 7'h42 | cache_valid_66;
-      cache_valid_67 <= cache_we & index == 7'h43 | cache_valid_67;
-      cache_valid_68 <= cache_we & index == 7'h44 | cache_valid_68;
-      cache_valid_69 <= cache_we & index == 7'h45 | cache_valid_69;
-      cache_valid_70 <= cache_we & index == 7'h46 | cache_valid_70;
-      cache_valid_71 <= cache_we & index == 7'h47 | cache_valid_71;
-      cache_valid_72 <= cache_we & index == 7'h48 | cache_valid_72;
-      cache_valid_73 <= cache_we & index == 7'h49 | cache_valid_73;
-      cache_valid_74 <= cache_we & index == 7'h4A | cache_valid_74;
-      cache_valid_75 <= cache_we & index == 7'h4B | cache_valid_75;
-      cache_valid_76 <= cache_we & index == 7'h4C | cache_valid_76;
-      cache_valid_77 <= cache_we & index == 7'h4D | cache_valid_77;
-      cache_valid_78 <= cache_we & index == 7'h4E | cache_valid_78;
-      cache_valid_79 <= cache_we & index == 7'h4F | cache_valid_79;
-      cache_valid_80 <= cache_we & index == 7'h50 | cache_valid_80;
-      cache_valid_81 <= cache_we & index == 7'h51 | cache_valid_81;
-      cache_valid_82 <= cache_we & index == 7'h52 | cache_valid_82;
-      cache_valid_83 <= cache_we & index == 7'h53 | cache_valid_83;
-      cache_valid_84 <= cache_we & index == 7'h54 | cache_valid_84;
-      cache_valid_85 <= cache_we & index == 7'h55 | cache_valid_85;
-      cache_valid_86 <= cache_we & index == 7'h56 | cache_valid_86;
-      cache_valid_87 <= cache_we & index == 7'h57 | cache_valid_87;
-      cache_valid_88 <= cache_we & index == 7'h58 | cache_valid_88;
-      cache_valid_89 <= cache_we & index == 7'h59 | cache_valid_89;
-      cache_valid_90 <= cache_we & index == 7'h5A | cache_valid_90;
-      cache_valid_91 <= cache_we & index == 7'h5B | cache_valid_91;
-      cache_valid_92 <= cache_we & index == 7'h5C | cache_valid_92;
-      cache_valid_93 <= cache_we & index == 7'h5D | cache_valid_93;
-      cache_valid_94 <= cache_we & index == 7'h5E | cache_valid_94;
-      cache_valid_95 <= cache_we & index == 7'h5F | cache_valid_95;
-      cache_valid_96 <= cache_we & index == 7'h60 | cache_valid_96;
-      cache_valid_97 <= cache_we & index == 7'h61 | cache_valid_97;
-      cache_valid_98 <= cache_we & index == 7'h62 | cache_valid_98;
-      cache_valid_99 <= cache_we & index == 7'h63 | cache_valid_99;
-      cache_valid_100 <= cache_we & index == 7'h64 | cache_valid_100;
-      cache_valid_101 <= cache_we & index == 7'h65 | cache_valid_101;
-      cache_valid_102 <= cache_we & index == 7'h66 | cache_valid_102;
-      cache_valid_103 <= cache_we & index == 7'h67 | cache_valid_103;
-      cache_valid_104 <= cache_we & index == 7'h68 | cache_valid_104;
-      cache_valid_105 <= cache_we & index == 7'h69 | cache_valid_105;
-      cache_valid_106 <= cache_we & index == 7'h6A | cache_valid_106;
-      cache_valid_107 <= cache_we & index == 7'h6B | cache_valid_107;
-      cache_valid_108 <= cache_we & index == 7'h6C | cache_valid_108;
-      cache_valid_109 <= cache_we & index == 7'h6D | cache_valid_109;
-      cache_valid_110 <= cache_we & index == 7'h6E | cache_valid_110;
-      cache_valid_111 <= cache_we & index == 7'h6F | cache_valid_111;
-      cache_valid_112 <= cache_we & index == 7'h70 | cache_valid_112;
-      cache_valid_113 <= cache_we & index == 7'h71 | cache_valid_113;
-      cache_valid_114 <= cache_we & index == 7'h72 | cache_valid_114;
-      cache_valid_115 <= cache_we & index == 7'h73 | cache_valid_115;
-      cache_valid_116 <= cache_we & index == 7'h74 | cache_valid_116;
-      cache_valid_117 <= cache_we & index == 7'h75 | cache_valid_117;
-      cache_valid_118 <= cache_we & index == 7'h76 | cache_valid_118;
-      cache_valid_119 <= cache_we & index == 7'h77 | cache_valid_119;
-      cache_valid_120 <= cache_we & index == 7'h78 | cache_valid_120;
-      cache_valid_121 <= cache_we & index == 7'h79 | cache_valid_121;
-      cache_valid_122 <= cache_we & index == 7'h7A | cache_valid_122;
-      cache_valid_123 <= cache_we & index == 7'h7B | cache_valid_123;
-      cache_valid_124 <= cache_we & index == 7'h7C | cache_valid_124;
-      cache_valid_125 <= cache_we & index == 7'h7D | cache_valid_125;
-      cache_valid_126 <= cache_we & index == 7'h7E | cache_valid_126;
-      cache_valid_127 <= cache_we & (&index) | cache_valid_127;
+      cache_valid_0 <= cache_we & index == 5'h0 | cache_valid_0;
+      cache_valid_1 <= cache_we & index == 5'h1 | cache_valid_1;
+      cache_valid_2 <= cache_we & index == 5'h2 | cache_valid_2;
+      cache_valid_3 <= cache_we & index == 5'h3 | cache_valid_3;
+      cache_valid_4 <= cache_we & index == 5'h4 | cache_valid_4;
+      cache_valid_5 <= cache_we & index == 5'h5 | cache_valid_5;
+      cache_valid_6 <= cache_we & index == 5'h6 | cache_valid_6;
+      cache_valid_7 <= cache_we & index == 5'h7 | cache_valid_7;
+      cache_valid_8 <= cache_we & index == 5'h8 | cache_valid_8;
+      cache_valid_9 <= cache_we & index == 5'h9 | cache_valid_9;
+      cache_valid_10 <= cache_we & index == 5'hA | cache_valid_10;
+      cache_valid_11 <= cache_we & index == 5'hB | cache_valid_11;
+      cache_valid_12 <= cache_we & index == 5'hC | cache_valid_12;
+      cache_valid_13 <= cache_we & index == 5'hD | cache_valid_13;
+      cache_valid_14 <= cache_we & index == 5'hE | cache_valid_14;
+      cache_valid_15 <= cache_we & index == 5'hF | cache_valid_15;
+      cache_valid_16 <= cache_we & index == 5'h10 | cache_valid_16;
+      cache_valid_17 <= cache_we & index == 5'h11 | cache_valid_17;
+      cache_valid_18 <= cache_we & index == 5'h12 | cache_valid_18;
+      cache_valid_19 <= cache_we & index == 5'h13 | cache_valid_19;
+      cache_valid_20 <= cache_we & index == 5'h14 | cache_valid_20;
+      cache_valid_21 <= cache_we & index == 5'h15 | cache_valid_21;
+      cache_valid_22 <= cache_we & index == 5'h16 | cache_valid_22;
+      cache_valid_23 <= cache_we & index == 5'h17 | cache_valid_23;
+      cache_valid_24 <= cache_we & index == 5'h18 | cache_valid_24;
+      cache_valid_25 <= cache_we & index == 5'h19 | cache_valid_25;
+      cache_valid_26 <= cache_we & index == 5'h1A | cache_valid_26;
+      cache_valid_27 <= cache_we & index == 5'h1B | cache_valid_27;
+      cache_valid_28 <= cache_we & index == 5'h1C | cache_valid_28;
+      cache_valid_29 <= cache_we & index == 5'h1D | cache_valid_29;
+      cache_valid_30 <= cache_we & index == 5'h1E | cache_valid_30;
+      cache_valid_31 <= cache_we & (&index) | cache_valid_31;
       if (current_req_valid & (~(|state) | _GEN_0)) begin
         reg_index <= index;
         reg_tag <= tag;
@@ -1549,155 +1165,59 @@ module ICache(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:6];
+      automatic logic [31:0] _RANDOM[0:3];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h7; i += 3'h1) begin
-          _RANDOM[i] = `RANDOM;
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          _RANDOM[i[1:0]] = `RANDOM;
         end
-        state = _RANDOM[3'h0][1:0];
-        saved_req_valid = _RANDOM[3'h0][2];
-        saved_req_bits_addr = {_RANDOM[3'h0][31:3], _RANDOM[3'h1][2:0]};
-        cache_valid_0 = _RANDOM[3'h1][3];
-        cache_valid_1 = _RANDOM[3'h1][4];
-        cache_valid_2 = _RANDOM[3'h1][5];
-        cache_valid_3 = _RANDOM[3'h1][6];
-        cache_valid_4 = _RANDOM[3'h1][7];
-        cache_valid_5 = _RANDOM[3'h1][8];
-        cache_valid_6 = _RANDOM[3'h1][9];
-        cache_valid_7 = _RANDOM[3'h1][10];
-        cache_valid_8 = _RANDOM[3'h1][11];
-        cache_valid_9 = _RANDOM[3'h1][12];
-        cache_valid_10 = _RANDOM[3'h1][13];
-        cache_valid_11 = _RANDOM[3'h1][14];
-        cache_valid_12 = _RANDOM[3'h1][15];
-        cache_valid_13 = _RANDOM[3'h1][16];
-        cache_valid_14 = _RANDOM[3'h1][17];
-        cache_valid_15 = _RANDOM[3'h1][18];
-        cache_valid_16 = _RANDOM[3'h1][19];
-        cache_valid_17 = _RANDOM[3'h1][20];
-        cache_valid_18 = _RANDOM[3'h1][21];
-        cache_valid_19 = _RANDOM[3'h1][22];
-        cache_valid_20 = _RANDOM[3'h1][23];
-        cache_valid_21 = _RANDOM[3'h1][24];
-        cache_valid_22 = _RANDOM[3'h1][25];
-        cache_valid_23 = _RANDOM[3'h1][26];
-        cache_valid_24 = _RANDOM[3'h1][27];
-        cache_valid_25 = _RANDOM[3'h1][28];
-        cache_valid_26 = _RANDOM[3'h1][29];
-        cache_valid_27 = _RANDOM[3'h1][30];
-        cache_valid_28 = _RANDOM[3'h1][31];
-        cache_valid_29 = _RANDOM[3'h2][0];
-        cache_valid_30 = _RANDOM[3'h2][1];
-        cache_valid_31 = _RANDOM[3'h2][2];
-        cache_valid_32 = _RANDOM[3'h2][3];
-        cache_valid_33 = _RANDOM[3'h2][4];
-        cache_valid_34 = _RANDOM[3'h2][5];
-        cache_valid_35 = _RANDOM[3'h2][6];
-        cache_valid_36 = _RANDOM[3'h2][7];
-        cache_valid_37 = _RANDOM[3'h2][8];
-        cache_valid_38 = _RANDOM[3'h2][9];
-        cache_valid_39 = _RANDOM[3'h2][10];
-        cache_valid_40 = _RANDOM[3'h2][11];
-        cache_valid_41 = _RANDOM[3'h2][12];
-        cache_valid_42 = _RANDOM[3'h2][13];
-        cache_valid_43 = _RANDOM[3'h2][14];
-        cache_valid_44 = _RANDOM[3'h2][15];
-        cache_valid_45 = _RANDOM[3'h2][16];
-        cache_valid_46 = _RANDOM[3'h2][17];
-        cache_valid_47 = _RANDOM[3'h2][18];
-        cache_valid_48 = _RANDOM[3'h2][19];
-        cache_valid_49 = _RANDOM[3'h2][20];
-        cache_valid_50 = _RANDOM[3'h2][21];
-        cache_valid_51 = _RANDOM[3'h2][22];
-        cache_valid_52 = _RANDOM[3'h2][23];
-        cache_valid_53 = _RANDOM[3'h2][24];
-        cache_valid_54 = _RANDOM[3'h2][25];
-        cache_valid_55 = _RANDOM[3'h2][26];
-        cache_valid_56 = _RANDOM[3'h2][27];
-        cache_valid_57 = _RANDOM[3'h2][28];
-        cache_valid_58 = _RANDOM[3'h2][29];
-        cache_valid_59 = _RANDOM[3'h2][30];
-        cache_valid_60 = _RANDOM[3'h2][31];
-        cache_valid_61 = _RANDOM[3'h3][0];
-        cache_valid_62 = _RANDOM[3'h3][1];
-        cache_valid_63 = _RANDOM[3'h3][2];
-        cache_valid_64 = _RANDOM[3'h3][3];
-        cache_valid_65 = _RANDOM[3'h3][4];
-        cache_valid_66 = _RANDOM[3'h3][5];
-        cache_valid_67 = _RANDOM[3'h3][6];
-        cache_valid_68 = _RANDOM[3'h3][7];
-        cache_valid_69 = _RANDOM[3'h3][8];
-        cache_valid_70 = _RANDOM[3'h3][9];
-        cache_valid_71 = _RANDOM[3'h3][10];
-        cache_valid_72 = _RANDOM[3'h3][11];
-        cache_valid_73 = _RANDOM[3'h3][12];
-        cache_valid_74 = _RANDOM[3'h3][13];
-        cache_valid_75 = _RANDOM[3'h3][14];
-        cache_valid_76 = _RANDOM[3'h3][15];
-        cache_valid_77 = _RANDOM[3'h3][16];
-        cache_valid_78 = _RANDOM[3'h3][17];
-        cache_valid_79 = _RANDOM[3'h3][18];
-        cache_valid_80 = _RANDOM[3'h3][19];
-        cache_valid_81 = _RANDOM[3'h3][20];
-        cache_valid_82 = _RANDOM[3'h3][21];
-        cache_valid_83 = _RANDOM[3'h3][22];
-        cache_valid_84 = _RANDOM[3'h3][23];
-        cache_valid_85 = _RANDOM[3'h3][24];
-        cache_valid_86 = _RANDOM[3'h3][25];
-        cache_valid_87 = _RANDOM[3'h3][26];
-        cache_valid_88 = _RANDOM[3'h3][27];
-        cache_valid_89 = _RANDOM[3'h3][28];
-        cache_valid_90 = _RANDOM[3'h3][29];
-        cache_valid_91 = _RANDOM[3'h3][30];
-        cache_valid_92 = _RANDOM[3'h3][31];
-        cache_valid_93 = _RANDOM[3'h4][0];
-        cache_valid_94 = _RANDOM[3'h4][1];
-        cache_valid_95 = _RANDOM[3'h4][2];
-        cache_valid_96 = _RANDOM[3'h4][3];
-        cache_valid_97 = _RANDOM[3'h4][4];
-        cache_valid_98 = _RANDOM[3'h4][5];
-        cache_valid_99 = _RANDOM[3'h4][6];
-        cache_valid_100 = _RANDOM[3'h4][7];
-        cache_valid_101 = _RANDOM[3'h4][8];
-        cache_valid_102 = _RANDOM[3'h4][9];
-        cache_valid_103 = _RANDOM[3'h4][10];
-        cache_valid_104 = _RANDOM[3'h4][11];
-        cache_valid_105 = _RANDOM[3'h4][12];
-        cache_valid_106 = _RANDOM[3'h4][13];
-        cache_valid_107 = _RANDOM[3'h4][14];
-        cache_valid_108 = _RANDOM[3'h4][15];
-        cache_valid_109 = _RANDOM[3'h4][16];
-        cache_valid_110 = _RANDOM[3'h4][17];
-        cache_valid_111 = _RANDOM[3'h4][18];
-        cache_valid_112 = _RANDOM[3'h4][19];
-        cache_valid_113 = _RANDOM[3'h4][20];
-        cache_valid_114 = _RANDOM[3'h4][21];
-        cache_valid_115 = _RANDOM[3'h4][22];
-        cache_valid_116 = _RANDOM[3'h4][23];
-        cache_valid_117 = _RANDOM[3'h4][24];
-        cache_valid_118 = _RANDOM[3'h4][25];
-        cache_valid_119 = _RANDOM[3'h4][26];
-        cache_valid_120 = _RANDOM[3'h4][27];
-        cache_valid_121 = _RANDOM[3'h4][28];
-        cache_valid_122 = _RANDOM[3'h4][29];
-        cache_valid_123 = _RANDOM[3'h4][30];
-        cache_valid_124 = _RANDOM[3'h4][31];
-        cache_valid_125 = _RANDOM[3'h5][0];
-        cache_valid_126 = _RANDOM[3'h5][1];
-        cache_valid_127 = _RANDOM[3'h5][2];
-        reg_index = _RANDOM[3'h5][9:3];
-        reg_tag = _RANDOM[3'h5][29:10];
-        reg_addr = {_RANDOM[3'h5][31:30], _RANDOM[3'h6][29:0]};
+        state = _RANDOM[2'h0][1:0];
+        saved_req_valid = _RANDOM[2'h0][2];
+        saved_req_bits_addr = {_RANDOM[2'h0][31:3], _RANDOM[2'h1][2:0]};
+        cache_valid_0 = _RANDOM[2'h1][3];
+        cache_valid_1 = _RANDOM[2'h1][4];
+        cache_valid_2 = _RANDOM[2'h1][5];
+        cache_valid_3 = _RANDOM[2'h1][6];
+        cache_valid_4 = _RANDOM[2'h1][7];
+        cache_valid_5 = _RANDOM[2'h1][8];
+        cache_valid_6 = _RANDOM[2'h1][9];
+        cache_valid_7 = _RANDOM[2'h1][10];
+        cache_valid_8 = _RANDOM[2'h1][11];
+        cache_valid_9 = _RANDOM[2'h1][12];
+        cache_valid_10 = _RANDOM[2'h1][13];
+        cache_valid_11 = _RANDOM[2'h1][14];
+        cache_valid_12 = _RANDOM[2'h1][15];
+        cache_valid_13 = _RANDOM[2'h1][16];
+        cache_valid_14 = _RANDOM[2'h1][17];
+        cache_valid_15 = _RANDOM[2'h1][18];
+        cache_valid_16 = _RANDOM[2'h1][19];
+        cache_valid_17 = _RANDOM[2'h1][20];
+        cache_valid_18 = _RANDOM[2'h1][21];
+        cache_valid_19 = _RANDOM[2'h1][22];
+        cache_valid_20 = _RANDOM[2'h1][23];
+        cache_valid_21 = _RANDOM[2'h1][24];
+        cache_valid_22 = _RANDOM[2'h1][25];
+        cache_valid_23 = _RANDOM[2'h1][26];
+        cache_valid_24 = _RANDOM[2'h1][27];
+        cache_valid_25 = _RANDOM[2'h1][28];
+        cache_valid_26 = _RANDOM[2'h1][29];
+        cache_valid_27 = _RANDOM[2'h1][30];
+        cache_valid_28 = _RANDOM[2'h1][31];
+        cache_valid_29 = _RANDOM[2'h2][0];
+        cache_valid_30 = _RANDOM[2'h2][1];
+        cache_valid_31 = _RANDOM[2'h2][2];
+        reg_index = _RANDOM[2'h2][7:3];
+        reg_tag = _RANDOM[2'h2][29:8];
+        reg_addr = {_RANDOM[2'h2][31:30], _RANDOM[2'h3][29:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  cache_tag_128x20 cache_tag_ext (
+  cache_tag_32x22 cache_tag_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1707,7 +1227,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (tag)
   );
-  cache_data_128x32 cache_data_0_ext (
+  cache_data_32x32 cache_data_0_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1717,7 +1237,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
   );
-  cache_data_128x32 cache_data_1_ext (
+  cache_data_32x32 cache_data_1_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1727,7 +1247,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
   );
-  cache_data_128x32 cache_data_2_ext (
+  cache_data_32x32 cache_data_2_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1737,7 +1257,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
   );
-  cache_data_128x32 cache_data_3_ext (
+  cache_data_32x32 cache_data_3_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1747,7 +1267,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
   );
-  cache_data_128x32 cache_data_4_ext (
+  cache_data_32x32 cache_data_4_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1757,7 +1277,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
   );
-  cache_data_128x32 cache_data_5_ext (
+  cache_data_32x32 cache_data_5_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1767,7 +1287,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
   );
-  cache_data_128x32 cache_data_6_ext (
+  cache_data_32x32 cache_data_6_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -1777,7 +1297,7 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
   );
-  cache_data_128x32 cache_data_7_ext (
+  cache_data_32x32 cache_data_7_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
@@ -2135,8 +1655,6 @@ module DecodeStage(
 endmodule
 
 module DecodeUnit(
-  input         clock,
-                reset,
   input  [31:0] io_decodeStage_data_inst,
   input         io_decodeStage_data_valid,
   input  [31:0] io_decodeStage_data_pc,
@@ -2265,29 +1783,13 @@ module DecodeUnit(
     | ((&instrType)
          ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, io_decodeStage_data_inst[25:10], 2'h0}
          : 32'h0);
-  wire [4:0]  reg_waddr =
-    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   wire [4:0]  src2_raddr =
     isR
       ? io_decodeStage_data_inst[14:10]
       : isS | isB ? io_decodeStage_data_inst[4:0] : 5'h0;
   wire        _src1_ren_T = isR | isI;
-  wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
-  `ifndef SYNTHESIS
-    always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
-        $fwrite(32'h80000002, "[DecodeUnit] Decoding: PC=0x%x, Inst=0x%x\n",
-                io_decodeStage_data_pc, io_decodeStage_data_inst);
-        $fwrite(32'h80000002, "  src1_raddr=%d, src2_raddr=%d, reg_waddr=%d\n",
-                io_decodeStage_data_inst[9:5], src2_raddr, reg_waddr);
-        $fwrite(32'h80000002, "  src1_ren=%d, src2_ren=%d, reg_wen=%d\n", src1_ren,
-                src2_ren, reg_wen);
-      end
-    end // always @(posedge)
-  `endif // not def SYNTHESIS
   assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[9:5] : 5'h0;
   assign io_regfile_src2_raddr = src2_ren ? src2_raddr : 5'h0;
   assign io_executeStage_data_pc = io_decodeStage_data_pc;
@@ -2296,8 +1798,11 @@ module DecodeUnit(
   assign io_executeStage_data_info_valid = io_decodeStage_data_valid & (|instrType);
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
-    reg_wen & io_decodeStage_data_valid & (|instrType);
-  assign io_executeStage_data_info_reg_waddr = reg_waddr;
+    (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & io_decodeStage_data_valid
+    & (|instrType);
+  assign io_executeStage_data_info_reg_waddr =
+    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
+    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   assign io_executeStage_data_info_imm = imm;
   assign io_executeStage_data_info_fusel =
     {1'h0,
@@ -4017,17 +3522,6 @@ module ControlUnit(
         $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
                 io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
                 io_signals_bypassData_src2_data_0);
-      if ((`PRINTF_COND_) & io_executeBranch & ~reset)
-        $fwrite(32'h80000002,
-                "[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n",
-                io_executeTarget);
-      if ((`PRINTF_COND_) & 1'h0) begin
-        $fwrite(32'h80000002,
-                "[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n",
-                32'h0);
-        $fwrite(32'h80000002,
-                "[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n");
-      end
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
@@ -4039,7 +3533,7 @@ module ControlUnit(
   assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
   assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
   assign io_signals_branchControl_branch = io_executeBranch;
-  assign io_signals_branchControl_target = io_executeBranch ? io_executeTarget : 32'h0;
+  assign io_signals_branchControl_target = io_executeTarget;
 endmodule
 
 module Diff(
@@ -4610,8 +4104,6 @@ module Core(
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
   DecodeUnit decodeUnit (
-    .clock                                   (clock),
-    .reset                                   (reset),
     .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),
