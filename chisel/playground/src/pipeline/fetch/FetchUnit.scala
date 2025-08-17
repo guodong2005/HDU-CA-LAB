@@ -7,7 +7,7 @@ import cpu.defines._
 // Branch Target Buffer Entry
 class BTBEntry extends Bundle {
   val valid   = Bool()
-  val tag     = UInt((XLEN - 12).W) // Adjusted for 10-bit index
+  val tag     = UInt((XLEN - 8).W) // Adjusted for 6-bit index
   val target  = UInt(XLEN.W)
   val counter = UInt(2.W) // 2-bit saturating counter
 }
@@ -36,13 +36,13 @@ class Bpu extends Module {
     val flush_req  = Output(Bool())
   })
 
-  val btb_size = 1024
+  val btb_size = 64
   val btb      = RegInit(VecInit(Seq.fill(btb_size)(0.U.asTypeOf(new BTBEntry()))))
 
   // Extract index and tag from PC
-  // For 1024 entries, we need 10 bits for index (bits 11:2)
-  val pc_index = io.pc_in(11, 2) // 10-bit index
-  val pc_tag   = io.pc_in(XLEN - 1, 12) // Remaining bits for tag
+  // For 64 entries, we need 6 bits for index (bits 7:2)
+  val pc_index = io.pc_in(7, 2) // 6-bit index
+  val pc_tag   = io.pc_in(XLEN - 1, 8) // Remaining bits for tag
 
   val btb_entry = btb(pc_index)
 
@@ -55,8 +55,8 @@ class Bpu extends Module {
 
   // Feedback handling
   when(io.feedback.valid) {
-    val fb_index = io.feedback.pc(11, 2) // 10-bit index
-    val fb_tag   = io.feedback.pc(XLEN - 1, 12) // Matching tag extraction
+    val fb_index = io.feedback.pc(7, 2) // 6-bit index
+    val fb_tag   = io.feedback.pc(XLEN - 1, 8) // Matching tag extraction
     val fb_entry = btb(fb_index)
 
     when(fb_entry.valid && (fb_entry.tag === fb_tag)) {
