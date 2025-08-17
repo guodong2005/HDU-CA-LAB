@@ -1,4 +1,5 @@
 package cpu.pipeline
+
 import chisel3._
 import chisel3.util._
 import cpu.defines.Const._
@@ -13,15 +14,12 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  val pc        = RegInit(PC_INIT)
-  val state     = RegInit(0.U(2.W))
-  val sIdle     = 0.U
-  val sWaitMiss = 1.U // 只等待miss的响应
-
-  val ifid_reg     = RegInit(0.U.asTypeOf(new IfIdData()))
-  val pending_req  = RegInit(false.B) // 标记是否有pending的miss请求
-  val pending_addr = RegInit(0.U(XLEN.W)) // 保存pending请求的地址
-
+  val pc          = RegInit(PC_INIT)
+  val reqPC       = Reg(UInt(XLEN.W))
+  val state       = RegInit(0.U(2.W)) // sIdle :: sWait
+  val sIdle       = 0.U
+  val sWait       = 1.U
+  val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
   val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
@@ -29,124 +27,80 @@ class FetchUnit extends Module {
   val branch = io.signal.branchControl.branch
   val target = io.signal.branchControl.target
 
-  // 启动条件
+  // ✅ 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
-  io.canStart := canStart
+  io.canStart := state === sIdle && !stall && RegNext(canStart)
 
-  // 默认输出
+  // ✅ 默认输出
   io.icache_req.bits.addr := pc
-  io.icache_req.valid     := false.B
+  io.icache_req.valid     := io.canStart
   io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
 
-  // 指令提取逻辑
-  def extractInst(data: UInt, pc: UInt): UInt = {
-    val idx = pc(ICACHE_OFFSET_WIDTH - 1, 2)
-    MuxLookup(idx, 0.U)(
-      Seq(
-        0.U -> data(31, 0),
-        1.U -> data(63, 32),
-        2.U -> data(95, 64),
-        3.U -> data(127, 96),
-        4.U -> data(159, 128),
-        5.U -> data(191, 160),
-        6.U -> data(223, 192),
-        7.U -> data(255, 224)
-      )
-    )
-  }
-
-  // 分支处理：清理所有状态
+  // ========== 修复后的逻辑 ==========
+  // 分支处理：统一的PC更新逻辑
   when(branch) {
     pc             := target
     state          := sIdle
-    ifid_reg.valid := false.B
-    pending_req    := false.B
-    pending_addr   := 0.U
+    ifid_reg.valid := false.B // 清除缓存的指令
   }.otherwise {
     switch(state) {
       is(sIdle) {
-        // 处理缓存的指令
-        when(ifid_reg.valid && decodeReady) {
-          io.decodeStage.data := ifid_reg
-          ifid_reg.valid      := false.B
-          pc                  := ifid_reg.pc + 4.U
-        }.elsewhen(canStart && !stall) {
-          // 发送新的icache请求
-          io.icache_req.valid     := true.B
-          io.icache_req.bits.addr := pc
-
-          when(io.icache_req.ready) {
-            pending_req  := true.B
-            pending_addr := pc // 保存请求地址
-            // 不改变状态，等待同周期或下周期的响应
-          }
+        when(canStart && pc === 0.U) {
+          pc := PC_INIT
         }
-
-        // 处理icache响应（可能是同周期的hit响应）
-        when(io.icache_resp.valid && pending_req) {
-          val addr_match = io.icache_resp.bits.addr === pending_addr
-          when(addr_match) {
-            val inst = extractInst(io.icache_resp.bits.data, pending_addr)
-            pending_req := false.B
-
-            when(decodeReady) {
-              // 直接发送到decode阶段
-              io.decodeStage.data.inst  := inst
-              io.decodeStage.data.pc    := pending_addr
-              io.decodeStage.data.valid := true.B
-              pc                        := pending_addr + 4.U
-            }.otherwise {
-              // 缓存指令
-              ifid_reg.inst  := inst
-              ifid_reg.pc    := pending_addr
-              ifid_reg.valid := true.B
-              pc             := pending_addr + 4.U
-            }
-          }
-          // 地址不匹配时忽略响应，继续等待
+        when(io.canStart && io.icache_req.ready) {
+          reqPC := pc
+          state := sWait
         }
       }
+      is(sWait) {
+        val respAddr = io.icache_resp.bits.addr
 
-      is(sWaitMiss) {
-        // 等待miss响应
-        when(io.icache_resp.valid && pending_req) {
-          val addr_match = io.icache_resp.bits.addr === pending_addr
-          when(addr_match) {
-            val inst = extractInst(io.icache_resp.bits.data, pending_addr)
-            pending_req := false.B
-            state       := sIdle
+        val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
+        val inst = MuxLookup(instIdx, 0.U)(
+          Seq(
+            0.U -> io.icache_resp.bits.data(31, 0),
+            1.U -> io.icache_resp.bits.data(63, 32),
+            2.U -> io.icache_resp.bits.data(95, 64),
+            3.U -> io.icache_resp.bits.data(127, 96),
+            4.U -> io.icache_resp.bits.data(159, 128),
+            5.U -> io.icache_resp.bits.data(191, 160),
+            6.U -> io.icache_resp.bits.data(223, 192),
+            7.U -> io.icache_resp.bits.data(255, 224)
+          )
+        )
 
-            when(decodeReady) {
-              io.decodeStage.data.inst  := inst
-              io.decodeStage.data.pc    := pending_addr
-              io.decodeStage.data.valid := true.B
-              pc                        := pending_addr + 4.U
-            }.otherwise {
-              ifid_reg.inst  := inst
-              ifid_reg.pc    := pending_addr
-              ifid_reg.valid := true.B
-              pc             := pending_addr + 4.U
-            }
+        val matchAddr = respAddr === (reqPC)
+
+        when(io.icache_resp.valid && matchAddr) {
+          when(decodeReady) {
+            io.decodeStage.data.inst  := inst
+            io.decodeStage.data.pc    := reqPC
+            io.decodeStage.data.valid := true.B
+            pc                        := reqPC + 4.U // 正常情况下PC+4
+            state                     := sIdle
+          }.otherwise {
+            ifid_reg.inst  := inst
+            ifid_reg.pc    := reqPC
+            ifid_reg.valid := true.B
+            state          := sIdle // 回到idle状态，等待decode ready
           }
-          // 地址不匹配时继续等待正确的响应
         }
       }
     }
 
-    // 如果发送了请求但本周期没有响应，说明是miss，进入等待状态
-    when(io.icache_req.valid && io.icache_req.ready && !io.icache_resp.valid && state === sIdle) {
-      state := sWaitMiss
+    // 处理缓存的指令
+    when(ifid_reg.valid && decodeReady) {
+      io.decodeStage.data := ifid_reg
+      ifid_reg.valid      := false.B
+      pc                  := ifid_reg.pc + 4.U // 正常情况下PC+4
     }
   }
 
-  // 分支时立即发送新地址请求
+  // 分支时立即更新icache请求地址
   when(branch) {
     io.icache_req.bits.addr := target
-    io.icache_req.valid     := true.B
-    when(io.icache_req.ready) {
-      pending_req  := true.B
-      pending_addr := target
-    }
+    io.icache_req.valid     := true.B // 分支时立即发送新地址的请求
   }
 }
