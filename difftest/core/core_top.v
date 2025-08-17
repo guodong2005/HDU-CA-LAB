@@ -2070,115 +2070,6 @@ module DCache(
     saved_req_valid ? saved_req_bits_wstrb : io_req_bits_wstrb;
 endmodule
 
-// VCS coverage exclude_file
-module ram_2x64(
-  input         R0_addr,
-                R0_en,
-                R0_clk,
-  output [63:0] R0_data,
-  input         W0_addr,
-                W0_en,
-                W0_clk,
-  input  [63:0] W0_data
-);
-
-  reg [63:0] Memory[0:1];
-  always @(posedge W0_clk) begin
-    if (W0_en & 1'h1)
-      Memory[W0_addr] <= W0_data;
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_MEM_
-    reg [63:0] _RANDOM_MEM;
-    initial begin
-      `INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_MEM_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
-          for (logic [6:0] j = 7'h0; j < 7'h40; j += 7'h20) begin
-            _RANDOM_MEM[j +: 32] = `RANDOM;
-          end
-          Memory[i[0]] = _RANDOM_MEM;
-        end
-      `endif // RANDOMIZE_MEM_INIT
-    end // initial
-  `endif // ENABLE_INITIAL_MEM_
-  assign R0_data = R0_en ? Memory[R0_addr] : 64'bx;
-endmodule
-
-module Queue2_IfIdData(
-  input         clock,
-                reset,
-  output        io_enq_ready,
-  input         io_enq_valid,
-  input  [31:0] io_enq_bits_inst,
-                io_enq_bits_pc,
-  input         io_deq_ready,
-  output        io_deq_valid,
-  output [31:0] io_deq_bits_inst,
-                io_deq_bits_pc,
-  output [1:0]  io_count
-);
-
-  wire [63:0] _ram_ext_R0_data;
-  reg         wrap;
-  reg         wrap_1;
-  reg         maybe_full;
-  wire        ptr_match = wrap == wrap_1;
-  wire        empty = ptr_match & ~maybe_full;
-  wire        full = ptr_match & maybe_full;
-  wire        do_enq = ~full & io_enq_valid;
-  always @(posedge clock) begin
-    if (reset) begin
-      wrap <= 1'h0;
-      wrap_1 <= 1'h0;
-      maybe_full <= 1'h0;
-    end
-    else begin
-      automatic logic do_deq = io_deq_ready & ~empty;
-      if (do_enq)
-        wrap <= wrap - 1'h1;
-      if (do_deq)
-        wrap_1 <= wrap_1 - 1'h1;
-      if (~(do_enq == do_deq))
-        maybe_full <= do_enq;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:0];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;
-        wrap = _RANDOM[/*Zero width*/ 1'b0][0];
-        wrap_1 = _RANDOM[/*Zero width*/ 1'b0][1];
-        maybe_full = _RANDOM[/*Zero width*/ 1'b0][2];
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  ram_2x64 ram_ext (
-    .R0_addr (wrap_1),
-    .R0_en   (1'h1),
-    .R0_clk  (clock),
-    .R0_data (_ram_ext_R0_data),
-    .W0_addr (wrap),
-    .W0_en   (do_enq),
-    .W0_clk  (clock),
-    .W0_data ({io_enq_bits_pc, io_enq_bits_inst})
-  );
-  assign io_enq_ready = ~full;
-  assign io_deq_valid = ~empty;
-  assign io_deq_bits_inst = _ram_ext_R0_data[31:0];
-  assign io_deq_bits_pc = _ram_ext_R0_data[63:32];
-  assign io_count = {maybe_full & ptr_match, wrap - wrap_1};
-endmodule
-
 module FetchUnit(
   input          clock,
                  reset,
@@ -2196,16 +2087,19 @@ module FetchUnit(
   output [31:0]  io_icache_req_bits_addr
 );
 
-  wire             _instQueue_io_enq_ready;
-  wire             _instQueue_io_deq_valid;
-  wire [1:0]       _instQueue_io_count;
-  reg  [31:0]      pc;
-  reg  [1:0]       pendingReqs;
+  reg  [31:0]      pc_queue_0;
+  reg  [31:0]      pc_queue_1;
+  reg              valid_queue_0;
+  reg              valid_queue_1;
+  reg              head;
+  reg              tail;
   reg              canStart_REG;
   wire             canStart = canStart_REG & ~reset;
-  wire             canSendReq =
-    canStart & ~_instQueue_io_enq_ready & ~(pendingReqs[1]) & ~io_branch;
-  wire             _GEN = io_icache_resp_valid & (|pendingReqs) & ~io_branch;
+  wire             io_icache_req_valid_0 = canStart & ~io_branch;
+  wire [31:0]      io_icache_req_bits_addr_0 = head ? pc_queue_1 : pc_queue_0;
+  wire             _GEN = io_icache_resp_valid & (tail ? valid_queue_1 : valid_queue_0);
+  wire [31:0]      io_decodeStage_data_pc_0 = tail ? pc_queue_1 : pc_queue_0;
+  wire             addr_match = io_icache_resp_bits_addr == io_decodeStage_data_pc_0;
   wire [7:0][31:0] _GEN_0 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
@@ -2215,71 +2109,73 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  reg              flushQueue;
   always @(posedge clock) begin
+    automatic logic        _GEN_1;
+    automatic logic [31:0] _pc_queue_T;
+    automatic logic        _GEN_2 =
+      canStart & io_icache_req_bits_addr_0 == 32'h0 & ~io_branch;
+    _GEN_1 = io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
+    _pc_queue_T = io_decodeStage_data_pc_0 + 32'h4;
+    if (_GEN_2 & ~head)
+      pc_queue_0 <= 32'h80000000;
+    else if (io_branch & ~head)
+      pc_queue_0 <= io_target;
+    else if (_GEN & addr_match & _GEN_1 & head)
+      pc_queue_0 <= _pc_queue_T;
+    if (_GEN_2)
+      pc_queue_1 <= 32'h80000004;
+    else if (io_branch & head)
+      pc_queue_1 <= io_target;
+    else if (_GEN & addr_match & _GEN_1 & ~head)
+      pc_queue_1 <= _pc_queue_T;
+    canStart_REG <= ~reset;
     if (reset) begin
-      pc <= 32'h80000000;
-      pendingReqs <= 2'h0;
-      flushQueue <= 1'h0;
+      valid_queue_0 <= 1'h0;
+      valid_queue_1 <= 1'h0;
+      head <= 1'h0;
+      tail <= 1'h1;
     end
     else begin
-      automatic logic _GEN_1;
-      _GEN_1 = io_icache_req_ready & canSendReq;
-      if (canStart & pc == 32'h0 & ~io_branch)
-        pc <= 32'h80000000;
-      else if (_GEN_1)
-        pc <= pc + 32'h4;
-      else if (io_branch)
-        pc <= io_target;
-      if (_GEN & _instQueue_io_enq_ready)
-        pendingReqs <= pendingReqs - 2'h1;
-      else if (_GEN_1)
-        pendingReqs <= pendingReqs + 2'h1;
-      else if (io_branch)
-        pendingReqs <= 2'h0;
-      flushQueue <= io_branch | (|_instQueue_io_count) & flushQueue;
+      automatic logic _GEN_3;
+      automatic logic _GEN_4 = io_icache_req_valid_0 & io_icache_req_ready;
+      _GEN_3 = _GEN & addr_match & _GEN_1;
+      valid_queue_0 <= ~(io_branch & ~tail) & (_GEN_4 & ~tail | valid_queue_0);
+      valid_queue_1 <= ~(io_branch & tail) & (_GEN_4 & tail | valid_queue_1);
+      head <= ~io_branch & (_GEN_3 ^ head);
+      tail <= io_branch | _GEN_3 ^ tail;
     end
-    canStart_REG <= ~reset;
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:1];
+      automatic logic [31:0] _RANDOM[0:2];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
-          _RANDOM[i[0]] = `RANDOM;
+        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+          _RANDOM[i] = `RANDOM;
         end
-        pc = _RANDOM[1'h0];
-        pendingReqs = _RANDOM[1'h1][1:0];
-        canStart_REG = _RANDOM[1'h1][2];
-        flushQueue = _RANDOM[1'h1][3];
+        pc_queue_0 = _RANDOM[2'h0];
+        pc_queue_1 = _RANDOM[2'h1];
+        valid_queue_0 = _RANDOM[2'h2][0];
+        valid_queue_1 = _RANDOM[2'h2][1];
+        head = _RANDOM[2'h2][2];
+        tail = _RANDOM[2'h2][3];
+        canStart_REG = _RANDOM[2'h2][4];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  Queue2_IfIdData instQueue (
-    .clock            (clock),
-    .reset            (reset),
-    .io_enq_ready     (_instQueue_io_enq_ready),
-    .io_enq_valid     (~flushQueue & _GEN),
-    .io_enq_bits_inst (_GEN_0[io_icache_resp_bits_addr[4:2]]),
-    .io_enq_bits_pc   (io_icache_resp_bits_addr),
-    .io_deq_ready     (flushQueue | io_signal_fetchUnitSignal_allow_to_go & ~io_branch),
-    .io_deq_valid     (_instQueue_io_deq_valid),
-    .io_deq_bits_inst (io_decodeStage_data_inst),
-    .io_deq_bits_pc   (io_decodeStage_data_pc),
-    .io_count         (_instQueue_io_count)
-  );
-  assign io_decodeStage_data_valid = _instQueue_io_deq_valid & ~io_branch;
-  assign io_icache_req_valid = canSendReq;
-  assign io_icache_req_bits_addr = pc;
+  assign io_decodeStage_data_inst = _GEN_0[io_decodeStage_data_pc_0[4:2]];
+  assign io_decodeStage_data_valid = _GEN & addr_match;
+  assign io_decodeStage_data_pc = io_decodeStage_data_pc_0;
+  assign io_icache_req_valid = io_icache_req_valid_0;
+  assign io_icache_req_bits_addr = io_icache_req_bits_addr_0;
 endmodule
 
 module DecodeStage(

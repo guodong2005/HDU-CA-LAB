@@ -52,6 +52,7 @@ class FetchUnit extends Module {
   io.decodeStage.data.valid := false.B
   io.decodeStage.data.inst  := DontCare
   io.decodeStage.data.pc    := DontCare
+  val stall = !io.signal.fetchUnitSignal.allow_to_go
 
   // ========== 响应处理 ==========
   when(io.icache_resp.valid && valid_queue(tail)) {
@@ -67,7 +68,7 @@ class FetchUnit extends Module {
       io.decodeStage.data.valid := true.B
 
       // 如果decode阶段ready且没有stall，流水线正常推进
-      when(decodeReady && !io.branch) {
+      when(!stall && !io.branch) {
         // 交换head和tail
         head := head ^ 1.U
         tail := tail ^ 1.U
@@ -75,32 +76,32 @@ class FetchUnit extends Module {
         pc_queue(head ^ 1.U) := pc_queue(tail) + 4.U
       }
     }
+  }.elsewhen(!valid_queue(tail) && valid_queue(head)) {
+    pc_queue(tail) := pc_queue(tail) + 4.U // 下一个周期的 head
+    head           := head ^ 1.U
+    tail           := tail ^ 1.U
 
-    // 无论地址是否匹配，都清除tail的valid标记
-    // （如果不匹配说明是过期响应，也要清除）
-    // ?
-  }
-
-  // ========== 请求处理 ==========
-  when(io.icache_req.valid && io.icache_req.ready) {
-    // 请求被接受，设置tail位置为valid
-    valid_queue(tail) := true.B
   }
 
   // ========== 分支处理 ==========
   when(io.branch) {
     // flush队列：pc[head] = target, valid[tail] = false
-    pc_queue(head)    := io.target
+    pc_queue(0)       := io.target
     valid_queue(tail) := false.B
+    pc_queue(tail)    := false.B
     // 重置head和tail指针
     head := 0.U
     tail := 1.U
   }
-
+  when(stall) {
+    pc_queue(head)    := pc_queue(tail)
+    valid_queue(head) := true.B
+    valid_queue(tail) := false.B
+  }
   // ========== 初始化处理 ==========
   when(canStart && pc_queue(head) === 0.U && !io.branch) {
-    pc_queue(head) := PC_INIT
-    pc_queue(1)    := PC_INIT + 4.U // 预设下一个PC
+    pc_queue(0)    := PC_INIT
+    valid_queue(0) := true.B
   }
 
   // ========== Debug信号 ==========
