@@ -941,8 +941,7 @@ endmodule
 module ICache(
   input          clock,
                  reset,
-  output         io_icache_req_ready,
-  input          io_icache_req_valid,
+                 io_icache_req_valid,
   input  [31:0]  io_icache_req_bits_addr,
   output         io_icache_resp_valid,
   output [255:0] io_icache_resp_bits_data,
@@ -1932,8 +1931,6 @@ module ICache(
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
   );
-  assign io_icache_req_ready =
-    ~(|state) | (_GEN_0 ? hit & io_icache_req_valid : _GEN_4 & io_icache_req_valid);
   assign io_icache_resp_valid = (|state) & (_GEN_0 ? hit : _GEN_3);
   assign io_icache_resp_bits_data =
     _GEN_0
@@ -2082,7 +2079,6 @@ module FetchUnit(
   input          io_branch,
   input  [31:0]  io_target,
   input          io_signal_fetchUnitSignal_allow_to_go,
-                 io_icache_req_ready,
   output         io_icache_req_valid,
   output [31:0]  io_icache_req_bits_addr
 );
@@ -2095,12 +2091,12 @@ module FetchUnit(
   reg              tail;
   reg              canStart_REG;
   wire             canStart = canStart_REG & ~reset;
-  wire             io_icache_req_valid_0 = canStart & ~io_branch;
   wire [31:0]      io_icache_req_bits_addr_0 = head ? pc_queue_1 : pc_queue_0;
-  wire             _GEN = io_icache_resp_valid & (tail ? valid_queue_1 : valid_queue_0);
+  wire             _GEN = tail ? valid_queue_1 : valid_queue_0;
+  wire             _GEN_0 = io_icache_resp_valid & _GEN;
   wire [31:0]      io_decodeStage_data_pc_0 = tail ? pc_queue_1 : pc_queue_0;
   wire             addr_match = io_icache_resp_bits_addr == io_decodeStage_data_pc_0;
-  wire [7:0][31:0] _GEN_0 =
+  wire [7:0][31:0] _GEN_1 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -2110,24 +2106,46 @@ module FetchUnit(
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
   always @(posedge clock) begin
-    automatic logic        _GEN_1;
+    automatic logic        _GEN_2;
     automatic logic [31:0] _pc_queue_T;
-    automatic logic        _GEN_2 =
-      canStart & io_icache_req_bits_addr_0 == 32'h0 & ~io_branch;
-    _GEN_1 = io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
+    automatic logic        _GEN_3;
+    automatic logic [31:0] _pc_queue_T_2;
+    automatic logic        _GEN_4;
+    automatic logic        _GEN_5;
+    _GEN_2 = io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
     _pc_queue_T = io_decodeStage_data_pc_0 + 32'h4;
-    if (_GEN_2 & ~head)
+    _GEN_3 = ~_GEN & (head ? valid_queue_1 : valid_queue_0);
+    _pc_queue_T_2 = io_decodeStage_data_pc_0 + 32'h4;
+    _GEN_4 = io_branch & tail;
+    _GEN_5 = canStart & io_icache_req_bits_addr_0 == 32'h0 & ~io_branch;
+    if (_GEN_5)
       pc_queue_0 <= 32'h80000000;
-    else if (io_branch & ~head)
-      pc_queue_0 <= io_target;
-    else if (_GEN & addr_match & _GEN_1 & head)
-      pc_queue_0 <= _pc_queue_T;
-    if (_GEN_2)
-      pc_queue_1 <= 32'h80000004;
-    else if (io_branch & head)
-      pc_queue_1 <= io_target;
-    else if (_GEN & addr_match & _GEN_1 & ~head)
-      pc_queue_1 <= _pc_queue_T;
+    else if (io_signal_fetchUnitSignal_allow_to_go | head) begin
+      if (io_branch)
+        pc_queue_0 <= tail ? io_target : 32'h0;
+      else if (_GEN_0) begin
+        if (addr_match & _GEN_2 & head)
+          pc_queue_0 <= _pc_queue_T;
+      end
+      else if (_GEN_3 & ~tail)
+        pc_queue_0 <= _pc_queue_T_2;
+    end
+    else if (tail)
+      pc_queue_0 <= pc_queue_1;
+    if (~io_signal_fetchUnitSignal_allow_to_go & head) begin
+      if (tail) begin
+      end
+      else
+        pc_queue_1 <= pc_queue_0;
+    end
+    else if (_GEN_4)
+      pc_queue_1 <= 32'h0;
+    else if (_GEN_0) begin
+      if (addr_match & _GEN_2 & ~head)
+        pc_queue_1 <= _pc_queue_T;
+    end
+    else if (_GEN_3 & tail)
+      pc_queue_1 <= _pc_queue_T_2;
     canStart_REG <= ~reset;
     if (reset) begin
       valid_queue_0 <= 1'h0;
@@ -2136,13 +2154,21 @@ module FetchUnit(
       tail <= 1'h1;
     end
     else begin
-      automatic logic _GEN_3;
-      automatic logic _GEN_4 = io_icache_req_valid_0 & io_icache_req_ready;
-      _GEN_3 = _GEN & addr_match & _GEN_1;
-      valid_queue_0 <= ~(io_branch & ~tail) & (_GEN_4 & ~tail | valid_queue_0);
-      valid_queue_1 <= ~(io_branch & tail) & (_GEN_4 & tail | valid_queue_1);
-      head <= ~io_branch & (_GEN_3 ^ head);
-      tail <= io_branch | _GEN_3 ^ tail;
+      automatic logic _GEN_6;
+      automatic logic _GEN_7;
+      automatic logic _GEN_8;
+      _GEN_6 = addr_match & _GEN_2;
+      _GEN_7 = ~(io_branch & ~tail) & valid_queue_0;
+      _GEN_8 = ~_GEN_4 & valid_queue_1;
+      valid_queue_0 <=
+        _GEN_5
+        | (io_signal_fetchUnitSignal_allow_to_go ? _GEN_7 : tail & (~head | _GEN_7));
+      if (io_signal_fetchUnitSignal_allow_to_go)
+        valid_queue_1 <= _GEN_8;
+      else
+        valid_queue_1 <= ~tail & (head | _GEN_8);
+      head <= ~io_branch & (_GEN_0 ? _GEN_6 ^ head : _GEN_3 ^ head);
+      tail <= io_branch | (_GEN_0 ? _GEN_6 ^ tail : _GEN_3 ^ tail);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -2171,10 +2197,10 @@ module FetchUnit(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN_0[io_decodeStage_data_pc_0[4:2]];
-  assign io_decodeStage_data_valid = _GEN & addr_match;
+  assign io_decodeStage_data_inst = _GEN_1[io_decodeStage_data_pc_0[4:2]];
+  assign io_decodeStage_data_valid = _GEN_0 & addr_match;
   assign io_decodeStage_data_pc = io_decodeStage_data_pc_0;
-  assign io_icache_req_valid = io_icache_req_valid_0;
+  assign io_icache_req_valid = canStart & ~io_branch;
   assign io_icache_req_bits_addr = io_icache_req_bits_addr_0;
 endmodule
 
@@ -4530,7 +4556,6 @@ module Core(
   wire [31:0]  _dcache_io_io_write_req_bits_addr;
   wire [31:0]  _dcache_io_io_write_req_bits_data;
   wire [3:0]   _dcache_io_io_write_req_bits_byte_mask;
-  wire         _icache_io_icache_req_ready;
   wire         _icache_io_icache_resp_valid;
   wire [255:0] _icache_io_icache_resp_bits_data;
   wire [31:0]  _icache_io_icache_resp_bits_addr;
@@ -4587,7 +4612,6 @@ module Core(
   ICache icache (
     .clock                                (clock),
     .reset                                (reset),
-    .io_icache_req_ready                  (_icache_io_icache_req_ready),
     .io_icache_req_valid                  (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr              (_fetchUnit_io_icache_req_bits_addr),
     .io_icache_resp_valid                 (_icache_io_icache_resp_valid),
@@ -4640,7 +4664,6 @@ module Core(
     .io_target                             (_executeUnit_io_target),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_icache_req_ready                   (_icache_io_icache_req_ready),
     .io_icache_req_valid                   (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr               (_fetchUnit_io_icache_req_bits_addr)
   );

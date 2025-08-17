@@ -16,7 +16,7 @@ class FetchUnit extends Module {
   })
 
   // 队列结构 - 长度为2的PC队列
-  val pc_queue    = Reg(Vec(2, UInt(XLEN.W)))
+  val pc_queue    = RegInit(VecInit(Seq.fill(2)(0.U(XLEN.W))))  val regs = 
   val valid_queue = RegInit(VecInit(false.B, false.B))
   val head        = RegInit(0.U(1.W))
   val tail        = RegInit(1.U(1.W))
