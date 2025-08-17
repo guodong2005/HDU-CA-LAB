@@ -23,14 +23,15 @@ class FetchUnit extends Module {
   val wait_pc = RegInit(PC_INIT) // 正在等待响应的PC
   val req_pc  = RegInit(PC_INIT) // 下一个要请求的PC
 
-  // 通过比较两个PC判断是否有pending请求
-  val has_pending = wait_pc =/= req_pc
+  // 请求追踪
+  val pending_valid = RegInit(false.B) // 是否有未完成的请求
 
   // 指令缓冲
   val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
 
   // 控制信号
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
+  val canSendReq  = !ifid_reg.valid || decodeReady // 可以发送新请求的条件
 
   // 启动条件
   val canStartInternal = !reset.asBool
@@ -70,28 +71,29 @@ class FetchUnit extends Module {
         ifid_reg.valid      := false.B
       }
 
-      // 发送新请求 - 只有在有空间存储响应时才发送
-      when(canStart && (!ifid_reg.valid || decodeReady) && !io.branch) {
+      // 发送新请求（只要条件允许就发送）
+      when(canStart && canSendReq && !io.branch) {
         io.icache_req.valid     := true.B
         io.icache_req.bits.addr := req_pc
 
         when(io.icache_req.ready) {
-          req_pc := req_pc + 4.U // 更新下一个请求地址
-          state  := sWAIT_RESP
+          pending_valid := true.B
+          wait_pc       := req_pc // 记录正在等待的地址
+          req_pc        := req_pc + 4.U // 更新下一个请求地址
+          state         := sWAIT_RESP
         }
       }
     }
 
     is(sWAIT_RESP) {
-      // 处理缓存的指令
-      val ifid_consumed = ifid_reg.valid && decodeReady && !io.branch
-      when(ifid_consumed) {
+      // 首先处理缓存的指令（如果有的话）
+      when(ifid_reg.valid && decodeReady && !io.branch) {
         io.decodeStage.data := ifid_reg
         ifid_reg.valid      := false.B
       }
 
-      // 处理ICache响应 - 只有在有pending请求时才处理
-      when(io.icache_resp.valid && has_pending) {
+      // 等待ICache响应
+      when(io.icache_resp.valid && pending_valid) {
         val resp_addr  = io.icache_resp.bits.addr
         val addr_match = resp_addr === wait_pc
 
@@ -99,72 +101,69 @@ class FetchUnit extends Module {
           // 地址匹配 - 处理响应的指令
           val inst = extractInst(io.icache_resp.bits.data, wait_pc)
 
-          // 计算缓冲区是否可用
-          val buffer_available = !ifid_reg.valid || ifid_consumed
-
-          when(buffer_available && decodeReady && !ifid_consumed) {
+          when(!ifid_reg.valid && decodeReady) {
             // 直接传递给decode阶段
             io.decodeStage.data.inst  := inst
             io.decodeStage.data.pc    := wait_pc
             io.decodeStage.data.valid := true.B
-          }.elsewhen(buffer_available) {
-            // 缓存指令
-            ifid_reg.inst  := inst
-            ifid_reg.pc    := wait_pc
-            ifid_reg.valid := true.B
+          }.otherwise {
+            // 缓存指令（只有在缓冲区为空时才缓存）
+            when(!ifid_reg.valid) {
+              ifid_reg.inst  := inst
+              ifid_reg.pc    := wait_pc
+              ifid_reg.valid := true.B
+            }
+            // 如果缓冲区已满且decode not ready，指令会丢失
+            // 这种情况应该通过canSendReq避免
           }
-          // 否则丢弃（不应该发生，因为我们控制了请求发送）
 
-          // 更新wait_pc，表示已处理这个响应
-          wait_pc := wait_pc + 4.U
+          pending_valid := false.B
 
-          // 如果还有更多pending请求，继续等待
-          // 否则尝试发送新请求或回到IDLE
-          when(has_pending) {
-            // 还有pending请求，保持在WAIT_RESP
-          }.elsewhen(!io.branch && decodeReady && !ifid_consumed) {
-            // 没有pending了，但可以立即发送新请求
+          // 关键优化：立即尝试发送下一个请求
+          // 条件：没有分支，且（缓冲区为空 或 decode ready）
+          when(!io.branch && canSendReq) {
             io.icache_req.valid     := true.B
             io.icache_req.bits.addr := req_pc
 
             when(io.icache_req.ready) {
-              req_pc := req_pc + 4.U
-              // 保持在sWAIT_RESP状态
+              pending_valid := true.B
+              wait_pc       := req_pc // 更新等待地址
+              req_pc        := req_pc + 4.U // 更新请求地址
+              // 保持在sWAIT_RESP状态，实现连续流水线
             }.otherwise {
               state := sIDLE
             }
           }.otherwise {
             state := sIDLE
           }
+        }.otherwise {
+          // 地址不匹配 - 过期的响应
         }
-        // 地址不匹配的响应会被自动忽略（过期的响应）
       }
 
-      // 如果没有pending请求但可以发送新的，尝试发送
-      when(!has_pending && (!ifid_reg.valid || decodeReady) && !io.branch) {
+      // 即使在等待响应时，如果没有pending请求，也可以发送新请求
+      // 这处理了响应已经到达但还没处理的情况
+      when(!pending_valid && canSendReq && !io.branch) {
         io.icache_req.valid     := true.B
         io.icache_req.bits.addr := req_pc
 
         when(io.icache_req.ready) {
-          req_pc := req_pc + 4.U
-        }.otherwise {
-          // 没有新请求，回到IDLE
-          state := sIDLE
+          pending_valid := true.B
+          wait_pc       := req_pc
+          req_pc        := req_pc + 4.U
         }
-      }.elsewhen(!has_pending) {
-        // 没有pending且不能发送新请求，回到IDLE
-        state := sIDLE
       }
     }
   }
 
   // ========== 分支处理 ==========
   when(io.branch) {
-    // 同步两个PC到目标地址
+    // 更新两个PC到目标地址
     wait_pc := io.target
     req_pc  := io.target
 
     // 清空流水线状态
+    pending_valid  := false.B
     ifid_reg.valid := false.B
 
     // 强制回到IDLE状态
@@ -179,7 +178,7 @@ class FetchUnit extends Module {
 
   // ========== Debug信号 ==========
   dontTouch(state)
-  dontTouch(has_pending)
+  dontTouch(pending_valid)
   dontTouch(wait_pc)
   dontTouch(req_pc)
 }

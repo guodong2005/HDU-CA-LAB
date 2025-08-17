@@ -2240,7 +2240,7 @@ module FetchUnit(
   reg              state;
   reg  [31:0]      wait_pc;
   reg  [31:0]      req_pc;
-  reg              pending_valid;
+  wire             has_pending = wait_pc != req_pc;
   reg  [31:0]      ifid_reg_inst;
   reg              ifid_reg_valid;
   reg  [31:0]      ifid_reg_pc;
@@ -2248,13 +2248,13 @@ module FetchUnit(
   wire             canStart = canStart_REG & ~reset;
   wire             _GEN =
     ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_0 =
-    canStart & (~ifid_reg_valid | io_signal_fetchUnitSignal_allow_to_go) & ~io_branch;
+  wire             _GEN_0 = ~ifid_reg_valid | io_signal_fetchUnitSignal_allow_to_go;
+  wire             _GEN_1 = canStart & _GEN_0 & ~io_branch;
   wire             ifid_consumed =
     ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_1 = io_icache_resp_valid & pending_valid;
+  wire             _GEN_2 = io_icache_resp_valid & has_pending;
   wire             addr_match = io_icache_resp_bits_addr == wait_pc;
-  wire [7:0][31:0] _GEN_2 =
+  wire [7:0][31:0] _GEN_3 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -2263,36 +2263,41 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst = _GEN_2[wait_pc[4:2]];
-  wire             buffer_will_be_empty = ~ifid_reg_valid | ifid_consumed;
-  wire             _GEN_3 =
-    buffer_will_be_empty & io_signal_fetchUnitSignal_allow_to_go & ~ifid_consumed;
-  wire             _GEN_4 = _GEN_1 & addr_match & _GEN_3;
-  wire             _GEN_5 = state & _GEN_4;
-  wire             _GEN_6 = _GEN_1 & addr_match;
-  wire             _GEN_7 = state & _GEN_6;
-  wire             can_send_next =
+  wire [31:0]      inst = _GEN_3[wait_pc[4:2]];
+  wire             buffer_available = ~ifid_reg_valid | ifid_consumed;
+  wire             _GEN_4 =
+    buffer_available & io_signal_fetchUnitSignal_allow_to_go & ~ifid_consumed;
+  wire             _GEN_5 = _GEN_2 & addr_match & _GEN_4;
+  wire             _GEN_6 = state & _GEN_5;
+  wire             _GEN_7 = _GEN_2 & addr_match;
+  wire             _GEN_8 =
     ~io_branch & io_signal_fetchUnitSignal_allow_to_go & ~ifid_consumed;
+  wire             _GEN_9 = ~has_pending & _GEN_0 & ~io_branch;
   always @(posedge clock) begin
     if (reset) begin
       state <= 1'h0;
       wait_pc <= 32'h80000000;
       req_pc <= 32'h80000000;
-      pending_valid <= 1'h0;
       ifid_reg_inst <= 32'h0;
       ifid_reg_valid <= 1'h0;
       ifid_reg_pc <= 32'h0;
     end
     else begin
-      automatic logic _GEN_8;
-      automatic logic _GEN_9;
       automatic logic _GEN_10;
       automatic logic _GEN_11;
-      _GEN_8 = _GEN_0 & io_icache_req_ready;
-      _GEN_9 = ~state | ~_GEN_7 | _GEN_3 | ~buffer_will_be_empty;
-      _GEN_10 = addr_match & can_send_next & io_icache_req_ready;
-      _GEN_11 = state & _GEN_1;
-      state <= ~io_branch & (state ? (~_GEN_11 | _GEN_10) & state : _GEN_8 | state);
+      automatic logic _GEN_12;
+      automatic logic _GEN_13;
+      automatic logic _GEN_14;
+      _GEN_10 = _GEN_1 & io_icache_req_ready;
+      _GEN_11 = state & _GEN_7;
+      _GEN_12 = ~state | ~_GEN_11 | _GEN_4 | ~buffer_available;
+      _GEN_13 = _GEN_8 & io_icache_req_ready;
+      _GEN_14 = (~_GEN_7 | has_pending | _GEN_13) & state;
+      state <=
+        ~io_branch
+        & (state
+             ? (_GEN_9 ? io_icache_req_ready & _GEN_14 : has_pending & _GEN_14)
+             : _GEN_10 | state);
       if (canStart & req_pc == 32'h0 & ~io_branch) begin
         wait_pc <= 32'h80000000;
         req_pc <= 32'h80000000;
@@ -2302,34 +2307,29 @@ module FetchUnit(
         req_pc <= io_target;
       end
       else begin
-        automatic logic _GEN_12;
-        _GEN_12 = state & _GEN_1 & _GEN_10;
-        if (state ? _GEN_12 : _GEN_8)
-          wait_pc <= req_pc;
+        if (state & _GEN_11)
+          wait_pc <= wait_pc + 32'h4;
         if (state) begin
-          if (_GEN_12)
+          if (_GEN_9 & io_icache_req_ready)
+            req_pc <= req_pc + 32'h4;
+          else if (~_GEN_7 | has_pending | ~_GEN_13) begin
+          end
+          else
             req_pc <= req_pc + 32'h4;
         end
-        else if (_GEN_8)
+        else if (_GEN_10)
           req_pc <= req_pc + 32'h4;
       end
-      pending_valid <=
-        ~io_branch
-        & (state
-             ? (_GEN_11
-                  ? addr_match & can_send_next & io_icache_req_ready
-                  : pending_valid)
-             : _GEN_8 | pending_valid);
-      if (_GEN_9) begin
+      if (_GEN_12) begin
       end
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
         ~io_branch
         & (state
-             ? _GEN_6 & ~_GEN_3 & buffer_will_be_empty | ~ifid_consumed & ifid_reg_valid
+             ? _GEN_7 & ~_GEN_4 & buffer_available | ~ifid_consumed & ifid_reg_valid
              : ~_GEN & ifid_reg_valid);
-      if (_GEN_9) begin
+      if (_GEN_12) begin
       end
       else
         ifid_reg_pc <= wait_pc;
@@ -2352,22 +2352,22 @@ module FetchUnit(
         state = _RANDOM[3'h0][0];
         wait_pc = {_RANDOM[3'h0][31:1], _RANDOM[3'h1][0]};
         req_pc = {_RANDOM[3'h1][31:1], _RANDOM[3'h2][0]};
-        pending_valid = _RANDOM[3'h2][1];
-        ifid_reg_inst = {_RANDOM[3'h2][31:2], _RANDOM[3'h3][1:0]};
-        ifid_reg_valid = _RANDOM[3'h3][2];
-        ifid_reg_pc = {_RANDOM[3'h3][31:3], _RANDOM[3'h4][2:0]};
-        canStart_REG = _RANDOM[3'h4][3];
+        ifid_reg_inst = {_RANDOM[3'h2][31:1], _RANDOM[3'h3][0]};
+        ifid_reg_valid = _RANDOM[3'h3][1];
+        ifid_reg_pc = {_RANDOM[3'h3][31:2], _RANDOM[3'h4][1:0]};
+        canStart_REG = _RANDOM[3'h4][2];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN_5 ? inst : ifid_reg_inst;
+  assign io_decodeStage_data_inst = _GEN_6 ? inst : ifid_reg_inst;
   assign io_decodeStage_data_valid =
-    state ? state & (_GEN_4 | ifid_consumed & ifid_reg_valid) : _GEN & ifid_reg_valid;
-  assign io_decodeStage_data_pc = _GEN_5 ? wait_pc : ifid_reg_pc;
-  assign io_icache_req_valid = state ? _GEN_7 & can_send_next : _GEN_0;
+    state ? state & (_GEN_5 | ifid_consumed & ifid_reg_valid) : _GEN & ifid_reg_valid;
+  assign io_decodeStage_data_pc = _GEN_6 ? wait_pc : ifid_reg_pc;
+  assign io_icache_req_valid =
+    state ? state & (_GEN_9 | _GEN_7 & ~has_pending & _GEN_8) : _GEN_1;
   assign io_icache_req_bits_addr = req_pc;
 endmodule
 
