@@ -72,7 +72,6 @@ module IoControl(
   output         io_icache_read_req_ready,
   input          io_icache_read_req_valid,
   input  [31:0]  io_icache_read_req_bits_addr,
-  input          io_icache_read_resp_ready,
   output         io_icache_read_resp_valid,
   output [255:0] io_icache_read_resp_bits_data,
   output         io_dcache_read_req_ready,
@@ -223,10 +222,10 @@ module IoControl(
       automatic logic       _GEN_2;
       automatic logic       _GEN_3;
       automatic logic       _GEN_4;
-      automatic logic       _GEN_5;
       automatic logic [2:0] _tail_idx_T_1;
       automatic logic [2:0] tail_idx;
       automatic logic       uart_empty;
+      automatic logic       _GEN_5;
       automatic logic       _GEN_6;
       automatic logic       _GEN_7;
       automatic logic       _GEN_8;
@@ -257,296 +256,294 @@ module IoControl(
       automatic logic       _GEN_33;
       automatic logic       _GEN_34;
       automatic logic       _GEN_35;
-      automatic logic       _GEN_36;
       _GEN = system_ready & io_icache_read_req_valid;
       _GEN_0 = _GEN | icache_req_valid;
       _GEN_1 = system_ready & io_dcache_read_req_valid;
       _GEN_2 = _GEN_1 | dcache_read_req_valid;
       _GEN_3 = system_ready & io_dcache_write_req_valid;
       _GEN_4 = _GEN_3 | dcache_write_req_valid;
-      _GEN_5 = ~(io_icache_read_resp_ready & icache_data_valid) & icache_data_valid;
       _tail_idx_T_1 = uart_tail[7:5] | uart_tail[3:1];
       tail_idx =
         {|(uart_tail[7:4]), |(_tail_idx_T_1[2:1]), _tail_idx_T_1[2] | _tail_idx_T_1[0]};
       uart_empty = _uart_empty_T & ~maybe_full;
-      _GEN_6 = dcache_write_req_addr[31:22] == 10'h200;
-      _GEN_7 = dcache_write_req_addr[31:22] == 10'h201;
-      _GEN_8 = _GEN_6 | _GEN_7;
-      _GEN_9 = dcache_write_req_addr == 32'hBFD003F8;
-      _GEN_10 = _GEN_9 & ~io_txd_uart_busy;
-      _GEN_11 = _GEN_9 & io_txd_uart_busy;
-      _GEN_12 = dcache_read_req_addr[31:22] == 10'h200;
-      _GEN_13 = dcache_read_req_addr[31:22] == 10'h201;
-      _GEN_14 = _GEN_12 | _GEN_13;
-      _GEN_15 = dcache_read_req_addr == 32'hBFD003F8;
-      _GEN_16 =
-        (|state) | dcache_write_req_valid | ~dcache_read_req_valid | _GEN_14
-        | ~(_GEN_15 & ~uart_empty);
-      _GEN_17 = dcache_write_req_valid | ~dcache_read_req_valid | _GEN_14;
-      _GEN_18 = icache_req_addr[31:22] == 10'h200;
-      _GEN_19 = icache_req_addr[31:22] == 10'h201;
-      _GEN_20 = _GEN_18 | _GEN_19;
-      _GEN_21 = dcache_write_req_valid | dcache_read_req_valid;
-      _GEN_22 = _GEN_21 | ~icache_req_valid | _GEN_20;
-      _GEN_23 = state == 3'h1;
-      _GEN_24 = wait_counter == 4'h3;
-      _GEN_25 = (&icache_offset) & _GEN_24;
-      _GEN_26 = _GEN_23 & _GEN_25;
-      _GEN_27 = state == 3'h5;
-      _GEN_28 = state == 3'h2;
-      _GEN_29 = _GEN_23 | _GEN_27;
-      _GEN_30 = _GEN_29 | ~(_GEN_28 & _GEN_24);
-      _GEN_31 = state == 3'h3;
-      _GEN_32 = wait_counter < 4'h2;
-      _GEN_33 = wait_counter == 4'h2;
-      _GEN_34 = _GEN_32 | _GEN_33;
-      _GEN_35 = state != 3'h6;
-      _GEN_36 = _GEN_28 | _GEN_31 | state == 3'h4;
+      _GEN_5 = dcache_write_req_addr[31:22] == 10'h200;
+      _GEN_6 = dcache_write_req_addr[31:22] == 10'h201;
+      _GEN_7 = _GEN_5 | _GEN_6;
+      _GEN_8 = dcache_write_req_addr == 32'hBFD003F8;
+      _GEN_9 = _GEN_8 & ~io_txd_uart_busy;
+      _GEN_10 = _GEN_8 & io_txd_uart_busy;
+      _GEN_11 = dcache_read_req_addr[31:22] == 10'h200;
+      _GEN_12 = dcache_read_req_addr[31:22] == 10'h201;
+      _GEN_13 = _GEN_11 | _GEN_12;
+      _GEN_14 = dcache_read_req_addr == 32'hBFD003F8;
+      _GEN_15 =
+        (|state) | dcache_write_req_valid | ~dcache_read_req_valid | _GEN_13
+        | ~(_GEN_14 & ~uart_empty);
+      _GEN_16 = dcache_write_req_valid | ~dcache_read_req_valid | _GEN_13;
+      _GEN_17 = icache_req_addr[31:22] == 10'h200;
+      _GEN_18 = icache_req_addr[31:22] == 10'h201;
+      _GEN_19 = _GEN_17 | _GEN_18;
+      _GEN_20 = dcache_write_req_valid | dcache_read_req_valid;
+      _GEN_21 = _GEN_20 | ~icache_req_valid | _GEN_19;
+      _GEN_22 = state == 3'h1;
+      _GEN_23 = wait_counter == 4'h5;
+      _GEN_24 = (&icache_offset) & _GEN_23;
+      _GEN_25 = _GEN_22 & _GEN_24;
+      _GEN_26 = state == 3'h5;
+      _GEN_27 = state == 3'h2;
+      _GEN_28 = _GEN_22 | _GEN_26;
+      _GEN_29 = _GEN_28 | ~(_GEN_27 & _GEN_23);
+      _GEN_30 = state == 3'h3;
+      _GEN_31 = wait_counter < 4'h2;
+      _GEN_32 = wait_counter == 4'h2;
+      _GEN_33 = _GEN_31 | _GEN_32;
+      _GEN_34 = state != 3'h6;
+      _GEN_35 = _GEN_27 | _GEN_30 | state == 3'h4;
       if (|state) begin
         automatic logic        _data_T;
-        automatic logic        _GEN_37;
+        automatic logic        _GEN_36;
         automatic logic        _next_addr_T;
-        automatic logic [31:0] _GEN_38;
-        automatic logic        _GEN_39;
+        automatic logic [31:0] _GEN_37;
+        automatic logic        _GEN_38;
         automatic logic        _data_T_2;
+        automatic logic        _GEN_39;
         automatic logic        _GEN_40;
         automatic logic        _GEN_41;
-        automatic logic        _GEN_42;
         _data_T = current_ram == 2'h1;
-        _GEN_37 = ~_GEN_24 | _data_T;
+        _GEN_36 = ~_GEN_23 | _data_T;
         _next_addr_T = current_ram == 2'h1;
-        _GEN_38 =
+        _GEN_37 =
           ((&icache_offset) ? _data_T : _next_addr_T)
             ? io_base_ram_ctrl_data_in
             : io_ext_ram_ctrl_data_in;
-        _GEN_39 = ~_GEN_24 | _next_addr_T;
+        _GEN_38 = ~_GEN_23 | _next_addr_T;
         _data_T_2 = current_ram == 2'h1;
-        _GEN_40 = ~_GEN_24 | _data_T_2;
-        _GEN_41 = current_ram == 2'h1;
-        _GEN_42 = _GEN_27 | (_GEN_28 ? _GEN_40 : ~_GEN_31 | _GEN_34 | ~_GEN_24 | _GEN_41);
-        if (_GEN_23) begin
+        _GEN_39 = ~_GEN_23 | _data_T_2;
+        _GEN_40 = current_ram == 2'h1;
+        _GEN_41 = _GEN_26 | (_GEN_27 ? _GEN_39 : ~_GEN_30 | _GEN_33 | ~_GEN_23 | _GEN_40);
+        if (_GEN_22) begin
+          automatic logic _GEN_42;
           automatic logic _GEN_43;
-          automatic logic _GEN_44;
-          _GEN_43 = _GEN_24 & _data_T;
-          _GEN_44 = _GEN_24 & _next_addr_T;
-          if ((&icache_offset) ? _GEN_43 : _GEN_44)
+          _GEN_42 = _GEN_23 & _data_T;
+          _GEN_43 = _GEN_23 & _next_addr_T;
+          if ((&icache_offset) ? _GEN_42 : _GEN_43)
             base_ram_ctrl_data_out <= 32'h0;
           if (&icache_offset) begin
-            automatic logic _GEN_45;
-            _GEN_45 = _GEN_24 & ~_data_T;
-            if (_GEN_43) begin
+            automatic logic _GEN_44;
+            _GEN_44 = _GEN_23 & ~_data_T;
+            if (_GEN_42) begin
               base_ram_ctrl_addr <= 20'h0;
               base_ram_ctrl_be_n <= 4'hF;
             end
-            base_ram_ctrl_ce_n <= _GEN_43 | base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= _GEN_43 | base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_43 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_43 & base_ram_ctrl_data_en;
-            if (_GEN_37) begin
+            base_ram_ctrl_ce_n <= _GEN_42 | base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= _GEN_42 | base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_42 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_42 & base_ram_ctrl_data_en;
+            if (_GEN_36) begin
             end
             else begin
               ext_ram_ctrl_addr <= 20'h0;
               ext_ram_ctrl_be_n <= 4'hF;
             end
-            ext_ram_ctrl_ce_n <= _GEN_45 | ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_45 | ext_ram_ctrl_oe_n;
-            ext_ram_ctrl_we_n <= _GEN_45 | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_37 & ext_ram_ctrl_data_en;
+            ext_ram_ctrl_ce_n <= _GEN_44 | ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_44 | ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= _GEN_44 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_36 & ext_ram_ctrl_data_en;
           end
           else begin
             automatic logic [19:0] _next_addr_T_2;
             _next_addr_T_2 =
               (_next_addr_T ? base_ram_ctrl_addr : ext_ram_ctrl_addr) + 20'h1;
-            if (_GEN_44) begin
+            if (_GEN_43) begin
               base_ram_ctrl_addr <= _next_addr_T_2;
               base_ram_ctrl_be_n <= 4'h0;
             end
-            base_ram_ctrl_ce_n <= ~_GEN_44 & base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= ~_GEN_44 & base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_44 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_44 & base_ram_ctrl_data_en;
-            if (_GEN_39) begin
+            base_ram_ctrl_ce_n <= ~_GEN_43 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_43 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_43 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_43 & base_ram_ctrl_data_en;
+            if (_GEN_38) begin
             end
             else begin
               ext_ram_ctrl_addr <= _next_addr_T_2;
               ext_ram_ctrl_be_n <= 4'h0;
             end
-            ext_ram_ctrl_ce_n <= _GEN_39 & ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_39 & ext_ram_ctrl_oe_n;
-            ext_ram_ctrl_we_n <= _GEN_24 & ~_next_addr_T | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_39 & ext_ram_ctrl_data_en;
+            ext_ram_ctrl_ce_n <= _GEN_38 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_38 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= _GEN_23 & ~_next_addr_T | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_38 & ext_ram_ctrl_data_en;
           end
         end
         else begin
-          if (~_GEN_27) begin
-            if (_GEN_28) begin
+          if (~_GEN_26) begin
+            if (_GEN_27) begin
+              automatic logic _GEN_45;
               automatic logic _GEN_46;
-              automatic logic _GEN_47;
-              _GEN_46 = _GEN_24 & _data_T_2;
-              _GEN_47 = _GEN_24 & ~_data_T_2;
-              if (_GEN_46) begin
+              _GEN_45 = _GEN_23 & _data_T_2;
+              _GEN_46 = _GEN_23 & ~_data_T_2;
+              if (_GEN_45) begin
                 base_ram_ctrl_data_out <= 32'h0;
                 base_ram_ctrl_addr <= 20'h0;
                 base_ram_ctrl_be_n <= 4'hF;
               end
-              base_ram_ctrl_ce_n <= _GEN_46 | base_ram_ctrl_ce_n;
-              base_ram_ctrl_oe_n <= _GEN_46 | base_ram_ctrl_oe_n;
-              base_ram_ctrl_we_n <= _GEN_46 | base_ram_ctrl_we_n;
-              base_ram_ctrl_data_en <= ~_GEN_46 & base_ram_ctrl_data_en;
-              ext_ram_ctrl_ce_n <= _GEN_47 | ext_ram_ctrl_ce_n;
-              ext_ram_ctrl_oe_n <= _GEN_47 | ext_ram_ctrl_oe_n;
-              ext_ram_ctrl_we_n <= _GEN_47 | ext_ram_ctrl_we_n;
-              ext_ram_ctrl_data_en <= _GEN_40 & ext_ram_ctrl_data_en;
+              base_ram_ctrl_ce_n <= _GEN_45 | base_ram_ctrl_ce_n;
+              base_ram_ctrl_oe_n <= _GEN_45 | base_ram_ctrl_oe_n;
+              base_ram_ctrl_we_n <= _GEN_45 | base_ram_ctrl_we_n;
+              base_ram_ctrl_data_en <= ~_GEN_45 & base_ram_ctrl_data_en;
+              ext_ram_ctrl_ce_n <= _GEN_46 | ext_ram_ctrl_ce_n;
+              ext_ram_ctrl_oe_n <= _GEN_46 | ext_ram_ctrl_oe_n;
+              ext_ram_ctrl_we_n <= _GEN_46 | ext_ram_ctrl_we_n;
+              ext_ram_ctrl_data_en <= _GEN_39 & ext_ram_ctrl_data_en;
             end
             else begin
-              automatic logic _GEN_48;
-              _GEN_48 = _GEN_24 & _GEN_41;
-              if (~_GEN_31 | _GEN_34 | ~_GEN_48) begin
+              automatic logic _GEN_47;
+              _GEN_47 = _GEN_23 & _GEN_40;
+              if (~_GEN_30 | _GEN_33 | ~_GEN_47) begin
               end
               else begin
                 base_ram_ctrl_data_out <= 32'h0;
                 base_ram_ctrl_addr <= 20'h0;
                 base_ram_ctrl_be_n <= 4'hF;
               end
-              if (~_GEN_31 | _GEN_32) begin
+              if (~_GEN_30 | _GEN_31) begin
               end
-              else if (_GEN_33) begin
-                base_ram_ctrl_ce_n <= ~_GEN_41 & base_ram_ctrl_ce_n;
-                base_ram_ctrl_oe_n <= _GEN_41 | base_ram_ctrl_oe_n;
-                base_ram_ctrl_we_n <= _GEN_41 | base_ram_ctrl_we_n;
-                base_ram_ctrl_data_en <= _GEN_41 | base_ram_ctrl_data_en;
-                ext_ram_ctrl_ce_n <= _GEN_41 & ext_ram_ctrl_ce_n;
-                ext_ram_ctrl_oe_n <= ~_GEN_41 | ext_ram_ctrl_oe_n;
-                ext_ram_ctrl_we_n <= ~_GEN_41 | ext_ram_ctrl_we_n;
-                ext_ram_ctrl_data_en <= ~_GEN_41 | ext_ram_ctrl_data_en;
+              else if (_GEN_32) begin
+                base_ram_ctrl_ce_n <= ~_GEN_40 & base_ram_ctrl_ce_n;
+                base_ram_ctrl_oe_n <= _GEN_40 | base_ram_ctrl_oe_n;
+                base_ram_ctrl_we_n <= _GEN_40 | base_ram_ctrl_we_n;
+                base_ram_ctrl_data_en <= _GEN_40 | base_ram_ctrl_data_en;
+                ext_ram_ctrl_ce_n <= _GEN_40 & ext_ram_ctrl_ce_n;
+                ext_ram_ctrl_oe_n <= ~_GEN_40 | ext_ram_ctrl_oe_n;
+                ext_ram_ctrl_we_n <= ~_GEN_40 | ext_ram_ctrl_we_n;
+                ext_ram_ctrl_data_en <= ~_GEN_40 | ext_ram_ctrl_data_en;
               end
               else begin
-                automatic logic _GEN_49;
-                _GEN_49 = _GEN_24 & ~_GEN_41;
-                base_ram_ctrl_ce_n <= _GEN_48 | base_ram_ctrl_ce_n;
-                base_ram_ctrl_oe_n <= _GEN_48 | base_ram_ctrl_oe_n;
-                base_ram_ctrl_we_n <= _GEN_48 | base_ram_ctrl_we_n;
-                base_ram_ctrl_data_en <= ~_GEN_48 & base_ram_ctrl_data_en;
-                ext_ram_ctrl_ce_n <= _GEN_49 | ext_ram_ctrl_ce_n;
-                ext_ram_ctrl_oe_n <= _GEN_49 | ext_ram_ctrl_oe_n;
-                ext_ram_ctrl_we_n <= _GEN_49 | ext_ram_ctrl_we_n;
-                ext_ram_ctrl_data_en <= (~_GEN_24 | _GEN_41) & ext_ram_ctrl_data_en;
+                automatic logic _GEN_48;
+                _GEN_48 = _GEN_23 & ~_GEN_40;
+                base_ram_ctrl_ce_n <= _GEN_47 | base_ram_ctrl_ce_n;
+                base_ram_ctrl_oe_n <= _GEN_47 | base_ram_ctrl_oe_n;
+                base_ram_ctrl_we_n <= _GEN_47 | base_ram_ctrl_we_n;
+                base_ram_ctrl_data_en <= ~_GEN_47 & base_ram_ctrl_data_en;
+                ext_ram_ctrl_ce_n <= _GEN_48 | ext_ram_ctrl_ce_n;
+                ext_ram_ctrl_oe_n <= _GEN_48 | ext_ram_ctrl_oe_n;
+                ext_ram_ctrl_we_n <= _GEN_48 | ext_ram_ctrl_we_n;
+                ext_ram_ctrl_data_en <= (~_GEN_23 | _GEN_40) & ext_ram_ctrl_data_en;
               end
             end
           end
-          if (_GEN_42) begin
+          if (_GEN_41) begin
           end
           else begin
             ext_ram_ctrl_addr <= 20'h0;
             ext_ram_ctrl_be_n <= 4'hF;
           end
         end
-        if (_GEN_23 ? ((&icache_offset) ? _GEN_37 : _GEN_39) : _GEN_42) begin
+        if (_GEN_22 ? ((&icache_offset) ? _GEN_36 : _GEN_38) : _GEN_41) begin
         end
         else
           ext_ram_ctrl_data_out <= 32'h0;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h0)
-          icache_buffer_0 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h1)
-          icache_buffer_1 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h2)
-          icache_buffer_2 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h3)
-          icache_buffer_3 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h4)
-          icache_buffer_4 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h5)
-          icache_buffer_5 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & icache_offset == 3'h6)
-          icache_buffer_6 <= _GEN_38;
-        if (_GEN_23 & _GEN_24 & (&icache_offset))
-          icache_buffer_7 <= _GEN_38;
-        if (_GEN_30) begin
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h0)
+          icache_buffer_0 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h1)
+          icache_buffer_1 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h2)
+          icache_buffer_2 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h3)
+          icache_buffer_3 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h4)
+          icache_buffer_4 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h5)
+          icache_buffer_5 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & icache_offset == 3'h6)
+          icache_buffer_6 <= _GEN_37;
+        if (_GEN_22 & _GEN_23 & (&icache_offset))
+          icache_buffer_7 <= _GEN_37;
+        if (_GEN_29) begin
         end
         else
           dcache_buffer <= _data_T_2 ? io_base_ram_ctrl_data_in : io_ext_ram_ctrl_data_in;
       end
       else begin
         if (dcache_write_req_valid) begin
+          automatic logic _GEN_49;
           automatic logic _GEN_50;
-          automatic logic _GEN_51;
-          _GEN_50 = _GEN_6 | ~_GEN_7;
-          _GEN_51 = ~_GEN_6 & _GEN_7;
-          if (_GEN_6) begin
+          _GEN_49 = _GEN_5 | ~_GEN_6;
+          _GEN_50 = ~_GEN_5 & _GEN_6;
+          if (_GEN_5) begin
             base_ram_ctrl_data_out <= dcache_write_req_data;
             base_ram_ctrl_addr <= dcache_write_req_addr[21:2];
             base_ram_ctrl_be_n <= ~dcache_write_req_mask;
           end
-          base_ram_ctrl_ce_n <= ~_GEN_6 & base_ram_ctrl_ce_n;
-          base_ram_ctrl_oe_n <= _GEN_6 | base_ram_ctrl_oe_n;
-          base_ram_ctrl_we_n <= ~_GEN_6 & base_ram_ctrl_we_n;
-          base_ram_ctrl_data_en <= _GEN_6 | base_ram_ctrl_data_en;
-          if (_GEN_50) begin
+          base_ram_ctrl_ce_n <= ~_GEN_5 & base_ram_ctrl_ce_n;
+          base_ram_ctrl_oe_n <= _GEN_5 | base_ram_ctrl_oe_n;
+          base_ram_ctrl_we_n <= ~_GEN_5 & base_ram_ctrl_we_n;
+          base_ram_ctrl_data_en <= _GEN_5 | base_ram_ctrl_data_en;
+          if (_GEN_49) begin
           end
           else begin
             ext_ram_ctrl_data_out <= dcache_write_req_data;
             ext_ram_ctrl_addr <= dcache_write_req_addr[21:2];
             ext_ram_ctrl_be_n <= ~dcache_write_req_mask;
           end
-          ext_ram_ctrl_ce_n <= _GEN_50 & ext_ram_ctrl_ce_n;
-          ext_ram_ctrl_oe_n <= _GEN_51 | ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_50 & ext_ram_ctrl_we_n;
-          ext_ram_ctrl_data_en <= _GEN_51 | ext_ram_ctrl_data_en;
+          ext_ram_ctrl_ce_n <= _GEN_49 & ext_ram_ctrl_ce_n;
+          ext_ram_ctrl_oe_n <= _GEN_50 | ext_ram_ctrl_oe_n;
+          ext_ram_ctrl_we_n <= _GEN_49 & ext_ram_ctrl_we_n;
+          ext_ram_ctrl_data_en <= _GEN_50 | ext_ram_ctrl_data_en;
         end
         else begin
+          automatic logic _GEN_51;
           automatic logic _GEN_52;
           automatic logic _GEN_53;
           automatic logic _GEN_54;
-          automatic logic _GEN_55;
-          _GEN_52 = _GEN_12 | ~_GEN_13;
-          _GEN_53 = icache_req_valid & _GEN_18;
-          _GEN_54 = dcache_read_req_valid ? _GEN_12 : _GEN_53;
-          _GEN_55 = ~icache_req_valid | _GEN_18 | ~_GEN_19;
-          if (_GEN_54)
+          _GEN_51 = _GEN_11 | ~_GEN_12;
+          _GEN_52 = icache_req_valid & _GEN_17;
+          _GEN_53 = dcache_read_req_valid ? _GEN_11 : _GEN_52;
+          _GEN_54 = ~icache_req_valid | _GEN_17 | ~_GEN_18;
+          if (_GEN_53)
             base_ram_ctrl_data_out <= 32'h0;
           if (dcache_read_req_valid) begin
-            if (_GEN_12)
+            if (_GEN_11)
               base_ram_ctrl_addr <= dcache_read_req_addr[21:2];
-            base_ram_ctrl_ce_n <= ~_GEN_12 & base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= ~_GEN_12 & base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_12 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_12 & base_ram_ctrl_data_en;
-            if (_GEN_52) begin
+            base_ram_ctrl_ce_n <= ~_GEN_11 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_11 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_11 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_11 & base_ram_ctrl_data_en;
+            if (_GEN_51) begin
             end
             else
               ext_ram_ctrl_addr <= dcache_read_req_addr[21:2];
-            ext_ram_ctrl_ce_n <= _GEN_52 & ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_52 & ext_ram_ctrl_oe_n;
-            ext_ram_ctrl_we_n <= ~_GEN_12 & _GEN_13 | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_52 & ext_ram_ctrl_data_en;
+            ext_ram_ctrl_ce_n <= _GEN_51 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_51 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_we_n <= ~_GEN_11 & _GEN_12 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_51 & ext_ram_ctrl_data_en;
           end
           else begin
-            if (_GEN_53)
+            if (_GEN_52)
               base_ram_ctrl_addr <= icache_req_addr[21:2];
-            base_ram_ctrl_ce_n <= ~_GEN_53 & base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= ~_GEN_53 & base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_53 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_53 & base_ram_ctrl_data_en;
-            if (_GEN_55) begin
+            base_ram_ctrl_ce_n <= ~_GEN_52 & base_ram_ctrl_ce_n;
+            base_ram_ctrl_oe_n <= ~_GEN_52 & base_ram_ctrl_oe_n;
+            base_ram_ctrl_we_n <= _GEN_52 | base_ram_ctrl_we_n;
+            base_ram_ctrl_data_en <= ~_GEN_52 & base_ram_ctrl_data_en;
+            if (_GEN_54) begin
             end
             else
               ext_ram_ctrl_addr <= icache_req_addr[21:2];
-            ext_ram_ctrl_ce_n <= _GEN_55 & ext_ram_ctrl_ce_n;
-            ext_ram_ctrl_oe_n <= _GEN_55 & ext_ram_ctrl_oe_n;
+            ext_ram_ctrl_ce_n <= _GEN_54 & ext_ram_ctrl_ce_n;
+            ext_ram_ctrl_oe_n <= _GEN_54 & ext_ram_ctrl_oe_n;
             ext_ram_ctrl_we_n <=
-              icache_req_valid & ~_GEN_18 & _GEN_19 | ext_ram_ctrl_we_n;
-            ext_ram_ctrl_data_en <= _GEN_55 & ext_ram_ctrl_data_en;
+              icache_req_valid & ~_GEN_17 & _GEN_18 | ext_ram_ctrl_we_n;
+            ext_ram_ctrl_data_en <= _GEN_54 & ext_ram_ctrl_data_en;
           end
-          if (_GEN_54)
+          if (_GEN_53)
             base_ram_ctrl_be_n <= 4'h0;
-          if (dcache_read_req_valid ? _GEN_52 : _GEN_55) begin
+          if (dcache_read_req_valid ? _GEN_51 : _GEN_54) begin
           end
           else begin
             ext_ram_ctrl_data_out <= 32'h0;
             ext_ram_ctrl_be_n <= 4'h0;
           end
         end
-        if (_GEN_22) begin
+        if (_GEN_21) begin
         end
         else begin
           icache_buffer_0 <= 32'h0;
@@ -558,13 +555,13 @@ module IoControl(
           icache_buffer_6 <= 32'h0;
           icache_buffer_7 <= 32'h0;
         end
-        if (_GEN_17) begin
+        if (_GEN_16) begin
         end
         else begin
           automatic logic [2:0]      _head_idx_T_1;
-          automatic logic [7:0][7:0] _GEN_56;
+          automatic logic [7:0][7:0] _GEN_55;
           _head_idx_T_1 = uart_head[7:5] | uart_head[3:1];
-          _GEN_56 =
+          _GEN_55 =
             {{uart_buffer_7_data},
              {uart_buffer_6_data},
              {uart_buffer_5_data},
@@ -574,11 +571,11 @@ module IoControl(
              {uart_buffer_1_data},
              {uart_buffer_0_data}};
           dcache_buffer <=
-            _GEN_15
+            _GEN_14
               ? (uart_empty
                    ? 32'h0
                    : {24'h0,
-                      _GEN_56[{|(uart_head[7:4]),
+                      _GEN_55[{|(uart_head[7:4]),
                                |(_head_idx_T_1[2:1]),
                                _head_idx_T_1[2] | _head_idx_T_1[0]}]})
               : dcache_read_req_addr == 32'hBFD003FC
@@ -602,87 +599,87 @@ module IoControl(
       end
       else begin
         if (|state) begin
-          automatic logic [7:0][2:0] _GEN_57;
-          _GEN_57 =
+          automatic logic [7:0][2:0] _GEN_56;
+          _GEN_56 =
             {{state},
              {3'h0},
              {3'h0},
              {3'h6},
-             {_GEN_34 | ~_GEN_24 ? state : 3'h6},
-             {_GEN_24 ? 3'h6 : state},
-             {_GEN_25 ? 3'h5 : state},
+             {_GEN_33 | ~_GEN_23 ? state : 3'h6},
+             {_GEN_23 ? 3'h6 : state},
+             {_GEN_24 ? 3'h5 : state},
              {state}};
-          state <= _GEN_57[state];
-          if (_GEN_23) begin
+          state <= _GEN_56[state];
+          if (_GEN_22) begin
             if (&icache_offset) begin
-              if (~_GEN_24)
+              if (~_GEN_23)
                 wait_counter <= wait_counter + 4'h1;
             end
-            else if (_GEN_24)
+            else if (_GEN_23)
               wait_counter <= 4'h0;
             else
               wait_counter <= wait_counter + 4'h1;
           end
-          else if (~_GEN_27) begin
-            if (_GEN_28) begin
-              if (~_GEN_24)
+          else if (~_GEN_26) begin
+            if (_GEN_27) begin
+              if (~_GEN_23)
                 wait_counter <= wait_counter + 4'h1;
             end
-            else if (_GEN_31) begin
-              if (_GEN_32)
+            else if (_GEN_30) begin
+              if (_GEN_31)
                 wait_counter <= wait_counter + 4'h1;
-              else if (_GEN_33)
+              else if (_GEN_32)
                 wait_counter <= wait_counter + 4'h1;
-              else if (~_GEN_24)
+              else if (~_GEN_23)
                 wait_counter <= wait_counter + 4'h1;
             end
           end
-          if (~_GEN_23 | (&icache_offset) | ~_GEN_24) begin
+          if (~_GEN_22 | (&icache_offset) | ~_GEN_23) begin
           end
           else
             icache_offset <= icache_offset + 3'h1;
-          if (_GEN_23 | ~(_GEN_27 | ~(_GEN_36 | _GEN_35))) begin
+          if (_GEN_22 | ~(_GEN_26 | ~(_GEN_35 | _GEN_34))) begin
           end
           else
             current_ram <= 2'h0;
         end
         else begin
-          automatic logic _GEN_58;
-          _GEN_58 = icache_req_valid & _GEN_20;
+          automatic logic _GEN_57;
+          _GEN_57 = icache_req_valid & _GEN_19;
           if (dcache_write_req_valid) begin
-            if (_GEN_8)
+            if (_GEN_7)
               state <= 3'h3;
-            else if (_GEN_11) begin
+            else if (_GEN_10) begin
             end
             else
               state <= 3'h6;
           end
           else if (dcache_read_req_valid)
-            state <= {~_GEN_14, 2'h2};
+            state <= {~_GEN_13, 2'h2};
           else if (icache_req_valid)
-            state <= {~_GEN_20, 2'h1};
-          if (dcache_write_req_valid ? _GEN_8 : dcache_read_req_valid ? _GEN_14 : _GEN_58)
+            state <= {~_GEN_19, 2'h1};
+          if (dcache_write_req_valid ? _GEN_7 : dcache_read_req_valid ? _GEN_13 : _GEN_57)
             wait_counter <= 4'h0;
-          if (_GEN_21 | ~_GEN_58) begin
+          if (_GEN_20 | ~_GEN_57) begin
           end
           else
             icache_offset <= 3'h0;
           if (dcache_write_req_valid) begin
-            if (_GEN_6)
+            if (_GEN_5)
               current_ram <= 2'h1;
-            else if (_GEN_7)
+            else if (_GEN_6)
               current_ram <= 2'h2;
           end
           else if (dcache_read_req_valid) begin
-            if (_GEN_12)
+            if (_GEN_11)
               current_ram <= 2'h1;
-            else if (_GEN_13)
+            else if (_GEN_12)
               current_ram <= 2'h2;
           end
           else if (icache_req_valid) begin
-            if (_GEN_18)
+            if (_GEN_17)
               current_ram <= 2'h1;
-            else if (_GEN_19)
+            else if (_GEN_18)
               current_ram <= 2'h2;
           end
         end
@@ -695,34 +692,33 @@ module IoControl(
           dcache_write_req_data <= io_dcache_write_req_bits_data;
           dcache_write_req_mask <= io_dcache_write_req_bits_byte_mask;
         end
-        if (_GEN_16) begin
+        if (_GEN_15) begin
         end
         else
           uart_head <= {uart_head[6:0], uart_head[7]};
         if (io_rxd_uart_clear_0)
           uart_tail <= {uart_tail[6:0], uart_tail[7]};
-        if (~(~(|state) & dcache_write_req_valid) | _GEN_8 | ~_GEN_10) begin
+        if (~(~(|state) & dcache_write_req_valid) | _GEN_7 | ~_GEN_9) begin
         end
         else
           txd_uart_data <= dcache_write_req_data[7:0];
       end
-      icache_req_valid <= ~reset & ((|state) ? ~_GEN_26 & _GEN_0 : _GEN_22 & _GEN_0);
-      dcache_read_req_valid <= ~reset & ((|state) ? _GEN_30 & _GEN_2 : _GEN_17 & _GEN_2);
+      icache_req_valid <= ~reset & ((|state) ? ~_GEN_25 & _GEN_0 : _GEN_21 & _GEN_0);
+      dcache_read_req_valid <= ~reset & ((|state) ? _GEN_29 & _GEN_2 : _GEN_16 & _GEN_2);
       dcache_write_req_valid <=
         ~reset
         & ((|state)
-             ? (_GEN_23 | _GEN_27 | _GEN_28 | ~_GEN_31 | _GEN_34 | ~_GEN_24) & _GEN_4
-             : (~dcache_write_req_valid | _GEN_8 | _GEN_11) & _GEN_4);
+             ? (_GEN_22 | _GEN_26 | _GEN_27 | ~_GEN_30 | _GEN_33 | ~_GEN_23) & _GEN_4
+             : (~dcache_write_req_valid | _GEN_7 | _GEN_10) & _GEN_4);
       icache_data_valid <=
-        ~reset
-        & ((|state) ? _GEN_26 | _GEN_5 : ~_GEN_21 & icache_req_valid & ~_GEN_20 | _GEN_5);
+        ~reset & ((|state) ? _GEN_25 : ~_GEN_20 & icache_req_valid & ~_GEN_19);
       dcache_data_valid <=
         ~reset
         & ((|state)
-             ? ~_GEN_29 & (_GEN_28 | _GEN_31 & ~_GEN_34) & _GEN_24
+             ? ~_GEN_28 & (_GEN_27 | _GEN_30 & ~_GEN_33) & _GEN_23
              : dcache_write_req_valid
-                 ? ~_GEN_8 & (~_GEN_9 | ~io_txd_uart_busy)
-                 : dcache_read_req_valid & ~_GEN_14);
+                 ? ~_GEN_7 & (~_GEN_8 | ~io_txd_uart_busy)
+                 : dcache_read_req_valid & ~_GEN_13);
       if (io_rxd_uart_clear_0 & tail_idx == 3'h0)
         uart_buffer_0_data <= io_rxd_uart_data;
       if (io_rxd_uart_clear_0 & tail_idx == 3'h1)
@@ -739,12 +735,12 @@ module IoControl(
         uart_buffer_6_data <= io_rxd_uart_data;
       if (io_rxd_uart_clear_0 & (&tail_idx))
         uart_buffer_7_data <= io_rxd_uart_data;
-      maybe_full <= ~reset & _GEN_16 & (io_rxd_uart_clear_0 | maybe_full);
+      maybe_full <= ~reset & _GEN_15 & (io_rxd_uart_clear_0 | maybe_full);
       txd_uart_start <=
         ~reset
         & ((|state)
-             ? (_GEN_23 | _GEN_27 | _GEN_36 | _GEN_35) & txd_uart_start
-             : dcache_write_req_valid & ~_GEN_8 & _GEN_10 | txd_uart_start);
+             ? (_GEN_22 | _GEN_26 | _GEN_35 | _GEN_34) & txd_uart_start
+             : dcache_write_req_valid & ~_GEN_7 & _GEN_9 | txd_uart_start);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -954,7 +950,6 @@ module ICache(
   input          io_io_read_req_ready,
   output         io_io_read_req_valid,
   output [31:0]  io_io_read_req_bits_addr,
-  output         io_io_read_resp_ready,
   input          io_io_read_resp_valid,
   input  [255:0] io_io_read_resp_bits_data,
   output         io_icache_debug_state,
@@ -1808,7 +1803,6 @@ module ICache(
   assign io_icache_resp_bits_addr = current_req_bits_addr;
   assign io_io_read_req_valid = (|state) & _GEN_0 & ~hit_cache;
   assign io_io_read_req_bits_addr = {current_req_bits_addr[31:5], 5'h0};
-  assign io_io_read_resp_ready = 1'h1;
   assign io_icache_debug_state = state == 2'h2;
   assign io_icache_debug_hit_cache = hit_cache;
   assign io_icache_debug_cache_we = cache_we;
@@ -1939,27 +1933,12 @@ module FetchUnit(
   input          io_icache_resp_valid,
   input  [255:0] io_icache_resp_bits_data,
   input  [31:0]  io_icache_resp_bits_addr,
-  input          io_branch,
-  input  [31:0]  io_target,
   input          io_signal_fetchUnitSignal_allow_to_go,
-                 io_signal_fetchUnitSignal_do_flush,
-                 io_signal_decodeUnitSignal_allow_to_go,
-                 io_signal_decodeUnitSignal_do_flush,
-                 io_signal_executeUnitSignal_allow_to_go,
-                 io_signal_executeUnitSignal_do_flush,
-                 io_signal_bypassData_stage1_src1_bypass,
-                 io_signal_bypassData_stage1_src2_bypass,
-  input  [31:0]  io_signal_bypassData_stage1_src1_data,
-                 io_signal_bypassData_stage1_src2_data,
-  input          io_signal_bypassData_stage2_src1_bypass,
-                 io_signal_bypassData_stage2_src2_bypass,
-  input  [31:0]  io_signal_bypassData_stage2_src1_data,
-                 io_signal_bypassData_stage2_src2_data,
-  input          io_signal_decodeStage1Stall,
-                 io_icache_req_ready,
+                 io_signal_branchControl_branch,
+  input  [31:0]  io_signal_branchControl_target,
+  input          io_icache_req_ready,
   output         io_icache_req_valid,
-  output [31:0]  io_icache_req_bits_addr,
-  output         io_canStart
+  output [31:0]  io_icache_req_bits_addr
 );
 
   reg  [31:0]      pc;
@@ -1970,7 +1949,7 @@ module FetchUnit(
   reg  [31:0]      ifid_reg_pc;
   reg              canStart_REG;
   reg              io_canStart_REG;
-  wire             io_canStart_0 =
+  wire             io_canStart =
     ~(|state) & ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid)
     & io_canStart_REG;
   wire             _GEN = state == 2'h1;
@@ -1993,7 +1972,7 @@ module FetchUnit(
     automatic logic canStart;
     automatic logic _GEN_6;
     canStart = canStart_REG & ~reset;
-    _GEN_6 = io_canStart_0 & io_icache_req_ready;
+    _GEN_6 = io_canStart & io_icache_req_ready;
     if (reset) begin
       pc <= 32'h80000000;
       state <= 2'h0;
@@ -2003,9 +1982,11 @@ module FetchUnit(
     end
     else begin
       automatic logic _GEN_7;
-      _GEN_7 = io_branch | ~(|state) | ~_GEN_4 | io_signal_fetchUnitSignal_allow_to_go;
-      if (io_branch) begin
-        pc <= io_target;
+      _GEN_7 =
+        io_signal_branchControl_branch | ~(|state) | ~_GEN_4
+        | io_signal_fetchUnitSignal_allow_to_go;
+      if (io_signal_branchControl_branch) begin
+        pc <= io_signal_branchControl_target;
         state <= 2'h0;
       end
       else begin
@@ -2029,14 +2010,14 @@ module FetchUnit(
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
-        ~(io_branch | _GEN_5)
+        ~(io_signal_branchControl_branch | _GEN_5)
         & ((|state) & _GEN_4 & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
       if (_GEN_7) begin
       end
       else
         ifid_reg_pc <= reqPC;
     end
-    if (io_branch | ~(~(|state) & _GEN_6)) begin
+    if (io_signal_branchControl_branch | ~(~(|state) & _GEN_6)) begin
     end
     else
       reqPC <= pc;
@@ -2071,17 +2052,21 @@ module FetchUnit(
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
   assign io_decodeStage_data_inst =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_inst : _GEN_3 ? inst : 32'h0;
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_inst : _GEN_3 ? inst : 32'h0;
   assign io_decodeStage_data_valid =
-    ~io_branch
+    ~io_signal_branchControl_branch
     & (_GEN_5
          ? ifid_reg_valid
          : (|state) & _GEN_4 & io_signal_fetchUnitSignal_allow_to_go);
   assign io_decodeStage_data_pc =
-    io_branch ? 32'h0 : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
-  assign io_icache_req_valid = io_branch | io_canStart_0;
-  assign io_icache_req_bits_addr = io_branch ? io_target : pc;
-  assign io_canStart = io_canStart_0;
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
+  assign io_icache_req_valid = io_signal_branchControl_branch | io_canStart;
+  assign io_icache_req_bits_addr =
+    io_signal_branchControl_branch ? io_signal_branchControl_target : pc;
 endmodule
 
 module DecodeStage(
@@ -2159,18 +2144,10 @@ module DecodeUnit(
   input  [31:0] io_regfile_src1_rdata,
   output [4:0]  io_regfile_src2_raddr,
   input  [31:0] io_regfile_src2_rdata,
-  output [4:0]  io_regfile_src3_raddr,
-  input  [31:0] io_regfile_src3_rdata,
-  output [4:0]  io_regfile_src4_raddr,
-  input  [31:0] io_regfile_src4_rdata,
-  input         io_bypassData_stage1_src1_bypass,
-                io_bypassData_stage1_src2_bypass,
-  input  [31:0] io_bypassData_stage1_src1_data,
-                io_bypassData_stage1_src2_data,
-  input         io_bypassData_stage2_src1_bypass,
-                io_bypassData_stage2_src2_bypass,
-  input  [31:0] io_bypassData_stage2_src1_data,
-                io_bypassData_stage2_src2_data,
+  input         io_bypassData_src1_bypass,
+                io_bypassData_src2_bypass,
+  input  [31:0] io_bypassData_src1_data,
+                io_bypassData_src2_data,
   output [31:0] io_executeStage_data_pc,
                 io_executeStage_data_info_instr,
   output        io_executeStage_data_info_valid,
@@ -2181,147 +2158,94 @@ module DecodeUnit(
   output [2:0]  io_executeStage_data_info_fusel,
   output [31:0] io_executeStage_data_src_info_src1_data,
                 io_executeStage_data_src_info_src2_data,
-  output        io_branch,
-  output [31:0] io_target,
-  output        io_decodeInternalStall,
-  input         io_decodeStage1Stall,
-  output [4:0]  io_registerInfo_stage1_src1_raddr,
-                io_registerInfo_stage1_src2_raddr,
-  output        io_registerInfo_stage1_src1_ren,
-                io_registerInfo_stage1_src2_ren,
-  output [4:0]  io_registerInfo_stage2_src1_raddr,
-                io_registerInfo_stage2_src2_raddr,
-  output        io_registerInfo_stage2_src1_ren,
-                io_registerInfo_stage2_src2_ren
+  output [4:0]  io_registerInfo_src1_raddr,
+                io_registerInfo_src2_raddr,
+  output        io_registerInfo_src1_ren,
+                io_registerInfo_src2_ren
 );
 
-  wire        is_jirl = io_decodeStage_data_inst[31:26] == 6'h13;
-  wire        is_b = io_decodeStage_data_inst[31:26] == 6'h14;
-  wire        is_bl = io_decodeStage_data_inst[31:26] == 6'h15;
-  wire        is_beq = io_decodeStage_data_inst[31:26] == 6'h16;
-  wire        is_bne = io_decodeStage_data_inst[31:26] == 6'h17;
-  wire        is_blt = io_decodeStage_data_inst[31:26] == 6'h18;
-  wire        is_bge = io_decodeStage_data_inst[31:26] == 6'h19;
-  wire        is_bltu = io_decodeStage_data_inst[31:26] == 6'h1A;
-  wire        is_bgeu = io_decodeStage_data_inst[31:26] == 6'h1B;
-  wire        is_bru =
-    is_jirl | is_b | is_bl | is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu;
-  wire        bru_need_rd = is_beq | is_bne | is_blt | is_bge | is_bltu | is_bgeu;
-  reg  [31:0] stage1_reg_pc;
-  reg  [31:0] stage1_reg_inst;
-  reg         stage1_reg_valid;
-  wire        stage2_will_write =
-    stage1_reg_valid & (|(stage1_reg_inst[4:0])) & stage1_reg_inst[31:26] != 6'h14
-    & ~(stage1_reg_inst[31:26] == 6'hA & stage1_reg_inst[24]);
-  wire        stage1_needs_rj = is_bru & (is_jirl | bru_need_rd);
-  wire        stage1_needs_rd = is_bru & bru_need_rd;
-  wire        io_decodeInternalStall_0 =
-    io_decodeStage_data_valid & stage2_will_write
-    & (stage1_needs_rj & io_decodeStage_data_inst[9:5] == stage1_reg_inst[4:0]
-       & (|(io_decodeStage_data_inst[9:5])) | stage1_needs_rd
-       & io_decodeStage_data_inst[4:0] == stage1_reg_inst[4:0]
-       & (|(io_decodeStage_data_inst[4:0])));
-  wire [31:0] bru_src1_data =
-    io_bypassData_stage1_src1_bypass & is_bru
-      ? io_bypassData_stage1_src1_data
-      : io_regfile_src1_rdata;
-  wire [31:0] bru_src2_data =
-    io_bypassData_stage1_src2_bypass & is_bru & bru_need_rd
-      ? io_bypassData_stage1_src2_data
-      : io_regfile_src2_rdata;
-  wire        eq = bru_src1_data == bru_src2_data;
-  wire        lt = $signed(bru_src1_data) < $signed(bru_src2_data);
-  wire        ltu = bru_src1_data < bru_src2_data;
-  wire [31:0] _GEN =
-    {{14{io_decodeStage_data_inst[25]}}, io_decodeStage_data_inst[25:10], 2'h0};
-  wire        takeBranch =
-    is_bru
-    & (is_beq & eq | is_bne & ~eq | is_blt & lt | is_bge & ~lt | is_bltu & ltu | is_bgeu
-       & ~ltu | is_b | is_bl | is_jirl);
-  wire [31:0] io_target_0 =
-    is_jirl ? bru_src1_data + _GEN : io_decodeStage_data_pc + _GEN;
-  wire        _GEN_0 = stage1_reg_inst[31:25] == 7'hA;
-  wire        _GEN_1 = stage1_reg_inst[31:25] == 7'hE;
-  wire        _GEN_2 = stage1_reg_inst[31:22] == 10'hA;
-  wire        _GEN_3 = stage1_reg_inst[31:15] == 17'h20;
-  wire        _GEN_4 = stage1_reg_inst[31:22] == 10'hF;
-  wire        _GEN_5 = stage1_reg_inst[31:15] == 17'h2B;
-  wire        _GEN_6 = stage1_reg_inst[31:15] == 17'h81;
-  wire        _GEN_7 = stage1_reg_inst[31:15] == 17'h89;
-  wire        _GEN_8 = stage1_reg_inst[31:22] == 10'hE;
-  wire        _GEN_9 = stage1_reg_inst[31:15] == 17'h2A;
-  wire        _GEN_10 = stage1_reg_inst[31:22] == 10'hD;
-  wire        _GEN_11 = stage1_reg_inst[31:15] == 17'h29;
-  wire        _GEN_12 = stage1_reg_inst[31:15] == 17'h22;
-  wire        _GEN_13 = stage1_reg_inst[31:15] == 17'h38;
-  wire        _GEN_14 = stage1_reg_inst[31:22] == 10'hA0;
-  wire        _GEN_15 = stage1_reg_inst[31:22] == 10'hA2;
-  wire        _GEN_16 = stage1_reg_inst[31:22] == 10'hA4;
-  wire        _GEN_17 = stage1_reg_inst[31:22] == 10'hA6;
-  wire        _GEN_18 = stage1_reg_inst[31:26] == 6'h16;
-  wire        _GEN_19 = stage1_reg_inst[31:26] == 6'h17;
-  wire        _GEN_20 = stage1_reg_inst[31:26] == 6'h14;
-  wire        _GEN_21 = stage1_reg_inst[31:26] == 6'h15;
-  wire        _GEN_22 = stage1_reg_inst[31:26] == 6'h13;
-  wire        _GEN_23 = _GEN_20 | _GEN_21 | _GEN_22;
-  wire        _GEN_24 = _GEN_16 | _GEN_17;
+  wire        _GEN = io_decodeStage_data_inst[31:25] == 7'hA;
+  wire        _GEN_0 = io_decodeStage_data_inst[31:25] == 7'hE;
+  wire        _GEN_1 = io_decodeStage_data_inst[31:22] == 10'hA;
+  wire        _GEN_2 = io_decodeStage_data_inst[31:15] == 17'h20;
+  wire        _GEN_3 = io_decodeStage_data_inst[31:22] == 10'hF;
+  wire        _GEN_4 = io_decodeStage_data_inst[31:15] == 17'h2B;
+  wire        _GEN_5 = io_decodeStage_data_inst[31:15] == 17'h81;
+  wire        _GEN_6 = io_decodeStage_data_inst[31:15] == 17'h89;
+  wire        _GEN_7 = io_decodeStage_data_inst[31:22] == 10'hE;
+  wire        _GEN_8 = io_decodeStage_data_inst[31:15] == 17'h2A;
+  wire        _GEN_9 = io_decodeStage_data_inst[31:22] == 10'hD;
+  wire        _GEN_10 = io_decodeStage_data_inst[31:15] == 17'h29;
+  wire        _GEN_11 = io_decodeStage_data_inst[31:15] == 17'h22;
+  wire        _GEN_12 = io_decodeStage_data_inst[31:15] == 17'h38;
+  wire        _GEN_13 = io_decodeStage_data_inst[31:22] == 10'hA0;
+  wire        _GEN_14 = io_decodeStage_data_inst[31:22] == 10'hA2;
+  wire        _GEN_15 = io_decodeStage_data_inst[31:22] == 10'hA4;
+  wire        _GEN_16 = io_decodeStage_data_inst[31:22] == 10'hA6;
+  wire        _GEN_17 = io_decodeStage_data_inst[31:26] == 6'h16;
+  wire        _GEN_18 = io_decodeStage_data_inst[31:26] == 6'h17;
+  wire        _GEN_19 = io_decodeStage_data_inst[31:26] == 6'h14;
+  wire        _GEN_20 = io_decodeStage_data_inst[31:26] == 6'h15;
+  wire        _GEN_21 = io_decodeStage_data_inst[31:26] == 6'h13;
+  wire        _GEN_22 = _GEN_19 | _GEN_20 | _GEN_21;
+  wire        _GEN_23 = _GEN_15 | _GEN_16;
   wire [2:0]  instrType =
-    _GEN_0 | _GEN_1
+    _GEN | _GEN_0
       ? 3'h6
-      : _GEN_2
+      : _GEN_1
           ? 3'h4
-          : _GEN_3
+          : _GEN_2
               ? 3'h5
-              : _GEN_4
+              : _GEN_3
                   ? 3'h4
-                  : _GEN_5
+                  : _GEN_4
                       ? 3'h5
-                      : _GEN_6 | _GEN_7 | _GEN_8
+                      : _GEN_5 | _GEN_6 | _GEN_7
                           ? 3'h4
-                          : _GEN_9
+                          : _GEN_8
                               ? 3'h5
-                              : _GEN_10
+                              : _GEN_9
                                   ? 3'h4
-                                  : _GEN_11 | _GEN_12 | _GEN_13
+                                  : _GEN_10 | _GEN_11 | _GEN_12
                                       ? 3'h5
-                                      : _GEN_14 | _GEN_15
+                                      : _GEN_13 | _GEN_14
                                           ? 3'h4
-                                          : _GEN_24
+                                          : _GEN_23
                                               ? 3'h2
-                                              : _GEN_18 | _GEN_19 ? 3'h1 : {3{_GEN_23}};
+                                              : _GEN_17 | _GEN_18 ? 3'h1 : {3{_GEN_22}};
   wire [3:0]  fuOpType =
-    _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3
+    _GEN | _GEN_0 | _GEN_1 | _GEN_2
       ? 4'h0
-      : _GEN_4 | _GEN_5
+      : _GEN_3 | _GEN_4
           ? 4'h4
-          : _GEN_6
+          : _GEN_5
               ? 4'h9
-              : _GEN_7
+              : _GEN_6
                   ? 4'h5
-                  : _GEN_8 | _GEN_9
+                  : _GEN_7 | _GEN_8
                       ? 4'h7
-                      : _GEN_10 | _GEN_11
+                      : _GEN_9 | _GEN_10
                           ? 4'h8
-                          : _GEN_12
+                          : _GEN_11
                               ? 4'h1
-                              : _GEN_13 | _GEN_14
+                              : _GEN_12 | _GEN_13
                                   ? 4'h0
-                                  : _GEN_15
+                                  : _GEN_14
                                       ? 4'h2
-                                      : _GEN_16
+                                      : _GEN_15
                                           ? 4'h8
-                                          : _GEN_17
+                                          : _GEN_16
                                               ? 4'hA
-                                              : _GEN_18
+                                              : _GEN_17
                                                   ? 4'h0
-                                                  : _GEN_19
+                                                  : _GEN_18
                                                       ? 4'h1
-                                                      : _GEN_20
+                                                      : _GEN_19
                                                           ? 4'h8
-                                                          : _GEN_21
+                                                          : _GEN_20
                                                               ? 4'hA
-                                                              : _GEN_22 ? 4'hB : 4'h0;
-  wire [9:0]  _imm_j_T_2 = fuOpType == 4'hB ? 10'h0 : stage1_reg_inst[9:0];
+                                                              : _GEN_21 ? 4'hB : 4'h0;
+  wire [9:0]  _imm_j_T_2 = fuOpType == 4'hB ? 10'h0 : io_decodeStage_data_inst[9:0];
   wire        isR = instrType == 3'h5;
   wire        isI = instrType == 3'h4;
   wire        isU = instrType == 3'h6;
@@ -2329,123 +2253,75 @@ module DecodeUnit(
   wire        isB = instrType == 3'h1;
   wire [31:0] imm =
     (isI
-       ? {stage1_reg_inst[24] ? 20'h0 : {20{stage1_reg_inst[21]}}, stage1_reg_inst[21:10]}
-       : 32'h0) | (isS ? {{20{stage1_reg_inst[21]}}, stage1_reg_inst[21:10]} : 32'h0)
-    | (isB ? {{14{stage1_reg_inst[25]}}, stage1_reg_inst[25:10], 2'h0} : 32'h0)
-    | (isU ? {stage1_reg_inst[24:5], 12'h0} : 32'h0)
+       ? {io_decodeStage_data_inst[24] ? 20'h0 : {20{io_decodeStage_data_inst[21]}},
+          io_decodeStage_data_inst[21:10]}
+       : 32'h0)
+    | (isS
+         ? {{20{io_decodeStage_data_inst[21]}}, io_decodeStage_data_inst[21:10]}
+         : 32'h0)
+    | (isB
+         ? {{14{io_decodeStage_data_inst[25]}}, io_decodeStage_data_inst[25:10], 2'h0}
+         : 32'h0) | (isU ? {io_decodeStage_data_inst[24:5], 12'h0} : 32'h0)
     | ((&instrType)
-         ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, stage1_reg_inst[25:10], 2'h0}
+         ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, io_decodeStage_data_inst[25:10], 2'h0}
          : 32'h0);
+  wire [4:0]  reg_waddr =
+    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
+    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   wire [4:0]  src2_raddr =
-    isR ? stage1_reg_inst[14:10] : isS | isB ? stage1_reg_inst[4:0] : 5'h0;
+    isR
+      ? io_decodeStage_data_inst[14:10]
+      : isS | isB ? io_decodeStage_data_inst[4:0] : 5'h0;
   wire        _src1_ren_T = isR | isI;
+  wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeInternalStall_0 & ~reset) begin
-        $fwrite(32'h80000002, "[DecodeUnit] Internal conflict detected!\n");
-        $fwrite(32'h80000002, "  Stage1: inst=0x%x, rj=%d, rd=%d, is_bru=%d\n",
-                io_decodeStage_data_inst, io_decodeStage_data_inst[9:5],
-                io_decodeStage_data_inst[4:0], is_bru);
-        $fwrite(32'h80000002, "  Stage2: inst=0x%x, rd=%d, will_write=%d\n",
-                stage1_reg_inst, stage1_reg_inst[4:0], stage2_will_write);
-      end
-      if ((`PRINTF_COND_) & is_bru & io_decodeStage_data_valid & ~reset) begin
-        $fwrite(32'h80000002, "[DecodeUnit] BRU instruction detected:\n");
-        $fwrite(32'h80000002, "  PC: 0x%x, Inst: 0x%x\n", io_decodeStage_data_pc,
-                io_decodeStage_data_inst);
-        $fwrite(32'h80000002, "  rj=%d, rd=%d\n", io_decodeStage_data_inst[9:5],
-                io_decodeStage_data_inst[4:0]);
-        $fwrite(32'h80000002, "  bru_src1_data=0x%x, bru_src2_data=0x%x\n", bru_src1_data,
-                bru_src2_data);
-        $fwrite(32'h80000002, "  takeBranch=%d, target=0x%x\n", takeBranch, io_target_0);
+      if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
+        $fwrite(32'h80000002, "[DecodeUnit] Decoding: PC=0x%x, Inst=0x%x\n",
+                io_decodeStage_data_pc, io_decodeStage_data_inst);
+        $fwrite(32'h80000002, "  src1_raddr=%d, src2_raddr=%d, reg_waddr=%d\n",
+                io_decodeStage_data_inst[9:5], src2_raddr, reg_waddr);
+        $fwrite(32'h80000002, "  src1_ren=%d, src2_ren=%d, reg_wen=%d\n", src1_ren,
+                src2_ren, reg_wen);
       end
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  always @(posedge clock) begin
-    if (reset) begin
-      stage1_reg_pc <= 32'h0;
-      stage1_reg_inst <= 32'h0;
-      stage1_reg_valid <= 1'h0;
-    end
-    else if (io_decodeStage1Stall) begin
-    end
-    else begin
-      stage1_reg_pc <= io_decodeStage_data_pc;
-      stage1_reg_inst <= io_decodeStage_data_inst;
-      stage1_reg_valid <= io_decodeStage_data_valid;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:2];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        stage1_reg_pc = _RANDOM[2'h0];
-        stage1_reg_inst = _RANDOM[2'h1];
-        stage1_reg_valid = _RANDOM[2'h2][0];
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_regfile_src1_raddr = is_bru ? io_decodeStage_data_inst[9:5] : 5'h0;
-  assign io_regfile_src2_raddr = stage1_needs_rd ? io_decodeStage_data_inst[4:0] : 5'h0;
-  assign io_regfile_src3_raddr = src1_ren ? stage1_reg_inst[9:5] : 5'h0;
-  assign io_regfile_src4_raddr = src2_ren ? src2_raddr : 5'h0;
-  assign io_executeStage_data_pc = stage1_reg_pc;
-  assign io_executeStage_data_info_instr = (|instrType) ? stage1_reg_inst : 32'h2800000;
-  assign io_executeStage_data_info_valid = stage1_reg_valid & (|instrType);
+  assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[9:5] : 5'h0;
+  assign io_regfile_src2_raddr = src2_ren ? src2_raddr : 5'h0;
+  assign io_executeStage_data_pc = io_decodeStage_data_pc;
+  assign io_executeStage_data_info_instr =
+    (|instrType) ? io_decodeStage_data_inst : 32'h2800000;
+  assign io_executeStage_data_info_valid = io_decodeStage_data_valid & (|instrType);
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
-    (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & stage1_reg_valid
-    & (|instrType);
-  assign io_executeStage_data_info_reg_waddr =
-    (isR | isI | isU ? stage1_reg_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : stage1_reg_inst[4:0]) : 5'h0);
+    reg_wen & io_decodeStage_data_valid & (|instrType);
+  assign io_executeStage_data_info_reg_waddr = reg_waddr;
   assign io_executeStage_data_info_imm = imm;
   assign io_executeStage_data_info_fusel =
     {1'h0,
-     _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
-     | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12
+     _GEN | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
+     | _GEN_9 | _GEN_10 | _GEN_11
        ? 2'h0
-       : _GEN_13
+       : _GEN_12
            ? 2'h1
-           : _GEN_14 | _GEN_15 | _GEN_24 ? 2'h2 : {2{_GEN_18 | _GEN_19 | _GEN_23}}};
+           : _GEN_13 | _GEN_14 | _GEN_23 ? 2'h2 : {2{_GEN_17 | _GEN_18 | _GEN_22}}};
   assign io_executeStage_data_src_info_src1_data =
     (src1_ren
-       ? (io_bypassData_stage2_src1_bypass
-            ? io_bypassData_stage2_src1_data
-            : io_regfile_src3_rdata)
-       : 32'h0) | (~src1_ren & stage1_reg_inst[31:25] != 7'hA ? stage1_reg_pc : 32'h0);
+       ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
+       : 32'h0)
+    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
+         ? io_decodeStage_data_pc
+         : 32'h0);
   assign io_executeStage_data_src_info_src2_data =
     src2_ren
-      ? (io_bypassData_stage2_src2_bypass
-           ? io_bypassData_stage2_src2_data
-           : io_regfile_src4_rdata)
+      ? (io_bypassData_src2_bypass ? io_bypassData_src2_data : io_regfile_src2_rdata)
       : imm;
-  assign io_branch =
-    is_bru & takeBranch & io_decodeStage_data_valid & ~io_decodeStage1Stall;
-  assign io_target = io_target_0;
-  assign io_decodeInternalStall = io_decodeInternalStall_0;
-  assign io_registerInfo_stage1_src1_raddr = io_decodeStage_data_inst[9:5];
-  assign io_registerInfo_stage1_src2_raddr = io_decodeStage_data_inst[4:0];
-  assign io_registerInfo_stage1_src1_ren = stage1_needs_rj;
-  assign io_registerInfo_stage1_src2_ren = stage1_needs_rd;
-  assign io_registerInfo_stage2_src1_raddr = stage1_reg_inst[9:5];
-  assign io_registerInfo_stage2_src2_raddr = src2_raddr;
-  assign io_registerInfo_stage2_src1_ren = src1_ren;
-  assign io_registerInfo_stage2_src2_ren = src2_ren;
+  assign io_registerInfo_src1_raddr = io_decodeStage_data_inst[9:5];
+  assign io_registerInfo_src2_raddr = src2_raddr;
+  assign io_registerInfo_src1_ren = src1_ren;
+  assign io_registerInfo_src2_ren = src2_ren;
 endmodule
 
 module ARegFile(
@@ -2455,10 +2331,6 @@ module ARegFile(
   output [31:0] io_read_src1_rdata,
   input  [4:0]  io_read_src2_raddr,
   output [31:0] io_read_src2_rdata,
-  input  [4:0]  io_read_src3_raddr,
-  output [31:0] io_read_src3_rdata,
-  input  [4:0]  io_read_src4_raddr,
-  output [31:0] io_read_src4_rdata,
   input         io_write_wen,
   input  [4:0]  io_write_waddr,
   input  [31:0] io_write_wdata,
@@ -2528,7 +2400,8 @@ module ARegFile(
   reg  [31:0]       regs_29;
   reg  [31:0]       regs_30;
   reg  [31:0]       regs_31;
-  wire [31:0][31:0] _GEN =
+  wire              _GEN = io_write_wen & (|io_write_waddr);
+  wire [31:0][31:0] _GEN_0 =
     {{regs_31},
      {regs_30},
      {regs_29},
@@ -2561,6 +2434,13 @@ module ARegFile(
      {regs_2},
      {regs_1},
      {regs_0}};
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      if ((`PRINTF_COND_) & _GEN & ~reset)
+        $fwrite(32'h80000002, "[RegFile] Write: r%d = 0x%x\n", io_write_waddr,
+                io_write_wdata);
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   always @(posedge clock) begin
     if (reset) begin
       regs_0 <= 32'h0;
@@ -2597,70 +2477,69 @@ module ARegFile(
       regs_31 <= 32'h0;
     end
     else begin
-      automatic logic _GEN_0 = io_write_wen & (|io_write_waddr);
-      if (_GEN_0 & ~(|io_write_waddr))
+      if (_GEN & ~(|io_write_waddr))
         regs_0 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1)
+      if (_GEN & io_write_waddr == 5'h1)
         regs_1 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h2)
+      if (_GEN & io_write_waddr == 5'h2)
         regs_2 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h3)
+      if (_GEN & io_write_waddr == 5'h3)
         regs_3 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h4)
+      if (_GEN & io_write_waddr == 5'h4)
         regs_4 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h5)
+      if (_GEN & io_write_waddr == 5'h5)
         regs_5 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h6)
+      if (_GEN & io_write_waddr == 5'h6)
         regs_6 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h7)
+      if (_GEN & io_write_waddr == 5'h7)
         regs_7 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h8)
+      if (_GEN & io_write_waddr == 5'h8)
         regs_8 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h9)
+      if (_GEN & io_write_waddr == 5'h9)
         regs_9 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hA)
+      if (_GEN & io_write_waddr == 5'hA)
         regs_10 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hB)
+      if (_GEN & io_write_waddr == 5'hB)
         regs_11 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hC)
+      if (_GEN & io_write_waddr == 5'hC)
         regs_12 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hD)
+      if (_GEN & io_write_waddr == 5'hD)
         regs_13 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hE)
+      if (_GEN & io_write_waddr == 5'hE)
         regs_14 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'hF)
+      if (_GEN & io_write_waddr == 5'hF)
         regs_15 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h10)
+      if (_GEN & io_write_waddr == 5'h10)
         regs_16 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h11)
+      if (_GEN & io_write_waddr == 5'h11)
         regs_17 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h12)
+      if (_GEN & io_write_waddr == 5'h12)
         regs_18 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h13)
+      if (_GEN & io_write_waddr == 5'h13)
         regs_19 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h14)
+      if (_GEN & io_write_waddr == 5'h14)
         regs_20 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h15)
+      if (_GEN & io_write_waddr == 5'h15)
         regs_21 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h16)
+      if (_GEN & io_write_waddr == 5'h16)
         regs_22 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h17)
+      if (_GEN & io_write_waddr == 5'h17)
         regs_23 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h18)
+      if (_GEN & io_write_waddr == 5'h18)
         regs_24 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h19)
+      if (_GEN & io_write_waddr == 5'h19)
         regs_25 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1A)
+      if (_GEN & io_write_waddr == 5'h1A)
         regs_26 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1B)
+      if (_GEN & io_write_waddr == 5'h1B)
         regs_27 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1C)
+      if (_GEN & io_write_waddr == 5'h1C)
         regs_28 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1D)
+      if (_GEN & io_write_waddr == 5'h1D)
         regs_29 <= io_write_wdata;
-      if (_GEN_0 & io_write_waddr == 5'h1E)
+      if (_GEN & io_write_waddr == 5'h1E)
         regs_30 <= io_write_wdata;
-      if (_GEN_0 & (&io_write_waddr))
+      if (_GEN & (&io_write_waddr))
         regs_31 <= io_write_wdata;
     end
   end // always @(posedge)
@@ -2715,10 +2594,8 @@ module ARegFile(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_read_src1_rdata = _GEN[io_read_src1_raddr];
-  assign io_read_src2_rdata = _GEN[io_read_src2_raddr];
-  assign io_read_src3_rdata = _GEN[io_read_src3_raddr];
-  assign io_read_src4_rdata = _GEN[io_read_src4_raddr];
+  assign io_read_src1_rdata = _GEN_0[io_read_src1_raddr];
+  assign io_read_src2_rdata = _GEN_0[io_read_src2_raddr];
   assign io_regs_out_0 = regs_0;
   assign io_regs_out_1 = regs_1;
   assign io_regs_out_2 = regs_2;
@@ -2767,6 +2644,7 @@ module ExecuteStage(
   input  [31:0] io_decodeUnit_data_src_info_src1_data,
                 io_decodeUnit_data_src_info_src2_data,
   input         io_controlSignal_decodeUnitSignal_allow_to_go,
+                io_controlSignal_decodeUnitSignal_do_flush,
                 io_ready,
   output [31:0] io_executeUnit_data_pc,
                 io_executeUnit_data_info_instr,
@@ -2806,22 +2684,56 @@ module ExecuteStage(
       data_src_info_src2_data <= 32'h0;
     end
     else begin
-      automatic logic            _GEN =
-        io_controlSignal_decodeUnitSignal_allow_to_go & io_ready;
+      automatic logic            _GEN;
       automatic logic [3:0][1:0] _GEN_0;
-      _GEN_0 = {{state}, {2'h0}, {2'h1}, {_GEN ? 2'h1 : state}};
+      _GEN = io_controlSignal_decodeUnitSignal_allow_to_go & io_ready;
+      _GEN_0 =
+        {{state},
+         {2'h0},
+         {io_controlSignal_decodeUnitSignal_do_flush ? 2'h2 : 2'h1},
+         {_GEN ? 2'h1 : state}};
       state <= _GEN_0[state];
-      if ((state == 2'h0 | state == 2'h1) & _GEN) begin
-        data_pc <= io_decodeUnit_data_pc;
-        data_info_instr <= io_decodeUnit_data_info_instr;
-        data_info_valid <= io_decodeUnit_data_info_valid;
-        data_info_op <= io_decodeUnit_data_info_op;
-        data_info_reg_wen <= io_decodeUnit_data_info_reg_wen;
-        data_info_reg_waddr <= io_decodeUnit_data_info_reg_waddr;
-        data_info_imm <= io_decodeUnit_data_info_imm;
-        data_info_fusel <= io_decodeUnit_data_info_fusel;
-        data_src_info_src1_data <= io_decodeUnit_data_src_info_src1_data;
-        data_src_info_src2_data <= io_decodeUnit_data_src_info_src2_data;
+      if (state == 2'h0) begin
+        if (_GEN) begin
+          data_pc <= io_decodeUnit_data_pc;
+          data_info_instr <= io_decodeUnit_data_info_instr;
+          data_info_valid <= io_decodeUnit_data_info_valid;
+          data_info_op <= io_decodeUnit_data_info_op;
+          data_info_reg_wen <= io_decodeUnit_data_info_reg_wen;
+          data_info_reg_waddr <= io_decodeUnit_data_info_reg_waddr;
+          data_info_imm <= io_decodeUnit_data_info_imm;
+          data_info_fusel <= io_decodeUnit_data_info_fusel;
+          data_src_info_src1_data <= io_decodeUnit_data_src_info_src1_data;
+          data_src_info_src2_data <= io_decodeUnit_data_src_info_src2_data;
+        end
+      end
+      else if (state == 2'h1) begin
+        if (io_controlSignal_decodeUnitSignal_do_flush) begin
+          data_pc <= 32'h0;
+          data_info_instr <= 32'h0;
+          data_info_op <= 5'h0;
+          data_info_reg_waddr <= 5'h0;
+          data_info_imm <= 32'h0;
+          data_info_fusel <= 3'h0;
+          data_src_info_src1_data <= 32'h0;
+          data_src_info_src2_data <= 32'h0;
+        end
+        else if (_GEN) begin
+          data_pc <= io_decodeUnit_data_pc;
+          data_info_instr <= io_decodeUnit_data_info_instr;
+          data_info_op <= io_decodeUnit_data_info_op;
+          data_info_reg_waddr <= io_decodeUnit_data_info_reg_waddr;
+          data_info_imm <= io_decodeUnit_data_info_imm;
+          data_info_fusel <= io_decodeUnit_data_info_fusel;
+          data_src_info_src1_data <= io_decodeUnit_data_src_info_src1_data;
+          data_src_info_src2_data <= io_decodeUnit_data_src_info_src2_data;
+        end
+        data_info_valid <=
+          ~io_controlSignal_decodeUnitSignal_do_flush
+          & (_GEN ? io_decodeUnit_data_info_valid : data_info_valid);
+        data_info_reg_wen <=
+          ~io_controlSignal_decodeUnitSignal_do_flush
+          & (_GEN ? io_decodeUnit_data_info_reg_wen : data_info_reg_wen);
       end
     end
   end // always @(posedge)
@@ -2973,38 +2885,61 @@ module WriteBuffer(
   input         io_enq_bits_write,
   input  [31:0] io_enq_bits_wdata,
   input  [3:0]  io_enq_bits_wstrb,
+  input  [2:0]  io_enq_bits_size,
   input         io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_addr,
   output        io_deq_bits_write,
   output [31:0] io_deq_bits_wdata,
-  output [3:0]  io_deq_bits_wstrb
+  output [3:0]  io_deq_bits_wstrb,
+  output [2:0]  io_deq_bits_size,
+  input         io_flush,
+  input  [31:0] io_bypassAddr,
+  input         io_bypassEnable,
+  output        io_bypassHit,
+  output [31:0] io_bypassData
 );
 
   reg  [31:0]      buffer_0_req_addr;
   reg              buffer_0_req_write;
   reg  [31:0]      buffer_0_req_wdata;
   reg  [3:0]       buffer_0_req_wstrb;
+  reg  [2:0]       buffer_0_req_size;
   reg  [31:0]      buffer_1_req_addr;
   reg              buffer_1_req_write;
   reg  [31:0]      buffer_1_req_wdata;
   reg  [3:0]       buffer_1_req_wstrb;
+  reg  [2:0]       buffer_1_req_size;
   reg  [31:0]      buffer_2_req_addr;
   reg              buffer_2_req_write;
   reg  [31:0]      buffer_2_req_wdata;
   reg  [3:0]       buffer_2_req_wstrb;
+  reg  [2:0]       buffer_2_req_size;
   reg  [31:0]      buffer_3_req_addr;
   reg              buffer_3_req_write;
   reg  [31:0]      buffer_3_req_wdata;
   reg  [3:0]       buffer_3_req_wstrb;
+  reg  [2:0]       buffer_3_req_size;
   reg              valids_0;
   reg              valids_1;
   reg              valids_2;
   reg              valids_3;
+  wire             addrMatches_0 =
+    buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+  wire             addrMatches_1 =
+    buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+  wire             addrMatches_2 =
+    buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+  wire             hasMatch =
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | buffer_3_req_write
+    & buffer_3_req_addr == io_enq_bits_addr;
+  wire [1:0]       matchIdx =
+    addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
   wire [1:0]       deqIdx = valids_0 ? 2'h0 : valids_1 ? 2'h1 : {1'h1, ~valids_2};
-  wire [2:0]       _io_enq_ready_T_9 =
+  wire [2:0]       _hasSpace_T_9 =
     {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
     + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
+  wire             io_enq_ready_0 = hasMatch | ~(_hasSpace_T_9[2]);
   wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
   wire [3:0][31:0] _GEN =
     {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
@@ -3023,54 +2958,167 @@ module WriteBuffer(
      {buffer_2_req_wstrb},
      {buffer_1_req_wstrb},
      {buffer_0_req_wstrb}};
+  wire [3:0][2:0]  _GEN_3 =
+    {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
+  wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
+  wire             bypassMatches_0 =
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr
+    & buffer_0_req_addr[31:22] == 10'h201;
+  wire             bypassMatches_1 =
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr
+    & buffer_1_req_addr[31:22] == 10'h201;
+  wire             bypassMatches_2 =
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr
+    & buffer_2_req_addr[31:22] == 10'h201;
+  wire             bypassMatches_3 =
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr
+    & buffer_3_req_addr[31:22] == 10'h201;
+  wire             io_bypassHit_0 =
+    bypassMatches_0 | bypassMatches_1 | bypassMatches_2 | bypassMatches_3;
+  wire [31:0]      _io_bypassData_T_6 =
+    (bypassMatches_0 ? buffer_0_req_wdata : 32'h0)
+    | (bypassMatches_1 ? buffer_1_req_wdata : 32'h0)
+    | (bypassMatches_2 ? buffer_2_req_wdata : 32'h0)
+    | (bypassMatches_3 ? buffer_3_req_wdata : 32'h0);
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      if ((`PRINTF_COND_) & _GEN_4 & hasMatch & ~reset)
+        $fwrite(32'h80000002,
+                "[WriteBuffer] Write coalescing: addr=0x%x, old_data=0x%x, new_data=0x%x\n",
+                io_enq_bits_addr, _GEN_1[matchIdx], io_enq_bits_wdata);
+      if ((`PRINTF_COND_) & io_bypassHit_0 & ~reset)
+        $fwrite(32'h80000002, "[WriteBuffer] Bypass hit: addr=0x%x, data=0x%x\n",
+                io_bypassAddr, _io_bypassData_T_6);
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   always @(posedge clock) begin
-    automatic logic [1:0] enqIdx;
-    automatic logic       _GEN_3 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-    automatic logic       _GEN_4;
-    automatic logic       _GEN_5;
-    automatic logic       _GEN_6;
-    automatic logic       _GEN_7;
-    enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-    _GEN_4 = _GEN_3 & enqIdx == 2'h0;
-    _GEN_5 = _GEN_3 & enqIdx == 2'h1;
-    _GEN_6 = _GEN_3 & enqIdx == 2'h2;
-    _GEN_7 = _GEN_3 & (&enqIdx);
-    if (_GEN_4) begin
-      buffer_0_req_addr <= io_enq_bits_addr;
-      buffer_0_req_write <= io_enq_bits_write;
-      buffer_0_req_wdata <= io_enq_bits_wdata;
-      buffer_0_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_5) begin
-      buffer_1_req_addr <= io_enq_bits_addr;
-      buffer_1_req_write <= io_enq_bits_write;
-      buffer_1_req_wdata <= io_enq_bits_wdata;
-      buffer_1_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_6) begin
-      buffer_2_req_addr <= io_enq_bits_addr;
-      buffer_2_req_write <= io_enq_bits_write;
-      buffer_2_req_wdata <= io_enq_bits_wdata;
-      buffer_2_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_7) begin
-      buffer_3_req_addr <= io_enq_bits_addr;
-      buffer_3_req_write <= io_enq_bits_write;
-      buffer_3_req_wdata <= io_enq_bits_wdata;
-      buffer_3_req_wstrb <= io_enq_bits_wstrb;
-    end
     if (reset) begin
+      buffer_0_req_addr <= 32'h0;
+      buffer_0_req_write <= 1'h0;
+      buffer_0_req_wdata <= 32'h0;
+      buffer_0_req_wstrb <= 4'h0;
+      buffer_0_req_size <= 3'h0;
+      buffer_1_req_addr <= 32'h0;
+      buffer_1_req_write <= 1'h0;
+      buffer_1_req_wdata <= 32'h0;
+      buffer_1_req_wstrb <= 4'h0;
+      buffer_1_req_size <= 3'h0;
+      buffer_2_req_addr <= 32'h0;
+      buffer_2_req_write <= 1'h0;
+      buffer_2_req_wdata <= 32'h0;
+      buffer_2_req_wstrb <= 4'h0;
+      buffer_2_req_size <= 3'h0;
+      buffer_3_req_addr <= 32'h0;
+      buffer_3_req_write <= 1'h0;
+      buffer_3_req_wdata <= 32'h0;
+      buffer_3_req_wstrb <= 4'h0;
+      buffer_3_req_size <= 3'h0;
       valids_0 <= 1'h0;
       valids_1 <= 1'h0;
       valids_2 <= 1'h0;
       valids_3 <= 1'h0;
     end
     else begin
-      automatic logic _GEN_8 = io_deq_ready & io_deq_valid_0;
-      valids_0 <= ~(_GEN_8 & deqIdx == 2'h0) & (_GEN_4 | valids_0);
-      valids_1 <= ~(_GEN_8 & deqIdx == 2'h1) & (_GEN_5 | valids_1);
-      valids_2 <= ~(_GEN_8 & deqIdx == 2'h2) & (_GEN_6 | valids_2);
-      valids_3 <= ~(_GEN_8 & (&deqIdx)) & (_GEN_7 | valids_3);
+      automatic logic [1:0] enqIdx;
+      automatic logic       _GEN_5 = _GEN_4 & io_enq_bits_write;
+      automatic logic       _GEN_6;
+      automatic logic       _GEN_7;
+      automatic logic       _GEN_8;
+      automatic logic       _GEN_9;
+      automatic logic       _GEN_10;
+      automatic logic       _GEN_11;
+      automatic logic       _GEN_12;
+      automatic logic       _GEN_13;
+      automatic logic       _GEN_14;
+      automatic logic       _GEN_15;
+      automatic logic       _GEN_16 = io_deq_ready & io_deq_valid_0;
+      enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
+      _GEN_6 = matchIdx == 2'h0;
+      _GEN_7 = matchIdx == 2'h1;
+      _GEN_8 = matchIdx == 2'h2;
+      _GEN_9 = enqIdx == 2'h0;
+      _GEN_10 = enqIdx == 2'h1;
+      _GEN_11 = enqIdx == 2'h2;
+      _GEN_12 = ~_GEN_5 | hasMatch | ~_GEN_9;
+      _GEN_13 = ~_GEN_5 | hasMatch | ~_GEN_10;
+      _GEN_14 = ~_GEN_5 | hasMatch | ~_GEN_11;
+      _GEN_15 = ~_GEN_5 | hasMatch | ~(&enqIdx);
+      if (_GEN_12) begin
+      end
+      else begin
+        buffer_0_req_addr <= io_enq_bits_addr;
+        buffer_0_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? _GEN_6 : _GEN_9))
+        buffer_0_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_5) begin
+        if (hasMatch) begin
+          automatic logic [3:0] _buffer_req_wstrb_T;
+          _buffer_req_wstrb_T = io_enq_bits_wstrb | _GEN_2[matchIdx];
+          if (_GEN_6)
+            buffer_0_req_wstrb <= _buffer_req_wstrb_T;
+          if (_GEN_7)
+            buffer_1_req_wstrb <= _buffer_req_wstrb_T;
+          if (_GEN_8)
+            buffer_2_req_wstrb <= _buffer_req_wstrb_T;
+          if (&matchIdx)
+            buffer_3_req_wstrb <= _buffer_req_wstrb_T;
+        end
+        else begin
+          if (_GEN_9)
+            buffer_0_req_wstrb <= io_enq_bits_wstrb;
+          if (_GEN_10)
+            buffer_1_req_wstrb <= io_enq_bits_wstrb;
+          if (_GEN_11)
+            buffer_2_req_wstrb <= io_enq_bits_wstrb;
+          if (&enqIdx)
+            buffer_3_req_wstrb <= io_enq_bits_wstrb;
+        end
+      end
+      if (_GEN_12) begin
+      end
+      else
+        buffer_0_req_size <= io_enq_bits_size;
+      if (_GEN_13) begin
+      end
+      else begin
+        buffer_1_req_addr <= io_enq_bits_addr;
+        buffer_1_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? _GEN_7 : _GEN_10))
+        buffer_1_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_13) begin
+      end
+      else
+        buffer_1_req_size <= io_enq_bits_size;
+      if (_GEN_14) begin
+      end
+      else begin
+        buffer_2_req_addr <= io_enq_bits_addr;
+        buffer_2_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? _GEN_8 : _GEN_11))
+        buffer_2_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_14) begin
+      end
+      else
+        buffer_2_req_size <= io_enq_bits_size;
+      if (_GEN_15) begin
+      end
+      else begin
+        buffer_3_req_addr <= io_enq_bits_addr;
+        buffer_3_req_write <= io_enq_bits_write;
+      end
+      if (_GEN_5 & (hasMatch ? (&matchIdx) : (&enqIdx)))
+        buffer_3_req_wdata <= io_enq_bits_wdata;
+      if (_GEN_15) begin
+      end
+      else
+        buffer_3_req_size <= io_enq_bits_size;
+      valids_0 <= ~(_GEN_16 & deqIdx == 2'h0) & (_GEN_5 & _GEN_9 | valids_0);
+      valids_1 <= ~(_GEN_16 & deqIdx == 2'h1) & (_GEN_5 & _GEN_10 | valids_1);
+      valids_2 <= ~(_GEN_16 & deqIdx == 2'h2) & (_GEN_5 & _GEN_11 | valids_2);
+      valids_3 <= ~(_GEN_16 & (&deqIdx)) & (_GEN_5 & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3090,18 +3138,22 @@ module WriteBuffer(
         buffer_0_req_write = _RANDOM[4'h1][0];
         buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
         buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
+        buffer_0_req_size = _RANDOM[4'h2][7:5];
         buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
         buffer_1_req_write = _RANDOM[4'h3][8];
         buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
         buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
+        buffer_1_req_size = _RANDOM[4'h4][15:13];
         buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
         buffer_2_req_write = _RANDOM[4'h5][16];
         buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
         buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
+        buffer_2_req_size = _RANDOM[4'h6][23:21];
         buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
         buffer_3_req_write = _RANDOM[4'h7][24];
         buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
         buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
+        buffer_3_req_size = _RANDOM[4'h8][31:29];
         valids_0 = _RANDOM[4'h9][0];
         valids_1 = _RANDOM[4'h9][1];
         valids_2 = _RANDOM[4'h9][2];
@@ -3112,12 +3164,15 @@ module WriteBuffer(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_enq_ready = ~(_io_enq_ready_T_9[2]);
+  assign io_enq_ready = io_enq_ready_0;
   assign io_deq_valid = io_deq_valid_0;
   assign io_deq_bits_addr = _GEN[deqIdx];
   assign io_deq_bits_write = _GEN_0[deqIdx];
   assign io_deq_bits_wdata = _GEN_1[deqIdx];
   assign io_deq_bits_wstrb = _GEN_2[deqIdx];
+  assign io_deq_bits_size = _GEN_3[deqIdx];
+  assign io_bypassHit = io_bypassHit_0;
+  assign io_bypassData = _io_bypassData_T_6;
 endmodule
 
 module Lsu(
@@ -3155,47 +3210,58 @@ module Lsu(
   wire        _writeBuffer_io_deq_bits_write;
   wire [31:0] _writeBuffer_io_deq_bits_wdata;
   wire [3:0]  _writeBuffer_io_deq_bits_wstrb;
+  wire        _writeBuffer_io_bypassHit;
+  wire [31:0] _writeBuffer_io_bypassData;
   wire        isLsu = io_info_fusel == 3'h2 & io_info_valid;
   reg  [1:0]  state;
   wire        isStore = isLsu & io_info_op[3];
   wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
-  wire        _strb_T_9 = io_info_op == 5'h8;
-  wire        _strb_T_16 = io_info_op == 5'h9;
-  wire [3:0]  strb =
-    _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h0
-      ? 4'h1
-      : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
-          ? 4'h2
-          : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h2
-              ? 4'h4
-              : _strb_T_9 & (&(_effectiveAddr_T_5[1:0]))
-                  ? 4'h8
-                  : _strb_T_16 & ~(_effectiveAddr_T_5[0])
-                      ? 4'h3
-                      : _strb_T_16 & _effectiveAddr_T_5[0]
-                          ? 4'hC
-                          : {4{io_info_op == 5'hA}};
+  wire        _bypassResult_final_data_T_12 = io_info_op == 5'h1;
+  wire        _bypassResult_final_data_T_13 = io_info_op == 5'h5;
+  wire        _bypassResult_final_data_T_14 = io_info_op == 5'h2;
+  wire        _storeWdata_T_6 = io_info_op == 5'h9;
+  wire        _storeWdata_T_7 = io_info_op == 5'hA;
   wire [31:0] newReq_addr =
     isStore ? {_effectiveAddr_T_5[31:2], 2'h0} : _effectiveAddr_T_5;
   wire [31:0] newReq_wdata =
     isStore
       ? (io_info_op == 5'h8 ? {2{{2{io_src_info_src2_data[7:0]}}}} : 32'h0)
-        | (io_info_op == 5'h9 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
-        | (io_info_op == 5'hA ? io_src_info_src2_data : 32'h0)
+        | (_storeWdata_T_6 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
+        | (_storeWdata_T_7 ? io_src_info_src2_data : 32'h0)
       : 32'h0;
+  reg  [31:0] storeReqReg_addr;
+  reg         storeReqReg_write;
+  reg  [31:0] storeReqReg_wdata;
+  reg  [3:0]  storeReqReg_wstrb;
+  reg  [2:0]  storeReqReg_size;
+  reg         storeReqValid;
+  wire        loadBypassHit = isLoad & _writeBuffer_io_bypassHit;
+  wire        _io_ready_T_5 =
+    ~(|state)
+    & (isStore & (~storeReqValid | _writeBuffer_io_enq_ready) | ~isLsu | loadBypassHit);
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
   reg  [31:0] loadReqReg_wdata;
   reg  [3:0]  loadReqReg_wstrb;
   reg  [3:0]  loadOpReg;
-  wire        _GEN = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_0 = _GEN ? _writeBuffer_io_deq_bits_addr : 32'h0;
-  wire        _GEN_1 = _GEN & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_2 = _GEN ? _writeBuffer_io_deq_bits_wdata : 32'h0;
-  wire [3:0]  _GEN_3 = _GEN ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
-  wire        _GEN_4 = state == 2'h1;
+  wire        _GEN = io_info_valid & isLoad;
+  wire [7:0]  bypassResult_byte_data =
+    ((|(_effectiveAddr_T_5[1:0])) ? 8'h0 : _writeBuffer_io_bypassData[7:0])
+    | (_effectiveAddr_T_5[1:0] == 2'h1 ? _writeBuffer_io_bypassData[15:8] : 8'h0)
+    | (_effectiveAddr_T_5[1:0] == 2'h2 ? _writeBuffer_io_bypassData[23:16] : 8'h0)
+    | ((&(_effectiveAddr_T_5[1:0])) ? _writeBuffer_io_bypassData[31:24] : 8'h0);
+  wire [15:0] bypassResult_half_data =
+    (_effectiveAddr_T_5[1] ? 16'h0 : _writeBuffer_io_bypassData[15:0])
+    | (_effectiveAddr_T_5[1] ? _writeBuffer_io_bypassData[31:16] : 16'h0);
+  wire        _GEN_0 = _GEN & _writeBuffer_io_bypassHit;
+  wire        _GEN_1 = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_2 = _GEN_1 ? _writeBuffer_io_deq_bits_addr : 32'h0;
+  wire        _GEN_3 = _GEN_1 & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_4 = _GEN_1 ? _writeBuffer_io_deq_bits_wdata : 32'h0;
+  wire [3:0]  _GEN_5 = _GEN_1 ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
+  wire        _GEN_6 = state == 2'h1;
   wire [7:0]  res_byte_data =
     (loadReqReg_addr[1:0] == 2'h0 ? io_dcache_resp_bits_data[7:0] : 8'h0)
     | (loadReqReg_addr[1:0] == 2'h1 ? io_dcache_resp_bits_data[15:8] : 8'h0)
@@ -3204,26 +3270,70 @@ module Lsu(
   wire [15:0] res_half_data =
     (loadReqReg_addr[1] ? 16'h0 : io_dcache_resp_bits_data[15:0])
     | (loadReqReg_addr[1] ? io_dcache_resp_bits_data[31:16] : 16'h0);
-  wire        _GEN_5 = state == 2'h2 & io_dcache_resp_valid;
-  wire        _GEN_6 = ~(|state) | _GEN_4;
-  wire        _GEN_7 = ~_GEN_6 & _GEN_5;
-  wire        io_valid_0 = _GEN_7 | isStore;
+  wire        _GEN_7 = state == 2'h2 & io_dcache_resp_valid;
+  wire        _GEN_8 = ~_GEN_6 & _GEN_7;
+  wire        io_valid_0 = (|state) ? _GEN_8 | isStore : _GEN_0 | isStore;
+  wire [31:0] io_diffout_loadEvent_vaddr_0 =
+    loadBypassHit ? _effectiveAddr_T_5 : loadReqReg_addr;
   always @(posedge clock) begin
-    automatic logic _GEN_8;
-    _GEN_8 = io_info_valid & isLoad;
-    if (reset)
+    automatic logic       _strb_T_9 = io_info_op == 5'h8;
+    automatic logic       _strb_T_16 = io_info_op == 5'h9;
+    automatic logic [3:0] strb;
+    strb =
+      _strb_T_9 & ~(|(_effectiveAddr_T_5[1:0]))
+        ? 4'h1
+        : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
+            ? 4'h2
+            : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h2
+                ? 4'h4
+                : _strb_T_9 & (&(_effectiveAddr_T_5[1:0]))
+                    ? 4'h8
+                    : _strb_T_16 & ~(_effectiveAddr_T_5[0])
+                        ? 4'h3
+                        : _strb_T_16 & _effectiveAddr_T_5[0]
+                            ? 4'hC
+                            : {4{io_info_op == 5'hA}};
+    if (reset) begin
       state <= 2'h0;
-    else if (|state) begin
-      if (_GEN_4) begin
-        if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
-          state <= 2'h2;
-      end
-      else if (_GEN_5)
-        state <= 2'h0;
+      storeReqReg_addr <= 32'h0;
+      storeReqReg_write <= 1'h0;
+      storeReqReg_wdata <= 32'h0;
+      storeReqReg_wstrb <= 4'h0;
+      storeReqReg_size <= 3'h0;
+      storeReqValid <= 1'h0;
     end
-    else if (_GEN_8)
-      state <= 2'h1;
-    if (~(|state) & _GEN_8) begin
+    else begin
+      automatic logic _GEN_9;
+      _GEN_9 = ~(|state) & isStore & io_info_valid & ~storeReqValid;
+      if (|state) begin
+        if (_GEN_6) begin
+          if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
+            state <= 2'h2;
+        end
+        else if (_GEN_7)
+          state <= 2'h0;
+      end
+      else if (~_GEN | _writeBuffer_io_bypassHit) begin
+      end
+      else
+        state <= 2'h1;
+      if (_GEN_9) begin
+        storeReqReg_addr <= newReq_addr;
+        storeReqReg_write <= isStore;
+        storeReqReg_wdata <= newReq_wdata;
+        storeReqReg_wstrb <= strb;
+        storeReqReg_size <=
+          {1'h0,
+           _bypassResult_final_data_T_14 | _storeWdata_T_7,
+           _bypassResult_final_data_T_12 | _bypassResult_final_data_T_13
+             | _storeWdata_T_6};
+      end
+      storeReqValid <=
+        _GEN_9 | ~(_writeBuffer_io_enq_ready & storeReqValid) & storeReqValid;
+    end
+    if (~(~(|state) & _GEN) | _writeBuffer_io_bypassHit) begin
+    end
+    else begin
       loadReqReg_addr <= newReq_addr;
       loadReqReg_write <= isStore;
       loadReqReg_wdata <= newReq_wdata;
@@ -3236,20 +3346,26 @@ module Lsu(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:2];
+      automatic logic [31:0] _RANDOM[0:4];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[2'h0][1:0];
-        loadReqReg_addr = {_RANDOM[2'h0][31:2], _RANDOM[2'h1][1:0]};
-        loadReqReg_write = _RANDOM[2'h1][2];
-        loadReqReg_wdata = {_RANDOM[2'h1][31:3], _RANDOM[2'h2][2:0]};
-        loadReqReg_wstrb = _RANDOM[2'h2][6:3];
-        loadOpReg = _RANDOM[2'h2][13:10];
+        state = _RANDOM[3'h0][1:0];
+        storeReqReg_addr = {_RANDOM[3'h0][31:2], _RANDOM[3'h1][1:0]};
+        storeReqReg_write = _RANDOM[3'h1][2];
+        storeReqReg_wdata = {_RANDOM[3'h1][31:3], _RANDOM[3'h2][2:0]};
+        storeReqReg_wstrb = _RANDOM[3'h2][6:3];
+        storeReqReg_size = _RANDOM[3'h2][9:7];
+        storeReqValid = _RANDOM[3'h2][10];
+        loadReqReg_addr = {_RANDOM[3'h2][31:11], _RANDOM[3'h3][10:0]};
+        loadReqReg_write = _RANDOM[3'h3][11];
+        loadReqReg_wdata = {_RANDOM[3'h3][31:12], _RANDOM[3'h4][11:0]};
+        loadReqReg_wstrb = _RANDOM[3'h4][15:12];
+        loadOpReg = _RANDOM[3'h4][22:19];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -3260,71 +3376,143 @@ module Lsu(
     .clock             (clock),
     .reset             (reset),
     .io_enq_ready      (_writeBuffer_io_enq_ready),
-    .io_enq_valid      (~(|state) & isStore & io_info_valid),
-    .io_enq_bits_addr  (newReq_addr),
-    .io_enq_bits_write (isStore),
-    .io_enq_bits_wdata (newReq_wdata),
-    .io_enq_bits_wstrb (strb),
+    .io_enq_valid      (storeReqValid),
+    .io_enq_bits_addr  (storeReqReg_addr),
+    .io_enq_bits_write (storeReqReg_write),
+    .io_enq_bits_wdata (storeReqReg_wdata),
+    .io_enq_bits_wstrb (storeReqReg_wstrb),
+    .io_enq_bits_size  (storeReqReg_size),
     .io_deq_ready
-      ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
+      ((|state)
+         ? ~(_GEN_6 & _GEN_1) | io_dcache_req_ready
+         : ~_GEN_1 | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
     .io_deq_bits_wdata (_writeBuffer_io_deq_bits_wdata),
-    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb)
+    .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb),
+    .io_deq_bits_size  (/* unused */),
+    .io_flush          (1'h0),
+    .io_bypassAddr     (_effectiveAddr_T_5),
+    .io_bypassEnable   (1'h0),
+    .io_bypassHit      (_writeBuffer_io_bypassHit),
+    .io_bypassData     (_writeBuffer_io_bypassData)
   );
   assign io_result =
-    _GEN_6 | ~_GEN_5
-      ? 32'h0
-      : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0);
-  assign io_ready = _GEN_7 | ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu);
+    (|state)
+      ? (_GEN_6 | ~_GEN_7
+           ? 32'h0
+           : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0))
+      : _GEN_0
+          ? (io_info_op == 5'h0
+               ? {{24{bypassResult_byte_data[7]}}, bypassResult_byte_data}
+               : 32'h0) | (io_info_op == 5'h4 ? {24'h0, bypassResult_byte_data} : 32'h0)
+            | (_bypassResult_final_data_T_12
+                 ? {{16{bypassResult_half_data[15]}}, bypassResult_half_data}
+                 : 32'h0)
+            | (_bypassResult_final_data_T_13 ? {16'h0, bypassResult_half_data} : 32'h0)
+            | (_bypassResult_final_data_T_14 ? _writeBuffer_io_bypassData : 32'h0)
+          : 32'h0;
+  assign io_ready = (|state) ? _GEN_8 | _io_ready_T_5 : _GEN_0 | _io_ready_T_5;
   assign io_valid = io_valid_0;
   assign io_diffout_storeEvent_valid = {7'h0, isStore & isLsu & io_valid_0};
   assign io_diffout_storeEvent_storePAddr = newReq_addr;
   assign io_diffout_storeEvent_storeVAddr = newReq_addr;
   assign io_diffout_storeEvent_storeData = newReq_wdata;
   assign io_diffout_loadEvent_valid = {7'h0, isLoad & isLsu & io_valid_0};
-  assign io_diffout_loadEvent_paddr = loadReqReg_addr;
-  assign io_diffout_loadEvent_vaddr = loadReqReg_addr;
+  assign io_diffout_loadEvent_paddr = io_diffout_loadEvent_vaddr_0;
+  assign io_diffout_loadEvent_vaddr = io_diffout_loadEvent_vaddr_0;
   assign io_dcache_req_valid =
-    (|state) ? _GEN_4 & (~_writeBuffer_io_deq_valid | _GEN) : _GEN;
+    (|state) ? _GEN_6 & (~_writeBuffer_io_deq_valid | _GEN_1) : _GEN_1;
   assign io_dcache_req_bits_addr =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_0 : loadReqReg_addr) : 32'h0)
-      : _GEN_0;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_addr) : 32'h0)
+      : _GEN_2;
   assign io_dcache_req_bits_write =
-    (|state) ? _GEN_4 & (_writeBuffer_io_deq_valid ? _GEN_1 : loadReqReg_write) : _GEN_1;
+    (|state) ? _GEN_6 & (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_write) : _GEN_3;
   assign io_dcache_req_bits_wdata =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_wdata) : 32'h0)
-      : _GEN_2;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_4 : loadReqReg_wdata) : 32'h0)
+      : _GEN_4;
   assign io_dcache_req_bits_wstrb =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_wstrb) : 4'h0)
-      : _GEN_3;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_5 : loadReqReg_wstrb) : 4'h0)
+      : _GEN_5;
 endmodule
 
 module Bru(
   input         io_info_valid,
   input  [4:0]  io_info_op,
-                io_info_reg_waddr,
+  input  [31:0] io_info_imm,
   input  [2:0]  io_info_fusel,
   input  [31:0] io_pc,
+                io_src_info_src1_data,
+                io_src_info_src2_data,
   output        io_valid,
-  output [31:0] io_result
+  output [31:0] io_result,
+  output        io_branch,
+  output [31:0] io_target
 );
 
-  assign io_valid = io_info_valid & io_info_fusel == 3'h3;
+  wire _io_branch_T_30 = io_info_fusel == 3'h3;
+  wire _GEN = io_info_op == 5'h8;
+  wire _GEN_0 = io_info_op == 5'hA;
+  wire _GEN_1 = io_info_op == 5'hB;
+  wire _GEN_2 = io_info_op == 5'h0;
+  wire _GEN_3 = io_info_op == 5'h1;
+  wire _GEN_4 = io_info_op == 5'h4;
+  wire _GEN_5 = io_info_op == 5'h5;
+  wire _GEN_6 = io_info_op == 5'h6;
+  wire _GEN_7 = io_info_op == 5'h7;
+  assign io_valid = io_info_valid & _io_branch_T_30;
   assign io_result =
-    io_info_op == 5'h8
-      ? 32'h0
-      : io_info_op == 5'hA
-          ? io_pc + 32'h4
-          : io_info_op != 5'hB | io_info_reg_waddr == 5'h0 ? 32'h0 : io_pc + 32'h4;
+    _GEN ? 32'h0 : _GEN_0 ? io_pc + 32'h4 : _GEN_1 ? io_pc + 32'h4 : 32'h0;
+  assign io_branch =
+    _GEN
+      ? io_info_valid & _io_branch_T_30
+      : _GEN_0
+          ? io_info_valid & _io_branch_T_30
+          : _GEN_1
+              ? io_info_valid & _io_branch_T_30
+              : _GEN_2
+                  ? io_info_valid & _io_branch_T_30
+                    & io_src_info_src1_data == io_src_info_src2_data
+                  : _GEN_3
+                      ? io_info_valid & _io_branch_T_30
+                        & io_src_info_src1_data != io_src_info_src2_data
+                      : _GEN_4
+                          ? io_info_valid & _io_branch_T_30
+                            & $signed(io_src_info_src1_data) < $signed(io_src_info_src2_data)
+                          : _GEN_5
+                              ? io_info_valid & _io_branch_T_30
+                                & $signed(io_src_info_src1_data) >= $signed(io_src_info_src2_data)
+                              : _GEN_6
+                                  ? io_info_valid & _io_branch_T_30
+                                    & io_src_info_src1_data < io_src_info_src2_data
+                                  : _GEN_7 & io_info_valid & _io_branch_T_30
+                                    & io_src_info_src1_data >= io_src_info_src2_data;
+  assign io_target =
+    _GEN
+      ? io_pc + io_info_imm
+      : _GEN_0
+          ? io_pc + io_info_imm
+          : _GEN_1
+              ? io_src_info_src1_data + io_info_imm
+              : _GEN_2
+                  ? io_pc + io_info_imm
+                  : _GEN_3
+                      ? io_pc + io_info_imm
+                      : _GEN_4
+                          ? io_pc + io_info_imm
+                          : _GEN_5
+                              ? io_pc + io_info_imm
+                              : _GEN_6
+                                  ? io_pc + io_info_imm
+                                  : _GEN_7 ? io_pc + io_info_imm : 32'h0;
 endmodule
 
 module Fu(
@@ -3333,7 +3521,6 @@ module Fu(
   input  [31:0] io_data_pc,
   input         io_data_info_valid,
   input  [4:0]  io_data_info_op,
-                io_data_info_reg_waddr,
   input  [31:0] io_data_info_imm,
   input  [2:0]  io_data_info_fusel,
   input  [31:0] io_data_src_info_src1_data,
@@ -3348,6 +3535,8 @@ module Fu(
                 io_data_diffout_loadEvent_vaddr,
   output        io_data_ready,
                 io_data_valid,
+                io_data_branch,
+  output [31:0] io_data_target,
   input         io_dcache_req_ready,
   output        io_dcache_req_valid,
   output [31:0] io_dcache_req_bits_addr,
@@ -3449,13 +3638,17 @@ module Fu(
     .io_dcache_resp_bits_data         (io_dcache_resp_bits_data)
   );
   Bru bru (
-    .io_info_valid     (io_data_info_valid),
-    .io_info_op        (io_data_info_op),
-    .io_info_reg_waddr (io_data_info_reg_waddr),
-    .io_info_fusel     (io_data_info_fusel),
-    .io_pc             (io_data_pc),
-    .io_valid          (_bru_io_valid),
-    .io_result         (_bru_io_result)
+    .io_info_valid         (io_data_info_valid),
+    .io_info_op            (io_data_info_op),
+    .io_info_imm           (io_data_info_imm),
+    .io_info_fusel         (io_data_info_fusel),
+    .io_pc                 (io_data_pc),
+    .io_src_info_src1_data (io_data_src_info_src1_data),
+    .io_src_info_src2_data (io_data_src_info_src2_data),
+    .io_valid              (_bru_io_valid),
+    .io_result             (_bru_io_result),
+    .io_branch             (io_data_branch),
+    .io_target             (io_data_target)
   );
   assign io_data_rd_info_wdata =
     (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_1 ? _mdu_io_result : 32'h0)
@@ -3495,6 +3688,8 @@ module ExecuteUnit(
                 io_writeBackStage_data_info_diffout_loadEvent_vaddr,
                 io_writeBackStage_data_rd_info_wdata,
   output        io_ready,
+                io_branch,
+  output [31:0] io_target,
   input         io_dcache_req_ready,
   output        io_dcache_req_valid,
   output [31:0] io_dcache_req_bits_addr,
@@ -3513,7 +3708,6 @@ module ExecuteUnit(
     .io_data_pc                            (io_executeStage_data_pc),
     .io_data_info_valid                    (io_executeStage_data_info_valid),
     .io_data_info_op                       (io_executeStage_data_info_op),
-    .io_data_info_reg_waddr                (io_executeStage_data_info_reg_waddr),
     .io_data_info_imm                      (io_executeStage_data_info_imm),
     .io_data_info_fusel                    (io_executeStage_data_info_fusel),
     .io_data_src_info_src1_data            (io_executeStage_data_src_info_src1_data),
@@ -3535,6 +3729,8 @@ module ExecuteUnit(
       (io_writeBackStage_data_info_diffout_loadEvent_vaddr),
     .io_data_ready                         (io_ready),
     .io_data_valid                         (io_writeBackStage_data_info_valid),
+    .io_data_branch                        (io_branch),
+    .io_data_target                        (io_target),
     .io_dcache_req_ready                   (io_dcache_req_ready),
     .io_dcache_req_valid                   (io_dcache_req_valid),
     .io_dcache_req_bits_addr               (io_dcache_req_bits_addr),
@@ -3766,108 +3962,84 @@ module ControlUnit(
   output        io_signals_fetchUnitSignal_allow_to_go,
                 io_signals_fetchUnitSignal_do_flush,
                 io_signals_decodeUnitSignal_allow_to_go,
-                io_signals_bypassData_stage1_src1_bypass,
-                io_signals_bypassData_stage1_src2_bypass,
-  output [31:0] io_signals_bypassData_stage1_src1_data,
-                io_signals_bypassData_stage1_src2_data,
-  output        io_signals_bypassData_stage2_src1_bypass,
-                io_signals_bypassData_stage2_src2_bypass,
-  output [31:0] io_signals_bypassData_stage2_src1_data,
-                io_signals_bypassData_stage2_src2_data,
-  output        io_signals_decodeStage1Stall,
-  input         io_branch,
-                io_decodeInternalStall,
-  input  [4:0]  io_decodeRegisterInfo_stage1_src1_raddr,
-                io_decodeRegisterInfo_stage1_src2_raddr,
-  input         io_decodeRegisterInfo_stage1_src1_ren,
-                io_decodeRegisterInfo_stage1_src2_ren,
-  input  [4:0]  io_decodeRegisterInfo_stage2_src1_raddr,
-                io_decodeRegisterInfo_stage2_src2_raddr,
-  input         io_decodeRegisterInfo_stage2_src1_ren,
-                io_decodeRegisterInfo_stage2_src2_ren,
+                io_signals_decodeUnitSignal_do_flush,
+                io_signals_bypassData_src1_bypass,
+                io_signals_bypassData_src2_bypass,
+  output [31:0] io_signals_bypassData_src1_data,
+                io_signals_bypassData_src2_data,
+  output        io_signals_branchControl_branch,
+  output [31:0] io_signals_branchControl_target,
+  input         io_executeBranch,
+  input  [31:0] io_executeTarget,
+  input  [4:0]  io_decodeRegisterInfo_src1_raddr,
+                io_decodeRegisterInfo_src2_raddr,
+  input         io_decodeRegisterInfo_src1_ren,
+                io_decodeRegisterInfo_src2_ren,
   input  [31:0] io_executeResult,
                 io_writeBackResult
 );
 
-  wire       _stage2_src2_forward_from_ex_T =
-    io_executeInfo_valid & io_executeInfo_reg_wen;
-  wire       _stage2_src2_forward_from_wb_T =
-    io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
-  wire [1:0] stage1_src1_forward_sel =
-    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_stage1_src1_ren
-    & io_decodeRegisterInfo_stage1_src1_raddr == io_writeBackInfo_reg_waddr
+  wire        _src2_forward_from_ex_T = io_executeInfo_valid & io_executeInfo_reg_wen;
+  wire        _src2_forward_from_wb_T = io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
+  wire [1:0]  src1_forward_sel =
+    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_src1_ren
+    & io_decodeRegisterInfo_src1_raddr == io_writeBackInfo_reg_waddr
       ? 2'h2
       : {1'h0,
-         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-           & io_decodeRegisterInfo_stage1_src1_ren
-           & io_decodeRegisterInfo_stage1_src1_raddr == io_executeInfo_reg_waddr};
-  wire [1:0] stage1_src2_forward_sel =
-    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_stage1_src2_ren
-    & io_decodeRegisterInfo_stage1_src2_raddr == io_writeBackInfo_reg_waddr
+         _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_src1_ren
+           & io_decodeRegisterInfo_src1_raddr == io_executeInfo_reg_waddr};
+  wire [1:0]  src2_forward_sel =
+    _src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
+    & io_decodeRegisterInfo_src2_ren
+    & io_decodeRegisterInfo_src2_raddr == io_writeBackInfo_reg_waddr
       ? 2'h2
       : {1'h0,
-         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-           & io_decodeRegisterInfo_stage1_src2_ren
-           & io_decodeRegisterInfo_stage1_src2_raddr == io_executeInfo_reg_waddr};
-  wire [1:0] stage2_src1_forward_sel =
-    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_stage2_src1_ren
-    & io_decodeRegisterInfo_stage2_src1_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h2
-      : {1'h0,
-         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-           & io_decodeRegisterInfo_stage2_src1_ren
-           & io_decodeRegisterInfo_stage2_src1_raddr == io_executeInfo_reg_waddr};
-  wire [1:0] stage2_src2_forward_sel =
-    _stage2_src2_forward_from_wb_T & (|io_writeBackInfo_reg_waddr)
-    & io_decodeRegisterInfo_stage2_src2_ren
-    & io_decodeRegisterInfo_stage2_src2_raddr == io_writeBackInfo_reg_waddr
-      ? 2'h2
-      : {1'h0,
-         _stage2_src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
-           & io_decodeRegisterInfo_stage2_src2_ren
-           & io_decodeRegisterInfo_stage2_src2_raddr == io_executeInfo_reg_waddr};
-  wire       decode_stage1_stall = io_decodeInternalStall | ~io_executeUnitReady;
+         _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr)
+           & io_decodeRegisterInfo_src2_ren
+           & io_decodeRegisterInfo_src2_raddr == io_executeInfo_reg_waddr};
+  wire [31:0] io_signals_bypassData_src1_data_0 =
+    src1_forward_sel == 2'h1
+      ? io_executeResult
+      : src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  wire [31:0] io_signals_bypassData_src2_data_0 =
+    src2_forward_sel == 2'h1
+      ? io_executeResult
+      : src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
   `ifndef SYNTHESIS
     always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeRegisterInfo_stage1_src1_ren
-          & (|stage1_src1_forward_sel) & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Stage1 src1 forward: addr=%d, sel=%d\n",
-                io_decodeRegisterInfo_stage1_src1_raddr, stage1_src1_forward_sel);
-      if ((`PRINTF_COND_) & io_decodeRegisterInfo_stage1_src2_ren
-          & (|stage1_src2_forward_sel) & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Stage1 src2 forward: addr=%d, sel=%d\n",
-                io_decodeRegisterInfo_stage1_src2_raddr, stage1_src2_forward_sel);
-      if ((`PRINTF_COND_) & decode_stage1_stall & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] Decode stage 1 stall activated\n");
+      if ((`PRINTF_COND_) & io_decodeRegisterInfo_src1_ren & (|src1_forward_sel) & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] src1 forward: addr=%d, sel=%d, data=0x%x\n",
+                io_decodeRegisterInfo_src1_raddr, src1_forward_sel,
+                io_signals_bypassData_src1_data_0);
+      if ((`PRINTF_COND_) & io_decodeRegisterInfo_src2_ren & (|src2_forward_sel) & ~reset)
+        $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
+                io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
+                io_signals_bypassData_src2_data_0);
+      if ((`PRINTF_COND_) & io_executeBranch & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n",
+                io_executeTarget);
+      if ((`PRINTF_COND_) & 1'h0) begin
+        $fwrite(32'h80000002,
+                "[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n",
+                32'h0);
+        $fwrite(32'h80000002,
+                "[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n");
+      end
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  assign io_signals_fetchUnitSignal_allow_to_go = ~decode_stage1_stall;
-  assign io_signals_fetchUnitSignal_do_flush = io_branch;
+  assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
+  assign io_signals_fetchUnitSignal_do_flush = io_executeBranch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
-  assign io_signals_bypassData_stage1_src1_bypass = |stage1_src1_forward_sel;
-  assign io_signals_bypassData_stage1_src2_bypass = |stage1_src2_forward_sel;
-  assign io_signals_bypassData_stage1_src1_data =
-    stage1_src1_forward_sel == 2'h1
-      ? io_executeResult
-      : stage1_src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  assign io_signals_bypassData_stage1_src2_data =
-    stage1_src2_forward_sel == 2'h1
-      ? io_executeResult
-      : stage1_src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  assign io_signals_bypassData_stage2_src1_bypass = |stage2_src1_forward_sel;
-  assign io_signals_bypassData_stage2_src2_bypass = |stage2_src2_forward_sel;
-  assign io_signals_bypassData_stage2_src1_data =
-    stage2_src1_forward_sel == 2'h1
-      ? io_executeResult
-      : stage2_src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  assign io_signals_bypassData_stage2_src2_data =
-    stage2_src2_forward_sel == 2'h1
-      ? io_executeResult
-      : stage2_src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  assign io_signals_decodeStage1Stall = decode_stage1_stall;
+  assign io_signals_decodeUnitSignal_do_flush = io_executeBranch;
+  assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
+  assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
+  assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
+  assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
+  assign io_signals_branchControl_branch = io_executeBranch;
+  assign io_signals_branchControl_target = io_executeBranch ? io_executeTarget : 32'h0;
 endmodule
 
 module Diff(
@@ -4173,15 +4345,13 @@ module Core(
   wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
   wire         _controlUnit_io_signals_fetchUnitSignal_do_flush;
   wire         _controlUnit_io_signals_decodeUnitSignal_allow_to_go;
-  wire         _controlUnit_io_signals_bypassData_stage1_src1_bypass;
-  wire         _controlUnit_io_signals_bypassData_stage1_src2_bypass;
-  wire [31:0]  _controlUnit_io_signals_bypassData_stage1_src1_data;
-  wire [31:0]  _controlUnit_io_signals_bypassData_stage1_src2_data;
-  wire         _controlUnit_io_signals_bypassData_stage2_src1_bypass;
-  wire         _controlUnit_io_signals_bypassData_stage2_src2_bypass;
-  wire [31:0]  _controlUnit_io_signals_bypassData_stage2_src1_data;
-  wire [31:0]  _controlUnit_io_signals_bypassData_stage2_src2_data;
-  wire         _controlUnit_io_signals_decodeStage1Stall;
+  wire         _controlUnit_io_signals_decodeUnitSignal_do_flush;
+  wire         _controlUnit_io_signals_bypassData_src1_bypass;
+  wire         _controlUnit_io_signals_bypassData_src2_bypass;
+  wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
+  wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_branchControl_branch;
+  wire [31:0]  _controlUnit_io_signals_branchControl_target;
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
   wire [31:0]  _writeBackUnit_io_regfile_wdata;
@@ -4226,6 +4396,8 @@ module Core(
   wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
   wire [31:0]  _executeUnit_io_writeBackStage_data_rd_info_wdata;
   wire         _executeUnit_io_ready;
+  wire         _executeUnit_io_branch;
+  wire [31:0]  _executeUnit_io_target;
   wire         _executeUnit_io_dcache_req_valid;
   wire [31:0]  _executeUnit_io_dcache_req_bits_addr;
   wire         _executeUnit_io_dcache_req_bits_write;
@@ -4244,8 +4416,6 @@ module Core(
   wire [31:0]  _executeStage_io_executeUnit_data_src_info_src2_data;
   wire [31:0]  _regfile_io_read_src1_rdata;
   wire [31:0]  _regfile_io_read_src2_rdata;
-  wire [31:0]  _regfile_io_read_src3_rdata;
-  wire [31:0]  _regfile_io_read_src4_rdata;
   wire [31:0]  _regfile_io_regs_out_0;
   wire [31:0]  _regfile_io_regs_out_1;
   wire [31:0]  _regfile_io_regs_out_2;
@@ -4280,8 +4450,6 @@ module Core(
   wire [31:0]  _regfile_io_regs_out_31;
   wire [4:0]   _decodeUnit_io_regfile_src1_raddr;
   wire [4:0]   _decodeUnit_io_regfile_src2_raddr;
-  wire [4:0]   _decodeUnit_io_regfile_src3_raddr;
-  wire [4:0]   _decodeUnit_io_regfile_src4_raddr;
   wire [31:0]  _decodeUnit_io_executeStage_data_pc;
   wire [31:0]  _decodeUnit_io_executeStage_data_info_instr;
   wire         _decodeUnit_io_executeStage_data_info_valid;
@@ -4292,17 +4460,10 @@ module Core(
   wire [2:0]   _decodeUnit_io_executeStage_data_info_fusel;
   wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src1_data;
   wire [31:0]  _decodeUnit_io_executeStage_data_src_info_src2_data;
-  wire         _decodeUnit_io_branch;
-  wire [31:0]  _decodeUnit_io_target;
-  wire         _decodeUnit_io_decodeInternalStall;
-  wire [4:0]   _decodeUnit_io_registerInfo_stage1_src1_raddr;
-  wire [4:0]   _decodeUnit_io_registerInfo_stage1_src2_raddr;
-  wire         _decodeUnit_io_registerInfo_stage1_src1_ren;
-  wire         _decodeUnit_io_registerInfo_stage1_src2_ren;
-  wire [4:0]   _decodeUnit_io_registerInfo_stage2_src1_raddr;
-  wire [4:0]   _decodeUnit_io_registerInfo_stage2_src2_raddr;
-  wire         _decodeUnit_io_registerInfo_stage2_src1_ren;
-  wire         _decodeUnit_io_registerInfo_stage2_src2_ren;
+  wire [4:0]   _decodeUnit_io_registerInfo_src1_raddr;
+  wire [4:0]   _decodeUnit_io_registerInfo_src2_raddr;
+  wire         _decodeUnit_io_registerInfo_src1_ren;
+  wire         _decodeUnit_io_registerInfo_src2_ren;
   wire [31:0]  _decodeStage_io_decodeUnit_data_inst;
   wire         _decodeStage_io_decodeUnit_data_valid;
   wire [31:0]  _decodeStage_io_decodeUnit_data_pc;
@@ -4326,7 +4487,6 @@ module Core(
   wire [31:0]  _icache_io_icache_resp_bits_addr;
   wire         _icache_io_io_read_req_valid;
   wire [31:0]  _icache_io_io_read_req_bits_addr;
-  wire         _icache_io_io_read_resp_ready;
   wire         _iocontrol_io_icache_read_req_ready;
   wire         _iocontrol_io_icache_read_resp_valid;
   wire [255:0] _iocontrol_io_icache_read_resp_bits_data;
@@ -4340,7 +4500,6 @@ module Core(
     .io_icache_read_req_ready           (_iocontrol_io_icache_read_req_ready),
     .io_icache_read_req_valid           (_icache_io_io_read_req_valid),
     .io_icache_read_req_bits_addr       (_icache_io_io_read_req_bits_addr),
-    .io_icache_read_resp_ready          (_icache_io_io_read_resp_ready),
     .io_icache_read_resp_valid          (_iocontrol_io_icache_read_resp_valid),
     .io_icache_read_resp_bits_data      (_iocontrol_io_icache_read_resp_bits_data),
     .io_dcache_read_req_ready           (_iocontrol_io_dcache_read_req_ready),
@@ -4388,7 +4547,6 @@ module Core(
     .io_io_read_req_ready                 (_iocontrol_io_icache_read_req_ready),
     .io_io_read_req_valid                 (_icache_io_io_read_req_valid),
     .io_io_read_req_bits_addr             (_icache_io_io_read_req_bits_addr),
-    .io_io_read_resp_ready                (_icache_io_io_read_resp_ready),
     .io_io_read_resp_valid                (_iocontrol_io_icache_read_resp_valid),
     .io_io_read_resp_bits_data            (_iocontrol_io_icache_read_resp_bits_data),
     .io_icache_debug_state                (/* unused */),
@@ -4421,46 +4579,21 @@ module Core(
     .io_io_write_req_bits_byte_mask (_dcache_io_io_write_req_bits_byte_mask)
   );
   FetchUnit fetchUnit (
-    .clock                                   (clock),
-    .reset                                   (reset),
-    .io_decodeStage_data_inst                (_fetchUnit_io_decodeStage_data_inst),
-    .io_decodeStage_data_valid               (_fetchUnit_io_decodeStage_data_valid),
-    .io_decodeStage_data_pc                  (_fetchUnit_io_decodeStage_data_pc),
-    .io_icache_resp_valid                    (_icache_io_icache_resp_valid),
-    .io_icache_resp_bits_data                (_icache_io_icache_resp_bits_data),
-    .io_icache_resp_bits_addr                (_icache_io_icache_resp_bits_addr),
-    .io_branch                               (_decodeUnit_io_branch),
-    .io_target                               (_decodeUnit_io_target),
+    .clock                                 (clock),
+    .reset                                 (reset),
+    .io_decodeStage_data_inst              (_fetchUnit_io_decodeStage_data_inst),
+    .io_decodeStage_data_valid             (_fetchUnit_io_decodeStage_data_valid),
+    .io_decodeStage_data_pc                (_fetchUnit_io_decodeStage_data_pc),
+    .io_icache_resp_valid                  (_icache_io_icache_resp_valid),
+    .io_icache_resp_bits_data              (_icache_io_icache_resp_bits_data),
+    .io_icache_resp_bits_addr              (_icache_io_icache_resp_bits_addr),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
-    .io_signal_fetchUnitSignal_do_flush
-      (_controlUnit_io_signals_fetchUnitSignal_do_flush),
-    .io_signal_decodeUnitSignal_allow_to_go
-      (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
-    .io_signal_decodeUnitSignal_do_flush     (1'h0),
-    .io_signal_executeUnitSignal_allow_to_go (1'h1),
-    .io_signal_executeUnitSignal_do_flush    (1'h0),
-    .io_signal_bypassData_stage1_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
-    .io_signal_bypassData_stage1_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
-    .io_signal_bypassData_stage1_src1_data
-      (_controlUnit_io_signals_bypassData_stage1_src1_data),
-    .io_signal_bypassData_stage1_src2_data
-      (_controlUnit_io_signals_bypassData_stage1_src2_data),
-    .io_signal_bypassData_stage2_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
-    .io_signal_bypassData_stage2_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
-    .io_signal_bypassData_stage2_src1_data
-      (_controlUnit_io_signals_bypassData_stage2_src1_data),
-    .io_signal_bypassData_stage2_src2_data
-      (_controlUnit_io_signals_bypassData_stage2_src2_data),
-    .io_signal_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
-    .io_icache_req_ready                     (_icache_io_icache_req_ready),
-    .io_icache_req_valid                     (_fetchUnit_io_icache_req_valid),
-    .io_icache_req_bits_addr                 (_fetchUnit_io_icache_req_bits_addr),
-    .io_canStart                             (/* unused */)
+    .io_signal_branchControl_branch        (_controlUnit_io_signals_branchControl_branch),
+    .io_signal_branchControl_target        (_controlUnit_io_signals_branchControl_target),
+    .io_icache_req_ready                   (_icache_io_icache_req_ready),
+    .io_icache_req_valid                   (_fetchUnit_io_icache_req_valid),
+    .io_icache_req_bits_addr               (_fetchUnit_io_icache_req_bits_addr)
   );
   DecodeStage decodeStage (
     .clock                                        (clock),
@@ -4486,26 +4619,14 @@ module Core(
     .io_regfile_src1_rdata                   (_regfile_io_read_src1_rdata),
     .io_regfile_src2_raddr                   (_decodeUnit_io_regfile_src2_raddr),
     .io_regfile_src2_rdata                   (_regfile_io_read_src2_rdata),
-    .io_regfile_src3_raddr                   (_decodeUnit_io_regfile_src3_raddr),
-    .io_regfile_src3_rdata                   (_regfile_io_read_src3_rdata),
-    .io_regfile_src4_raddr                   (_decodeUnit_io_regfile_src4_raddr),
-    .io_regfile_src4_rdata                   (_regfile_io_read_src4_rdata),
-    .io_bypassData_stage1_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
-    .io_bypassData_stage1_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
-    .io_bypassData_stage1_src1_data
-      (_controlUnit_io_signals_bypassData_stage1_src1_data),
-    .io_bypassData_stage1_src2_data
-      (_controlUnit_io_signals_bypassData_stage1_src2_data),
-    .io_bypassData_stage2_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
-    .io_bypassData_stage2_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
-    .io_bypassData_stage2_src1_data
-      (_controlUnit_io_signals_bypassData_stage2_src1_data),
-    .io_bypassData_stage2_src2_data
-      (_controlUnit_io_signals_bypassData_stage2_src2_data),
+    .io_bypassData_src1_bypass
+      (_controlUnit_io_signals_bypassData_src1_bypass),
+    .io_bypassData_src2_bypass
+      (_controlUnit_io_signals_bypassData_src2_bypass),
+    .io_bypassData_src1_data
+      (_controlUnit_io_signals_bypassData_src1_data),
+    .io_bypassData_src2_data
+      (_controlUnit_io_signals_bypassData_src2_data),
     .io_executeStage_data_pc                 (_decodeUnit_io_executeStage_data_pc),
     .io_executeStage_data_info_instr
       (_decodeUnit_io_executeStage_data_info_instr),
@@ -4523,25 +4644,10 @@ module Core(
       (_decodeUnit_io_executeStage_data_src_info_src1_data),
     .io_executeStage_data_src_info_src2_data
       (_decodeUnit_io_executeStage_data_src_info_src2_data),
-    .io_branch                               (_decodeUnit_io_branch),
-    .io_target                               (_decodeUnit_io_target),
-    .io_decodeInternalStall                  (_decodeUnit_io_decodeInternalStall),
-    .io_decodeStage1Stall                    (_controlUnit_io_signals_decodeStage1Stall),
-    .io_registerInfo_stage1_src1_raddr
-      (_decodeUnit_io_registerInfo_stage1_src1_raddr),
-    .io_registerInfo_stage1_src2_raddr
-      (_decodeUnit_io_registerInfo_stage1_src2_raddr),
-    .io_registerInfo_stage1_src1_ren
-      (_decodeUnit_io_registerInfo_stage1_src1_ren),
-    .io_registerInfo_stage1_src2_ren
-      (_decodeUnit_io_registerInfo_stage1_src2_ren),
-    .io_registerInfo_stage2_src1_raddr
-      (_decodeUnit_io_registerInfo_stage2_src1_raddr),
-    .io_registerInfo_stage2_src2_raddr
-      (_decodeUnit_io_registerInfo_stage2_src2_raddr),
-    .io_registerInfo_stage2_src1_ren
-      (_decodeUnit_io_registerInfo_stage2_src1_ren),
-    .io_registerInfo_stage2_src2_ren         (_decodeUnit_io_registerInfo_stage2_src2_ren)
+    .io_registerInfo_src1_raddr              (_decodeUnit_io_registerInfo_src1_raddr),
+    .io_registerInfo_src2_raddr              (_decodeUnit_io_registerInfo_src2_raddr),
+    .io_registerInfo_src1_ren                (_decodeUnit_io_registerInfo_src1_ren),
+    .io_registerInfo_src2_ren                (_decodeUnit_io_registerInfo_src2_ren)
   );
   ARegFile regfile (
     .clock              (clock),
@@ -4550,10 +4656,6 @@ module Core(
     .io_read_src1_rdata (_regfile_io_read_src1_rdata),
     .io_read_src2_raddr (_decodeUnit_io_regfile_src2_raddr),
     .io_read_src2_rdata (_regfile_io_read_src2_rdata),
-    .io_read_src3_raddr (_decodeUnit_io_regfile_src3_raddr),
-    .io_read_src3_rdata (_regfile_io_read_src3_rdata),
-    .io_read_src4_raddr (_decodeUnit_io_regfile_src4_raddr),
-    .io_read_src4_rdata (_regfile_io_read_src4_rdata),
     .io_write_wen       (_writeBackUnit_io_regfile_wen),
     .io_write_waddr     (_writeBackUnit_io_regfile_waddr),
     .io_write_wdata     (_writeBackUnit_io_regfile_wdata),
@@ -4614,6 +4716,8 @@ module Core(
       (_decodeUnit_io_executeStage_data_src_info_src2_data),
     .io_controlSignal_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
+    .io_controlSignal_decodeUnitSignal_do_flush
+      (_controlUnit_io_signals_decodeUnitSignal_do_flush),
     .io_ready                                      (_executeUnit_io_ready),
     .io_executeUnit_data_pc                        (_executeStage_io_executeUnit_data_pc),
     .io_executeUnit_data_info_instr
@@ -4685,6 +4789,8 @@ module Core(
     .io_writeBackStage_data_rd_info_wdata
       (_executeUnit_io_writeBackStage_data_rd_info_wdata),
     .io_ready                                                  (_executeUnit_io_ready),
+    .io_branch                                                 (_executeUnit_io_branch),
+    .io_target                                                 (_executeUnit_io_target),
     .io_dcache_req_ready                                       (_dcache_io_req_ready),
     .io_dcache_req_valid
       (_executeUnit_io_dcache_req_valid),
@@ -4819,8 +4925,8 @@ module Core(
     .io_result                                                 (_writeBackUnit_io_result)
   );
   ControlUnit controlUnit (
-    .clock                                    (clock),
-    .reset                                    (reset),
+    .clock                                   (clock),
+    .reset                                   (reset),
     .io_executeInfo_valid
       (_executeUnit_io_writeBackStage_data_info_valid),
     .io_executeInfo_reg_wen
@@ -4833,50 +4939,35 @@ module Core(
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackInfo_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_executeUnitReady                      (_executeUnit_io_ready),
+    .io_executeUnitReady                     (_executeUnit_io_ready),
     .io_signals_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
     .io_signals_fetchUnitSignal_do_flush
       (_controlUnit_io_signals_fetchUnitSignal_do_flush),
     .io_signals_decodeUnitSignal_allow_to_go
       (_controlUnit_io_signals_decodeUnitSignal_allow_to_go),
-    .io_signals_bypassData_stage1_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src1_bypass),
-    .io_signals_bypassData_stage1_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage1_src2_bypass),
-    .io_signals_bypassData_stage1_src1_data
-      (_controlUnit_io_signals_bypassData_stage1_src1_data),
-    .io_signals_bypassData_stage1_src2_data
-      (_controlUnit_io_signals_bypassData_stage1_src2_data),
-    .io_signals_bypassData_stage2_src1_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src1_bypass),
-    .io_signals_bypassData_stage2_src2_bypass
-      (_controlUnit_io_signals_bypassData_stage2_src2_bypass),
-    .io_signals_bypassData_stage2_src1_data
-      (_controlUnit_io_signals_bypassData_stage2_src1_data),
-    .io_signals_bypassData_stage2_src2_data
-      (_controlUnit_io_signals_bypassData_stage2_src2_data),
-    .io_signals_decodeStage1Stall             (_controlUnit_io_signals_decodeStage1Stall),
-    .io_branch                                (_decodeUnit_io_branch),
-    .io_decodeInternalStall                   (_decodeUnit_io_decodeInternalStall),
-    .io_decodeRegisterInfo_stage1_src1_raddr
-      (_decodeUnit_io_registerInfo_stage1_src1_raddr),
-    .io_decodeRegisterInfo_stage1_src2_raddr
-      (_decodeUnit_io_registerInfo_stage1_src2_raddr),
-    .io_decodeRegisterInfo_stage1_src1_ren
-      (_decodeUnit_io_registerInfo_stage1_src1_ren),
-    .io_decodeRegisterInfo_stage1_src2_ren
-      (_decodeUnit_io_registerInfo_stage1_src2_ren),
-    .io_decodeRegisterInfo_stage2_src1_raddr
-      (_decodeUnit_io_registerInfo_stage2_src1_raddr),
-    .io_decodeRegisterInfo_stage2_src2_raddr
-      (_decodeUnit_io_registerInfo_stage2_src2_raddr),
-    .io_decodeRegisterInfo_stage2_src1_ren
-      (_decodeUnit_io_registerInfo_stage2_src1_ren),
-    .io_decodeRegisterInfo_stage2_src2_ren
-      (_decodeUnit_io_registerInfo_stage2_src2_ren),
-    .io_executeResult                         (_executeUnit_io_result),
-    .io_writeBackResult                       (_writeBackUnit_io_result)
+    .io_signals_decodeUnitSignal_do_flush
+      (_controlUnit_io_signals_decodeUnitSignal_do_flush),
+    .io_signals_bypassData_src1_bypass
+      (_controlUnit_io_signals_bypassData_src1_bypass),
+    .io_signals_bypassData_src2_bypass
+      (_controlUnit_io_signals_bypassData_src2_bypass),
+    .io_signals_bypassData_src1_data
+      (_controlUnit_io_signals_bypassData_src1_data),
+    .io_signals_bypassData_src2_data
+      (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signals_branchControl_branch
+      (_controlUnit_io_signals_branchControl_branch),
+    .io_signals_branchControl_target
+      (_controlUnit_io_signals_branchControl_target),
+    .io_executeBranch                        (_executeUnit_io_branch),
+    .io_executeTarget                        (_executeUnit_io_target),
+    .io_decodeRegisterInfo_src1_raddr        (_decodeUnit_io_registerInfo_src1_raddr),
+    .io_decodeRegisterInfo_src2_raddr        (_decodeUnit_io_registerInfo_src2_raddr),
+    .io_decodeRegisterInfo_src1_ren          (_decodeUnit_io_registerInfo_src1_ren),
+    .io_decodeRegisterInfo_src2_ren          (_decodeUnit_io_registerInfo_src2_ren),
+    .io_executeResult                        (_executeUnit_io_result),
+    .io_writeBackResult                      (_writeBackUnit_io_result)
   );
   Diff diff (
     .clock                                 (clock),

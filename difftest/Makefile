@@ -21,7 +21,7 @@ verilog:
 
 
 trace: obj_dir/V$(TOP_NAME)
-	$(call git_commit, "trace") # DO NOT REMOVE THIS LINE!!!
+	# $(call git_commit, "trace") # DO NOT REMOVE THIS LINE!!!
 	./obj_dir/V$(TOP_NAME) $(TESTBIN_DIR) -rvtest -trace 10000000 -pc
 
 test:
