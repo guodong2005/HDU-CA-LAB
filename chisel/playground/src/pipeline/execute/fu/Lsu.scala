@@ -31,9 +31,13 @@ class Lsu extends Module {
   val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
-  // 修正：只有在load时才设置bypass地址和使能
-  writeBuffer.io.bypassAddr   := effectiveAddr
+  // ============= 删除前递逻辑 =============
+  // 注释掉所有bypass相关代码
+  // writeBuffer.io.bypassAddr   := effectiveAddr
+  // writeBuffer.io.bypassEnable := false.B
+  writeBuffer.io.bypassAddr   := DontCare
   writeBuffer.io.bypassEnable := false.B
+  // =====================================
 
   val addr_low2 = effectiveAddr(1, 0)
 
@@ -85,8 +89,7 @@ class Lsu extends Module {
   newReq.wstrb := strb
   newReq.size  := size
 
-  // ============= 添加寄存器级 =============
-  // Store请求缓冲寄存器
+  // ============= Store请求缓冲寄存器 =============
   val storeReqReg   = RegInit(0.U.asTypeOf(new DCacheReq))
   val storeReqValid = RegInit(false.B)
 
@@ -106,17 +109,20 @@ class Lsu extends Module {
   }
   // ========================================
 
-  // Default
+  // ============= 修改Default输出 =============
+  // Store的result改为src1_data
   io.valid             := Mux(isStore, true.B, false.B)
-  io.result            := 0.U
+  io.result            := Mux(isStore, io.src_info.src1_data, 0.U)
   io.dcache.req.valid  := false.B
   io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
   io.dcache.resp.ready := true.B
+  // ==========================================
 
-  // 修改ready信号：考虑额外的寄存器级
+  // ============= 修改ready信号（删除bypass逻辑）=============
   val canAcceptStore = !storeReqValid || writeBuffer.io.enq.ready
-  val loadBypassHit  = isLoad && writeBuffer.io.bypassHit
-  io.ready := ((state === sIdle) && ((isStore && canAcceptStore) || !isLsu || loadBypassHit))
+  // 删除了 loadBypassHit 相关逻辑
+  io.ready := ((state === sIdle) && ((isStore && canAcceptStore) || !isLsu))
+  // ========================================================
 
   writeBuffer.io.deq.ready := true.B
 
@@ -151,20 +157,12 @@ class Lsu extends Module {
   switch(state) {
     is(sIdle) {
       when(io.info.valid && isLoad) {
-        // 修正：检查是否有bypass hit
-        when(writeBuffer.io.bypassHit) {
-          // 有bypass hit，直接使用bypass data
-          val bypassResult = gen_load_data(writeBuffer.io.bypassData, effectiveAddr, io.info.op)
-          io.ready  := true.B
-          io.result := bypassResult
-          io.valid  := true.B
-          // 保持在idle状态
-        }.otherwise {
-          // 没有bypass hit，收到 load 请求，进入 drain 状态
-          loadReqReg := newReq
-          loadOpReg  := io.info.op
-          state      := sDrainStores
-        }
+        // ============= 删除bypass逻辑 =============
+        // 直接进入drain状态，不检查bypass
+        loadReqReg := newReq
+        loadOpReg  := io.info.op
+        state      := sDrainStores
+        // ========================================
       }
       when(drainReq.valid && drainReq.bits.write) {
         io.dcache.req.valid := true.B
@@ -180,7 +178,7 @@ class Lsu extends Module {
         drainReq.ready      := io.dcache.req.ready
       }
       when(!drainReq.valid) {
-        // 队列清空，可以发 load
+        // 队列清空，可以发load
         io.dcache.req.valid := true.B
         io.dcache.req.bits  := loadReqReg
         when(io.dcache.req.ready) {
@@ -201,12 +199,15 @@ class Lsu extends Module {
     }
   }
 
+  // ============= 修改diffout（删除bypass相关）=============
   io.diffout                       := DontCare
   io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
   io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeData  := newReq.wdata
   io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
-  io.diffout.loadEvent.paddr       := Mux(loadBypassHit, effectiveAddr, loadReqReg.addr.asUInt)
-  io.diffout.loadEvent.vaddr       := Mux(loadBypassHit, effectiveAddr, loadReqReg.addr.asUInt)
+  // 删除了loadBypassHit相关的Mux，直接使用loadReqReg.addr
+  io.diffout.loadEvent.paddr := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.vaddr := loadReqReg.addr.asUInt
+  // ======================================================
 }
