@@ -114,7 +114,7 @@ class FetchUnit extends Module {
   }
 
   // ========== Buffered Instruction Handling ==========
-  when(ifid_reg.valid && decodeReady && !io.decodeStage.data.valid) {
+  when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
   }
