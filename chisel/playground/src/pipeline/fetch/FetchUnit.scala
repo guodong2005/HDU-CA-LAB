@@ -15,35 +15,19 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  // 启动条件
+  // 队列结构 - 长度为2的PC队列
+  val pc_queue    = Reg(Vec(2, UInt(XLEN.W)))
+  val valid_queue = RegInit(VecInit(false.B, false.B))
+  val head        = RegInit(0.U(1.W))
+  val tail        = RegInit(1.U(1.W))
+
+  // 控制信号
+  val decodeReady      = io.signal.fetchUnitSignal.allow_to_go
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
   io.canStart := canStart
 
-  // PC管理
-  val pc = RegInit(PC_INIT)
-
-  // 简单的2项循环队列
-  val queue       = Reg(Vec(2, new IfIdData()))
-  val queue_valid = RegInit(VecInit(Seq.fill(2)(false.B)))
-  val queue_pc    = Reg(Vec(2, UInt(XLEN.W))) // 记录每个队列项对应的请求PC
-
-  // 队列指针 - 只需要1位因为队列大小是2
-  val head = RegInit(0.U(1.W)) // 指向下一个要输出的位置
-  val tail = head ^ 1.U // 指向下一个要写入的位置
-
-  // 队列状态
-  val isEmpty = !queue_valid(head)
-  val isFull  = queue_valid(tail)
-
-  // 等待响应标志
-  val waitingResp = RegInit(false.B)
-  val reqPC       = RegInit(PC_INIT)
-
-  // 控制信号
-  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
-
-  // 指令提取函数
+  // 指令提取辅助函数
   def extractInst(data: UInt, pc: UInt): UInt = {
     val instIdx = pc(ICACHE_OFFSET_WIDTH - 1, 2)
     MuxLookup(instIdx, 0.U)(
@@ -60,67 +44,68 @@ class FetchUnit extends Module {
     )
   }
 
-  // ========== 请求发送 ==========
-  // 队列不满且没有等待响应时发送请求
-  io.icache_req.valid     := canStart && !isFull && !waitingResp && !io.branch
-  io.icache_req.bits.addr := pc
+  // 默认输出 - 每个周期都尝试发送请求
+  io.icache_req.valid     := canStart && !io.branch
+  io.icache_req.bits.addr := pc_queue(head)
 
-  when(io.icache_req.fire) {
-    reqPC       := pc
-    pc          := pc + 4.U
-    waitingResp := true.B
-  }
+  // 默认不发送指令
+  io.decodeStage.data.valid := false.B
+  io.decodeStage.data.inst  := DontCare
+  io.decodeStage.data.pc    := DontCare
 
-  // ========== 响应接收 ==========
-  when(io.icache_resp.valid && waitingResp && !io.branch) {
-    // 检查响应的PC是否匹配我们请求的PC
-    val resp_addr = io.icache_resp.bits.addr
-    when(resp_addr === reqPC) {
-      // 将指令写入队列的tail位置
-      val inst = extractInst(io.icache_resp.bits.data, reqPC)
-      queue(tail).inst  := inst
-      queue(tail).pc    := reqPC
-      queue(tail).valid := true.B
-      queue_valid(tail) := true.B
-      queue_pc(tail)    := reqPC
+  // ========== 响应处理 ==========
+  when(io.icache_resp.valid && valid_queue(tail)) {
+    val resp_addr  = io.icache_resp.bits.addr
+    val addr_match = resp_addr === pc_queue(tail)
 
-      waitingResp := false.B
+    when(addr_match) {
+      // 地址匹配，提取指令并发送给decode阶段
+      val inst = extractInst(io.icache_resp.bits.data, pc_queue(tail))
+
+      io.decodeStage.data.inst  := inst
+      io.decodeStage.data.pc    := pc_queue(tail)
+      io.decodeStage.data.valid := true.B
+
+      // 如果decode阶段ready且没有stall，流水线正常推进
+      when(decodeReady && !io.branch) {
+        // 交换head和tail
+        head := head ^ 1.U
+        tail := tail ^ 1.U
+        // 更新新head位置的PC
+        pc_queue(head ^ 1.U) := pc_queue(tail) + 4.U
+      }
     }
-    // 如果PC不匹配，忽略这个响应（可能是分支前的）
+
+    // 无论地址是否匹配，都清除tail的valid标记
+    // （如果不匹配说明是过期响应，也要清除）
+    // ?
   }
 
-  // ========== 输出到Decode ==========
-  io.decodeStage.data.valid := !isEmpty && decodeReady && !io.branch
-  io.decodeStage.data.inst  := queue(head).inst
-  io.decodeStage.data.pc    := queue(head).pc
-
-  // 出队操作
-  when(!isEmpty && decodeReady && !io.branch) {
-    queue_valid(head) := false.B
-    head              := head ^ 1.U // 移动到下一个位置
+  // ========== 请求处理 ==========
+  when(io.icache_req.valid && io.icache_req.ready) {
+    // 请求被接受，设置tail位置为valid
+    valid_queue(tail) := true.B
   }
 
   // ========== 分支处理 ==========
   when(io.branch) {
-    // 更新PC
-    pc    := io.target
-    reqPC := io.target
-
-    // 清空队列
-    queue_valid.foreach(_ := false.B)
-    waitingResp           := false.B
-    head                  := 0.U // 重置队列指针
+    // flush队列：pc[head] = target, valid[tail] = false
+    pc_queue(head)    := io.target
+    valid_queue(tail) := false.B
+    // 重置head和tail指针
+    head := 0.U
+    tail := 1.U
   }
 
-  // ========== 初始化 ==========
-  when(canStart && pc === 0.U && !io.branch) {
-    pc    := PC_INIT
-    reqPC := PC_INIT
+  // ========== 初始化处理 ==========
+  when(canStart && pc_queue(head) === 0.U && !io.branch) {
+    pc_queue(head) := PC_INIT
+    pc_queue(1)    := PC_INIT + 4.U // 预设下一个PC
   }
 
-  // Debug
+  // ========== Debug信号 ==========
   dontTouch(head)
-  dontTouch(isEmpty)
-  dontTouch(isFull)
-  dontTouch(waitingResp)
+  dontTouch(tail)
+  dontTouch(pc_queue)
+  dontTouch(valid_queue)
 }
