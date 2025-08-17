@@ -99,10 +99,20 @@ class Lsu extends Module {
 
   when(writeBuffer.io.enq.fire) {
     storeReqValid := false.B
-    // ============= Store指令完成标记 =============
-    storeCompleted := true.B
-    // ==========================================
   }
+
+  // ============= Store指令完成标记 =============
+  // Store指令完成的两种情况：
+  // 1. 立即被WriteBuffer接受
+  // 2. 经过drain后被WriteBuffer接受
+  when(isStore && isLsu && !storeCompleted) {
+    when((state === sIdle) && canAcceptStore) {
+      storeCompleted := true.B
+    }.elsewhen(writeBuffer.io.enq.fire) {
+      storeCompleted := true.B
+    }
+  }
+  // ==========================================
 
   when((state === sIdle) && isStore && io.info.valid && !storeReqValid) {
     storeReqReg   := newReq
@@ -113,10 +123,19 @@ class Lsu extends Module {
   io.valid  := false.B
   io.result := 0.U
 
-  // Store指令：只在WriteBuffer接受请求的周期输出valid
-  when(isStore && writeBuffer.io.enq.fire && !storeCompleted) {
-    io.valid  := true.B
-    io.result := io.src_info.src1_data
+  // Store指令valid条件：
+  // 1. WriteBuffer可以立即接受：立即valid
+  // 2. WriteBuffer不能接受：等待drain后valid
+  when(isStore && isLsu && !storeCompleted) {
+    when(state === sIdle && canAcceptStore) {
+      // WriteBuffer可以立即接受
+      io.valid  := true.B
+      io.result := io.src_info.src1_data
+    }.elsewhen(writeBuffer.io.enq.fire) {
+      // 经过drain后WriteBuffer接受请求时
+      io.valid  := true.B
+      io.result := io.src_info.src1_data
+    }
   }
   // ====================================================
 
@@ -136,8 +155,7 @@ class Lsu extends Module {
   def gen_load_data(data: UInt, mem_addr: UInt, op: UInt): UInt = {
     val addr_low2 = mem_addr(1, 0)
     val byte_data = (0 until 4).map(i => Mux(addr_low2 === i.U(2.W), data(i * 8 + 7, i * 8), 0.U(8.W))).reduce(_ | _)
-    val half_data =
-      (0 until 2).map(i => Mux(addr_low2(1) === i.U(1.W), data(i * 16 + 15, i * 16), 0.U(16.W))).reduce(_ | _)
+    val half_data = (0 until 2).map(i => Mux(addr_low2(1) === i.U(1.W), data(i * 16 + 15, i * 16), 0.U(16.W))).reduce(_ | _)
 
     val final_data = LookupTree(
       op,
@@ -195,11 +213,21 @@ class Lsu extends Module {
 
   // Diffout信号
   io.diffout                       := DontCare
-  io.diffout.storeEvent.valid      := isStore && isLsu && writeBuffer.io.enq.fire && !storeCompleted
+  io.diffout.storeEvent.valid      := false.B
   io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeData  := newReq.wdata
-  io.diffout.loadEvent.valid       := isLoad && isLsu && io.dcache.resp.valid && !loadCompleted
-  io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
-  io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
+
+  // Store事件在valid的同时触发
+  when(isStore && isLsu && !storeCompleted) {
+    when((state === sIdle) && canAcceptStore) {
+      io.diffout.storeEvent.valid := true.B
+    }.elsewhen(writeBuffer.io.enq.fire) {
+      io.diffout.storeEvent.valid := true.B
+    }
+  }
+
+  io.diffout.loadEvent.valid := isLoad && isLsu && io.dcache.resp.valid && !loadCompleted
+  io.diffout.loadEvent.paddr := loadReqReg.addr.asUInt
+  io.diffout.loadEvent.vaddr := loadReqReg.addr.asUInt
 }
