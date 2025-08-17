@@ -35,22 +35,26 @@ class Core extends Module {
   val diff           = Module(new Diff())
 
   // 取指单元
+  dontTouch(fetchUnit.io)
+  dontTouch(icache.io)
 
-  controlUnit.io.executeResult   := executeUnit.io.result // EX阶段完成所有计算（包括load）
-  controlUnit.io.writeBackResult := writeBackUnit.io.result
+  controlUnit.io.executeResult       := executeUnit.io.result // EX阶段完成所有计算（包括load）
+  controlUnit.io.writeBackResult     := writeBackUnit.io.result
+  controlUnit.io.decodeInternalStall := decodeUnit.io.decodeInternalStall
+  decodeUnit.io.decodeStage1Stall    := controlUnit.io.signals.decodeStage1Stall
   // ============================================================================
   // IoControl 外部接口连接
   // ============================================================================
 
   // 连接SRAM控制信号
   io.base_ram_ctrl <> iocontrol.io.base_ram_ctrl
-  io.ext_ram_ctrl <> iocontrol.io.ext_ram_ctrl
+  io.ext_ram_ctrl  <> iocontrol.io.ext_ram_ctrl
 
   // 连接UART信号
   io.rxd <> iocontrol.io.rxd
   io.txd <> iocontrol.io.txd
 
-  iocontrol.io.dcache_read_req <> dcache.io.io_read_req
+  iocontrol.io.dcache_read_req  <> dcache.io.io_read_req
   iocontrol.io.dcache_read_resp <> dcache.io.io_read_resp
   iocontrol.io.dcache_write_req <> dcache.io.io_write_req
 
@@ -59,47 +63,45 @@ class Core extends Module {
   // ============================================================================
 
   // ICache 与 IoControl 的连接
-  iocontrol.io.icache_read_req <> icache.io.io_read_req
+  iocontrol.io.icache_read_req  <> icache.io.io_read_req
   iocontrol.io.icache_read_resp <> icache.io.io_read_resp
 
-  fetchUnit.io.decodeStage <> decodeStage.io.fetchUnit
+  fetchUnit.io.decodeStage   <> decodeStage.io.fetchUnit
   decodeUnit.io.executeready := executeUnit.io.ready
 
-  icache.io.icache_req <> fetchUnit.io.icache_req
+  icache.io.icache_req  <> fetchUnit.io.icache_req
   icache.io.icache_resp <> fetchUnit.io.icache_resp
 
-  dcache.io.req <> executeUnit.io.dcache.req
+  dcache.io.req  <> executeUnit.io.dcache.req
   dcache.io.resp <> executeUnit.io.dcache.resp
 
 // ============ Control Unit 连接 ============
-  controlUnit.io.executeBranch := executeUnit.io.branch
-  controlUnit.io.executeTarget := executeUnit.io.target
-
-  fetchUnit.io.bpu_feedback := executeUnit.io.bpufeedback
-
+  controlUnit.io.branch           := decodeUnit.io.branch
   controlUnit.io.executeUnitReady := executeUnit.io.ready
   controlUnit.io.executeResult    := executeUnit.io.result // EX阶段完成所有计算（包括load）
   controlUnit.io.writeBackResult  := writeBackUnit.io.result
 // 注意：去掉了 controlUnit.io.memoryResult，因为没有memory stage了
 
 // ============ Fetch Unit 连接 ============
+  fetchUnit.io.branch := decodeUnit.io.branch
+  fetchUnit.io.target := decodeUnit.io.target
   fetchUnit.io.signal := controlUnit.io.signals
 
 // ============ Decode Unit 连接 ============
-  decodeUnit.io.bypassData := controlUnit.io.signals.bypassData
-  decodeUnit.io.decodeStage <> decodeStage.io.decodeUnit
-  decodeUnit.io.regfile <> regfile.io.read
+  decodeUnit.io.bypassData   := controlUnit.io.signals.bypassData
+  decodeUnit.io.decodeStage  <> decodeStage.io.decodeUnit
+  decodeUnit.io.regfile      <> regfile.io.read
   decodeUnit.io.executeStage <> executeStage.io.decodeUnit
 
 // ============ Execute Unit 连接 ============
-  executeUnit.io.executeStage <> executeStage.io.executeUnit
+  executeUnit.io.executeStage   <> executeStage.io.executeUnit
   executeUnit.io.writeBackStage <> writeBackStage.io.executeUnit // 直接连接到WriteBack阶段
-  executeUnit.io.dcache.req <> dcache.io.req
-  executeUnit.io.dcache.resp <> dcache.io.resp
+  executeUnit.io.dcache.req     <> dcache.io.req
+  executeUnit.io.dcache.resp    <> dcache.io.resp
 
 // ============ WriteBack Unit 连接 ============
   writeBackUnit.io.writeBackStage <> writeBackStage.io.writeBackUnit
-  writeBackUnit.io.regfile <> regfile.io.write
+  writeBackUnit.io.regfile        <> regfile.io.write
 
 // ============ Stage Ready 信号连接 ============
   executeStage.io.ready := executeUnit.io.ready
@@ -118,7 +120,7 @@ class Core extends Module {
   writeBackStage.io.controlSignal := controlUnit.io.signals
 // 注意：去掉了 memoryStage.io.controlSignal
   // difftest:
-  diff.io.debug <> writeBackUnit.io.debug
+  diff.io.debug   <> writeBackUnit.io.debug
   diff.io.info    := writeBackUnit.io.info
   diff.io.regs_in := regfile.io.regs_out
 
