@@ -324,7 +324,7 @@ class ICache extends Module {
   io.icache_debug.hit_cache      := hit
   io.icache_debug.cache_we       := cache_we
   io.icache_debug.cache_read_tag := cache_read_tag
-  io.icache_debug.icache_req     := 0.U.asTypeOf(new ICacheReq()) // No saved_req anymore
+  io.icache_debug.icache_req     := DontCare
 }
 
 // ============================================================================
