@@ -24,7 +24,7 @@ class FetchUnit extends Module {
 
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
-  val alignedPC   = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
+  val alignedPC   = pc
   val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
 
   // 启动条件
