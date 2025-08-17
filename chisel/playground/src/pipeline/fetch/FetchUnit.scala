@@ -30,13 +30,31 @@ class FetchUnit extends Module {
   val canStart         = RegNext(canStartInternal) && canStartInternal
   io.canStart := canStart
 
+  // ========== Response Handling (先处理响应，避免组合逻辑环) ==========
+  val respValid = RegNext(io.icache_resp.valid) // 打破组合逻辑环
+  val respData  = RegNext(io.icache_resp.bits)
+  val respAddr  = respData.addr
+  val matchAddr = respAddr === reqPC
+
+  // 用寄存器记录上一周期是否收到了有效响应
+  val gotResponse = RegInit(false.B)
+  gotResponse := io.icache_resp.valid && pendingReq
+
   // ========== Prefetch Logic ==========
-  // 决定是否可以发送新请求
-  val canSendReq = canStart && (!pendingReq || io.icache_resp.valid)
+  // 决定是否可以发送新请求（使用寄存器版本的响应信号）
+  val canSendReq = canStart && (!pendingReq || gotResponse)
 
   // 选择请求的PC
   val nextReqPC = Wire(UInt(XLEN.W))
-  nextReqPC := Mux(branch, target, Mux(pendingReq && io.icache_resp.valid, prefetchPC, pc))
+  when(branch) {
+    nextReqPC := target
+  }.elsewhen(pendingReq && gotResponse) {
+    // 如果刚收到响应，发送预取地址
+    nextReqPC := prefetchPC
+  }.otherwise {
+    // 否则发送当前PC
+    nextReqPC := pc
+  }
 
   // 发送请求
   io.icache_req.valid     := canSendReq
@@ -53,26 +71,22 @@ class FetchUnit extends Module {
     }
   }
 
-  // ========== Response Handling ==========
-  val respValid = io.icache_resp.valid && pendingReq
-  val respAddr  = io.icache_resp.bits.addr
-  val matchAddr = respAddr === reqPC
-
-  when(respValid && matchAddr) {
+  // ========== Process Response ==========
+  when(respValid && pendingReq && matchAddr) {
     pendingReq := false.B
 
     // 提取对应的指令
     val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
     val inst = MuxLookup(instIdx, 0.U)(
       Seq(
-        0.U -> io.icache_resp.bits.data(31, 0),
-        1.U -> io.icache_resp.bits.data(63, 32),
-        2.U -> io.icache_resp.bits.data(95, 64),
-        3.U -> io.icache_resp.bits.data(127, 96),
-        4.U -> io.icache_resp.bits.data(159, 128),
-        5.U -> io.icache_resp.bits.data(191, 160),
-        6.U -> io.icache_resp.bits.data(223, 192),
-        7.U -> io.icache_resp.bits.data(255, 224)
+        0.U -> respData.data(31, 0),
+        1.U -> respData.data(63, 32),
+        2.U -> respData.data(95, 64),
+        3.U -> respData.data(127, 96),
+        4.U -> respData.data(159, 128),
+        5.U -> respData.data(191, 160),
+        6.U -> respData.data(223, 192),
+        7.U -> respData.data(255, 224)
       )
     )
 
@@ -95,16 +109,19 @@ class FetchUnit extends Module {
       }
     }
     // 如果不是期望的PC（比如分支后的错误预取），忽略该响应
+  }.otherwise {
+    // 没有有效响应时，输出默认值
+    when(!ifid_reg.valid || !decodeReady) {
+      io.decodeStage.data.valid := false.B
+      io.decodeStage.data.inst  := 0.U
+      io.decodeStage.data.pc    := 0.U
+    }
   }
 
   // ========== Buffered Instruction Handling ==========
   when(ifid_reg.valid && decodeReady) {
     io.decodeStage.data := ifid_reg
     ifid_reg.valid      := false.B
-  }.otherwise {
-    io.decodeStage.data.valid := false.B
-    io.decodeStage.data.inst  := 0.U
-    io.decodeStage.data.pc    := 0.U
   }
 
   // ========== Branch Handling ==========
@@ -117,25 +134,20 @@ class FetchUnit extends Module {
       ifid_reg.valid := false.B
     }
 
-    // 如果有pending请求且不是目标地址，标记为无效
-    when(pendingReq && reqPC =/= target) {
-      // 请求仍然pending，但我们会忽略其响应
-      // pendingReq保持为true直到收到响应
-    }
+    // 如果有pending请求且不是目标地址，标记为需要忽略
+    // 响应会在后续周期被忽略（通过isExpectedPC检查）
   }
 
   // ========== Cache Miss Handling ==========
-  // Cache miss通过icache_resp.valid信号处理
-  // 如果长时间没有响应，pendingReq会阻止新请求
-  // 可以添加超时机制重试
+  // Cache miss通过长时间没有响应来检测
   val missCounter = RegInit(0.U(8.W))
-  when(pendingReq && !io.icache_resp.valid) {
+  when(pendingReq && !gotResponse) {
     missCounter := missCounter + 1.U
   }.otherwise {
     missCounter := 0.U
   }
 
-  // 超时重试（可选）
+  // 超时重试（可选，可以根据需要调整超时值）
   val timeout = missCounter === 255.U
   when(timeout) {
     pendingReq  := false.B
@@ -149,4 +161,5 @@ class FetchUnit extends Module {
   // dontTouch(prefetchPC)
   // dontTouch(reqPC)
   // dontTouch(pendingReq)
+  // dontTouch(gotResponse)
 }
