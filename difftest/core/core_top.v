@@ -944,7 +944,6 @@ module ICache(
   output         io_icache_req_ready,
   input          io_icache_req_valid,
   input  [31:0]  io_icache_req_bits_addr,
-  input          io_flush,
   output         io_icache_resp_valid,
   output [255:0] io_icache_resp_bits_data,
   output [31:0]  io_icache_resp_bits_addr,
@@ -971,6 +970,8 @@ module ICache(
   wire [31:0]  _cache_data_0_ext_R0_data;
   wire [19:0]  _cache_tag_ext_R0_data;
   reg  [1:0]   state;
+  reg          saved_req_valid;
+  reg  [31:0]  saved_req_bits_addr;
   reg          cache_valid_0;
   reg          cache_valid_1;
   reg          cache_valid_2;
@@ -1099,17 +1100,19 @@ module ICache(
   reg          cache_valid_125;
   reg          cache_valid_126;
   reg          cache_valid_127;
-  reg  [6:0]   miss_index;
-  reg  [19:0]  miss_tag;
-  reg  [31:0]  miss_addr;
-  reg  [6:0]   check_index;
-  reg  [19:0]  check_tag;
-  reg  [31:0]  check_addr;
-  reg          check_valid;
+  reg  [6:0]   reg_index;
+  reg  [19:0]  reg_tag;
+  reg  [31:0]  reg_addr;
+  wire [31:0]  current_req_bits_addr =
+    saved_req_valid ? saved_req_bits_addr : io_icache_req_bits_addr;
+  wire [6:0]   index =
+    saved_req_valid ? saved_req_bits_addr[11:5] : io_icache_req_bits_addr[11:5];
+  wire [19:0]  tag =
+    saved_req_valid ? saved_req_bits_addr[31:12] : io_icache_req_bits_addr[31:12];
   wire [6:0]   read_index =
-    ~(|state) & io_icache_req_valid | state == 2'h1 & io_icache_req_valid
+    ~(|state) & io_icache_req_valid & ~saved_req_valid | ~saved_req_valid
       ? io_icache_req_bits_addr[11:5]
-      : check_index;
+      : saved_req_bits_addr[11:5];
   wire [127:0] _GEN =
     {{cache_valid_127},
      {cache_valid_126},
@@ -1239,21 +1242,19 @@ module ICache(
      {cache_valid_2},
      {cache_valid_1},
      {cache_valid_0}};
-  wire         hit =
-    check_valid & check_tag == _cache_tag_ext_R0_data & _GEN[check_index];
-  wire         io_icache_debug_state_0 = state == 2'h2;
+  wire         hit_cache =
+    reg_tag == _cache_tag_ext_R0_data & _GEN[reg_index]
+    & reg_addr == current_req_bits_addr;
   wire         _GEN_0 = state == 2'h1;
-  wire         _GEN_1 = _GEN_0 & ~io_flush;
-  wire         _GEN_2 = ~(|state) | ~_GEN_1 | hit;
-  wire         _GEN_3 = state == 2'h2;
-  wire         _GEN_4 = _GEN_3 & ~io_flush;
-  wire         _GEN_5 = _GEN_4 & io_io_read_resp_valid;
-  wire         _GEN_6 = _GEN_3 & ~io_flush & io_io_read_resp_valid;
-  wire         _GEN_7 = ~(|state) | _GEN_0;
-  wire         _GEN_8 = ~_GEN_7 & _GEN_5;
+  wire         _GEN_1 = state == 2'h2;
+  wire         _GEN_2 = _GEN_1 & io_io_read_resp_valid;
+  wire         io_icache_resp_valid_0 = (|state) & (_GEN_0 ? hit_cache : _GEN_2);
+  wire         cache_we = ~(~(|state) | _GEN_0) & _GEN_2;
   always @(posedge clock) begin
     if (reset) begin
       state <= 2'h0;
+      saved_req_valid <= 1'h0;
+      saved_req_bits_addr <= 32'h0;
       cache_valid_0 <= 1'h0;
       cache_valid_1 <= 1'h0;
       cache_valid_2 <= 1'h0;
@@ -1382,453 +1383,164 @@ module ICache(
       cache_valid_125 <= 1'h0;
       cache_valid_126 <= 1'h0;
       cache_valid_127 <= 1'h0;
-      miss_index <= 7'h0;
-      miss_tag <= 20'h0;
-      miss_addr <= 32'h0;
-      check_index <= 7'h0;
-      check_tag <= 20'h0;
-      check_addr <= 32'h0;
-      check_valid <= 1'h0;
+      reg_index <= 7'h0;
+      reg_tag <= 20'h0;
+      reg_addr <= 32'h0;
     end
     else begin
-      automatic logic _GEN_9;
-      automatic logic _GEN_10;
-      automatic logic _GEN_11;
-      _GEN_9 = ~io_flush & check_valid;
-      _GEN_10 = io_icache_req_valid & ~io_flush;
-      _GEN_11 = _GEN_3 & ~io_flush & io_io_read_resp_valid & io_icache_req_valid;
+      automatic logic current_req_valid;
+      automatic logic _GEN_3;
+      current_req_valid = saved_req_valid | io_icache_req_valid;
+      _GEN_3 = io_icache_req_valid & ~saved_req_valid;
       if (|state) begin
-        automatic logic [1:0] _GEN_12;
-        _GEN_12 = {1'h0, io_icache_req_valid};
         if (_GEN_0) begin
-          if (io_flush) begin
+          if (hit_cache)
             state <= 2'h0;
-            check_valid <= _GEN_9;
-          end
-          else if (hit) begin
-            state <= _GEN_12;
-            check_valid <= io_icache_req_valid;
-          end
-          else begin
-            if (io_io_read_req_ready)
-              state <= 2'h2;
-            else if (io_flush)
-              state <= 2'h0;
-            check_valid <= ~(io_io_read_req_ready | io_flush) & check_valid;
-          end
+          else if (io_io_read_req_ready)
+            state <= 2'h2;
         end
-        else begin
-          if (_GEN_6)
-            state <= _GEN_12;
-          else if (io_flush)
-            state <= 2'h0;
-          check_valid <= _GEN_11 | _GEN_9;
-        end
-      end
-      else begin
-        if (_GEN_10)
-          state <= 2'h1;
-        else if (io_flush)
+        else if (_GEN_1 & io_io_read_resp_valid)
           state <= 2'h0;
-        check_valid <= _GEN_10 | _GEN_9;
       end
-      cache_valid_0 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h0
-        | cache_valid_0;
-      cache_valid_1 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1
-        | cache_valid_1;
-      cache_valid_2 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2
-        | cache_valid_2;
-      cache_valid_3 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3
-        | cache_valid_3;
-      cache_valid_4 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4
-        | cache_valid_4;
-      cache_valid_5 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5
-        | cache_valid_5;
-      cache_valid_6 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6
-        | cache_valid_6;
-      cache_valid_7 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7
-        | cache_valid_7;
-      cache_valid_8 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h8
-        | cache_valid_8;
-      cache_valid_9 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h9
-        | cache_valid_9;
-      cache_valid_10 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hA
-        | cache_valid_10;
-      cache_valid_11 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hB
-        | cache_valid_11;
-      cache_valid_12 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hC
-        | cache_valid_12;
-      cache_valid_13 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hD
-        | cache_valid_13;
-      cache_valid_14 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hE
-        | cache_valid_14;
-      cache_valid_15 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'hF
-        | cache_valid_15;
-      cache_valid_16 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h10
-        | cache_valid_16;
-      cache_valid_17 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h11
-        | cache_valid_17;
-      cache_valid_18 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h12
-        | cache_valid_18;
-      cache_valid_19 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h13
-        | cache_valid_19;
-      cache_valid_20 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h14
-        | cache_valid_20;
-      cache_valid_21 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h15
-        | cache_valid_21;
-      cache_valid_22 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h16
-        | cache_valid_22;
-      cache_valid_23 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h17
-        | cache_valid_23;
-      cache_valid_24 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h18
-        | cache_valid_24;
-      cache_valid_25 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h19
-        | cache_valid_25;
-      cache_valid_26 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1A
-        | cache_valid_26;
-      cache_valid_27 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1B
-        | cache_valid_27;
-      cache_valid_28 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1C
-        | cache_valid_28;
-      cache_valid_29 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1D
-        | cache_valid_29;
-      cache_valid_30 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1E
-        | cache_valid_30;
-      cache_valid_31 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h1F
-        | cache_valid_31;
-      cache_valid_32 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h20
-        | cache_valid_32;
-      cache_valid_33 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h21
-        | cache_valid_33;
-      cache_valid_34 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h22
-        | cache_valid_34;
-      cache_valid_35 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h23
-        | cache_valid_35;
-      cache_valid_36 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h24
-        | cache_valid_36;
-      cache_valid_37 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h25
-        | cache_valid_37;
-      cache_valid_38 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h26
-        | cache_valid_38;
-      cache_valid_39 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h27
-        | cache_valid_39;
-      cache_valid_40 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h28
-        | cache_valid_40;
-      cache_valid_41 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h29
-        | cache_valid_41;
-      cache_valid_42 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2A
-        | cache_valid_42;
-      cache_valid_43 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2B
-        | cache_valid_43;
-      cache_valid_44 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2C
-        | cache_valid_44;
-      cache_valid_45 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2D
-        | cache_valid_45;
-      cache_valid_46 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2E
-        | cache_valid_46;
-      cache_valid_47 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h2F
-        | cache_valid_47;
-      cache_valid_48 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h30
-        | cache_valid_48;
-      cache_valid_49 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h31
-        | cache_valid_49;
-      cache_valid_50 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h32
-        | cache_valid_50;
-      cache_valid_51 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h33
-        | cache_valid_51;
-      cache_valid_52 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h34
-        | cache_valid_52;
-      cache_valid_53 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h35
-        | cache_valid_53;
-      cache_valid_54 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h36
-        | cache_valid_54;
-      cache_valid_55 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h37
-        | cache_valid_55;
-      cache_valid_56 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h38
-        | cache_valid_56;
-      cache_valid_57 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h39
-        | cache_valid_57;
-      cache_valid_58 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3A
-        | cache_valid_58;
-      cache_valid_59 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3B
-        | cache_valid_59;
-      cache_valid_60 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3C
-        | cache_valid_60;
-      cache_valid_61 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3D
-        | cache_valid_61;
-      cache_valid_62 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3E
-        | cache_valid_62;
-      cache_valid_63 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h3F
-        | cache_valid_63;
-      cache_valid_64 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h40
-        | cache_valid_64;
-      cache_valid_65 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h41
-        | cache_valid_65;
-      cache_valid_66 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h42
-        | cache_valid_66;
-      cache_valid_67 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h43
-        | cache_valid_67;
-      cache_valid_68 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h44
-        | cache_valid_68;
-      cache_valid_69 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h45
-        | cache_valid_69;
-      cache_valid_70 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h46
-        | cache_valid_70;
-      cache_valid_71 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h47
-        | cache_valid_71;
-      cache_valid_72 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h48
-        | cache_valid_72;
-      cache_valid_73 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h49
-        | cache_valid_73;
-      cache_valid_74 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4A
-        | cache_valid_74;
-      cache_valid_75 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4B
-        | cache_valid_75;
-      cache_valid_76 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4C
-        | cache_valid_76;
-      cache_valid_77 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4D
-        | cache_valid_77;
-      cache_valid_78 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4E
-        | cache_valid_78;
-      cache_valid_79 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h4F
-        | cache_valid_79;
-      cache_valid_80 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h50
-        | cache_valid_80;
-      cache_valid_81 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h51
-        | cache_valid_81;
-      cache_valid_82 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h52
-        | cache_valid_82;
-      cache_valid_83 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h53
-        | cache_valid_83;
-      cache_valid_84 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h54
-        | cache_valid_84;
-      cache_valid_85 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h55
-        | cache_valid_85;
-      cache_valid_86 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h56
-        | cache_valid_86;
-      cache_valid_87 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h57
-        | cache_valid_87;
-      cache_valid_88 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h58
-        | cache_valid_88;
-      cache_valid_89 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h59
-        | cache_valid_89;
-      cache_valid_90 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5A
-        | cache_valid_90;
-      cache_valid_91 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5B
-        | cache_valid_91;
-      cache_valid_92 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5C
-        | cache_valid_92;
-      cache_valid_93 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5D
-        | cache_valid_93;
-      cache_valid_94 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5E
-        | cache_valid_94;
-      cache_valid_95 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h5F
-        | cache_valid_95;
-      cache_valid_96 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h60
-        | cache_valid_96;
-      cache_valid_97 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h61
-        | cache_valid_97;
-      cache_valid_98 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h62
-        | cache_valid_98;
-      cache_valid_99 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h63
-        | cache_valid_99;
-      cache_valid_100 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h64
-        | cache_valid_100;
-      cache_valid_101 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h65
-        | cache_valid_101;
-      cache_valid_102 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h66
-        | cache_valid_102;
-      cache_valid_103 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h67
-        | cache_valid_103;
-      cache_valid_104 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h68
-        | cache_valid_104;
-      cache_valid_105 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h69
-        | cache_valid_105;
-      cache_valid_106 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6A
-        | cache_valid_106;
-      cache_valid_107 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6B
-        | cache_valid_107;
-      cache_valid_108 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6C
-        | cache_valid_108;
-      cache_valid_109 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6D
-        | cache_valid_109;
-      cache_valid_110 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6E
-        | cache_valid_110;
-      cache_valid_111 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h6F
-        | cache_valid_111;
-      cache_valid_112 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h70
-        | cache_valid_112;
-      cache_valid_113 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h71
-        | cache_valid_113;
-      cache_valid_114 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h72
-        | cache_valid_114;
-      cache_valid_115 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h73
-        | cache_valid_115;
-      cache_valid_116 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h74
-        | cache_valid_116;
-      cache_valid_117 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h75
-        | cache_valid_117;
-      cache_valid_118 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h76
-        | cache_valid_118;
-      cache_valid_119 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h77
-        | cache_valid_119;
-      cache_valid_120 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h78
-        | cache_valid_120;
-      cache_valid_121 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h79
-        | cache_valid_121;
-      cache_valid_122 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7A
-        | cache_valid_122;
-      cache_valid_123 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7B
-        | cache_valid_123;
-      cache_valid_124 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7C
-        | cache_valid_124;
-      cache_valid_125 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7D
-        | cache_valid_125;
-      cache_valid_126 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & miss_index == 7'h7E
-        | cache_valid_126;
-      cache_valid_127 <=
-        ~_GEN_7 & _GEN_3 & ~io_flush & io_io_read_resp_valid & (&miss_index)
-        | cache_valid_127;
-      if (_GEN_2) begin
-      end
-      else begin
-        miss_index <= check_index;
-        miss_tag <= check_tag;
-        miss_addr <= check_addr;
-      end
-      if ((|state)
-            ? (_GEN_0 ? ~io_flush & hit & io_icache_req_valid : _GEN_11)
-            : _GEN_10) begin
-        check_index <= io_icache_req_bits_addr[11:5];
-        check_tag <= io_icache_req_bits_addr[31:12];
-        check_addr <= io_icache_req_bits_addr;
+      else if (current_req_valid)
+        state <= 2'h1;
+      saved_req_valid <= ~io_icache_resp_valid_0 & (_GEN_3 | saved_req_valid);
+      if (io_icache_resp_valid_0)
+        saved_req_bits_addr <= 32'h0;
+      else if (_GEN_3)
+        saved_req_bits_addr <= io_icache_req_bits_addr;
+      cache_valid_0 <= cache_we & index == 7'h0 | cache_valid_0;
+      cache_valid_1 <= cache_we & index == 7'h1 | cache_valid_1;
+      cache_valid_2 <= cache_we & index == 7'h2 | cache_valid_2;
+      cache_valid_3 <= cache_we & index == 7'h3 | cache_valid_3;
+      cache_valid_4 <= cache_we & index == 7'h4 | cache_valid_4;
+      cache_valid_5 <= cache_we & index == 7'h5 | cache_valid_5;
+      cache_valid_6 <= cache_we & index == 7'h6 | cache_valid_6;
+      cache_valid_7 <= cache_we & index == 7'h7 | cache_valid_7;
+      cache_valid_8 <= cache_we & index == 7'h8 | cache_valid_8;
+      cache_valid_9 <= cache_we & index == 7'h9 | cache_valid_9;
+      cache_valid_10 <= cache_we & index == 7'hA | cache_valid_10;
+      cache_valid_11 <= cache_we & index == 7'hB | cache_valid_11;
+      cache_valid_12 <= cache_we & index == 7'hC | cache_valid_12;
+      cache_valid_13 <= cache_we & index == 7'hD | cache_valid_13;
+      cache_valid_14 <= cache_we & index == 7'hE | cache_valid_14;
+      cache_valid_15 <= cache_we & index == 7'hF | cache_valid_15;
+      cache_valid_16 <= cache_we & index == 7'h10 | cache_valid_16;
+      cache_valid_17 <= cache_we & index == 7'h11 | cache_valid_17;
+      cache_valid_18 <= cache_we & index == 7'h12 | cache_valid_18;
+      cache_valid_19 <= cache_we & index == 7'h13 | cache_valid_19;
+      cache_valid_20 <= cache_we & index == 7'h14 | cache_valid_20;
+      cache_valid_21 <= cache_we & index == 7'h15 | cache_valid_21;
+      cache_valid_22 <= cache_we & index == 7'h16 | cache_valid_22;
+      cache_valid_23 <= cache_we & index == 7'h17 | cache_valid_23;
+      cache_valid_24 <= cache_we & index == 7'h18 | cache_valid_24;
+      cache_valid_25 <= cache_we & index == 7'h19 | cache_valid_25;
+      cache_valid_26 <= cache_we & index == 7'h1A | cache_valid_26;
+      cache_valid_27 <= cache_we & index == 7'h1B | cache_valid_27;
+      cache_valid_28 <= cache_we & index == 7'h1C | cache_valid_28;
+      cache_valid_29 <= cache_we & index == 7'h1D | cache_valid_29;
+      cache_valid_30 <= cache_we & index == 7'h1E | cache_valid_30;
+      cache_valid_31 <= cache_we & index == 7'h1F | cache_valid_31;
+      cache_valid_32 <= cache_we & index == 7'h20 | cache_valid_32;
+      cache_valid_33 <= cache_we & index == 7'h21 | cache_valid_33;
+      cache_valid_34 <= cache_we & index == 7'h22 | cache_valid_34;
+      cache_valid_35 <= cache_we & index == 7'h23 | cache_valid_35;
+      cache_valid_36 <= cache_we & index == 7'h24 | cache_valid_36;
+      cache_valid_37 <= cache_we & index == 7'h25 | cache_valid_37;
+      cache_valid_38 <= cache_we & index == 7'h26 | cache_valid_38;
+      cache_valid_39 <= cache_we & index == 7'h27 | cache_valid_39;
+      cache_valid_40 <= cache_we & index == 7'h28 | cache_valid_40;
+      cache_valid_41 <= cache_we & index == 7'h29 | cache_valid_41;
+      cache_valid_42 <= cache_we & index == 7'h2A | cache_valid_42;
+      cache_valid_43 <= cache_we & index == 7'h2B | cache_valid_43;
+      cache_valid_44 <= cache_we & index == 7'h2C | cache_valid_44;
+      cache_valid_45 <= cache_we & index == 7'h2D | cache_valid_45;
+      cache_valid_46 <= cache_we & index == 7'h2E | cache_valid_46;
+      cache_valid_47 <= cache_we & index == 7'h2F | cache_valid_47;
+      cache_valid_48 <= cache_we & index == 7'h30 | cache_valid_48;
+      cache_valid_49 <= cache_we & index == 7'h31 | cache_valid_49;
+      cache_valid_50 <= cache_we & index == 7'h32 | cache_valid_50;
+      cache_valid_51 <= cache_we & index == 7'h33 | cache_valid_51;
+      cache_valid_52 <= cache_we & index == 7'h34 | cache_valid_52;
+      cache_valid_53 <= cache_we & index == 7'h35 | cache_valid_53;
+      cache_valid_54 <= cache_we & index == 7'h36 | cache_valid_54;
+      cache_valid_55 <= cache_we & index == 7'h37 | cache_valid_55;
+      cache_valid_56 <= cache_we & index == 7'h38 | cache_valid_56;
+      cache_valid_57 <= cache_we & index == 7'h39 | cache_valid_57;
+      cache_valid_58 <= cache_we & index == 7'h3A | cache_valid_58;
+      cache_valid_59 <= cache_we & index == 7'h3B | cache_valid_59;
+      cache_valid_60 <= cache_we & index == 7'h3C | cache_valid_60;
+      cache_valid_61 <= cache_we & index == 7'h3D | cache_valid_61;
+      cache_valid_62 <= cache_we & index == 7'h3E | cache_valid_62;
+      cache_valid_63 <= cache_we & index == 7'h3F | cache_valid_63;
+      cache_valid_64 <= cache_we & index == 7'h40 | cache_valid_64;
+      cache_valid_65 <= cache_we & index == 7'h41 | cache_valid_65;
+      cache_valid_66 <= cache_we & index == 7'h42 | cache_valid_66;
+      cache_valid_67 <= cache_we & index == 7'h43 | cache_valid_67;
+      cache_valid_68 <= cache_we & index == 7'h44 | cache_valid_68;
+      cache_valid_69 <= cache_we & index == 7'h45 | cache_valid_69;
+      cache_valid_70 <= cache_we & index == 7'h46 | cache_valid_70;
+      cache_valid_71 <= cache_we & index == 7'h47 | cache_valid_71;
+      cache_valid_72 <= cache_we & index == 7'h48 | cache_valid_72;
+      cache_valid_73 <= cache_we & index == 7'h49 | cache_valid_73;
+      cache_valid_74 <= cache_we & index == 7'h4A | cache_valid_74;
+      cache_valid_75 <= cache_we & index == 7'h4B | cache_valid_75;
+      cache_valid_76 <= cache_we & index == 7'h4C | cache_valid_76;
+      cache_valid_77 <= cache_we & index == 7'h4D | cache_valid_77;
+      cache_valid_78 <= cache_we & index == 7'h4E | cache_valid_78;
+      cache_valid_79 <= cache_we & index == 7'h4F | cache_valid_79;
+      cache_valid_80 <= cache_we & index == 7'h50 | cache_valid_80;
+      cache_valid_81 <= cache_we & index == 7'h51 | cache_valid_81;
+      cache_valid_82 <= cache_we & index == 7'h52 | cache_valid_82;
+      cache_valid_83 <= cache_we & index == 7'h53 | cache_valid_83;
+      cache_valid_84 <= cache_we & index == 7'h54 | cache_valid_84;
+      cache_valid_85 <= cache_we & index == 7'h55 | cache_valid_85;
+      cache_valid_86 <= cache_we & index == 7'h56 | cache_valid_86;
+      cache_valid_87 <= cache_we & index == 7'h57 | cache_valid_87;
+      cache_valid_88 <= cache_we & index == 7'h58 | cache_valid_88;
+      cache_valid_89 <= cache_we & index == 7'h59 | cache_valid_89;
+      cache_valid_90 <= cache_we & index == 7'h5A | cache_valid_90;
+      cache_valid_91 <= cache_we & index == 7'h5B | cache_valid_91;
+      cache_valid_92 <= cache_we & index == 7'h5C | cache_valid_92;
+      cache_valid_93 <= cache_we & index == 7'h5D | cache_valid_93;
+      cache_valid_94 <= cache_we & index == 7'h5E | cache_valid_94;
+      cache_valid_95 <= cache_we & index == 7'h5F | cache_valid_95;
+      cache_valid_96 <= cache_we & index == 7'h60 | cache_valid_96;
+      cache_valid_97 <= cache_we & index == 7'h61 | cache_valid_97;
+      cache_valid_98 <= cache_we & index == 7'h62 | cache_valid_98;
+      cache_valid_99 <= cache_we & index == 7'h63 | cache_valid_99;
+      cache_valid_100 <= cache_we & index == 7'h64 | cache_valid_100;
+      cache_valid_101 <= cache_we & index == 7'h65 | cache_valid_101;
+      cache_valid_102 <= cache_we & index == 7'h66 | cache_valid_102;
+      cache_valid_103 <= cache_we & index == 7'h67 | cache_valid_103;
+      cache_valid_104 <= cache_we & index == 7'h68 | cache_valid_104;
+      cache_valid_105 <= cache_we & index == 7'h69 | cache_valid_105;
+      cache_valid_106 <= cache_we & index == 7'h6A | cache_valid_106;
+      cache_valid_107 <= cache_we & index == 7'h6B | cache_valid_107;
+      cache_valid_108 <= cache_we & index == 7'h6C | cache_valid_108;
+      cache_valid_109 <= cache_we & index == 7'h6D | cache_valid_109;
+      cache_valid_110 <= cache_we & index == 7'h6E | cache_valid_110;
+      cache_valid_111 <= cache_we & index == 7'h6F | cache_valid_111;
+      cache_valid_112 <= cache_we & index == 7'h70 | cache_valid_112;
+      cache_valid_113 <= cache_we & index == 7'h71 | cache_valid_113;
+      cache_valid_114 <= cache_we & index == 7'h72 | cache_valid_114;
+      cache_valid_115 <= cache_we & index == 7'h73 | cache_valid_115;
+      cache_valid_116 <= cache_we & index == 7'h74 | cache_valid_116;
+      cache_valid_117 <= cache_we & index == 7'h75 | cache_valid_117;
+      cache_valid_118 <= cache_we & index == 7'h76 | cache_valid_118;
+      cache_valid_119 <= cache_we & index == 7'h77 | cache_valid_119;
+      cache_valid_120 <= cache_we & index == 7'h78 | cache_valid_120;
+      cache_valid_121 <= cache_we & index == 7'h79 | cache_valid_121;
+      cache_valid_122 <= cache_we & index == 7'h7A | cache_valid_122;
+      cache_valid_123 <= cache_we & index == 7'h7B | cache_valid_123;
+      cache_valid_124 <= cache_we & index == 7'h7C | cache_valid_124;
+      cache_valid_125 <= cache_we & index == 7'h7D | cache_valid_125;
+      cache_valid_126 <= cache_we & index == 7'h7E | cache_valid_126;
+      cache_valid_127 <= cache_we & (&index) | cache_valid_127;
+      if (current_req_valid & (~(|state) | _GEN_0)) begin
+        reg_index <= index;
+        reg_tag <= tag;
+        reg_addr <= current_req_bits_addr;
       end
     end
   end // always @(posedge)
@@ -1837,150 +1549,148 @@ module ICache(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:7];
+      automatic logic [31:0] _RANDOM[0:6];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [3:0] i = 4'h0; i < 4'h8; i += 4'h1) begin
-          _RANDOM[i[2:0]] = `RANDOM;
+        for (logic [2:0] i = 3'h0; i < 3'h7; i += 3'h1) begin
+          _RANDOM[i] = `RANDOM;
         end
         state = _RANDOM[3'h0][1:0];
-        cache_valid_0 = _RANDOM[3'h0][2];
-        cache_valid_1 = _RANDOM[3'h0][3];
-        cache_valid_2 = _RANDOM[3'h0][4];
-        cache_valid_3 = _RANDOM[3'h0][5];
-        cache_valid_4 = _RANDOM[3'h0][6];
-        cache_valid_5 = _RANDOM[3'h0][7];
-        cache_valid_6 = _RANDOM[3'h0][8];
-        cache_valid_7 = _RANDOM[3'h0][9];
-        cache_valid_8 = _RANDOM[3'h0][10];
-        cache_valid_9 = _RANDOM[3'h0][11];
-        cache_valid_10 = _RANDOM[3'h0][12];
-        cache_valid_11 = _RANDOM[3'h0][13];
-        cache_valid_12 = _RANDOM[3'h0][14];
-        cache_valid_13 = _RANDOM[3'h0][15];
-        cache_valid_14 = _RANDOM[3'h0][16];
-        cache_valid_15 = _RANDOM[3'h0][17];
-        cache_valid_16 = _RANDOM[3'h0][18];
-        cache_valid_17 = _RANDOM[3'h0][19];
-        cache_valid_18 = _RANDOM[3'h0][20];
-        cache_valid_19 = _RANDOM[3'h0][21];
-        cache_valid_20 = _RANDOM[3'h0][22];
-        cache_valid_21 = _RANDOM[3'h0][23];
-        cache_valid_22 = _RANDOM[3'h0][24];
-        cache_valid_23 = _RANDOM[3'h0][25];
-        cache_valid_24 = _RANDOM[3'h0][26];
-        cache_valid_25 = _RANDOM[3'h0][27];
-        cache_valid_26 = _RANDOM[3'h0][28];
-        cache_valid_27 = _RANDOM[3'h0][29];
-        cache_valid_28 = _RANDOM[3'h0][30];
-        cache_valid_29 = _RANDOM[3'h0][31];
-        cache_valid_30 = _RANDOM[3'h1][0];
-        cache_valid_31 = _RANDOM[3'h1][1];
-        cache_valid_32 = _RANDOM[3'h1][2];
-        cache_valid_33 = _RANDOM[3'h1][3];
-        cache_valid_34 = _RANDOM[3'h1][4];
-        cache_valid_35 = _RANDOM[3'h1][5];
-        cache_valid_36 = _RANDOM[3'h1][6];
-        cache_valid_37 = _RANDOM[3'h1][7];
-        cache_valid_38 = _RANDOM[3'h1][8];
-        cache_valid_39 = _RANDOM[3'h1][9];
-        cache_valid_40 = _RANDOM[3'h1][10];
-        cache_valid_41 = _RANDOM[3'h1][11];
-        cache_valid_42 = _RANDOM[3'h1][12];
-        cache_valid_43 = _RANDOM[3'h1][13];
-        cache_valid_44 = _RANDOM[3'h1][14];
-        cache_valid_45 = _RANDOM[3'h1][15];
-        cache_valid_46 = _RANDOM[3'h1][16];
-        cache_valid_47 = _RANDOM[3'h1][17];
-        cache_valid_48 = _RANDOM[3'h1][18];
-        cache_valid_49 = _RANDOM[3'h1][19];
-        cache_valid_50 = _RANDOM[3'h1][20];
-        cache_valid_51 = _RANDOM[3'h1][21];
-        cache_valid_52 = _RANDOM[3'h1][22];
-        cache_valid_53 = _RANDOM[3'h1][23];
-        cache_valid_54 = _RANDOM[3'h1][24];
-        cache_valid_55 = _RANDOM[3'h1][25];
-        cache_valid_56 = _RANDOM[3'h1][26];
-        cache_valid_57 = _RANDOM[3'h1][27];
-        cache_valid_58 = _RANDOM[3'h1][28];
-        cache_valid_59 = _RANDOM[3'h1][29];
-        cache_valid_60 = _RANDOM[3'h1][30];
-        cache_valid_61 = _RANDOM[3'h1][31];
-        cache_valid_62 = _RANDOM[3'h2][0];
-        cache_valid_63 = _RANDOM[3'h2][1];
-        cache_valid_64 = _RANDOM[3'h2][2];
-        cache_valid_65 = _RANDOM[3'h2][3];
-        cache_valid_66 = _RANDOM[3'h2][4];
-        cache_valid_67 = _RANDOM[3'h2][5];
-        cache_valid_68 = _RANDOM[3'h2][6];
-        cache_valid_69 = _RANDOM[3'h2][7];
-        cache_valid_70 = _RANDOM[3'h2][8];
-        cache_valid_71 = _RANDOM[3'h2][9];
-        cache_valid_72 = _RANDOM[3'h2][10];
-        cache_valid_73 = _RANDOM[3'h2][11];
-        cache_valid_74 = _RANDOM[3'h2][12];
-        cache_valid_75 = _RANDOM[3'h2][13];
-        cache_valid_76 = _RANDOM[3'h2][14];
-        cache_valid_77 = _RANDOM[3'h2][15];
-        cache_valid_78 = _RANDOM[3'h2][16];
-        cache_valid_79 = _RANDOM[3'h2][17];
-        cache_valid_80 = _RANDOM[3'h2][18];
-        cache_valid_81 = _RANDOM[3'h2][19];
-        cache_valid_82 = _RANDOM[3'h2][20];
-        cache_valid_83 = _RANDOM[3'h2][21];
-        cache_valid_84 = _RANDOM[3'h2][22];
-        cache_valid_85 = _RANDOM[3'h2][23];
-        cache_valid_86 = _RANDOM[3'h2][24];
-        cache_valid_87 = _RANDOM[3'h2][25];
-        cache_valid_88 = _RANDOM[3'h2][26];
-        cache_valid_89 = _RANDOM[3'h2][27];
-        cache_valid_90 = _RANDOM[3'h2][28];
-        cache_valid_91 = _RANDOM[3'h2][29];
-        cache_valid_92 = _RANDOM[3'h2][30];
-        cache_valid_93 = _RANDOM[3'h2][31];
-        cache_valid_94 = _RANDOM[3'h3][0];
-        cache_valid_95 = _RANDOM[3'h3][1];
-        cache_valid_96 = _RANDOM[3'h3][2];
-        cache_valid_97 = _RANDOM[3'h3][3];
-        cache_valid_98 = _RANDOM[3'h3][4];
-        cache_valid_99 = _RANDOM[3'h3][5];
-        cache_valid_100 = _RANDOM[3'h3][6];
-        cache_valid_101 = _RANDOM[3'h3][7];
-        cache_valid_102 = _RANDOM[3'h3][8];
-        cache_valid_103 = _RANDOM[3'h3][9];
-        cache_valid_104 = _RANDOM[3'h3][10];
-        cache_valid_105 = _RANDOM[3'h3][11];
-        cache_valid_106 = _RANDOM[3'h3][12];
-        cache_valid_107 = _RANDOM[3'h3][13];
-        cache_valid_108 = _RANDOM[3'h3][14];
-        cache_valid_109 = _RANDOM[3'h3][15];
-        cache_valid_110 = _RANDOM[3'h3][16];
-        cache_valid_111 = _RANDOM[3'h3][17];
-        cache_valid_112 = _RANDOM[3'h3][18];
-        cache_valid_113 = _RANDOM[3'h3][19];
-        cache_valid_114 = _RANDOM[3'h3][20];
-        cache_valid_115 = _RANDOM[3'h3][21];
-        cache_valid_116 = _RANDOM[3'h3][22];
-        cache_valid_117 = _RANDOM[3'h3][23];
-        cache_valid_118 = _RANDOM[3'h3][24];
-        cache_valid_119 = _RANDOM[3'h3][25];
-        cache_valid_120 = _RANDOM[3'h3][26];
-        cache_valid_121 = _RANDOM[3'h3][27];
-        cache_valid_122 = _RANDOM[3'h3][28];
-        cache_valid_123 = _RANDOM[3'h3][29];
-        cache_valid_124 = _RANDOM[3'h3][30];
-        cache_valid_125 = _RANDOM[3'h3][31];
-        cache_valid_126 = _RANDOM[3'h4][0];
-        cache_valid_127 = _RANDOM[3'h4][1];
-        miss_index = _RANDOM[3'h4][8:2];
-        miss_tag = _RANDOM[3'h4][28:9];
-        miss_addr = {_RANDOM[3'h4][31:29], _RANDOM[3'h5][28:0]};
-        check_index = {_RANDOM[3'h5][31:29], _RANDOM[3'h6][3:0]};
-        check_tag = _RANDOM[3'h6][23:4];
-        check_addr = {_RANDOM[3'h6][31:24], _RANDOM[3'h7][23:0]};
-        check_valid = _RANDOM[3'h7][24];
+        saved_req_valid = _RANDOM[3'h0][2];
+        saved_req_bits_addr = {_RANDOM[3'h0][31:3], _RANDOM[3'h1][2:0]};
+        cache_valid_0 = _RANDOM[3'h1][3];
+        cache_valid_1 = _RANDOM[3'h1][4];
+        cache_valid_2 = _RANDOM[3'h1][5];
+        cache_valid_3 = _RANDOM[3'h1][6];
+        cache_valid_4 = _RANDOM[3'h1][7];
+        cache_valid_5 = _RANDOM[3'h1][8];
+        cache_valid_6 = _RANDOM[3'h1][9];
+        cache_valid_7 = _RANDOM[3'h1][10];
+        cache_valid_8 = _RANDOM[3'h1][11];
+        cache_valid_9 = _RANDOM[3'h1][12];
+        cache_valid_10 = _RANDOM[3'h1][13];
+        cache_valid_11 = _RANDOM[3'h1][14];
+        cache_valid_12 = _RANDOM[3'h1][15];
+        cache_valid_13 = _RANDOM[3'h1][16];
+        cache_valid_14 = _RANDOM[3'h1][17];
+        cache_valid_15 = _RANDOM[3'h1][18];
+        cache_valid_16 = _RANDOM[3'h1][19];
+        cache_valid_17 = _RANDOM[3'h1][20];
+        cache_valid_18 = _RANDOM[3'h1][21];
+        cache_valid_19 = _RANDOM[3'h1][22];
+        cache_valid_20 = _RANDOM[3'h1][23];
+        cache_valid_21 = _RANDOM[3'h1][24];
+        cache_valid_22 = _RANDOM[3'h1][25];
+        cache_valid_23 = _RANDOM[3'h1][26];
+        cache_valid_24 = _RANDOM[3'h1][27];
+        cache_valid_25 = _RANDOM[3'h1][28];
+        cache_valid_26 = _RANDOM[3'h1][29];
+        cache_valid_27 = _RANDOM[3'h1][30];
+        cache_valid_28 = _RANDOM[3'h1][31];
+        cache_valid_29 = _RANDOM[3'h2][0];
+        cache_valid_30 = _RANDOM[3'h2][1];
+        cache_valid_31 = _RANDOM[3'h2][2];
+        cache_valid_32 = _RANDOM[3'h2][3];
+        cache_valid_33 = _RANDOM[3'h2][4];
+        cache_valid_34 = _RANDOM[3'h2][5];
+        cache_valid_35 = _RANDOM[3'h2][6];
+        cache_valid_36 = _RANDOM[3'h2][7];
+        cache_valid_37 = _RANDOM[3'h2][8];
+        cache_valid_38 = _RANDOM[3'h2][9];
+        cache_valid_39 = _RANDOM[3'h2][10];
+        cache_valid_40 = _RANDOM[3'h2][11];
+        cache_valid_41 = _RANDOM[3'h2][12];
+        cache_valid_42 = _RANDOM[3'h2][13];
+        cache_valid_43 = _RANDOM[3'h2][14];
+        cache_valid_44 = _RANDOM[3'h2][15];
+        cache_valid_45 = _RANDOM[3'h2][16];
+        cache_valid_46 = _RANDOM[3'h2][17];
+        cache_valid_47 = _RANDOM[3'h2][18];
+        cache_valid_48 = _RANDOM[3'h2][19];
+        cache_valid_49 = _RANDOM[3'h2][20];
+        cache_valid_50 = _RANDOM[3'h2][21];
+        cache_valid_51 = _RANDOM[3'h2][22];
+        cache_valid_52 = _RANDOM[3'h2][23];
+        cache_valid_53 = _RANDOM[3'h2][24];
+        cache_valid_54 = _RANDOM[3'h2][25];
+        cache_valid_55 = _RANDOM[3'h2][26];
+        cache_valid_56 = _RANDOM[3'h2][27];
+        cache_valid_57 = _RANDOM[3'h2][28];
+        cache_valid_58 = _RANDOM[3'h2][29];
+        cache_valid_59 = _RANDOM[3'h2][30];
+        cache_valid_60 = _RANDOM[3'h2][31];
+        cache_valid_61 = _RANDOM[3'h3][0];
+        cache_valid_62 = _RANDOM[3'h3][1];
+        cache_valid_63 = _RANDOM[3'h3][2];
+        cache_valid_64 = _RANDOM[3'h3][3];
+        cache_valid_65 = _RANDOM[3'h3][4];
+        cache_valid_66 = _RANDOM[3'h3][5];
+        cache_valid_67 = _RANDOM[3'h3][6];
+        cache_valid_68 = _RANDOM[3'h3][7];
+        cache_valid_69 = _RANDOM[3'h3][8];
+        cache_valid_70 = _RANDOM[3'h3][9];
+        cache_valid_71 = _RANDOM[3'h3][10];
+        cache_valid_72 = _RANDOM[3'h3][11];
+        cache_valid_73 = _RANDOM[3'h3][12];
+        cache_valid_74 = _RANDOM[3'h3][13];
+        cache_valid_75 = _RANDOM[3'h3][14];
+        cache_valid_76 = _RANDOM[3'h3][15];
+        cache_valid_77 = _RANDOM[3'h3][16];
+        cache_valid_78 = _RANDOM[3'h3][17];
+        cache_valid_79 = _RANDOM[3'h3][18];
+        cache_valid_80 = _RANDOM[3'h3][19];
+        cache_valid_81 = _RANDOM[3'h3][20];
+        cache_valid_82 = _RANDOM[3'h3][21];
+        cache_valid_83 = _RANDOM[3'h3][22];
+        cache_valid_84 = _RANDOM[3'h3][23];
+        cache_valid_85 = _RANDOM[3'h3][24];
+        cache_valid_86 = _RANDOM[3'h3][25];
+        cache_valid_87 = _RANDOM[3'h3][26];
+        cache_valid_88 = _RANDOM[3'h3][27];
+        cache_valid_89 = _RANDOM[3'h3][28];
+        cache_valid_90 = _RANDOM[3'h3][29];
+        cache_valid_91 = _RANDOM[3'h3][30];
+        cache_valid_92 = _RANDOM[3'h3][31];
+        cache_valid_93 = _RANDOM[3'h4][0];
+        cache_valid_94 = _RANDOM[3'h4][1];
+        cache_valid_95 = _RANDOM[3'h4][2];
+        cache_valid_96 = _RANDOM[3'h4][3];
+        cache_valid_97 = _RANDOM[3'h4][4];
+        cache_valid_98 = _RANDOM[3'h4][5];
+        cache_valid_99 = _RANDOM[3'h4][6];
+        cache_valid_100 = _RANDOM[3'h4][7];
+        cache_valid_101 = _RANDOM[3'h4][8];
+        cache_valid_102 = _RANDOM[3'h4][9];
+        cache_valid_103 = _RANDOM[3'h4][10];
+        cache_valid_104 = _RANDOM[3'h4][11];
+        cache_valid_105 = _RANDOM[3'h4][12];
+        cache_valid_106 = _RANDOM[3'h4][13];
+        cache_valid_107 = _RANDOM[3'h4][14];
+        cache_valid_108 = _RANDOM[3'h4][15];
+        cache_valid_109 = _RANDOM[3'h4][16];
+        cache_valid_110 = _RANDOM[3'h4][17];
+        cache_valid_111 = _RANDOM[3'h4][18];
+        cache_valid_112 = _RANDOM[3'h4][19];
+        cache_valid_113 = _RANDOM[3'h4][20];
+        cache_valid_114 = _RANDOM[3'h4][21];
+        cache_valid_115 = _RANDOM[3'h4][22];
+        cache_valid_116 = _RANDOM[3'h4][23];
+        cache_valid_117 = _RANDOM[3'h4][24];
+        cache_valid_118 = _RANDOM[3'h4][25];
+        cache_valid_119 = _RANDOM[3'h4][26];
+        cache_valid_120 = _RANDOM[3'h4][27];
+        cache_valid_121 = _RANDOM[3'h4][28];
+        cache_valid_122 = _RANDOM[3'h4][29];
+        cache_valid_123 = _RANDOM[3'h4][30];
+        cache_valid_124 = _RANDOM[3'h4][31];
+        cache_valid_125 = _RANDOM[3'h5][0];
+        cache_valid_126 = _RANDOM[3'h5][1];
+        cache_valid_127 = _RANDOM[3'h5][2];
+        reg_index = _RANDOM[3'h5][9:3];
+        reg_tag = _RANDOM[3'h5][29:10];
+        reg_addr = {_RANDOM[3'h5][31:30], _RANDOM[3'h6][29:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -1992,18 +1702,18 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_tag_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
-    .W0_data (miss_tag)
+    .W0_data (tag)
   );
   cache_data_128x32 cache_data_0_ext (
     .R0_addr (read_index),
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_0_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[31:0])
   );
@@ -2012,8 +1722,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_1_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[63:32])
   );
@@ -2022,8 +1732,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_2_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[95:64])
   );
@@ -2032,8 +1742,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_3_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[127:96])
   );
@@ -2042,8 +1752,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_4_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[159:128])
   );
@@ -2052,8 +1762,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_5_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[191:160])
   );
@@ -2062,8 +1772,8 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_6_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[223:192])
   );
@@ -2072,18 +1782,13 @@ module ICache(
     .R0_en   (1'h1),
     .R0_clk  (clock),
     .R0_data (_cache_data_7_ext_R0_data),
-    .W0_addr (miss_index),
-    .W0_en   (_GEN_8),
+    .W0_addr (index),
+    .W0_en   (cache_we),
     .W0_clk  (clock),
     .W0_data (io_io_read_resp_bits_data[255:224])
   );
-  assign io_icache_req_ready =
-    (|state)
-      ? (_GEN_0
-           ? ~io_flush & hit & io_icache_req_valid
-           : _GEN_4 & io_io_read_resp_valid & io_icache_req_valid)
-      : ~io_flush;
-  assign io_icache_resp_valid = (|state) & (_GEN_0 ? ~io_flush & hit : _GEN_5);
+  assign io_icache_req_ready = ~saved_req_valid & ~(|state) & ~saved_req_valid;
+  assign io_icache_resp_valid = io_icache_resp_valid_0;
   assign io_icache_resp_bits_data =
     _GEN_0
       ? {_cache_data_7_ext_R0_data,
@@ -2095,16 +1800,15 @@ module ICache(
          _cache_data_1_ext_R0_data,
          _cache_data_0_ext_R0_data}
       : io_io_read_resp_bits_data;
-  assign io_icache_resp_bits_addr = _GEN_7 | ~_GEN_6 ? check_addr : miss_addr;
-  assign io_io_read_req_valid = (|state) & _GEN_1 & ~hit;
-  assign io_io_read_req_bits_addr = {_GEN_2 ? miss_addr[31:5] : check_addr[31:5], 5'h0};
-  assign io_icache_debug_state = io_icache_debug_state_0;
-  assign io_icache_debug_hit_cache = hit;
-  assign io_icache_debug_cache_we =
-    io_icache_debug_state_0 & io_io_read_resp_valid & ~io_flush;
+  assign io_icache_resp_bits_addr = current_req_bits_addr;
+  assign io_io_read_req_valid = (|state) & _GEN_0 & ~hit_cache;
+  assign io_io_read_req_bits_addr = {current_req_bits_addr[31:5], 5'h0};
+  assign io_icache_debug_state = state == 2'h2;
+  assign io_icache_debug_hit_cache = hit_cache;
+  assign io_icache_debug_cache_we = cache_we;
   assign io_icache_debug_cache_read_tag = _cache_tag_ext_R0_data;
-  assign io_icache_debug_icache_req_valid = 1'h0;
-  assign io_icache_debug_icache_req_bits_addr = 32'h0;
+  assign io_icache_debug_icache_req_valid = saved_req_valid;
+  assign io_icache_debug_icache_req_bits_addr = saved_req_bits_addr;
 endmodule
 
 module DCache(
@@ -2229,31 +1933,27 @@ module FetchUnit(
   input          io_icache_resp_valid,
   input  [255:0] io_icache_resp_bits_data,
   input  [31:0]  io_icache_resp_bits_addr,
-  input          io_branch,
-  input  [31:0]  io_target,
   input          io_signal_fetchUnitSignal_allow_to_go,
-                 io_icache_req_ready,
+                 io_signal_branchControl_branch,
+  input  [31:0]  io_signal_branchControl_target,
+  input          io_icache_req_ready,
   output         io_icache_req_valid,
   output [31:0]  io_icache_req_bits_addr
 );
 
-  reg              state;
-  reg  [31:0]      wait_pc;
-  reg  [31:0]      req_pc;
-  reg              pending_valid;
+  reg  [31:0]      pc;
+  reg  [31:0]      reqPC;
+  reg  [1:0]       state;
   reg  [31:0]      ifid_reg_inst;
   reg              ifid_reg_valid;
   reg  [31:0]      ifid_reg_pc;
-  wire             canSendReq = ~ifid_reg_valid | io_signal_fetchUnitSignal_allow_to_go;
   reg              canStart_REG;
-  wire             canStart = canStart_REG & ~reset;
-  wire             _GEN =
-    ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_0 = _GEN & ifid_reg_valid;
-  wire             _GEN_1 = canStart & canSendReq & ~io_branch;
-  wire             _GEN_2 = io_icache_resp_valid & pending_valid;
-  wire             addr_match = io_icache_resp_bits_addr == wait_pc;
-  wire [7:0][31:0] _GEN_3 =
+  reg              io_canStart_REG;
+  wire             io_canStart =
+    ~(|state) & ~(~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid)
+    & io_canStart_REG;
+  wire             _GEN = state == 2'h1;
+  wire [7:0][31:0] _GEN_0 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -2262,75 +1962,67 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst = _GEN_3[wait_pc[4:2]];
-  wire             _GEN_4 = ~ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
-  wire             _GEN_5 = _GEN_2 & addr_match & _GEN_4;
-  wire             _GEN_6 = state & _GEN_5;
-  wire             _GEN_7 = _GEN_2 & addr_match;
-  wire             _GEN_8 = ~io_branch & canSendReq;
-  wire             _GEN_9 = ~pending_valid & canSendReq & ~io_branch;
+  wire [31:0]      inst = _GEN_0[reqPC[4:2]];
+  wire             _GEN_1 = io_icache_resp_valid & io_icache_resp_bits_addr == reqPC;
+  wire             _GEN_2 = _GEN & _GEN_1 & io_signal_fetchUnitSignal_allow_to_go;
+  wire             _GEN_3 = (|state) & _GEN_2;
+  wire             _GEN_4 = _GEN & _GEN_1;
+  wire             _GEN_5 = ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go;
   always @(posedge clock) begin
+    automatic logic canStart;
+    automatic logic _GEN_6;
+    canStart = canStart_REG & ~reset;
+    _GEN_6 = io_canStart & io_icache_req_ready;
     if (reset) begin
-      state <= 1'h0;
-      wait_pc <= 32'h80000000;
-      req_pc <= 32'h80000000;
-      pending_valid <= 1'h0;
+      pc <= 32'h80000000;
+      state <= 2'h0;
       ifid_reg_inst <= 32'h0;
       ifid_reg_valid <= 1'h0;
       ifid_reg_pc <= 32'h0;
     end
     else begin
-      automatic logic _GEN_10;
-      automatic logic _GEN_11;
-      automatic logic _GEN_12;
-      automatic logic _GEN_13;
-      automatic logic _GEN_14;
-      _GEN_10 = _GEN_1 & io_icache_req_ready;
-      _GEN_11 = state & _GEN_7;
-      _GEN_12 = ~state | ~_GEN_11 | _GEN_4 | ifid_reg_valid;
-      _GEN_13 = _GEN_8 & io_icache_req_ready;
-      _GEN_14 = _GEN_9 & io_icache_req_ready;
-      state <= ~io_branch & (state ? (~_GEN_11 | _GEN_13) & state : _GEN_10 | state);
-      if (canStart & req_pc == 32'h0 & ~io_branch) begin
-        wait_pc <= 32'h80000000;
-        req_pc <= 32'h80000000;
-      end
-      else if (io_branch) begin
-        wait_pc <= io_target;
-        req_pc <= io_target;
+      automatic logic _GEN_7;
+      _GEN_7 =
+        io_signal_branchControl_branch | ~(|state) | ~_GEN_4
+        | io_signal_fetchUnitSignal_allow_to_go;
+      if (io_signal_branchControl_branch) begin
+        pc <= io_signal_branchControl_target;
+        state <= 2'h0;
       end
       else begin
-        automatic logic _GEN_15;
-        _GEN_15 = _GEN_2 & addr_match & _GEN_13;
-        if (state ? state & (_GEN_9 & io_icache_req_ready | _GEN_15) : _GEN_10)
-          wait_pc <= req_pc;
-        if (state) begin
-          if (_GEN_14)
-            req_pc <= req_pc + 32'h4;
-          else if (_GEN_15)
-            req_pc <= req_pc + 32'h4;
+        if (_GEN_5)
+          pc <= ifid_reg_pc + 32'h4;
+        else if (|state) begin
+          if (_GEN_2)
+            pc <= reqPC + 32'h4;
         end
-        else if (_GEN_10)
-          req_pc <= req_pc + 32'h4;
+        else if (canStart & pc == 32'h0)
+          pc <= 32'h80000000;
+        if (|state) begin
+          if (_GEN_4)
+            state <= 2'h0;
+        end
+        else if (_GEN_6)
+          state <= 2'h1;
       end
-      pending_valid <=
-        ~io_branch
-        & (state
-             ? _GEN_14 | (_GEN_7 ? _GEN_8 & io_icache_req_ready : pending_valid)
-             : _GEN_10 | pending_valid);
-      if (_GEN_12) begin
+      if (_GEN_7) begin
       end
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
-        ~io_branch
-        & (state & _GEN_7 & ~_GEN_4 & ~ifid_reg_valid | ~_GEN & ifid_reg_valid);
-      if (_GEN_12) begin
+        ~(io_signal_branchControl_branch | _GEN_5)
+        & ((|state) & _GEN_4 & ~io_signal_fetchUnitSignal_allow_to_go | ifid_reg_valid);
+      if (_GEN_7) begin
       end
       else
-        ifid_reg_pc <= wait_pc;
+        ifid_reg_pc <= reqPC;
     end
+    if (io_signal_branchControl_branch | ~(~(|state) & _GEN_6)) begin
+    end
+    else
+      reqPC <= pc;
     canStart_REG <= ~reset;
+    io_canStart_REG <= canStart;
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
@@ -2345,25 +2037,36 @@ module FetchUnit(
         for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[3'h0][0];
-        wait_pc = {_RANDOM[3'h0][31:1], _RANDOM[3'h1][0]};
-        req_pc = {_RANDOM[3'h1][31:1], _RANDOM[3'h2][0]};
-        pending_valid = _RANDOM[3'h2][1];
+        pc = _RANDOM[3'h0];
+        reqPC = _RANDOM[3'h1];
+        state = _RANDOM[3'h2][1:0];
         ifid_reg_inst = {_RANDOM[3'h2][31:2], _RANDOM[3'h3][1:0]};
         ifid_reg_valid = _RANDOM[3'h3][2];
         ifid_reg_pc = {_RANDOM[3'h3][31:3], _RANDOM[3'h4][2:0]};
         canStart_REG = _RANDOM[3'h4][3];
+        io_canStart_REG = _RANDOM[3'h4][4];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN_6 ? inst : ifid_reg_inst;
-  assign io_decodeStage_data_valid = state ? state & (_GEN_5 | _GEN_0) : _GEN_0;
-  assign io_decodeStage_data_pc = _GEN_6 ? wait_pc : ifid_reg_pc;
-  assign io_icache_req_valid = state ? state & (_GEN_9 | _GEN_7 & _GEN_8) : _GEN_1;
-  assign io_icache_req_bits_addr = req_pc;
+  assign io_decodeStage_data_inst =
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_inst : _GEN_3 ? inst : 32'h0;
+  assign io_decodeStage_data_valid =
+    ~io_signal_branchControl_branch
+    & (_GEN_5
+         ? ifid_reg_valid
+         : (|state) & _GEN_4 & io_signal_fetchUnitSignal_allow_to_go);
+  assign io_decodeStage_data_pc =
+    io_signal_branchControl_branch
+      ? 32'h0
+      : _GEN_5 ? ifid_reg_pc : _GEN_3 ? reqPC : 32'h0;
+  assign io_icache_req_valid = io_signal_branchControl_branch | io_canStart;
+  assign io_icache_req_bits_addr =
+    io_signal_branchControl_branch ? io_signal_branchControl_target : pc;
 endmodule
 
 module DecodeStage(
@@ -2432,6 +2135,8 @@ module DecodeStage(
 endmodule
 
 module DecodeUnit(
+  input         clock,
+                reset,
   input  [31:0] io_decodeStage_data_inst,
   input         io_decodeStage_data_valid,
   input  [31:0] io_decodeStage_data_pc,
@@ -2560,13 +2265,29 @@ module DecodeUnit(
     | ((&instrType)
          ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, io_decodeStage_data_inst[25:10], 2'h0}
          : 32'h0);
+  wire [4:0]  reg_waddr =
+    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
+    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
   wire [4:0]  src2_raddr =
     isR
       ? io_decodeStage_data_inst[14:10]
       : isS | isB ? io_decodeStage_data_inst[4:0] : 5'h0;
   wire        _src1_ren_T = isR | isI;
+  wire        reg_wen = _src1_ren_T | isU | (&instrType) & fuOpType != 4'h8;
   wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
   wire        src2_ren = isR | isS | isB;
+  `ifndef SYNTHESIS
+    always @(posedge clock) begin
+      if ((`PRINTF_COND_) & io_decodeStage_data_valid & ~reset) begin
+        $fwrite(32'h80000002, "[DecodeUnit] Decoding: PC=0x%x, Inst=0x%x\n",
+                io_decodeStage_data_pc, io_decodeStage_data_inst);
+        $fwrite(32'h80000002, "  src1_raddr=%d, src2_raddr=%d, reg_waddr=%d\n",
+                io_decodeStage_data_inst[9:5], src2_raddr, reg_waddr);
+        $fwrite(32'h80000002, "  src1_ren=%d, src2_ren=%d, reg_wen=%d\n", src1_ren,
+                src2_ren, reg_wen);
+      end
+    end // always @(posedge)
+  `endif // not def SYNTHESIS
   assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[9:5] : 5'h0;
   assign io_regfile_src2_raddr = src2_ren ? src2_raddr : 5'h0;
   assign io_executeStage_data_pc = io_decodeStage_data_pc;
@@ -2575,11 +2296,8 @@ module DecodeUnit(
   assign io_executeStage_data_info_valid = io_decodeStage_data_valid & (|instrType);
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
-    (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & io_decodeStage_data_valid
-    & (|instrType);
-  assign io_executeStage_data_info_reg_waddr =
-    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
+    reg_wen & io_decodeStage_data_valid & (|instrType);
+  assign io_executeStage_data_info_reg_waddr = reg_waddr;
   assign io_executeStage_data_info_imm = imm;
   assign io_executeStage_data_info_fusel =
     {1'h0,
@@ -3207,13 +2925,13 @@ module WriteBuffer(
   reg              valids_2;
   reg              valids_3;
   wire             addrMatches_0 =
-    valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
+    buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
   wire             addrMatches_1 =
-    valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
+    buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
   wire             addrMatches_2 =
-    valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
+    buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
   wire             hasMatch =
-    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | buffer_3_req_write
     & buffer_3_req_addr == io_enq_bits_addr;
   wire [1:0]       matchIdx =
     addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
@@ -3221,8 +2939,7 @@ module WriteBuffer(
   wire [2:0]       _hasSpace_T_9 =
     {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
     + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
-  wire             hasSpace = ~(_hasSpace_T_9[2]);
-  wire             io_enq_ready_0 = hasMatch | hasSpace;
+  wire             io_enq_ready_0 = hasMatch | ~(_hasSpace_T_9[2]);
   wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
   wire [3:0][31:0] _GEN =
     {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
@@ -3245,16 +2962,16 @@ module WriteBuffer(
     {{buffer_3_req_size}, {buffer_2_req_size}, {buffer_1_req_size}, {buffer_0_req_size}};
   wire             _GEN_4 = io_enq_ready_0 & io_enq_valid;
   wire             bypassMatches_0 =
-    io_bypassEnable & valids_0 & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr
+    io_bypassEnable & buffer_0_req_write & buffer_0_req_addr == io_bypassAddr
     & buffer_0_req_addr[31:22] == 10'h201;
   wire             bypassMatches_1 =
-    io_bypassEnable & valids_1 & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr
+    io_bypassEnable & buffer_1_req_write & buffer_1_req_addr == io_bypassAddr
     & buffer_1_req_addr[31:22] == 10'h201;
   wire             bypassMatches_2 =
-    io_bypassEnable & valids_2 & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr
+    io_bypassEnable & buffer_2_req_write & buffer_2_req_addr == io_bypassAddr
     & buffer_2_req_addr[31:22] == 10'h201;
   wire             bypassMatches_3 =
-    io_bypassEnable & valids_3 & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr
+    io_bypassEnable & buffer_3_req_write & buffer_3_req_addr == io_bypassAddr
     & buffer_3_req_addr[31:22] == 10'h201;
   wire             io_bypassHit_0 =
     bypassMatches_0 | bypassMatches_1 | bypassMatches_2 | bypassMatches_3;
@@ -3320,13 +3037,13 @@ module WriteBuffer(
       _GEN_7 = matchIdx == 2'h1;
       _GEN_8 = matchIdx == 2'h2;
       _GEN_9 = enqIdx == 2'h0;
-      _GEN_10 = ~_GEN_5 | hasMatch | ~_GEN_9;
-      _GEN_11 = enqIdx == 2'h1;
-      _GEN_12 = ~_GEN_5 | hasMatch | ~_GEN_11;
-      _GEN_13 = enqIdx == 2'h2;
-      _GEN_14 = ~_GEN_5 | hasMatch | ~_GEN_13;
+      _GEN_10 = enqIdx == 2'h1;
+      _GEN_11 = enqIdx == 2'h2;
+      _GEN_12 = ~_GEN_5 | hasMatch | ~_GEN_9;
+      _GEN_13 = ~_GEN_5 | hasMatch | ~_GEN_10;
+      _GEN_14 = ~_GEN_5 | hasMatch | ~_GEN_11;
       _GEN_15 = ~_GEN_5 | hasMatch | ~(&enqIdx);
-      if (_GEN_10) begin
+      if (_GEN_12) begin
       end
       else begin
         buffer_0_req_addr <= io_enq_bits_addr;
@@ -3350,27 +3067,27 @@ module WriteBuffer(
         else begin
           if (_GEN_9)
             buffer_0_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_11)
+          if (_GEN_10)
             buffer_1_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_13)
+          if (_GEN_11)
             buffer_2_req_wstrb <= io_enq_bits_wstrb;
           if (&enqIdx)
             buffer_3_req_wstrb <= io_enq_bits_wstrb;
         end
       end
-      if (_GEN_10) begin
+      if (_GEN_12) begin
       end
       else
         buffer_0_req_size <= io_enq_bits_size;
-      if (_GEN_12) begin
+      if (_GEN_13) begin
       end
       else begin
         buffer_1_req_addr <= io_enq_bits_addr;
         buffer_1_req_write <= io_enq_bits_write;
       end
-      if (_GEN_5 & (hasMatch ? _GEN_7 : _GEN_11))
+      if (_GEN_5 & (hasMatch ? _GEN_7 : _GEN_10))
         buffer_1_req_wdata <= io_enq_bits_wdata;
-      if (_GEN_12) begin
+      if (_GEN_13) begin
       end
       else
         buffer_1_req_size <= io_enq_bits_size;
@@ -3380,7 +3097,7 @@ module WriteBuffer(
         buffer_2_req_addr <= io_enq_bits_addr;
         buffer_2_req_write <= io_enq_bits_write;
       end
-      if (_GEN_5 & (hasMatch ? _GEN_8 : _GEN_13))
+      if (_GEN_5 & (hasMatch ? _GEN_8 : _GEN_11))
         buffer_2_req_wdata <= io_enq_bits_wdata;
       if (_GEN_14) begin
       end
@@ -3398,16 +3115,10 @@ module WriteBuffer(
       end
       else
         buffer_3_req_size <= io_enq_bits_size;
-      valids_0 <=
-        ~(io_flush | _GEN_16 & deqIdx == 2'h0) & (_GEN_5 & ~hasMatch & _GEN_9 | valids_0);
-      valids_1 <=
-        ~(io_flush | _GEN_16 & deqIdx == 2'h1)
-        & (_GEN_5 & ~hasMatch & _GEN_11 | valids_1);
-      valids_2 <=
-        ~(io_flush | _GEN_16 & deqIdx == 2'h2)
-        & (_GEN_5 & ~hasMatch & _GEN_13 | valids_2);
-      valids_3 <=
-        ~(io_flush | _GEN_16 & (&deqIdx)) & (_GEN_5 & ~hasMatch & (&enqIdx) | valids_3);
+      valids_0 <= ~(_GEN_16 & deqIdx == 2'h0) & (_GEN_5 & _GEN_9 | valids_0);
+      valids_1 <= ~(_GEN_16 & deqIdx == 2'h1) & (_GEN_5 & _GEN_10 | valids_1);
+      valids_2 <= ~(_GEN_16 & deqIdx == 2'h2) & (_GEN_5 & _GEN_11 | valids_2);
+      valids_3 <= ~(_GEN_16 & (&deqIdx)) & (_GEN_5 & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3499,12 +3210,17 @@ module Lsu(
   wire        _writeBuffer_io_deq_bits_write;
   wire [31:0] _writeBuffer_io_deq_bits_wdata;
   wire [3:0]  _writeBuffer_io_deq_bits_wstrb;
+  wire        _writeBuffer_io_bypassHit;
+  wire [31:0] _writeBuffer_io_bypassData;
   wire        isLsu = io_info_fusel == 3'h2 & io_info_valid;
   reg  [1:0]  state;
   wire        isStore = isLsu & io_info_op[3];
   wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
+  wire        _bypassResult_final_data_T_12 = io_info_op == 5'h1;
+  wire        _bypassResult_final_data_T_13 = io_info_op == 5'h5;
+  wire        _bypassResult_final_data_T_14 = io_info_op == 5'h2;
   wire        _storeWdata_T_6 = io_info_op == 5'h9;
   wire        _storeWdata_T_7 = io_info_op == 5'hA;
   wire [31:0] newReq_addr =
@@ -3521,17 +3237,31 @@ module Lsu(
   reg  [3:0]  storeReqReg_wstrb;
   reg  [2:0]  storeReqReg_size;
   reg         storeReqValid;
+  wire        loadBypassHit = isLoad & _writeBuffer_io_bypassHit;
+  wire        _io_ready_T_5 =
+    ~(|state)
+    & (isStore & (~storeReqValid | _writeBuffer_io_enq_ready) | ~isLsu | loadBypassHit);
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
   reg  [31:0] loadReqReg_wdata;
   reg  [3:0]  loadReqReg_wstrb;
   reg  [3:0]  loadOpReg;
-  wire        _GEN = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_0 = _GEN ? _writeBuffer_io_deq_bits_addr : 32'h0;
-  wire        _GEN_1 = _GEN & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_2 = _GEN ? _writeBuffer_io_deq_bits_wdata : 32'h0;
-  wire [3:0]  _GEN_3 = _GEN ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
-  wire        _GEN_4 = state == 2'h1;
+  wire        _GEN = io_info_valid & isLoad;
+  wire [7:0]  bypassResult_byte_data =
+    ((|(_effectiveAddr_T_5[1:0])) ? 8'h0 : _writeBuffer_io_bypassData[7:0])
+    | (_effectiveAddr_T_5[1:0] == 2'h1 ? _writeBuffer_io_bypassData[15:8] : 8'h0)
+    | (_effectiveAddr_T_5[1:0] == 2'h2 ? _writeBuffer_io_bypassData[23:16] : 8'h0)
+    | ((&(_effectiveAddr_T_5[1:0])) ? _writeBuffer_io_bypassData[31:24] : 8'h0);
+  wire [15:0] bypassResult_half_data =
+    (_effectiveAddr_T_5[1] ? 16'h0 : _writeBuffer_io_bypassData[15:0])
+    | (_effectiveAddr_T_5[1] ? _writeBuffer_io_bypassData[31:16] : 16'h0);
+  wire        _GEN_0 = _GEN & _writeBuffer_io_bypassHit;
+  wire        _GEN_1 = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_2 = _GEN_1 ? _writeBuffer_io_deq_bits_addr : 32'h0;
+  wire        _GEN_3 = _GEN_1 & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_4 = _GEN_1 ? _writeBuffer_io_deq_bits_wdata : 32'h0;
+  wire [3:0]  _GEN_5 = _GEN_1 ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
+  wire        _GEN_6 = state == 2'h1;
   wire [7:0]  res_byte_data =
     (loadReqReg_addr[1:0] == 2'h0 ? io_dcache_resp_bits_data[7:0] : 8'h0)
     | (loadReqReg_addr[1:0] == 2'h1 ? io_dcache_resp_bits_data[15:8] : 8'h0)
@@ -3540,17 +3270,17 @@ module Lsu(
   wire [15:0] res_half_data =
     (loadReqReg_addr[1] ? 16'h0 : io_dcache_resp_bits_data[15:0])
     | (loadReqReg_addr[1] ? io_dcache_resp_bits_data[31:16] : 16'h0);
-  wire        _GEN_5 = state == 2'h2 & io_dcache_resp_valid;
-  wire        _GEN_6 = ~(|state) | _GEN_4;
-  wire        _GEN_7 = ~_GEN_6 & _GEN_5;
-  wire        io_valid_0 = _GEN_7 | isStore;
+  wire        _GEN_7 = state == 2'h2 & io_dcache_resp_valid;
+  wire        _GEN_8 = ~_GEN_6 & _GEN_7;
+  wire        io_valid_0 = (|state) ? _GEN_8 | isStore : _GEN_0 | isStore;
+  wire [31:0] io_diffout_loadEvent_vaddr_0 =
+    loadBypassHit ? _effectiveAddr_T_5 : loadReqReg_addr;
   always @(posedge clock) begin
     automatic logic       _strb_T_9 = io_info_op == 5'h8;
     automatic logic       _strb_T_16 = io_info_op == 5'h9;
     automatic logic [3:0] strb;
-    automatic logic       _GEN_8;
     strb =
-      _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h0
+      _strb_T_9 & ~(|(_effectiveAddr_T_5[1:0]))
         ? 4'h1
         : _strb_T_9 & _effectiveAddr_T_5[1:0] == 2'h1
             ? 4'h2
@@ -3563,7 +3293,6 @@ module Lsu(
                         : _strb_T_16 & _effectiveAddr_T_5[0]
                             ? 4'hC
                             : {4{io_info_op == 5'hA}};
-    _GEN_8 = io_info_valid & isLoad;
     if (reset) begin
       state <= 2'h0;
       storeReqReg_addr <= 32'h0;
@@ -3577,14 +3306,16 @@ module Lsu(
       automatic logic _GEN_9;
       _GEN_9 = ~(|state) & isStore & io_info_valid & ~storeReqValid;
       if (|state) begin
-        if (_GEN_4) begin
+        if (_GEN_6) begin
           if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
             state <= 2'h2;
         end
-        else if (_GEN_5)
+        else if (_GEN_7)
           state <= 2'h0;
       end
-      else if (_GEN_8)
+      else if (~_GEN | _writeBuffer_io_bypassHit) begin
+      end
+      else
         state <= 2'h1;
       if (_GEN_9) begin
         storeReqReg_addr <= newReq_addr;
@@ -3593,13 +3324,16 @@ module Lsu(
         storeReqReg_wstrb <= strb;
         storeReqReg_size <=
           {1'h0,
-           io_info_op == 5'h2 | _storeWdata_T_7,
-           io_info_op == 5'h1 | io_info_op == 5'h5 | _storeWdata_T_6};
+           _bypassResult_final_data_T_14 | _storeWdata_T_7,
+           _bypassResult_final_data_T_12 | _bypassResult_final_data_T_13
+             | _storeWdata_T_6};
       end
       storeReqValid <=
         _GEN_9 | ~(_writeBuffer_io_enq_ready & storeReqValid) & storeReqValid;
     end
-    if (~(|state) & _GEN_8) begin
+    if (~(~(|state) & _GEN) | _writeBuffer_io_bypassHit) begin
+    end
+    else begin
       loadReqReg_addr <= newReq_addr;
       loadReqReg_write <= isStore;
       loadReqReg_wdata <= newReq_wdata;
@@ -3649,7 +3383,9 @@ module Lsu(
     .io_enq_bits_wstrb (storeReqReg_wstrb),
     .io_enq_bits_size  (storeReqReg_size),
     .io_deq_ready
-      ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
+      ((|state)
+         ? ~(_GEN_6 & _GEN_1) | io_dcache_req_ready
+         : ~_GEN_1 | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
@@ -3657,46 +3393,55 @@ module Lsu(
     .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb),
     .io_deq_bits_size  (/* unused */),
     .io_flush          (1'h0),
-    .io_bypassAddr     (32'h0),
+    .io_bypassAddr     (_effectiveAddr_T_5),
     .io_bypassEnable   (1'h0),
-    .io_bypassHit      (/* unused */),
-    .io_bypassData     (/* unused */)
+    .io_bypassHit      (_writeBuffer_io_bypassHit),
+    .io_bypassData     (_writeBuffer_io_bypassData)
   );
   assign io_result =
-    _GEN_6 | ~_GEN_5
-      ? (isStore ? io_src_info_src1_data : 32'h0)
-      : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0);
-  assign io_ready =
-    _GEN_7 | ~(|state)
-    & (isStore & (~storeReqValid | _writeBuffer_io_enq_ready) | ~isLsu);
+    (|state)
+      ? (_GEN_6 | ~_GEN_7
+           ? 32'h0
+           : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
+             | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
+             | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0))
+      : _GEN_0
+          ? (io_info_op == 5'h0
+               ? {{24{bypassResult_byte_data[7]}}, bypassResult_byte_data}
+               : 32'h0) | (io_info_op == 5'h4 ? {24'h0, bypassResult_byte_data} : 32'h0)
+            | (_bypassResult_final_data_T_12
+                 ? {{16{bypassResult_half_data[15]}}, bypassResult_half_data}
+                 : 32'h0)
+            | (_bypassResult_final_data_T_13 ? {16'h0, bypassResult_half_data} : 32'h0)
+            | (_bypassResult_final_data_T_14 ? _writeBuffer_io_bypassData : 32'h0)
+          : 32'h0;
+  assign io_ready = (|state) ? _GEN_8 | _io_ready_T_5 : _GEN_0 | _io_ready_T_5;
   assign io_valid = io_valid_0;
   assign io_diffout_storeEvent_valid = {7'h0, isStore & isLsu & io_valid_0};
   assign io_diffout_storeEvent_storePAddr = newReq_addr;
   assign io_diffout_storeEvent_storeVAddr = newReq_addr;
   assign io_diffout_storeEvent_storeData = newReq_wdata;
   assign io_diffout_loadEvent_valid = {7'h0, isLoad & isLsu & io_valid_0};
-  assign io_diffout_loadEvent_paddr = loadReqReg_addr;
-  assign io_diffout_loadEvent_vaddr = loadReqReg_addr;
+  assign io_diffout_loadEvent_paddr = io_diffout_loadEvent_vaddr_0;
+  assign io_diffout_loadEvent_vaddr = io_diffout_loadEvent_vaddr_0;
   assign io_dcache_req_valid =
-    (|state) ? _GEN_4 & (~_writeBuffer_io_deq_valid | _GEN) : _GEN;
+    (|state) ? _GEN_6 & (~_writeBuffer_io_deq_valid | _GEN_1) : _GEN_1;
   assign io_dcache_req_bits_addr =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_0 : loadReqReg_addr) : 32'h0)
-      : _GEN_0;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_addr) : 32'h0)
+      : _GEN_2;
   assign io_dcache_req_bits_write =
-    (|state) ? _GEN_4 & (_writeBuffer_io_deq_valid ? _GEN_1 : loadReqReg_write) : _GEN_1;
+    (|state) ? _GEN_6 & (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_write) : _GEN_3;
   assign io_dcache_req_bits_wdata =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_wdata) : 32'h0)
-      : _GEN_2;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_4 : loadReqReg_wdata) : 32'h0)
+      : _GEN_4;
   assign io_dcache_req_bits_wstrb =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_wstrb) : 4'h0)
-      : _GEN_3;
+      ? (_GEN_6 ? (_writeBuffer_io_deq_valid ? _GEN_5 : loadReqReg_wstrb) : 4'h0)
+      : _GEN_5;
 endmodule
 
 module Bru(
@@ -4222,7 +3967,10 @@ module ControlUnit(
                 io_signals_bypassData_src2_bypass,
   output [31:0] io_signals_bypassData_src1_data,
                 io_signals_bypassData_src2_data,
+  output        io_signals_branchControl_branch,
+  output [31:0] io_signals_branchControl_target,
   input         io_executeBranch,
+  input  [31:0] io_executeTarget,
   input  [4:0]  io_decodeRegisterInfo_src1_raddr,
                 io_decodeRegisterInfo_src2_raddr,
   input         io_decodeRegisterInfo_src1_ren,
@@ -4269,6 +4017,17 @@ module ControlUnit(
         $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
                 io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
                 io_signals_bypassData_src2_data_0);
+      if ((`PRINTF_COND_) & io_executeBranch & ~reset)
+        $fwrite(32'h80000002,
+                "[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n",
+                io_executeTarget);
+      if ((`PRINTF_COND_) & 1'h0) begin
+        $fwrite(32'h80000002,
+                "[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n",
+                32'h0);
+        $fwrite(32'h80000002,
+                "[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n");
+      end
     end // always @(posedge)
   `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
@@ -4279,6 +4038,8 @@ module ControlUnit(
   assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
   assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
   assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
+  assign io_signals_branchControl_branch = io_executeBranch;
+  assign io_signals_branchControl_target = io_executeBranch ? io_executeTarget : 32'h0;
 endmodule
 
 module Diff(
@@ -4589,6 +4350,8 @@ module Core(
   wire         _controlUnit_io_signals_bypassData_src2_bypass;
   wire [31:0]  _controlUnit_io_signals_bypassData_src1_data;
   wire [31:0]  _controlUnit_io_signals_bypassData_src2_data;
+  wire         _controlUnit_io_signals_branchControl_branch;
+  wire [31:0]  _controlUnit_io_signals_branchControl_target;
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
   wire [31:0]  _writeBackUnit_io_regfile_wdata;
@@ -4778,7 +4541,6 @@ module Core(
     .io_icache_req_ready                  (_icache_io_icache_req_ready),
     .io_icache_req_valid                  (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr              (_fetchUnit_io_icache_req_bits_addr),
-    .io_flush                             (_executeUnit_io_branch),
     .io_icache_resp_valid                 (_icache_io_icache_resp_valid),
     .io_icache_resp_bits_data             (_icache_io_icache_resp_bits_data),
     .io_icache_resp_bits_addr             (_icache_io_icache_resp_bits_addr),
@@ -4825,10 +4587,10 @@ module Core(
     .io_icache_resp_valid                  (_icache_io_icache_resp_valid),
     .io_icache_resp_bits_data              (_icache_io_icache_resp_bits_data),
     .io_icache_resp_bits_addr              (_icache_io_icache_resp_bits_addr),
-    .io_branch                             (_executeUnit_io_branch),
-    .io_target                             (_executeUnit_io_target),
     .io_signal_fetchUnitSignal_allow_to_go
       (_controlUnit_io_signals_fetchUnitSignal_allow_to_go),
+    .io_signal_branchControl_branch        (_controlUnit_io_signals_branchControl_branch),
+    .io_signal_branchControl_target        (_controlUnit_io_signals_branchControl_target),
     .io_icache_req_ready                   (_icache_io_icache_req_ready),
     .io_icache_req_valid                   (_fetchUnit_io_icache_req_valid),
     .io_icache_req_bits_addr               (_fetchUnit_io_icache_req_bits_addr)
@@ -4848,6 +4610,8 @@ module Core(
     .io_decodeUnit_data_pc                        (_decodeStage_io_decodeUnit_data_pc)
   );
   DecodeUnit decodeUnit (
+    .clock                                   (clock),
+    .reset                                   (reset),
     .io_decodeStage_data_inst                (_decodeStage_io_decodeUnit_data_inst),
     .io_decodeStage_data_valid               (_decodeStage_io_decodeUnit_data_valid),
     .io_decodeStage_data_pc                  (_decodeStage_io_decodeUnit_data_pc),
@@ -5192,7 +4956,12 @@ module Core(
       (_controlUnit_io_signals_bypassData_src1_data),
     .io_signals_bypassData_src2_data
       (_controlUnit_io_signals_bypassData_src2_data),
+    .io_signals_branchControl_branch
+      (_controlUnit_io_signals_branchControl_branch),
+    .io_signals_branchControl_target
+      (_controlUnit_io_signals_branchControl_target),
     .io_executeBranch                        (_executeUnit_io_branch),
+    .io_executeTarget                        (_executeUnit_io_target),
     .io_decodeRegisterInfo_src1_raddr        (_decodeUnit_io_registerInfo_src1_raddr),
     .io_decodeRegisterInfo_src2_raddr        (_decodeUnit_io_registerInfo_src2_raddr),
     .io_decodeRegisterInfo_src1_ren          (_decodeUnit_io_registerInfo_src1_ren),
