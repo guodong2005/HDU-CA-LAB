@@ -181,129 +181,150 @@ class ICacheIO extends Bundle {
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
+  // State definitions
   val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
   val state                                    = RegInit(sIDLE)
 
-  val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
+  // Cache storage
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  // 优化1: 提前计算index和tag，减少组合逻辑深度
+  // Parse current request
   val req_index = io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
   val req_tag   = io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
+  val req_addr  = io.icache_req.bits.addr
 
-  val saved_index = saved_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
-  val saved_tag   = saved_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
+  // Registers to hold address info during miss handling
+  val miss_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
+  val miss_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  val miss_addr  = RegInit(0.U(32.W))
 
-  // 优化2: 使用寄存器保存上一周期的index和tag
-  val reg_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
-  val reg_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
-  val reg_addr  = RegInit(0.U(32.W))
+  // Registers to hold the query being checked (for pipelining)
+  val check_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
+  val check_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  val check_addr  = RegInit(0.U(32.W))
+  val check_valid = RegInit(false.B)
 
-  val current_req_valid = saved_req.valid || io.icache_req.valid
-  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
-  val index             = Mux(saved_req.valid, saved_index, req_index)
-  val tag               = Mux(saved_req.valid, saved_tag, req_tag)
+  // Memory read control
+  // In IDLE: read speculatively if request comes
+  // In CHECK_HIT: read for next request if hit and new request comes
+  val read_enable = (state === sIDLE && io.icache_req.valid) ||
+    (state === sCHECK_HIT && io.icache_req.valid)
 
-  // 优化3: 提前启动内存读取
-  val speculative_read = state === sIDLE && io.icache_req.valid && !saved_req.valid
-  val read_index       = Mux(speculative_read, req_index, index)
+  val read_index = Mux(read_enable, req_index, check_index)
 
+  // Memory read outputs (1 cycle delay from read_index)
   val cache_read_tag  = cache_tag.read(read_index)
   val cache_read_data = VecInit(cache_data.map(_.read(read_index)))
 
-  // 优化4: 简化hit判断逻辑，使用寄存器中的值
-  val hit_cache = (reg_tag === cache_read_tag) &&
-    cache_valid(reg_index) &&
-    (reg_addr === current_req_bits.addr)
+  // Hit detection - compare with the address being checked
+  val hit = check_valid &&
+    (check_tag === cache_read_tag) &&
+    cache_valid(check_index)
 
-  // 更新寄存器
-  when(current_req_valid && (state === sIDLE || state === sCHECK_HIT)) {
-    reg_index := index
-    reg_tag   := tag
-    reg_addr  := current_req_bits.addr
-  }
+  // Write control for cache update
+  val cache_we   = state === sWAIT_RESP && io.io_read_resp.valid
+  val write_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
 
-  val read_data        = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
-  val cache_we         = WireInit(false.B)
-  val cache_valid_we   = WireInit(false.B)
-  val cache_write_tag  = tag
-  val cache_write_data = read_data
-
-  // Default assignments
-  io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
+  // Default IO assignments
+  io.icache_req.ready      := false.B
   io.icache_resp.valid     := false.B
   io.icache_resp.bits.data := DontCare
-  io.icache_resp.bits.addr := current_req_bits.addr
+  io.icache_resp.bits.addr := check_addr
+
   io.io_read_req.valid     := false.B
-  io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+  io.io_read_req.bits.addr := Cat(miss_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
   io.io_read_resp.ready    := true.B
-
-  // Request register control
-  when(io.icache_req.valid && !saved_req.valid) {
-    saved_req.valid := true.B
-    saved_req.bits  := io.icache_req.bits
-  }
-
-  when(io.icache_resp.valid) {
-    saved_req.valid := false.B
-    saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
-  }
-
-  when(saved_req.valid) {
-    io.icache_req.ready := false.B
-  }
 
   // State machine
   switch(state) {
     is(sIDLE) {
-      when(current_req_valid) {
-        state := sCHECK_HIT
+      io.icache_req.ready := true.B
+
+      when(io.icache_req.valid) {
+        // Start memory read and save request info
+        check_index := req_index
+        check_tag   := req_tag
+        check_addr  := req_addr
+        check_valid := true.B
+        state       := sCHECK_HIT
       }
     }
 
     is(sCHECK_HIT) {
-      when(hit_cache) {
+      when(hit) {
+        // Cache hit
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.data := cache_read_data.asUInt
-        state                    := sIDLE
+        io.icache_resp.bits.addr := check_addr
+
+        // Pipeline: accept new request if available
+        when(io.icache_req.valid) {
+          io.icache_req.ready := true.B
+          // Update check registers for next request
+          check_index := req_index
+          check_tag   := req_tag
+          check_addr  := req_addr
+          check_valid := true.B
+          state       := sCHECK_HIT // Stay in CHECK_HIT for pipelining
+        }.otherwise {
+          check_valid := false.B
+          state       := sIDLE
+        }
       }.otherwise {
-        io.io_read_req.valid := true.B
+        // Cache miss - save miss info and request memory
+        miss_index := check_index
+        miss_tag   := check_tag
+        miss_addr  := check_addr
+
+        io.io_read_req.valid     := true.B
+        io.io_read_req.bits.addr := Cat(check_addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+
         when(io.io_read_req.ready) {
-          state := sWAIT_RESP
+          check_valid := false.B
+          state       := sWAIT_RESP
         }
       }
     }
 
     is(sWAIT_RESP) {
       when(io.io_read_resp.valid) {
+        // Return data and update cache
         io.icache_resp.valid     := true.B
-        io.icache_resp.bits.data := read_data.asUInt
-        io.icache_resp.bits.addr := current_req_bits.addr
-        cache_we                 := true.B
-        cache_valid_we           := true.B
-        state                    := sIDLE
+        io.icache_resp.bits.data := write_data.asUInt
+        io.icache_resp.bits.addr := miss_addr
+
+        // Write to cache
+        cache_tag.write(miss_index, miss_tag)
+        cache_data.zip(write_data).foreach {
+          case (mem, data) =>
+            mem.write(miss_index, data)
+        }
+        cache_valid(miss_index) := true.B
+
+        // Check if new request is waiting
+        when(io.icache_req.valid) {
+          io.icache_req.ready := true.B
+          check_index         := req_index
+          check_tag           := req_tag
+          check_addr          := req_addr
+          check_valid         := true.B
+          state               := sCHECK_HIT
+        }.otherwise {
+          state := sIDLE
+        }
       }
     }
   }
 
-  when(cache_we) {
-    cache_tag.write(index, cache_write_tag)
-    cache_data.zip(cache_write_data).foreach { case (mem, data) => mem.write(index, data) }
-  }
-
-  when(cache_valid_we) {
-    cache_valid(index) := true.B
-  }
-
-  // Debug
+  // Debug signals
   dontTouch(io.icache_debug)
   io.icache_debug.state          := state === sWAIT_RESP
-  io.icache_debug.hit_cache      := hit_cache
+  io.icache_debug.hit_cache      := hit
   io.icache_debug.cache_we       := cache_we
   io.icache_debug.cache_read_tag := cache_read_tag
-  io.icache_debug.icache_req     := saved_req
+  io.icache_debug.icache_req     := 0.U.asTypeOf(new ICacheReq()) // No saved_req anymore
 }
 
 // ============================================================================

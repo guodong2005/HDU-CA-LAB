@@ -1,5 +1,4 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines.Const._
@@ -16,91 +15,140 @@ class FetchUnit extends Module {
     val canStart    = Output(Bool())
   })
 
-  val pc          = RegInit(PC_INIT)
-  val reqPC       = Reg(UInt(XLEN.W))
-  val state       = RegInit(0.U(2.W)) // sIdle :: sWait
-  val sIdle       = 0.U
-  val sWait       = 1.U
-  val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
-  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
-  val stall       = !decodeReady || ifid_reg.valid
-  val alignedPC   = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
-  val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
+  // PC管理
+  val pc      = RegInit(PC_INIT) // 当前要取的PC
+  val next_pc = RegInit(PC_INIT + 4.U) // 下一个要取的PC（用于流水线）
 
-  // ✅ 启动条件
+  // 请求追踪 - 支持流水线化
+  val req_valid = RegInit(false.B) // 是否有未完成的请求
+  val req_pc    = RegInit(0.U(XLEN.W)) // 正在等待响应的PC
+  val req_count = RegInit(0.U(2.W)) // 未完成请求数量（最多2个）
+
+  // 指令缓冲
+  val ifid_reg = RegInit(0.U.asTypeOf(new IfIdData()))
+
+  // 控制信号
+  val decodeReady = io.signal.fetchUnitSignal.allow_to_go
+  val stall       = !decodeReady && ifid_reg.valid // 只有当decode不ready且有缓存指令时才stall
+
+  // 启动条件
   val canStartInternal = !reset.asBool
   val canStart         = RegNext(canStartInternal) && canStartInternal
-  io.canStart := state === sIdle && !stall && RegNext(canStart)
+  io.canStart := canStart
 
-  // ✅ 默认输出
+  // 分支处理标志
+  val branch_taken   = RegInit(false.B)
+  val flush_pipeline = io.branch || branch_taken
+
+  // ========== ICache请求逻辑 ==========
+  // 发送请求的条件：
+  // 1. 系统已启动
+  // 2. 没有stall
+  // 3. 请求数量未满（支持最多2个流水线请求）
+  // 4. 没有分支
+  val can_send_req = canStart && !stall && (req_count < 2.U) && !flush_pipeline
+
+  io.icache_req.valid     := can_send_req
   io.icache_req.bits.addr := pc
-  io.icache_req.valid     := io.canStart
-  io.decodeStage.data     := 0.U.asTypeOf(new IfIdData())
 
-  // ========== 修复后的逻辑 ==========
-  // 分支处理：统一的PC更新逻辑
-  when(io.branch) {
-    pc             := io.target
-    state          := sIdle
-    ifid_reg.valid := false.B // 清除缓存的指令
+  // 更新请求状态
+  when(io.icache_req.fire) {
+    when(req_count === 0.U) {
+      req_pc    := pc // 记录第一个请求的PC
+      req_valid := true.B
+    }
+    req_count := req_count + 1.U
+    pc        := next_pc
+    next_pc   := next_pc + 4.U
+  }
+
+  // ========== ICache响应处理 ==========
+  when(io.icache_resp.valid && req_valid) {
+    // 提取对应的指令
+    val instIdx = req_pc(ICACHE_OFFSET_WIDTH - 1, 2)
+    val inst = MuxLookup(instIdx, 0.U)(
+      Seq(
+        0.U -> io.icache_resp.bits.data(31, 0),
+        1.U -> io.icache_resp.bits.data(63, 32),
+        2.U -> io.icache_resp.bits.data(95, 64),
+        3.U -> io.icache_resp.bits.data(127, 96),
+        4.U -> io.icache_resp.bits.data(159, 128),
+        5.U -> io.icache_resp.bits.data(191, 160),
+        6.U -> io.icache_resp.bits.data(223, 192),
+        7.U -> io.icache_resp.bits.data(255, 224)
+      )
+    )
+
+    // 响应处理
+    when(flush_pipeline) {
+      // 分支时丢弃响应
+      req_count := req_count - 1.U
+      when(req_count === 1.U) {
+        req_valid := false.B
+      }.otherwise {
+        // 还有其他请求在路上，更新req_pc
+        req_pc := req_pc + 4.U
+      }
+    }.otherwise {
+      // 正常处理响应
+      when(decodeReady && !ifid_reg.valid) {
+        // 直接传递给decode
+        io.decodeStage.data.inst  := inst
+        io.decodeStage.data.pc    := req_pc
+        io.decodeStage.data.valid := true.B
+      }.otherwise {
+        // 缓存指令
+        ifid_reg.inst  := inst
+        ifid_reg.pc    := req_pc
+        ifid_reg.valid := true.B
+      }
+
+      // 更新请求追踪
+      req_count := req_count - 1.U
+      when(req_count === 1.U) {
+        req_valid := false.B
+      }.otherwise {
+        // 还有请求在路上，更新req_pc为下一个
+        req_pc := req_pc + 4.U
+      }
+    }
+  }
+
+  // ========== 缓存指令传递 ==========
+  when(ifid_reg.valid && decodeReady && !io.branch) {
+    io.decodeStage.data := ifid_reg
+    ifid_reg.valid      := false.B
   }.otherwise {
-    switch(state) {
-      is(sIdle) {
-        when(canStart && pc === 0.U) {
-          pc := PC_INIT
-        }
-        when(io.canStart && io.icache_req.ready) {
-          reqPC := pc
-          state := sWait
-        }
-      }
-      is(sWait) {
-        val respLineAddr = io.icache_resp.bits.addr
-
-        val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
-        val inst = MuxLookup(instIdx, 0.U)(
-          Seq(
-            0.U -> io.icache_resp.bits.data(31, 0),
-            1.U -> io.icache_resp.bits.data(63, 32),
-            2.U -> io.icache_resp.bits.data(95, 64),
-            3.U -> io.icache_resp.bits.data(127, 96),
-            4.U -> io.icache_resp.bits.data(159, 128),
-            5.U -> io.icache_resp.bits.data(191, 160),
-            6.U -> io.icache_resp.bits.data(223, 192),
-            7.U -> io.icache_resp.bits.data(255, 224)
-          )
-        )
-
-        val matchAddr = respLineAddr === (reqPC)
-
-        when(io.icache_resp.valid && matchAddr) {
-          when(decodeReady) {
-            io.decodeStage.data.inst  := inst
-            io.decodeStage.data.pc    := reqPC
-            io.decodeStage.data.valid := true.B
-            pc                        := reqPC + 4.U // 正常情况下PC+4
-            state                     := sIdle
-          }.otherwise {
-            ifid_reg.inst  := inst
-            ifid_reg.pc    := reqPC
-            ifid_reg.valid := true.B
-            state          := sIdle // 回到idle状态，等待decode ready
-          }
-        }
-      }
-    }
-
-    // 处理缓存的指令
-    when(ifid_reg.valid && decodeReady) {
-      io.decodeStage.data := ifid_reg
-      ifid_reg.valid      := false.B
-      pc                  := ifid_reg.pc + 4.U // 正常情况下PC+4
-    }
+    io.decodeStage.data.valid := false.B
+    io.decodeStage.data.inst  := DontCare
+    io.decodeStage.data.pc    := DontCare
   }
 
-  // 分支时立即更新icache请求地址
+  // ========== 分支处理 ==========
   when(io.branch) {
-    io.icache_req.bits.addr := io.target
-    io.icache_req.valid     := true.B // 分支时立即发送新地址的请求
+    // 立即更新PC
+    pc      := io.target
+    next_pc := io.target + 4.U
+
+    // 清空流水线
+    req_count      := 0.U
+    req_valid      := false.B
+    ifid_reg.valid := false.B
+    branch_taken   := true.B
+  }.elsewhen(branch_taken && req_count === 0.U) {
+    // 分支处理完成
+    branch_taken := false.B
   }
+
+  // ========== 初始化处理 ==========
+  when(canStart && pc === 0.U && !io.branch) {
+    pc      := PC_INIT
+    next_pc := PC_INIT + 4.U
+  }
+
+  // ========== Debug信号 ==========
+  dontTouch(req_count)
+  dontTouch(req_pc)
+  dontTouch(pc)
+  dontTouch(next_pc)
 }
