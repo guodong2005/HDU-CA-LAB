@@ -203,7 +203,7 @@ class ICache extends Module {
       when(!io.flush) { // flush时会在顶层flush处理中退出
         when(io.io_read_resp.valid) {
           // 只有在没有flush的情况下才处理响应
-          if_valid                 := true.B
+          io.icache_resp.valid     := true.B
           io.icache_resp.bits.data := write_data.asUInt
           io.icache_resp.bits.addr := miss_addr
 
