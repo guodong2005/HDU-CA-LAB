@@ -43,8 +43,6 @@ class ControlUnit extends Module {
     // 分支信号输入
     val executeBranch = Input(Bool()) // 来自ExecuteUnit的分支信号
     val executeTarget = Input(UInt(XLEN.W)) // 来自ExecuteUnit的跳转目标
-    val decodeBranch  = Input(Bool()) // 来自DecodeUnit的分支信号（无条件跳转等）
-    val decodeTarget  = Input(UInt(XLEN.W)) // 来自DecodeUnit的跳转目标
 
     // 来自DecodeUnit的信息
     val decodeRegisterInfo = Input(new DecodeRegisterInfo())
@@ -126,8 +124,8 @@ class ControlUnit extends Module {
   // ========== 分支控制逻辑 ==========
   // Execute阶段的分支优先级高于Decode阶段
   // 因为Execute阶段的分支表示条件分支已经解析，需要覆盖之前的预测
-  val actualBranch = io.executeBranch || io.decodeBranch
-  val branchTarget = Mux(io.executeBranch, io.executeTarget, io.decodeTarget)
+  val actualBranch = io.executeBranch
+  val branchTarget = io.executeTarget
 
   // 输出分支控制信号给FetchUnit
   io.signals.branchControl.branch := actualBranch
@@ -167,15 +165,4 @@ class ControlUnit extends Module {
     )
   }
 
-  when(io.executeBranch) {
-    printf("[ControlUnit] Execute branch taken, target=0x%x, flushing F and D stages\n", io.executeTarget)
-  }
-
-  when(io.decodeBranch && !io.executeBranch) {
-    printf("[ControlUnit] Decode branch taken, target=0x%x, flushing F stage\n", io.decodeTarget)
-  }
-
-  when(io.executeBranch && io.decodeBranch) {
-    printf("[ControlUnit] Both Execute and Decode have branches, prioritizing Execute branch\n")
-  }
 }

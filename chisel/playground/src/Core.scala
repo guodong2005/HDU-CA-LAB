@@ -74,8 +74,6 @@ class Core extends Module {
 // ============ Control Unit 连接 ============
   controlUnit.io.executeBranch := executeUnit.io.branch
   controlUnit.io.executeTarget := executeUnit.io.target
-  controlUnit.io.decodeBranch  := false.B
-  controlUnit.io.decodeTarget  := decodeUnit.io.target
 
   controlUnit.io.executeUnitReady := executeUnit.io.ready
   controlUnit.io.executeResult    := executeUnit.io.result // EX阶段完成所有计算（包括load）

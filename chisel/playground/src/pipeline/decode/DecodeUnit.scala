@@ -27,8 +27,6 @@ class DecodeUnit extends Module with HasInstrType {
     val islsu        = Output(Bool())
     val executeready = Input(Bool())
     val registerInfo = Output(new DecodeRegisterInfo()) // 发送给ControlUnit的寄存器信息
-    val branch       = Output(Bool())
-    val target       = Output(UInt(XLEN.W))
   })
 
   // 获取输入
@@ -147,9 +145,6 @@ class DecodeUnit extends Module with HasInstrType {
 
   // io.branch := isJ && info.op =/= BRUOpType.jirl;
   // io.target := (pc.asSInt + imm.asSInt).asUInt;
-  io.branch := false.B;
-  io.target := 0.U;
-  // 输出到执行阶段
   io.executeStage.data.pc                 := pc
   io.executeStage.data.info               := info
   io.executeStage.data.src_info.src1_data := src1_data_final
@@ -158,10 +153,4 @@ class DecodeUnit extends Module with HasInstrType {
   // 功能单元选择
   io.islsu := fuType === FuType.lsu
 
-  // 调试打印
-  when(valid) {
-    printf("[DecodeUnit] Decoding: PC=0x%x, Inst=0x%x\n", pc, inst)
-    printf("  src1_raddr=%d, src2_raddr=%d, reg_waddr=%d\n", src1_raddr, src2_raddr, reg_waddr)
-    printf("  src1_ren=%d, src2_ren=%d, reg_wen=%d\n", src1_ren, src2_ren, reg_wen)
-  }
 }

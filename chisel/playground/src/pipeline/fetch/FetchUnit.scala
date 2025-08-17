@@ -22,7 +22,6 @@ class FetchUnit extends Module {
   val ifid_reg    = RegInit(0.U.asTypeOf(new IfIdData()))
   val decodeReady = io.signal.fetchUnitSignal.allow_to_go
   val stall       = !decodeReady || ifid_reg.valid
-  val alignedPC   = pc & ~((1 << ICACHE_OFFSET_WIDTH) - 1).U
   val instIdx     = pc(ICACHE_OFFSET_WIDTH - 1, 2)
 
   val branch = io.signal.branchControl.branch
@@ -56,7 +55,7 @@ class FetchUnit extends Module {
         }
       }
       is(sWait) {
-        val respLineAddr = io.icache_resp.bits.addr
+        val respAddr = io.icache_resp.bits.addr
 
         val instIdx = reqPC(ICACHE_OFFSET_WIDTH - 1, 2)
         val inst = MuxLookup(instIdx, 0.U)(
@@ -72,7 +71,7 @@ class FetchUnit extends Module {
           )
         )
 
-        val matchAddr = respLineAddr === (reqPC)
+        val matchAddr = respAddr === (reqPC)
 
         when(io.icache_resp.valid && matchAddr) {
           when(decodeReady) {
