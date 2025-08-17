@@ -71,406 +71,239 @@ class ICacheIO extends Bundle {
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
   val icache_debug = new ICacheDebugIO
 }
+
+// class ICache extends Module {
+//   val io = IO(new ICacheIO)
+
+//   val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
+//   val state                                    = RegInit(sIDLE)
+
+//   val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
+//   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
+//   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
+//   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
+
+//   val current_req_valid = Mux(saved_req.valid, saved_req.valid, io.icache_req.valid)
+//   val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
+
+//   val index = current_req_bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+//   val tag   = current_req_bits.addr(31, 32 - ICACHE_TAG_WIDTH)
+
+//   val read_data       = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+//   val cache_read_tag  = cache_tag.read(index)
+//   val cache_read_data = VecInit(cache_data.map(_.read(index)))
+
+//   val hit_cache = cache_read_tag === tag && cache_valid(index) &&
+//     RegNext(current_req_bits.addr) === current_req_bits.addr
+
+//   val cache_we         = WireInit(false.B)
+//   val cache_valid_we   = WireInit(false.B)
+//   val cache_write_tag  = tag
+//   val cache_write_data = read_data
+
+//   // Default assignments
+//   io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
+//   io.icache_resp.valid     := false.B
+//   io.icache_resp.bits.data := DontCare
+//   io.icache_resp.bits.addr := current_req_bits.addr
+
+//   io.io_read_req.valid     := false.B
+//   io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+//   io.io_read_resp.ready    := true.B
+
+//   // Request register control
+//   when(io.icache_req.valid && !saved_req.valid) {
+//     saved_req.valid := true.B
+//     saved_req.bits  := io.icache_req.bits
+//   }
+
+//   when(io.icache_resp.valid) {
+//     saved_req.valid := false.B
+//     saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
+//   }
+
+//   when(saved_req.valid) {
+//     io.icache_req.ready := false.B
+//   }
+
+//   // State machine
+//   switch(state) {
+//     is(sIDLE) {
+//       when(current_req_valid) {
+//         state := sCHECK_HIT
+//       }
+//     }
+
+//     is(sCHECK_HIT) {
+//       when(hit_cache) {
+//         io.icache_resp.valid     := true.B
+//         io.icache_resp.bits.data := cache_read_data.asUInt
+//         state                    := sIDLE
+//       }.otherwise {
+//         io.io_read_req.valid := true.B
+//         when(io.io_read_req.ready) {
+//           state := sWAIT_RESP
+//         }
+//       }
+//     }
+
+//     is(sWAIT_RESP) {
+//       when(io.io_read_resp.valid) {
+//         io.icache_resp.valid     := true.B
+//         io.icache_resp.bits.data := read_data.asUInt
+//         io.icache_resp.bits.addr := current_req_bits.addr
+
+//         cache_we       := true.B
+//         cache_valid_we := true.B
+//         state          := sIDLE
+//       }
+//     }
+//   }
+
+//   when(cache_we) {
+//     cache_tag.write(index, cache_write_tag)
+//     cache_data.zip(cache_write_data).foreach { case (mem, data) => mem.write(index, data) }
+//   }
+
+//   when(cache_valid_we) {
+//     cache_valid(index) := true.B
+//   }
+
+//   // Debug
+//   dontTouch(io.icache_debug)
+//   io.icache_debug.state          := state === sWAIT_RESP
+//   io.icache_debug.hit_cache      := hit_cache
+//   io.icache_debug.cache_we       := cache_we
+//   io.icache_debug.cache_read_tag := cache_read_tag
+//   io.icache_debug.icache_req     := saved_req
+// }
+
 class ICache extends Module {
   val io = IO(new ICacheIO)
 
-  // State machine states
   val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
   val state                                    = RegInit(sIDLE)
 
-  // Request pipeline registers
-  val stage1_req = RegInit(0.U.asTypeOf(Valid(new ICacheReq))) // First stage request
-  val stage2_req = RegInit(0.U.asTypeOf(Valid(new ICacheReq))) // Request being checked for hit
-
-  // Cache storage
+  val saved_req   = RegInit(0.U.asTypeOf(new DecoupledICacheReq))
   val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
   val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
   val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
 
-  // Helper functions to extract fields from address
-  def getIndex(addr: UInt): UInt =
-    addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  // 优化1: 提前计算index和tag，减少组合逻辑深度
+  val req_index = io.icache_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  val req_tag   = io.icache_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
 
-  def getTag(addr: UInt): UInt =
-    addr(31, 32 - ICACHE_TAG_WIDTH)
+  val saved_index = saved_req.bits.addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
+  val saved_tag   = saved_req.bits.addr(31, 32 - ICACHE_TAG_WIDTH)
 
-  def getBlockAddr(addr: UInt): UInt =
-    Cat(addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+  // 优化2: 使用寄存器保存上一周期的index和tag
+  val reg_index = RegInit(0.U(ICACHE_INDEX_WIDTH.W))
+  val reg_tag   = RegInit(0.U(ICACHE_TAG_WIDTH.W))
+  val reg_addr  = RegInit(0.U(32.W))
 
-  // Determine which address to read from memory
-  class ICacheNonBlocking extends Module {
-    val io = IO(new ICacheIO)
+  val current_req_valid = saved_req.valid || io.icache_req.valid
+  val current_req_bits  = Mux(saved_req.valid, saved_req.bits, io.icache_req.bits)
+  val index             = Mux(saved_req.valid, saved_index, req_index)
+  val tag               = Mux(saved_req.valid, saved_tag, req_tag)
 
-    // State machine states
-    val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
-    val state                                    = RegInit(sIDLE)
+  // 优化3: 提前启动内存读取
+  val speculative_read = state === sIDLE && io.icache_req.valid && !saved_req.valid
+  val read_index       = Mux(speculative_read, req_index, index)
 
-    // Request pipeline registers
-    val stage1_req = RegInit(0.U.asTypeOf(Valid(new ICacheReq))) // First stage request
-    val stage2_req = RegInit(0.U.asTypeOf(Valid(new ICacheReq))) // Request being checked for hit
-
-    // Cache storage
-    val cache_valid = RegInit(VecInit(Seq.fill(ICACHE_DEPTH)(false.B)))
-    val cache_tag   = SyncReadMem(ICACHE_DEPTH, UInt(ICACHE_TAG_WIDTH.W))
-    val cache_data  = Seq.fill(FETCH_WIDTH)(SyncReadMem(ICACHE_DEPTH, UInt(32.W)))
-
-    // Helper functions to extract fields from address
-    def getIndex(addr: UInt): UInt =
-      addr(ICACHE_OFFSET_WIDTH + ICACHE_INDEX_WIDTH - 1, ICACHE_OFFSET_WIDTH)
-
-    def getTag(addr: UInt): UInt =
-      addr(31, 32 - ICACHE_TAG_WIDTH)
-
-    def getBlockAddr(addr: UInt): UInt =
-      Cat(addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
-
-    // Determine which address to read from memory
-    val read_addr = Wire(UInt(32.W))
-    read_addr := Mux(
-      io.icache_req.valid && io.icache_req.ready && !stage1_req.valid,
-      io.icache_req.bits.addr,
-      Mux(stage1_req.valid, stage1_req.bits.addr, stage2_req.bits.addr)
-    )
-
-    val read_index = getIndex(read_addr)
-
-    // Memory read ports - reading one cycle ahead
-    val cache_read_tag  = cache_tag.read(read_index)
-    val cache_read_data = VecInit(cache_data.map(_.read(read_index)))
-
-    // Registers to hold read values for hit detection
-    val reg_tag   = RegNext(cache_read_tag)
-    val reg_data  = RegNext(cache_read_data)
-    val reg_index = RegNext(read_index)
-
-    // Hit detection logic for stage2
-    val hit_valid       = stage2_req.valid && state === sCHECK_HIT
-    val hit_tag_match   = getTag(stage2_req.bits.addr) === reg_tag
-    val hit_cache_valid = cache_valid(getIndex(stage2_req.bits.addr))
-    val hit_cache       = hit_valid && hit_tag_match && hit_cache_valid
-
-    // Memory response data processing
-    val mem_resp_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
-
-    // Cache write control
-    val cache_we          = WireInit(false.B)
-    val cache_write_index = getIndex(stage2_req.bits.addr)
-    val cache_write_tag   = getTag(stage2_req.bits.addr)
-    val cache_write_data  = mem_resp_data
-
-    // Track if we're waiting for memory response
-    val mem_req_sent = RegInit(false.B)
-
-    // ============================================================================
-    // Output Interface Logic
-    // ============================================================================
-
-    // ICache request interface - always ready to accept
-    io.icache_req.ready := true.B
-
-    // ICache response interface
-    io.icache_resp.valid     := false.B
-    io.icache_resp.bits.addr := DontCare
-    io.icache_resp.bits.data := DontCare
-
-    // Memory request interface
-    io.io_read_req.valid     := false.B
-    io.io_read_req.bits.addr := getBlockAddr(stage2_req.bits.addr)
-
-    // Memory response interface - ready when waiting for response
-    io.io_read_resp.ready := state === sWAIT_RESP
-
-    // ============================================================================
-    // Pipeline Stage Management
-    // ============================================================================
-
-    // Accept new request into stage1
-    val accept_new_req = io.icache_req.valid && io.icache_req.ready
-    val stage1_to_stage2 = stage1_req.valid && (!stage2_req.valid ||
-      (stage2_req.valid && (hit_cache ||
-        (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))))
-    val stage2_complete = stage2_req.valid && (hit_cache ||
-      (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))
-
-    // Stage 1 register update
-    when(accept_new_req && !stage1_req.valid) {
-      stage1_req.valid := true.B
-      stage1_req.bits  := io.icache_req.bits
-    }.elsewhen(stage1_to_stage2) {
-      when(accept_new_req) {
-        stage1_req.bits  := io.icache_req.bits
-        stage1_req.valid := true.B
-      }.otherwise {
-        stage1_req.valid := false.B
-      }
-    }
-
-    // Stage 2 register update
-    when(stage1_to_stage2) {
-      stage2_req := stage1_req
-    }.elsewhen(stage2_complete) {
-      stage2_req.valid := false.B
-    }
-
-    // ============================================================================
-    // State Machine
-    // ============================================================================
-
-    switch(state) {
-      is(sIDLE) {
-        when(stage2_req.valid) {
-          state := sCHECK_HIT
-        }
-      }
-
-      is(sCHECK_HIT) {
-        when(hit_cache) {
-          // Cache hit - send response
-          io.icache_resp.valid     := true.B
-          io.icache_resp.bits.addr := stage2_req.bits.addr
-          io.icache_resp.bits.data := reg_data.asUInt
-
-          // Move to next request or idle
-          when(stage1_req.valid) {
-            state := sCHECK_HIT // Continue checking
-          }.otherwise {
-            state := sIDLE
-          }
-        }.elsewhen(stage2_req.valid) {
-          // Cache miss - request from memory
-          io.io_read_req.valid := true.B
-          when(io.io_read_req.ready) {
-            mem_req_sent := true.B
-            state        := sWAIT_RESP
-          }
-        }.otherwise {
-          // No valid request in stage2
-          state := sIDLE
-        }
-      }
-
-      is(sWAIT_RESP) {
-        // Wait for memory response
-        io.io_read_resp.ready := true.B
-
-        when(io.io_read_resp.valid && io.io_read_resp.ready) {
-          // Memory response received
-          io.icache_resp.valid     := true.B
-          io.icache_resp.bits.addr := stage2_req.bits.addr
-          io.icache_resp.bits.data := io.io_read_resp.bits.data
-
-          // Update cache
-          cache_we     := true.B
-          mem_req_sent := false.B
-
-          // Move to next request or idle
-          when(stage1_req.valid) {
-            state := sCHECK_HIT
-          }.otherwise {
-            state := sIDLE
-          }
-        }
-      }
-    }
-
-    // ============================================================================
-    // Cache Write Logic
-    // ============================================================================
-
-    when(cache_we) {
-      cache_tag.write(cache_write_index, cache_write_tag)
-      cache_data.zipWithIndex.foreach {
-        case (mem, i) =>
-          mem.write(cache_write_index, cache_write_data(i))
-      }
-      cache_valid(cache_write_index) := true.B
-    }
-
-    // ============================================================================
-    // Debug Interface
-    // ============================================================================
-
-    io.icache_debug.state            := state
-    io.icache_debug.hit_cache        := hit_cache
-    io.icache_debug.cache_we         := cache_we
-    io.icache_debug.cache_read_tag   := reg_tag
-    io.icache_debug.icache_req       := 0.U.asTypeOf(new DecoupledICacheReq)
-    io.icache_debug.icache_req.valid := stage2_req.valid
-    io.icache_debug.icache_req.bits  := stage2_req.bits
-  }
-
-  val read_addr = Wire(UInt(32.W))
-  read_addr := Mux(
-    io.icache_req.valid && io.icache_req.ready && !stage1_req.valid,
-    io.icache_req.bits.addr,
-    Mux(stage1_req.valid, stage1_req.bits.addr, stage2_req.bits.addr)
-  )
-
-  val read_index = getIndex(read_addr)
-
-  // Memory read ports - reading one cycle ahead
   val cache_read_tag  = cache_tag.read(read_index)
   val cache_read_data = VecInit(cache_data.map(_.read(read_index)))
 
-  // Registers to hold read values for hit detection
-  val reg_tag   = RegNext(cache_read_tag)
-  val reg_data  = RegNext(cache_read_data)
-  val reg_index = RegNext(read_index)
+  // 优化4: 简化hit判断逻辑，使用寄存器中的值
+  val hit_cache = (reg_tag === cache_read_tag) &&
+    cache_valid(reg_index) &&
+    (reg_addr === current_req_bits.addr)
 
-  // Hit detection logic for stage2
-  val hit_valid       = stage2_req.valid && state === sCHECK_HIT
-  val hit_tag_match   = getTag(stage2_req.bits.addr) === reg_tag
-  val hit_cache_valid = cache_valid(getIndex(stage2_req.bits.addr))
-  val hit_cache       = hit_valid && hit_tag_match && hit_cache_valid
+  // 更新寄存器
+  when(current_req_valid && (state === sIDLE || state === sCHECK_HIT)) {
+    reg_index := index
+    reg_tag   := tag
+    reg_addr  := current_req_bits.addr
+  }
 
-  // Memory response data processing
-  val mem_resp_data = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+  val read_data        = io.io_read_resp.bits.data.asTypeOf(Vec(FETCH_WIDTH, UInt(32.W)))
+  val cache_we         = WireInit(false.B)
+  val cache_valid_we   = WireInit(false.B)
+  val cache_write_tag  = tag
+  val cache_write_data = read_data
 
-  // Cache write control
-  val cache_we          = WireInit(false.B)
-  val cache_write_index = getIndex(stage2_req.bits.addr)
-  val cache_write_tag   = getTag(stage2_req.bits.addr)
-  val cache_write_data  = mem_resp_data
-
-  // Track if we're waiting for memory response
-  val mem_req_sent = RegInit(false.B)
-
-  // ============================================================================
-  // Output Interface Logic
-  // ============================================================================
-
-  // ICache request interface - always ready to accept
-  io.icache_req.ready := true.B
-
-  // ICache response interface
+  // Default assignments
+  io.icache_req.ready      := (state === sIDLE && !saved_req.valid)
   io.icache_resp.valid     := false.B
-  io.icache_resp.bits.addr := DontCare
   io.icache_resp.bits.data := DontCare
-
-  // Memory request interface
+  io.icache_resp.bits.addr := current_req_bits.addr
   io.io_read_req.valid     := false.B
-  io.io_read_req.bits.addr := getBlockAddr(stage2_req.bits.addr)
+  io.io_read_req.bits.addr := Cat(current_req_bits.addr(31, ICACHE_OFFSET_WIDTH), 0.U(ICACHE_OFFSET_WIDTH.W))
+  io.io_read_resp.ready    := true.B
 
-  // Memory response interface - ready when waiting for response
-  io.io_read_resp.ready := state === sWAIT_RESP
-
-  // ============================================================================
-  // Pipeline Stage Management
-  // ============================================================================
-
-  // Accept new request into stage1
-  val accept_new_req = io.icache_req.valid && io.icache_req.ready
-  val stage1_to_stage2 = stage1_req.valid && (!stage2_req.valid ||
-    (stage2_req.valid && (hit_cache ||
-      (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))))
-  val stage2_complete = stage2_req.valid && (hit_cache ||
-    (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))
-
-  // Stage 1 register update
-  when(accept_new_req && !stage1_req.valid) {
-    stage1_req.valid := true.B
-    stage1_req.bits  := io.icache_req.bits
-  }.elsewhen(stage1_to_stage2) {
-    when(accept_new_req) {
-      stage1_req.bits  := io.icache_req.bits
-      stage1_req.valid := true.B
-    }.otherwise {
-      stage1_req.valid := false.B
-    }
+  // Request register control
+  when(io.icache_req.valid && !saved_req.valid) {
+    saved_req.valid := true.B
+    saved_req.bits  := io.icache_req.bits
   }
 
-  // Stage 2 register update
-  when(stage1_to_stage2) {
-    stage2_req := stage1_req
-  }.elsewhen(stage2_complete) {
-    stage2_req.valid := false.B
+  when(io.icache_resp.valid) {
+    saved_req.valid := false.B
+    saved_req.bits  := 0.U.asTypeOf(new ICacheReq())
   }
 
-  // ============================================================================
-  // State Machine
-  // ============================================================================
+  when(saved_req.valid) {
+    io.icache_req.ready := false.B
+  }
 
+  // State machine
   switch(state) {
     is(sIDLE) {
-      when(stage2_req.valid) {
+      when(current_req_valid) {
         state := sCHECK_HIT
       }
     }
 
     is(sCHECK_HIT) {
       when(hit_cache) {
-        // Cache hit - send response
         io.icache_resp.valid     := true.B
-        io.icache_resp.bits.addr := stage2_req.bits.addr
-        io.icache_resp.bits.data := reg_data.asUInt
-
-        // Move to next request or idle
-        when(stage1_req.valid) {
-          state := sCHECK_HIT // Continue checking
-        }.otherwise {
-          state := sIDLE
-        }
-      }.elsewhen(stage2_req.valid) {
-        // Cache miss - request from memory
+        io.icache_resp.bits.data := cache_read_data.asUInt
+        state                    := sIDLE
+      }.otherwise {
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
-          mem_req_sent := true.B
-          state        := sWAIT_RESP
+          state := sWAIT_RESP
         }
-      }.otherwise {
-        // No valid request in stage2
-        state := sIDLE
       }
     }
 
     is(sWAIT_RESP) {
-      // Wait for memory response
-      io.io_read_resp.ready := true.B
-
-      when(io.io_read_resp.valid && io.io_read_resp.ready) {
-        // Memory response received
+      when(io.io_read_resp.valid) {
         io.icache_resp.valid     := true.B
-        io.icache_resp.bits.addr := stage2_req.bits.addr
-        io.icache_resp.bits.data := io.io_read_resp.bits.data
-
-        // Update cache
-        cache_we     := true.B
-        mem_req_sent := false.B
-
-        // Move to next request or idle
-        when(stage1_req.valid) {
-          state := sCHECK_HIT
-        }.otherwise {
-          state := sIDLE
-        }
+        io.icache_resp.bits.data := read_data.asUInt
+        io.icache_resp.bits.addr := current_req_bits.addr
+        cache_we                 := true.B
+        cache_valid_we           := true.B
+        state                    := sIDLE
       }
     }
   }
 
-  // ============================================================================
-  // Cache Write Logic
-  // ============================================================================
-
   when(cache_we) {
-    cache_tag.write(cache_write_index, cache_write_tag)
-    cache_data.zipWithIndex.foreach {
-      case (mem, i) =>
-        mem.write(cache_write_index, cache_write_data(i))
-    }
-    cache_valid(cache_write_index) := true.B
+    cache_tag.write(index, cache_write_tag)
+    cache_data.zip(cache_write_data).foreach { case (mem, data) => mem.write(index, data) }
   }
 
-  // ============================================================================
-  // Debug Interface
-  // ============================================================================
+  when(cache_valid_we) {
+    cache_valid(index) := true.B
+  }
 
-  io.icache_debug.state            := state
-  io.icache_debug.hit_cache        := hit_cache
-  io.icache_debug.cache_we         := cache_we
-  io.icache_debug.cache_read_tag   := reg_tag
-  io.icache_debug.icache_req       := 0.U.asTypeOf(new DecoupledICacheReq)
-  io.icache_debug.icache_req.valid := stage2_req.valid
-  io.icache_debug.icache_req.bits  := stage2_req.bits
+  // Debug
+  dontTouch(io.icache_debug)
+  io.icache_debug.state          := state === sWAIT_RESP
+  io.icache_debug.hit_cache      := hit_cache
+  io.icache_debug.cache_we       := cache_we
+  io.icache_debug.cache_read_tag := cache_read_tag
+  io.icache_debug.icache_req     := saved_req
 }
 
 // ============================================================================
