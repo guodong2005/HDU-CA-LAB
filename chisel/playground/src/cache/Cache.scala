@@ -71,21 +71,8 @@ class ICacheIO extends Bundle {
   val io_read_resp = Flipped(Decoupled(new ICacheResp))
   val icache_debug = new ICacheDebugIO
 }
-
-// Complete Non-blocking ICache Implementation
-class ICache extends Module {
-  val io = IO(new Bundle {
-    // CPU interface
-    val icache_req  = Flipped(Decoupled(new ICacheReq))
-    val icache_resp = Valid(new InstPacket)
-
-    // Memory interface
-    val io_read_req  = Decoupled(new ICacheReq)
-    val io_read_resp = Flipped(Valid(new ICacheResp))
-
-    // Debug interface
-    val icache_debug = Output(new ICacheDebugIO)
-  })
+class ICacheNonBlocking extends Module {
+  val io = IO(new ICacheIO)
 
   // State machine states
   val sIDLE :: sCHECK_HIT :: sWAIT_RESP :: Nil = Enum(3)
@@ -144,6 +131,9 @@ class ICache extends Module {
   val cache_write_tag   = getTag(stage2_req.bits.addr)
   val cache_write_data  = mem_resp_data
 
+  // Track if we're waiting for memory response
+  val mem_req_sent = RegInit(false.B)
+
   // ============================================================================
   // Output Interface Logic
   // ============================================================================
@@ -160,6 +150,9 @@ class ICache extends Module {
   io.io_read_req.valid     := false.B
   io.io_read_req.bits.addr := getBlockAddr(stage2_req.bits.addr)
 
+  // Memory response interface - ready when waiting for response
+  io.io_read_resp.ready := state === sWAIT_RESP
+
   // ============================================================================
   // Pipeline Stage Management
   // ============================================================================
@@ -168,9 +161,9 @@ class ICache extends Module {
   val accept_new_req = io.icache_req.valid && io.icache_req.ready
   val stage1_to_stage2 = stage1_req.valid && (!stage2_req.valid ||
     (stage2_req.valid && (hit_cache ||
-      (state === sWAIT_RESP && io.io_read_resp.valid))))
+      (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))))
   val stage2_complete = stage2_req.valid && (hit_cache ||
-    (state === sWAIT_RESP && io.io_read_resp.valid))
+    (state === sWAIT_RESP && io.io_read_resp.valid && io.io_read_resp.ready))
 
   // Stage 1 register update
   when(accept_new_req && !stage1_req.valid) {
@@ -220,7 +213,8 @@ class ICache extends Module {
         // Cache miss - request from memory
         io.io_read_req.valid := true.B
         when(io.io_read_req.ready) {
-          state := sWAIT_RESP
+          mem_req_sent := true.B
+          state        := sWAIT_RESP
         }
       }.otherwise {
         // No valid request in stage2
@@ -229,14 +223,18 @@ class ICache extends Module {
     }
 
     is(sWAIT_RESP) {
-      when(io.io_read_resp.valid) {
+      // Wait for memory response
+      io.io_read_resp.ready := true.B
+
+      when(io.io_read_resp.valid && io.io_read_resp.ready) {
         // Memory response received
         io.icache_resp.valid     := true.B
         io.icache_resp.bits.addr := stage2_req.bits.addr
         io.icache_resp.bits.data := io.io_read_resp.bits.data
 
         // Update cache
-        cache_we := true.B
+        cache_we     := true.B
+        mem_req_sent := false.B
 
         // Move to next request or idle
         when(stage1_req.valid) {
@@ -273,6 +271,7 @@ class ICache extends Module {
   io.icache_debug.icache_req.valid := stage2_req.valid
   io.icache_debug.icache_req.bits  := stage2_req.bits
 }
+
 // ============================================================================
 // DCache Module (Simplified)
 // ============================================================================
