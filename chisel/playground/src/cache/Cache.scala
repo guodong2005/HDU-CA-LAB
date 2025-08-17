@@ -163,7 +163,7 @@ class ICache extends Module {
   io.icache_debug.hit_cache      := hit_cache
   io.icache_debug.cache_we       := state === sWAIT_RESP && io.io_read_resp.valid
   io.icache_debug.cache_read_tag := cache_tag_reg(req_index)
-  io.icache_debug.icache_req     := Mux(state === sIDLE, io.icache_req, RegInit(0.U.asTypeOf(new DecoupledICacheReq)))
+  io.icache_debug.icache_req     := DontCare
 }
 
 // ============================================================================
