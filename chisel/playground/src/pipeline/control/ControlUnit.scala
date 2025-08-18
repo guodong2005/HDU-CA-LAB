@@ -88,16 +88,16 @@ class ControlUnit extends Module {
   val src1_forward_sel = MuxCase(
     0.U(2.W),
     Seq(
-      src1_forward_from_wb -> 2.U(2.W),
-      src1_forward_from_ex -> 1.U(2.W)
+      src1_forward_from_ex -> 1.U(2.W),
+      src1_forward_from_wb -> 2.U(2.W)
     )
   )
 
   val src2_forward_sel = MuxCase(
     0.U(2.W),
     Seq(
-      src2_forward_from_wb -> 2.U(2.W),
-      src2_forward_from_ex -> 1.U(2.W)
+      src2_forward_from_ex -> 1.U(2.W),
+      src2_forward_from_wb -> 2.U(2.W)
     )
   )
 
