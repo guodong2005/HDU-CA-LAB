@@ -5,6 +5,8 @@ import chisel3.util._
 import cpu.defines._
 import cpu.defines.Const._
 
+/** CPU–side request for a data memory access. For a store the accompanying wdata is used. For a load, wdata is "don't care." */
+
 class Lsu extends Module {
   val io = IO(new Bundle {
     val info     = Input(new Info())
@@ -13,6 +15,7 @@ class Lsu extends Module {
     val ready    = Output(Bool())
     val valid    = Output(Bool())
     val diffout  = Output(new DiffOut())
+//    val flush    = Input(Bool())
     val dcache = new Bundle {
       val req  = Decoupled(new DCacheReq)
       val resp = Flipped(Decoupled(new DCacheResp))
@@ -25,15 +28,17 @@ class Lsu extends Module {
 
   val writeBuffer = Module(new WriteBuffer(depth = 4))
   writeBuffer.io.flush        := false.B
-  writeBuffer.io.bypassAddr   := DontCare
   writeBuffer.io.bypassEnable := false.B
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
 
+  writeBuffer.io.bypassAddr := effectiveAddr
+
   val addr_low2 = effectiveAddr(1, 0)
 
+  // 改进的size计算，模仿第一份代码的逻辑
   val size = LookupTree(
     io.info.op,
     Seq(
@@ -48,6 +53,7 @@ class Lsu extends Module {
     )
   )
 
+  // 改进的写掩码生成，模仿第一份代码的逻辑
   val strb = MuxCase(
     0.U(4.W),
     Seq(
@@ -63,6 +69,7 @@ class Lsu extends Module {
 
   val storeAddr = effectiveAddr(31, 2) << 2
 
+  // 改进的写数据生成，模仿第一份代码的逻辑
   val storeWdata = LookupTree(
     io.info.op,
     Seq(
@@ -79,63 +86,34 @@ class Lsu extends Module {
   newReq.wstrb := strb
   newReq.size  := size
 
-  // ============= 添加指令完成状态跟踪 =============
-  val storeCompleted = RegInit(false.B)
-  val loadCompleted  = RegInit(false.B)
-
-  // 当新指令到来时重置完成状态
-  when(io.info.valid && (state === sIdle)) {
-    storeCompleted := false.B
-    loadCompleted  := false.B
-  }
-  // =============================================
-
-  // Store请求缓冲寄存器
-  val storeReqReg   = RegInit(0.U.asTypeOf(new DCacheReq))
-  val storeReqValid = RegInit(false.B)
-
-  writeBuffer.io.enq.valid := storeReqValid
-  writeBuffer.io.enq.bits  := storeReqReg
-
-  when(writeBuffer.io.enq.fire) {
-    storeReqValid := false.B
-    // ============= Store指令完成标记 =============
-    storeCompleted := true.B
-    // ==========================================
-  }
-
-  when((state === sIdle) && isStore && io.info.valid && !storeReqValid) {
-    storeReqReg   := newReq
-    storeReqValid := true.B
-  }
-
-  // ============= 修改输出逻辑确保只valid一次 =============
-  io.valid  := false.B
-  io.result := 0.U
-
-  // Store指令：只在WriteBuffer接受请求的周期输出valid
-  when(isStore && writeBuffer.io.enq.fire && !storeCompleted) {
-    io.valid  := true.B
-    io.result := io.src_info.src1_data
-  }
-  // ====================================================
-
+  // Default
+  io.valid             := Mux(isStore, true.B, false.B)
+  io.result            := 0.U
   io.dcache.req.valid  := false.B
   io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
   io.dcache.resp.ready := true.B
 
-  val canAcceptStore = !storeReqValid || writeBuffer.io.enq.ready
-  io.ready := ((state === sIdle) && ((isStore && canAcceptStore) || !isLsu))
+  // 默认接受指令
+  val canEnqueue = writeBuffer.io.enq.ready
+  io.ready := ((state === sIdle) && ((isStore && canEnqueue) || !isLsu))
 
+  // Store enqueuing
+  writeBuffer.io.enq.valid := (state === sIdle) && isStore && io.info.valid
+  writeBuffer.io.enq.bits  := newReq
   writeBuffer.io.deq.ready := true.B
 
   val drainReq   = writeBuffer.io.deq
   val loadReqReg = Reg(new DCacheReq)
   val loadOpReg  = Reg(UInt(4.W))
 
+  // 改进的load数据处理函数，模仿第一份代码的逻辑
   def gen_load_data(data: UInt, mem_addr: UInt, op: UInt): UInt = {
     val addr_low2 = mem_addr(1, 0)
+
+    // 根据地址低2位选择正确的字节
     val byte_data = (0 until 4).map(i => Mux(addr_low2 === i.U(2.W), data(i * 8 + 7, i * 8), 0.U(8.W))).reduce(_ | _)
+
+    // 根据地址低1位选择正确的半字
     val half_data =
       (0 until 2).map(i => Mux(addr_low2(1) === i.U(1.W), data(i * 16 + 15, i * 16), 0.U(16.W))).reduce(_ | _)
 
@@ -155,6 +133,7 @@ class Lsu extends Module {
   switch(state) {
     is(sIdle) {
       when(io.info.valid && isLoad) {
+        // 收到 load 请求，进入 drain 状态
         loadReqReg := newReq
         loadOpReg  := io.info.op
         state      := sDrainStores
@@ -173,6 +152,7 @@ class Lsu extends Module {
         drainReq.ready      := io.dcache.req.ready
       }
       when(!drainReq.valid) {
+        // 队列清空，可以发 load
         io.dcache.req.valid := true.B
         io.dcache.req.bits  := loadReqReg
         when(io.dcache.req.ready) {
@@ -182,24 +162,23 @@ class Lsu extends Module {
     }
 
     is(sWaitResp) {
-      when(io.dcache.resp.valid && !loadCompleted) {
+      when(io.dcache.resp.valid) {
+        // 使用改进的load数据处理函数
         val res = gen_load_data(io.dcache.resp.bits.data, loadReqReg.addr, loadOpReg)
-        io.ready      := true.B
-        io.result     := res
-        io.valid      := true.B
-        loadCompleted := true.B // ============= 标记Load完成 =============
-        state         := sIdle
+        io.ready  := true.B
+        io.result := res
+        io.valid  := true.B
+        state     := sIdle
       }
     }
   }
 
-  // Diffout信号
   io.diffout                       := DontCare
-  io.diffout.storeEvent.valid      := isStore && isLsu && writeBuffer.io.enq.fire && !storeCompleted
+  io.diffout.storeEvent.valid      := isStore && isLsu && io.valid
   io.diffout.storeEvent.storePAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeVAddr := newReq.addr.asUInt
   io.diffout.storeEvent.storeData  := newReq.wdata
-  io.diffout.loadEvent.valid       := isLoad && isLsu && io.dcache.resp.valid && !loadCompleted
+  io.diffout.loadEvent.valid       := isLoad && isLsu && io.valid
   io.diffout.loadEvent.paddr       := loadReqReg.addr.asUInt
   io.diffout.loadEvent.vaddr       := loadReqReg.addr.asUInt
 }

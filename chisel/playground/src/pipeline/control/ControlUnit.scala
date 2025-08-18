@@ -132,7 +132,7 @@ class ControlUnit extends Module {
   io.signals.branchControl.target := branchTarget
 
   // ========== 流水线控制逻辑 ==========
-  val pipeline_stall = io.signals.bypassData.src1_bypass || io.signals.bypassData.src2_bypass
+  val pipeline_stall = false.B // 由于有完整的前递，不需要额外的stall
 
   // Generate control signals
   io.signals.fetchUnitSignal.allow_to_go   := (!pipeline_stall) & io.executeUnitReady

@@ -47,15 +47,20 @@ class ExecuteStage extends Module {
     is(sExec) {
       when(io.controlSignal.decodeUnitSignal.do_flush) {
         data  := 0.U.asTypeOf(new IdExeData())
-        state := sIdle
+        state := sFlush
       }.elsewhen(io.controlSignal.decodeUnitSignal.allow_to_go && io.ready) {
         data := io.decodeUnit.data
         // 保持执行状态，继续处理下一个数据
         state := sExec
-      }.elsewhen(io.ready) {
-        data  := 0.U.asTypeOf(new IdExeData())
-        state := sIdle
+      }.otherwise {
+        // 等待 valid/ready 对齐
+        state := sExec
       }
+    }
+
+    is(sFlush) {
+      // flush后回到空闲状态
+      state := sIdle
     }
   }
 }
