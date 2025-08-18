@@ -4199,6 +4199,7 @@ module ControlUnit(
     src2_forward_sel == 2'h1
       ? io_executeResult
       : src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  wire        pipeline_stall = (|src1_forward_sel) | (|src2_forward_sel);
   `ifndef SYNTHESIS
     always @(posedge clock) begin
       if ((`PRINTF_COND_) & io_decodeRegisterInfo_src1_ren & (|src1_forward_sel) & ~reset)
@@ -4211,9 +4212,9 @@ module ControlUnit(
                 io_signals_bypassData_src2_data_0);
     end // always @(posedge)
   `endif // not def SYNTHESIS
-  assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
+  assign io_signals_fetchUnitSignal_allow_to_go = ~pipeline_stall & io_executeUnitReady;
   assign io_signals_fetchUnitSignal_do_flush = io_executeBranch;
-  assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
+  assign io_signals_decodeUnitSignal_allow_to_go = ~pipeline_stall & io_executeUnitReady;
   assign io_signals_decodeUnitSignal_do_flush = io_executeBranch;
   assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
   assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
