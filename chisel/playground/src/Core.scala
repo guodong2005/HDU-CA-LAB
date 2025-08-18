@@ -23,7 +23,7 @@ class Core extends Module {
   val iocontrol      = Module(new IoControl())
   val icache         = Module(new ICache())
   val dcache         = Module(new DCache())
-  val fetchUnit      = Module(new FetchUnitWithPreFetch())
+  val fetchUnit      = Module(new FetchUnit())
   val decodeStage    = Module(new DecodeStage())
   val decodeUnit     = Module(new DecodeUnit())
   val regfile        = Module(new ARegFile())
