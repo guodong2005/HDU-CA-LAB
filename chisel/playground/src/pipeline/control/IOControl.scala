@@ -33,7 +33,7 @@ class SramCtrlInfo extends Bundle {
     ce_n     := false.B
     oe_n     := true.B
     we_n     := weState // 可以控制WE的状态
-    data_en  := true.B // 写操作驱动数据总线
+    data_en  := true.B  // 写操作驱动数据总线
   }
 
   val data_out = UInt(32.W)
@@ -95,13 +95,14 @@ class IoControl extends Module {
 
   val io = IO(new IoControlIO)
 
+  // SRAM延迟常数调整为3
   val SRAM_DELAY = 5
 
   // SRAM控制寄存器
   val base_ram_ctrl = Reg(new SramCtrlInfo)
   val ext_ram_ctrl  = Reg(new SramCtrlInfo)
   io.base_ram_ctrl.ctrl <> base_ram_ctrl
-  io.ext_ram_ctrl.ctrl <> ext_ram_ctrl
+  io.ext_ram_ctrl.ctrl  <> ext_ram_ctrl
 
   // 状态机定义
   val sIDLE :: iREAD :: dREAD :: dWrite :: dWriteWait :: iWait :: dWait :: Nil = Enum(7)
