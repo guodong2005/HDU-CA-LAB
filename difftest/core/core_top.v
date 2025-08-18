@@ -3207,110 +3207,42 @@ module WriteBuffer(
   reg              buffer_3_req_write;
   reg  [31:0]      buffer_3_req_wdata;
   reg  [3:0]       buffer_3_req_wstrb;
-  reg  [31:0]      buffer_4_req_addr;
-  reg              buffer_4_req_write;
-  reg  [31:0]      buffer_4_req_wdata;
-  reg  [3:0]       buffer_4_req_wstrb;
-  reg  [31:0]      buffer_5_req_addr;
-  reg              buffer_5_req_write;
-  reg  [31:0]      buffer_5_req_wdata;
-  reg  [3:0]       buffer_5_req_wstrb;
-  reg  [31:0]      buffer_6_req_addr;
-  reg              buffer_6_req_write;
-  reg  [31:0]      buffer_6_req_wdata;
-  reg  [3:0]       buffer_6_req_wstrb;
-  reg  [31:0]      buffer_7_req_addr;
-  reg              buffer_7_req_write;
-  reg  [31:0]      buffer_7_req_wdata;
-  reg  [3:0]       buffer_7_req_wstrb;
   reg              valids_0;
   reg              valids_1;
   reg              valids_2;
   reg              valids_3;
-  reg              valids_4;
-  reg              valids_5;
-  reg              valids_6;
-  reg              valids_7;
   wire             addrMatches_0 =
     valids_0 & buffer_0_req_write & buffer_0_req_addr == io_enq_bits_addr;
   wire             addrMatches_1 =
     valids_1 & buffer_1_req_write & buffer_1_req_addr == io_enq_bits_addr;
   wire             addrMatches_2 =
     valids_2 & buffer_2_req_write & buffer_2_req_addr == io_enq_bits_addr;
-  wire             addrMatches_3 =
-    valids_3 & buffer_3_req_write & buffer_3_req_addr == io_enq_bits_addr;
-  wire             addrMatches_4 =
-    valids_4 & buffer_4_req_write & buffer_4_req_addr == io_enq_bits_addr;
-  wire             addrMatches_5 =
-    valids_5 & buffer_5_req_write & buffer_5_req_addr == io_enq_bits_addr;
-  wire             addrMatches_6 =
-    valids_6 & buffer_6_req_write & buffer_6_req_addr == io_enq_bits_addr;
   wire             hasMatch =
-    addrMatches_0 | addrMatches_1 | addrMatches_2 | addrMatches_3 | addrMatches_4
-    | addrMatches_5 | addrMatches_6 | valids_7 & buffer_7_req_write
-    & buffer_7_req_addr == io_enq_bits_addr;
-  wire [2:0]       matchIdx =
-    addrMatches_0
-      ? 3'h0
-      : addrMatches_1
-          ? 3'h1
-          : addrMatches_2
-              ? 3'h2
-              : addrMatches_3
-                  ? 3'h3
-                  : addrMatches_4 ? 3'h4 : addrMatches_5 ? 3'h5 : {2'h3, ~addrMatches_6};
-  wire [2:0]       deqIdx =
-    valids_0
-      ? 3'h0
-      : valids_1
-          ? 3'h1
-          : valids_2
-              ? 3'h2
-              : valids_3 ? 3'h3 : valids_4 ? 3'h4 : valids_5 ? 3'h5 : {2'h3, ~valids_6};
-  wire [3:0]       _hasSpace_T_21 =
-    {1'h0,
-     {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
-       + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}}}
-    + {1'h0,
-       {1'h0, {1'h0, valids_4} + {1'h0, valids_5}}
-         + {1'h0, {1'h0, valids_6} + {1'h0, valids_7}}};
-  wire             hasSpace = ~(_hasSpace_T_21[3]);
+    addrMatches_0 | addrMatches_1 | addrMatches_2 | valids_3 & buffer_3_req_write
+    & buffer_3_req_addr == io_enq_bits_addr;
+  wire [1:0]       matchIdx =
+    addrMatches_0 ? 2'h0 : addrMatches_1 ? 2'h1 : {1'h1, ~addrMatches_2};
+  wire [1:0]       deqIdx = valids_0 ? 2'h0 : valids_1 ? 2'h1 : {1'h1, ~valids_2};
+  wire [2:0]       _hasSpace_T_9 =
+    {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
+    + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
+  wire             hasSpace = ~(_hasSpace_T_9[2]);
   wire             io_enq_ready_0 = hasMatch | hasSpace;
-  wire             io_deq_valid_0 =
-    valids_0 | valids_1 | valids_2 | valids_3 | valids_4 | valids_5 | valids_6 | valids_7;
-  wire [7:0][31:0] _GEN =
-    {{buffer_7_req_addr},
-     {buffer_6_req_addr},
-     {buffer_5_req_addr},
-     {buffer_4_req_addr},
-     {buffer_3_req_addr},
-     {buffer_2_req_addr},
-     {buffer_1_req_addr},
-     {buffer_0_req_addr}};
-  wire [7:0]       _GEN_0 =
-    {{buffer_7_req_write},
-     {buffer_6_req_write},
-     {buffer_5_req_write},
-     {buffer_4_req_write},
-     {buffer_3_req_write},
+  wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
+  wire [3:0][31:0] _GEN =
+    {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
+  wire [3:0]       _GEN_0 =
+    {{buffer_3_req_write},
      {buffer_2_req_write},
      {buffer_1_req_write},
      {buffer_0_req_write}};
-  wire [7:0][31:0] _GEN_1 =
-    {{buffer_7_req_wdata},
-     {buffer_6_req_wdata},
-     {buffer_5_req_wdata},
-     {buffer_4_req_wdata},
-     {buffer_3_req_wdata},
+  wire [3:0][31:0] _GEN_1 =
+    {{buffer_3_req_wdata},
      {buffer_2_req_wdata},
      {buffer_1_req_wdata},
      {buffer_0_req_wdata}};
-  wire [7:0][3:0]  _GEN_2 =
-    {{buffer_7_req_wstrb},
-     {buffer_6_req_wstrb},
-     {buffer_5_req_wstrb},
-     {buffer_4_req_wstrb},
-     {buffer_3_req_wstrb},
+  wire [3:0][3:0]  _GEN_2 =
+    {{buffer_3_req_wstrb},
      {buffer_2_req_wstrb},
      {buffer_1_req_wstrb},
      {buffer_0_req_wstrb}};
@@ -3344,33 +3276,13 @@ module WriteBuffer(
       buffer_3_req_write <= 1'h0;
       buffer_3_req_wdata <= 32'h0;
       buffer_3_req_wstrb <= 4'h0;
-      buffer_4_req_addr <= 32'h0;
-      buffer_4_req_write <= 1'h0;
-      buffer_4_req_wdata <= 32'h0;
-      buffer_4_req_wstrb <= 4'h0;
-      buffer_5_req_addr <= 32'h0;
-      buffer_5_req_write <= 1'h0;
-      buffer_5_req_wdata <= 32'h0;
-      buffer_5_req_wstrb <= 4'h0;
-      buffer_6_req_addr <= 32'h0;
-      buffer_6_req_write <= 1'h0;
-      buffer_6_req_wdata <= 32'h0;
-      buffer_6_req_wstrb <= 4'h0;
-      buffer_7_req_addr <= 32'h0;
-      buffer_7_req_write <= 1'h0;
-      buffer_7_req_wdata <= 32'h0;
-      buffer_7_req_wstrb <= 4'h0;
       valids_0 <= 1'h0;
       valids_1 <= 1'h0;
       valids_2 <= 1'h0;
       valids_3 <= 1'h0;
-      valids_4 <= 1'h0;
-      valids_5 <= 1'h0;
-      valids_6 <= 1'h0;
-      valids_7 <= 1'h0;
     end
     else begin
-      automatic logic [2:0] enqIdx;
+      automatic logic [1:0] enqIdx;
       automatic logic       _GEN_4 = _GEN_3 & io_enq_bits_write;
       automatic logic       _GEN_5;
       automatic logic       _GEN_6;
@@ -3378,46 +3290,21 @@ module WriteBuffer(
       automatic logic       _GEN_8;
       automatic logic       _GEN_9;
       automatic logic       _GEN_10;
-      automatic logic       _GEN_11;
-      automatic logic       _GEN_12;
-      automatic logic       _GEN_13;
-      automatic logic       _GEN_14;
-      automatic logic       _GEN_15;
-      automatic logic       _GEN_16;
-      automatic logic       _GEN_17;
-      automatic logic       _GEN_18;
-      automatic logic       _GEN_19 = io_deq_ready & io_deq_valid_0;
-      enqIdx =
-        valids_0
-          ? (valids_1
-               ? (valids_2
-                    ? (valids_3
-                         ? (valids_4 ? (valids_5 ? {2'h3, valids_6} : 3'h5) : 3'h4)
-                         : 3'h3)
-                    : 3'h2)
-               : 3'h1)
-          : 3'h0;
-      _GEN_5 = matchIdx == 3'h0;
-      _GEN_6 = matchIdx == 3'h1;
-      _GEN_7 = matchIdx == 3'h2;
-      _GEN_8 = matchIdx == 3'h3;
-      _GEN_9 = matchIdx == 3'h4;
-      _GEN_10 = matchIdx == 3'h5;
-      _GEN_11 = matchIdx == 3'h6;
-      _GEN_12 = enqIdx == 3'h0;
-      _GEN_13 = enqIdx == 3'h1;
-      _GEN_14 = enqIdx == 3'h2;
-      _GEN_15 = enqIdx == 3'h3;
-      _GEN_16 = enqIdx == 3'h4;
-      _GEN_17 = enqIdx == 3'h5;
-      _GEN_18 = enqIdx == 3'h6;
-      if (~_GEN_4 | hasMatch | ~_GEN_12) begin
+      automatic logic       _GEN_11 = io_deq_ready & io_deq_valid_0;
+      enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
+      _GEN_5 = matchIdx == 2'h0;
+      _GEN_6 = matchIdx == 2'h1;
+      _GEN_7 = matchIdx == 2'h2;
+      _GEN_8 = enqIdx == 2'h0;
+      _GEN_9 = enqIdx == 2'h1;
+      _GEN_10 = enqIdx == 2'h2;
+      if (~_GEN_4 | hasMatch | ~_GEN_8) begin
       end
       else begin
         buffer_0_req_addr <= io_enq_bits_addr;
         buffer_0_req_write <= io_enq_bits_write;
       end
-      if (_GEN_4 & (hasMatch ? _GEN_5 : _GEN_12))
+      if (_GEN_4 & (hasMatch ? _GEN_5 : _GEN_8))
         buffer_0_req_wdata <= io_enq_bits_wdata;
       if (_GEN_4) begin
         if (hasMatch) begin
@@ -3429,100 +3316,48 @@ module WriteBuffer(
             buffer_1_req_wstrb <= _buffer_req_wstrb_T;
           if (_GEN_7)
             buffer_2_req_wstrb <= _buffer_req_wstrb_T;
-          if (_GEN_8)
-            buffer_3_req_wstrb <= _buffer_req_wstrb_T;
-          if (_GEN_9)
-            buffer_4_req_wstrb <= _buffer_req_wstrb_T;
-          if (_GEN_10)
-            buffer_5_req_wstrb <= _buffer_req_wstrb_T;
-          if (_GEN_11)
-            buffer_6_req_wstrb <= _buffer_req_wstrb_T;
           if (&matchIdx)
-            buffer_7_req_wstrb <= _buffer_req_wstrb_T;
+            buffer_3_req_wstrb <= _buffer_req_wstrb_T;
         end
         else begin
-          if (_GEN_12)
+          if (_GEN_8)
             buffer_0_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_13)
+          if (_GEN_9)
             buffer_1_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_14)
+          if (_GEN_10)
             buffer_2_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_15)
-            buffer_3_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_16)
-            buffer_4_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_17)
-            buffer_5_req_wstrb <= io_enq_bits_wstrb;
-          if (_GEN_18)
-            buffer_6_req_wstrb <= io_enq_bits_wstrb;
           if (&enqIdx)
-            buffer_7_req_wstrb <= io_enq_bits_wstrb;
+            buffer_3_req_wstrb <= io_enq_bits_wstrb;
         end
       end
-      if (~_GEN_4 | hasMatch | ~_GEN_13) begin
+      if (~_GEN_4 | hasMatch | ~_GEN_9) begin
       end
       else begin
         buffer_1_req_addr <= io_enq_bits_addr;
         buffer_1_req_write <= io_enq_bits_write;
       end
-      if (_GEN_4 & (hasMatch ? _GEN_6 : _GEN_13))
+      if (_GEN_4 & (hasMatch ? _GEN_6 : _GEN_9))
         buffer_1_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~_GEN_14) begin
+      if (~_GEN_4 | hasMatch | ~_GEN_10) begin
       end
       else begin
         buffer_2_req_addr <= io_enq_bits_addr;
         buffer_2_req_write <= io_enq_bits_write;
       end
-      if (_GEN_4 & (hasMatch ? _GEN_7 : _GEN_14))
+      if (_GEN_4 & (hasMatch ? _GEN_7 : _GEN_10))
         buffer_2_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~_GEN_15) begin
+      if (~_GEN_4 | hasMatch | ~(&enqIdx)) begin
       end
       else begin
         buffer_3_req_addr <= io_enq_bits_addr;
         buffer_3_req_write <= io_enq_bits_write;
       end
-      if (_GEN_4 & (hasMatch ? _GEN_8 : _GEN_15))
-        buffer_3_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~_GEN_16) begin
-      end
-      else begin
-        buffer_4_req_addr <= io_enq_bits_addr;
-        buffer_4_req_write <= io_enq_bits_write;
-      end
-      if (_GEN_4 & (hasMatch ? _GEN_9 : _GEN_16))
-        buffer_4_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~_GEN_17) begin
-      end
-      else begin
-        buffer_5_req_addr <= io_enq_bits_addr;
-        buffer_5_req_write <= io_enq_bits_write;
-      end
-      if (_GEN_4 & (hasMatch ? _GEN_10 : _GEN_17))
-        buffer_5_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~_GEN_18) begin
-      end
-      else begin
-        buffer_6_req_addr <= io_enq_bits_addr;
-        buffer_6_req_write <= io_enq_bits_write;
-      end
-      if (_GEN_4 & (hasMatch ? _GEN_11 : _GEN_18))
-        buffer_6_req_wdata <= io_enq_bits_wdata;
-      if (~_GEN_4 | hasMatch | ~(&enqIdx)) begin
-      end
-      else begin
-        buffer_7_req_addr <= io_enq_bits_addr;
-        buffer_7_req_write <= io_enq_bits_write;
-      end
       if (_GEN_4 & (hasMatch ? (&matchIdx) : (&enqIdx)))
-        buffer_7_req_wdata <= io_enq_bits_wdata;
-      valids_0 <= ~(_GEN_19 & deqIdx == 3'h0) & (_GEN_4 & ~hasMatch & _GEN_12 | valids_0);
-      valids_1 <= ~(_GEN_19 & deqIdx == 3'h1) & (_GEN_4 & ~hasMatch & _GEN_13 | valids_1);
-      valids_2 <= ~(_GEN_19 & deqIdx == 3'h2) & (_GEN_4 & ~hasMatch & _GEN_14 | valids_2);
-      valids_3 <= ~(_GEN_19 & deqIdx == 3'h3) & (_GEN_4 & ~hasMatch & _GEN_15 | valids_3);
-      valids_4 <= ~(_GEN_19 & deqIdx == 3'h4) & (_GEN_4 & ~hasMatch & _GEN_16 | valids_4);
-      valids_5 <= ~(_GEN_19 & deqIdx == 3'h5) & (_GEN_4 & ~hasMatch & _GEN_17 | valids_5);
-      valids_6 <= ~(_GEN_19 & deqIdx == 3'h6) & (_GEN_4 & ~hasMatch & _GEN_18 | valids_6);
-      valids_7 <= ~(_GEN_19 & (&deqIdx)) & (_GEN_4 & ~hasMatch & (&enqIdx) | valids_7);
+        buffer_3_req_wdata <= io_enq_bits_wdata;
+      valids_0 <= ~(_GEN_11 & deqIdx == 2'h0) & (_GEN_4 & ~hasMatch & _GEN_8 | valids_0);
+      valids_1 <= ~(_GEN_11 & deqIdx == 2'h1) & (_GEN_4 & ~hasMatch & _GEN_9 | valids_1);
+      valids_2 <= ~(_GEN_11 & deqIdx == 2'h2) & (_GEN_4 & ~hasMatch & _GEN_10 | valids_2);
+      valids_3 <= ~(_GEN_11 & (&deqIdx)) & (_GEN_4 & ~hasMatch & (&enqIdx) | valids_3);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -3530,54 +3365,34 @@ module WriteBuffer(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:18];
+      automatic logic [31:0] _RANDOM[0:9];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [4:0] i = 5'h0; i < 5'h13; i += 5'h1) begin
+        for (logic [3:0] i = 4'h0; i < 4'hA; i += 4'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        buffer_0_req_addr = _RANDOM[5'h0];
-        buffer_0_req_write = _RANDOM[5'h1][0];
-        buffer_0_req_wdata = {_RANDOM[5'h1][31:1], _RANDOM[5'h2][0]};
-        buffer_0_req_wstrb = _RANDOM[5'h2][4:1];
-        buffer_1_req_addr = {_RANDOM[5'h2][31:8], _RANDOM[5'h3][7:0]};
-        buffer_1_req_write = _RANDOM[5'h3][8];
-        buffer_1_req_wdata = {_RANDOM[5'h3][31:9], _RANDOM[5'h4][8:0]};
-        buffer_1_req_wstrb = _RANDOM[5'h4][12:9];
-        buffer_2_req_addr = {_RANDOM[5'h4][31:16], _RANDOM[5'h5][15:0]};
-        buffer_2_req_write = _RANDOM[5'h5][16];
-        buffer_2_req_wdata = {_RANDOM[5'h5][31:17], _RANDOM[5'h6][16:0]};
-        buffer_2_req_wstrb = _RANDOM[5'h6][20:17];
-        buffer_3_req_addr = {_RANDOM[5'h6][31:24], _RANDOM[5'h7][23:0]};
-        buffer_3_req_write = _RANDOM[5'h7][24];
-        buffer_3_req_wdata = {_RANDOM[5'h7][31:25], _RANDOM[5'h8][24:0]};
-        buffer_3_req_wstrb = _RANDOM[5'h8][28:25];
-        buffer_4_req_addr = _RANDOM[5'h9];
-        buffer_4_req_write = _RANDOM[5'hA][0];
-        buffer_4_req_wdata = {_RANDOM[5'hA][31:1], _RANDOM[5'hB][0]};
-        buffer_4_req_wstrb = _RANDOM[5'hB][4:1];
-        buffer_5_req_addr = {_RANDOM[5'hB][31:8], _RANDOM[5'hC][7:0]};
-        buffer_5_req_write = _RANDOM[5'hC][8];
-        buffer_5_req_wdata = {_RANDOM[5'hC][31:9], _RANDOM[5'hD][8:0]};
-        buffer_5_req_wstrb = _RANDOM[5'hD][12:9];
-        buffer_6_req_addr = {_RANDOM[5'hD][31:16], _RANDOM[5'hE][15:0]};
-        buffer_6_req_write = _RANDOM[5'hE][16];
-        buffer_6_req_wdata = {_RANDOM[5'hE][31:17], _RANDOM[5'hF][16:0]};
-        buffer_6_req_wstrb = _RANDOM[5'hF][20:17];
-        buffer_7_req_addr = {_RANDOM[5'hF][31:24], _RANDOM[5'h10][23:0]};
-        buffer_7_req_write = _RANDOM[5'h10][24];
-        buffer_7_req_wdata = {_RANDOM[5'h10][31:25], _RANDOM[5'h11][24:0]};
-        buffer_7_req_wstrb = _RANDOM[5'h11][28:25];
-        valids_0 = _RANDOM[5'h12][0];
-        valids_1 = _RANDOM[5'h12][1];
-        valids_2 = _RANDOM[5'h12][2];
-        valids_3 = _RANDOM[5'h12][3];
-        valids_4 = _RANDOM[5'h12][4];
-        valids_5 = _RANDOM[5'h12][5];
-        valids_6 = _RANDOM[5'h12][6];
-        valids_7 = _RANDOM[5'h12][7];
+        buffer_0_req_addr = _RANDOM[4'h0];
+        buffer_0_req_write = _RANDOM[4'h1][0];
+        buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
+        buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
+        buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
+        buffer_1_req_write = _RANDOM[4'h3][8];
+        buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
+        buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
+        buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
+        buffer_2_req_write = _RANDOM[4'h5][16];
+        buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
+        buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
+        buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
+        buffer_3_req_write = _RANDOM[4'h7][24];
+        buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
+        buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
+        valids_0 = _RANDOM[4'h9][0];
+        valids_1 = _RANDOM[4'h9][1];
+        valids_2 = _RANDOM[4'h9][2];
+        valids_3 = _RANDOM[4'h9][3];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL

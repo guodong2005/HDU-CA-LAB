@@ -23,7 +23,7 @@ class Lsu extends Module {
   val sIdle :: sDrainStores :: sWaitResp :: Nil = Enum(3)
   val state                                     = RegInit(sIdle)
 
-  val writeBuffer = Module(new WriteBuffer(depth = 8))
+  val writeBuffer = Module(new WriteBuffer(depth = 4))
   writeBuffer.io.flush        := false.B
   writeBuffer.io.bypassAddr   := DontCare
   writeBuffer.io.bypassEnable := false.B

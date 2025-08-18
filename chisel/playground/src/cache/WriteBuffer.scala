@@ -8,7 +8,7 @@ class WriteBufferEntry extends Bundle {
   val req = new DCacheReq
 }
 
-class WriteBuffer(depth: Int = 8) extends Module {
+class WriteBuffer(depth: Int = 4) extends Module {
   val io = IO(new Bundle {
     val enq          = Flipped(Decoupled(new DCacheReq))
     val deq          = Decoupled(new DCacheReq)
