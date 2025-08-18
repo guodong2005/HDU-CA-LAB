@@ -2982,17 +2982,11 @@ module ExecuteStage(
       data_src_info_src2_data <= 32'h0;
     end
     else begin
-      automatic logic            _GEN;
-      automatic logic [3:0][1:0] _GEN_0;
+      automatic logic _GEN;
       _GEN = io_controlSignal_decodeUnitSignal_allow_to_go & io_ready;
-      _GEN_0 =
-        {{state},
-         {2'h0},
-         {io_controlSignal_decodeUnitSignal_do_flush ? 2'h2 : 2'h1},
-         {_GEN ? 2'h1 : state}};
-      state <= _GEN_0[state];
       if (state == 2'h0) begin
         if (_GEN) begin
+          state <= 2'h1;
           data_pc <= io_decodeUnit_data_pc;
           data_info_instr <= io_decodeUnit_data_info_instr;
           data_info_valid <= io_decodeUnit_data_info_valid;
@@ -3007,6 +3001,7 @@ module ExecuteStage(
       end
       else if (state == 2'h1) begin
         if (io_controlSignal_decodeUnitSignal_do_flush) begin
+          state <= 2'h0;
           data_pc <= 32'h0;
           data_info_instr <= 32'h0;
           data_info_op <= 5'h0;
@@ -3017,6 +3012,7 @@ module ExecuteStage(
           data_src_info_src2_data <= 32'h0;
         end
         else if (_GEN) begin
+          state <= 2'h1;
           data_pc <= io_decodeUnit_data_pc;
           data_info_instr <= io_decodeUnit_data_info_instr;
           data_info_op <= io_decodeUnit_data_info_op;
@@ -3026,12 +3022,23 @@ module ExecuteStage(
           data_src_info_src1_data <= io_decodeUnit_data_src_info_src1_data;
           data_src_info_src2_data <= io_decodeUnit_data_src_info_src2_data;
         end
+        else if (io_ready) begin
+          state <= 2'h0;
+          data_pc <= 32'h0;
+          data_info_instr <= 32'h0;
+          data_info_op <= 5'h0;
+          data_info_reg_waddr <= 5'h0;
+          data_info_imm <= 32'h0;
+          data_info_fusel <= 3'h0;
+          data_src_info_src1_data <= 32'h0;
+          data_src_info_src2_data <= 32'h0;
+        end
         data_info_valid <=
           ~io_controlSignal_decodeUnitSignal_do_flush
-          & (_GEN ? io_decodeUnit_data_info_valid : data_info_valid);
+          & (_GEN ? io_decodeUnit_data_info_valid : ~io_ready & data_info_valid);
         data_info_reg_wen <=
           ~io_controlSignal_decodeUnitSignal_do_flush
-          & (_GEN ? io_decodeUnit_data_info_reg_wen : data_info_reg_wen);
+          & (_GEN ? io_decodeUnit_data_info_reg_wen : ~io_ready & data_info_reg_wen);
       end
     end
   end // always @(posedge)
