@@ -1,5 +1,4 @@
 package cpu.pipeline
-
 import chisel3._
 import chisel3.util._
 import cpu.defines._
@@ -9,7 +8,7 @@ class WriteBufferEntry extends Bundle {
   val req = new DCacheReq
 }
 
-class WriteBuffer(depth: Int = 4) extends Module {
+class WriteBuffer(depth: Int = 8) extends Module {
   val io = IO(new Bundle {
     val enq          = Flipped(Decoupled(new DCacheReq))
     val deq          = Decoupled(new DCacheReq)
@@ -27,16 +26,17 @@ class WriteBuffer(depth: Int = 4) extends Module {
   def isExtAddr(addr: UInt): Bool = addr(31, 22) === "h201".U(10.W) // 0x80400000>>22 = 0x201
   // ================================================
 
-  // 写合并逻辑：检查是否有相同地址的valid entry
+  // ============= 修复：写合并逻辑需要检查valid =============
   val addrMatches = VecInit(
     (0 until depth).map(i =>
-      // 添加valid检查
-      buffer(i).req.write &&
+      valids(i) && // 必须检查entry是否valid
+        buffer(i).req.write &&
         (buffer(i).req.addr === io.enq.bits.addr)
     )
   )
   val hasMatch = addrMatches.reduce(_ || _)
   val matchIdx = PriorityEncoder(addrMatches)
+  // ========================================================
 
   // 队列管理
   val validVecUInt = VecInit(valids.map(_.asBool))
@@ -50,40 +50,46 @@ class WriteBuffer(depth: Int = 4) extends Module {
   io.deq.valid := valids.reduce(_ || _)
   io.deq.bits  := buffer(deqIdx).req
 
-  // 入队逻辑：写合并 or 新分配
+  // ============= 修复：入队逻辑 =============
   when(io.enq.fire && io.enq.bits.write) {
     when(hasMatch) {
       // 写合并：更新现有entry的数据和掩码
       buffer(matchIdx).req.wdata := io.enq.bits.wdata
       buffer(matchIdx).req.wstrb := io.enq.bits.wstrb | buffer(matchIdx).req.wstrb // 合并掩码
-      valids(enqIdx)             := true.B
-      // 保持地址和其他字段不变
+      // 修复：matchIdx对应的entry已经是valid的，不需要再设置
+      // valids(enqIdx) := true.B  // ❌ 错误！
+      // 或者明确写出：valids(matchIdx) := true.B（虽然已经是true了）
     }.otherwise {
       // 新分配：使用空闲slot
       buffer(enqIdx).req := io.enq.bits
       valids(enqIdx)     := true.B
     }
   }
+  // =======================================
 
   // 出队逻辑
   when(io.deq.fire) {
     valids(deqIdx) := false.B
   }
 
-  // ============= 修改后的Bypass逻辑：添加isExtAddr检查 =============
+  // ============= 修复：Bypass逻辑也需要检查valid =============
   val bypassMatches = VecInit(
     (0 until depth).map(i =>
       io.bypassEnable &&
-        // 添加valid检查
+        valids(i) && // 必须检查entry是否valid
         buffer(i).req.write &&
         (buffer(i).req.addr === io.bypassAddr) &&
         isExtAddr(buffer(i).req.addr) // 只有满足isExtAddr才进行前递
     )
   )
-
   io.bypassHit  := bypassMatches.reduce(_ || _)
   io.bypassData := Mux1H(bypassMatches, buffer.map(_.req.wdata))
-  // ====================================================================
+  // ===========================================================
+
+  // Flush逻辑
+  when(io.flush) {
+    valids.foreach(_ := false.B)
+  }
 
   // 调试信息
   when(io.enq.fire && hasMatch) {
@@ -100,4 +106,9 @@ class WriteBuffer(depth: Int = 4) extends Module {
         p"data=0x${Hexadecimal(io.bypassData)}\n"
     )
   }
+
+  // 调试信号
+  dontTouch(valids)
+  dontTouch(hasMatch)
+  dontTouch(hasSpace)
 }
