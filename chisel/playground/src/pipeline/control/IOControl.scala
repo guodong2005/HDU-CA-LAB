@@ -118,6 +118,7 @@ class IoControl extends Module {
   def isExtAddr(addr:       UInt): Bool = addr(31, 22) === "h201".U(10.W)
   def isUartDataAddr(addr:  UInt): Bool = addr === "hBFD003F8".U(32.W)
   def isUartStateAddr(addr: UInt): Bool = addr === "hBFD003FC".U(32.W)
+  def isUartAddr(addr:      UInt): Bool = isUartDataAddr(addr) || isUartStateAddr(addr)
 
   // ========== 请求类型枚举 ==========
   val reqNone :: reqIcache :: reqDcacheRead :: reqDcacheWrite :: Nil = Enum(4)
@@ -136,6 +137,10 @@ class IoControl extends Module {
   val regExtDcacheReadReq  = RegInit(0.U.asTypeOf(new ReadRequest))
   val regExtDcacheWriteReq = RegInit(0.U.asTypeOf(new WriteRequest))
 
+  // ========== UART 请求管理 (只有DCache) ==========
+  val regUartDcacheReadReq  = RegInit(0.U.asTypeOf(new ReadRequest))
+  val regUartDcacheWriteReq = RegInit(0.U.asTypeOf(new WriteRequest))
+
   // ========== 简化的 ready 信号 ==========
   // icache: 只访问BASE RAM或非法地址
   io.icache_read_req.ready := !icache_data_valid && (
@@ -143,19 +148,21 @@ class IoControl extends Module {
       (io.icache_read_req.valid && !isBaseAddr(io.icache_read_req.bits.addr)) // 非BASE地址直接处理
   )
 
-  // dcache read: BASE或EXT或特殊地址
+  // dcache read: BASE或EXT或UART或特殊地址
   io.dcache_read_req.ready := !dcache_data_valid && (
     (io.dcache_read_req.valid && isBaseAddr(io.dcache_read_req.bits.addr) && !regBaseDcacheReq.valid) ||
       (io.dcache_read_req.valid && isExtAddr(io.dcache_read_req.bits.addr) && !regExtDcacheReadReq.valid) ||
-      (io.dcache_read_req.valid && !isBaseAddr(io.dcache_read_req.bits.addr) && !isExtAddr(
-        io.dcache_read_req.bits.addr
-      ))
+      (io.dcache_read_req.valid && isUartAddr(io.dcache_read_req.bits.addr) && !regUartDcacheReadReq.valid) ||
+      (io.dcache_read_req.valid && !isBaseAddr(io.dcache_read_req.bits.addr) &&
+        !isExtAddr(io.dcache_read_req.bits.addr) && !isUartAddr(io.dcache_read_req.bits.addr))
   )
 
-  // dcache write: EXT或特殊地址
+  // dcache write: EXT或UART或特殊地址
   io.dcache_write_req.ready := !dcache_data_valid && (
     (io.dcache_write_req.valid && isExtAddr(io.dcache_write_req.bits.addr) && !regExtDcacheWriteReq.valid) ||
-      (io.dcache_write_req.valid && !isExtAddr(io.dcache_write_req.bits.addr))
+      (io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && !regUartDcacheWriteReq.valid) ||
+      (io.dcache_write_req.valid && !isExtAddr(io.dcache_write_req.bits.addr) &&
+        !isUartDataAddr(io.dcache_write_req.bits.addr))
   )
 
   // ========== 请求锁存 ==========
@@ -183,6 +190,19 @@ class IoControl extends Module {
     regExtDcacheWriteReq.addr  := io.dcache_write_req.bits.addr
     regExtDcacheWriteReq.data  := io.dcache_write_req.bits.data
     regExtDcacheWriteReq.mask  := io.dcache_write_req.bits.byte_mask
+  }
+
+  // UART DCache 读请求
+  when(io.dcache_read_req.fire && isUartAddr(io.dcache_read_req.bits.addr)) {
+    regUartDcacheReadReq.valid := true.B
+    regUartDcacheReadReq.addr  := io.dcache_read_req.bits.addr
+  }
+
+  // UART DCache 写请求
+  when(io.dcache_write_req.fire && isUartDataAddr(io.dcache_write_req.bits.addr)) {
+    regUartDcacheWriteReq.valid := true.B
+    regUartDcacheWriteReq.addr  := io.dcache_write_req.bits.addr
+    regUartDcacheWriteReq.data  := io.dcache_write_req.bits.data
   }
 
   // ========== BASE RAM 状态机 ==========
@@ -258,7 +278,7 @@ class IoControl extends Module {
 
   switch(ext_state) {
     is(extIDLE) {
-      // 仲裁：dcache_write > dcache_read (移除了icache)
+      // 仲裁：dcache_write > dcache_read
       when(regExtDcacheWriteReq.valid) {
         ext_ram_ctrl.write(
           regExtDcacheWriteReq.addr(21, 2),
@@ -278,7 +298,6 @@ class IoControl extends Module {
     }
 
     is(extREAD) {
-      // 只处理DCache读取
       when(ext_wait_counter === SRAM_DELAY.U) {
         dcache_buffer := EndianConvert(io.ext_ram_ctrl.data_in)
         ext_ram_ctrl.idle()
@@ -313,7 +332,7 @@ class IoControl extends Module {
     }
   }
 
-  // ========== UART 相关 ==========
+  // ========== UART 缓冲区和控制信号 ==========
   val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
   val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
   val head_idx    = OHToUInt(uart_head)
@@ -323,7 +342,75 @@ class IoControl extends Module {
   val uart_full   = uart_head === uart_tail && maybe_full
   val uart_empty  = uart_head === uart_tail && !maybe_full
 
-  // UART 接收处理
+  // TXD 控制信号
+  val txd_uart_start = RegInit(false.B)
+  val txd_uart_data  = RegInit(0.U(8.W))
+  io.txd.uart_start := txd_uart_start
+  io.txd.uart_data  := txd_uart_data
+
+  // 用于UART状态机的辅助信号
+  val dcache_write_uart      = regUartDcacheWriteReq.valid
+  val dcache_read_uart       = regUartDcacheReadReq.valid && isUartDataAddr(regUartDcacheReadReq.addr)
+  val dcache_read_uart_state = regUartDcacheReadReq.valid && isUartStateAddr(regUartDcacheReadReq.addr)
+  val read_valid             = !uart_empty
+  val read_data              = uart_buffer(head_idx).data
+  val read_req               = RegInit(false.B)
+  val dcache_write_complete  = RegInit(false.B)
+  val dcache_read_ready      = RegInit(false.B)
+
+  // ========== UART 状态机 ==========
+  val uIDLE :: uWRITE :: uREAD :: Nil = Enum(3)
+  val uart_state                      = RegInit(uIDLE)
+
+  switch(uart_state) {
+    is(uIDLE) {
+      when(dcache_write_uart && !io.txd.uart_busy) {
+        txd_uart_start        := true.B
+        txd_uart_data         := regUartDcacheWriteReq.data(7, 0)
+        dcache_write_complete := true.B
+        uart_state            := uWRITE
+      }.elsewhen(dcache_read_uart && read_valid) {
+        dcache_buffer     := Cat(0.U(24.W), read_data)
+        dcache_data_valid := true.B
+        dcache_read_ready := true.B
+        read_req          := true.B
+        uart_state        := uREAD
+      }.elsewhen(dcache_read_uart && !read_valid) {
+        // UART为空时读取，返回0
+        dcache_buffer     := 0.U(32.W)
+        dcache_data_valid := true.B
+        dcache_read_ready := true.B
+        read_req          := false.B
+        uart_state        := uREAD
+      }.elsewhen(dcache_read_uart_state) {
+        dcache_buffer     := Cat(0.U(30.W), read_valid, !io.txd.uart_busy)
+        dcache_data_valid := true.B
+        dcache_read_ready := true.B
+        uart_state        := uREAD
+      }
+    }
+    is(uWRITE) {
+      txd_uart_start              := false.B
+      dcache_write_complete       := false.B
+      dcache_data_valid           := true.B // 写完成，设置响应valid
+      regUartDcacheWriteReq.valid := false.B // 清除写请求
+      uart_state                  := uIDLE
+    }
+    is(uREAD) {
+      dcache_data_valid := false.B
+      dcache_read_ready := false.B
+      // 如果读取了数据，更新UART缓冲区
+      when(read_req) {
+        uart_head  := leftRotate(uart_head, 1)
+        maybe_full := false.B
+      }
+      read_req                   := false.B
+      regUartDcacheReadReq.valid := false.B // 清除读请求
+      uart_state                 := uIDLE
+    }
+  }
+
+  // ========== UART 接收处理 ==========
   when(io.rxd.uart_ready && !uart_full) {
     uart_buffer(tail_idx).data := io.rxd.uart_data
     uart_tail                  := leftRotate(uart_tail, 1)
@@ -333,53 +420,24 @@ class IoControl extends Module {
     io.rxd.uart_clear := false.B
   }
 
-  // TXD 控制
-  val txd_uart_start = RegInit(false.B)
-  val txd_uart_data  = RegInit(0.U(8.W))
-  io.txd.uart_start := txd_uart_start
-  io.txd.uart_data  := txd_uart_data
-
-  // ========== 特殊地址处理 ==========
-  // ICache非法地址处理（非BASE地址）
-  when(io.icache_read_req.fire && !isBaseAddr(io.icache_read_req.bits.addr)) {
-    icache_buffer     := VecInit(Seq.fill(FETCH_WIDTH)(0.U(32.W)))
-    icache_data_valid := true.B
-  }
-
-  // DCache读特殊地址处理
+  // ========== 其他特殊地址处理 ==========
+  // 处理既不是BASE/EXT/UART的非法地址
   when(io.dcache_read_req.fire) {
-    when(isUartDataAddr(io.dcache_read_req.bits.addr)) {
-      when(!uart_empty) {
-        dcache_buffer := Cat(0.U(24.W), uart_buffer(head_idx).data)
-        uart_head     := leftRotate(uart_head, 1)
-        maybe_full    := false.B
-      }.otherwise {
-        dcache_buffer := 0.U
-      }
-      dcache_data_valid := true.B
-    }.elsewhen(isUartStateAddr(io.dcache_read_req.bits.addr)) {
-      dcache_buffer     := Cat(0.U(30.W), !uart_empty, !io.txd.uart_busy)
-      dcache_data_valid := true.B
-    }.elsewhen(
+    when(
       !isBaseAddr(io.dcache_read_req.bits.addr) &&
-        !isExtAddr(io.dcache_read_req.bits.addr)
+        !isExtAddr(io.dcache_read_req.bits.addr) &&
+        !isUartAddr(io.dcache_read_req.bits.addr)
     ) {
-      // 其他非法地址
       dcache_buffer     := 0.U
       dcache_data_valid := true.B
     }
   }
 
-  // DCache写特殊地址处理
   when(io.dcache_write_req.fire) {
-    when(isUartDataAddr(io.dcache_write_req.bits.addr)) {
-      when(!io.txd.uart_busy) {
-        txd_uart_start    := true.B
-        txd_uart_data     := io.dcache_write_req.bits.data(7, 0)
-        dcache_data_valid := true.B
-      }
-    }.elsewhen(!isExtAddr(io.dcache_write_req.bits.addr)) {
-      // 其他非法地址
+    when(
+      !isExtAddr(io.dcache_write_req.bits.addr) &&
+        !isUartDataAddr(io.dcache_write_req.bits.addr)
+    ) {
       dcache_data_valid := true.B
     }
   }
@@ -398,21 +456,18 @@ class IoControl extends Module {
     dcache_data_valid := false.B
   }
 
-  // 清除 UART 发送信号
-  when(txd_uart_start) {
-    txd_uart_start := false.B
-  }
-
   // ========== 复位处理 ==========
   when(reset.asBool) {
     base_ram_ctrl.idle()
     ext_ram_ctrl.idle()
 
     // 清除所有请求寄存器
-    regBaseIcacheReq.valid     := false.B
-    regBaseDcacheReq.valid     := false.B
-    regExtDcacheReadReq.valid  := false.B
-    regExtDcacheWriteReq.valid := false.B
+    regBaseIcacheReq.valid      := false.B
+    regBaseDcacheReq.valid      := false.B
+    regExtDcacheReadReq.valid   := false.B
+    regExtDcacheWriteReq.valid  := false.B
+    regUartDcacheReadReq.valid  := false.B
+    regUartDcacheWriteReq.valid := false.B
 
     // 状态机复位
     base_state        := baseIDLE
@@ -421,6 +476,7 @@ class IoControl extends Module {
     base_word_counter := 0.U
     ext_state         := extIDLE
     ext_wait_counter  := 0.U
+    uart_state        := uIDLE
 
     // 响应缓冲复位
     icache_data_valid := false.B
@@ -428,10 +484,13 @@ class IoControl extends Module {
 
     // UART 复位
     uart_buffer.foreach(i => i.data := 0.U)
-    txd_uart_start := false.B
-    txd_uart_data  := 0.U
-    maybe_full     := false.B
-    uart_head      := 1.U(UART_BUFFER_DEPTH.W)
-    uart_tail      := 1.U(UART_BUFFER_DEPTH.W)
+    txd_uart_start        := false.B
+    txd_uart_data         := 0.U
+    maybe_full            := false.B
+    uart_head             := 1.U(UART_BUFFER_DEPTH.W)
+    uart_tail             := 1.U(UART_BUFFER_DEPTH.W)
+    read_req              := false.B
+    dcache_write_complete := false.B
+    dcache_read_ready     := false.B
   }
 }

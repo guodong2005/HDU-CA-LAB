@@ -330,10 +330,10 @@ class DCache extends Module {
     is(sWAIT_WRITE_RESP) {
       // For write, we can immediately respond or wait for write completion
       // Here we immediately respond for simplicity
-      io.resp.valid     := true.B
-      io.resp.bits.data := 0.U // Write response doesn't need data
-      when(io.resp.ready) {
-        state := sIDLE
+      when(io.io_read_resp.valid) {
+        io.resp.valid     := true.B
+        io.resp.bits.data := 0.U // Write response doesn't need data
+        state             := sIDLE
       }
     }
   }
