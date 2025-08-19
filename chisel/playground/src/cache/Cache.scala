@@ -292,11 +292,6 @@ class DCache extends Module {
     saved_req_bits  := io.req.bits
   }
 
-  when(io.resp.valid && io.resp.ready) {
-    saved_req_valid := false.B
-    saved_req_bits  := 0.U.asTypeOf(new DCacheReq())
-  }
-
   // State machine
   switch(state) {
     is(sIDLE) {
@@ -322,7 +317,8 @@ class DCache extends Module {
         io.resp.valid     := true.B
         io.resp.bits.data := io.io_read_resp.bits.data
         when(io.resp.ready) {
-          state := sIDLE
+          saved_req_valid := false.B
+          state           := sIDLE
         }
       }
     }
@@ -332,6 +328,7 @@ class DCache extends Module {
       // Here we immediately respond for simplicity
       when(io.io_read_resp.valid) {
         io.resp.valid     := true.B
+        saved_req_valid   := false.B
         io.resp.bits.data := 0.U // Write response doesn't need data
         state             := sIDLE
       }

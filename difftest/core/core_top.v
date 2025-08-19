@@ -2082,7 +2082,6 @@ module DCache(
   wire        _GEN = ~(|state) & current_req_valid;
   wire        _GEN_0 = state == 2'h1;
   wire        _GEN_1 = state == 2'h2;
-  wire        io_resp_valid_0 = (|state) & (_GEN_0 | _GEN_1) & io_io_read_resp_valid;
   always @(posedge clock) begin
     automatic logic _GEN_2;
     _GEN_2 = io_req_valid & io_req_ready_0 & ~saved_req_valid;
@@ -2091,32 +2090,34 @@ module DCache(
       saved_req_valid <= 1'h0;
     end
     else begin
+      automatic logic _GEN_3;
+      _GEN_3 = _GEN_2 | saved_req_valid;
       if (|state) begin
         if ((_GEN_0 | _GEN_1) & io_io_read_resp_valid)
           state <= 2'h0;
+        if (_GEN_0)
+          saved_req_valid <= ~io_io_read_resp_valid & _GEN_3;
+        else
+          saved_req_valid <= ~(_GEN_1 & io_io_read_resp_valid) & _GEN_3;
       end
-      else if (current_req_valid) begin
-        if (current_req_bits_write) begin
-          if (io_io_write_req_ready)
-            state <= 2'h2;
+      else begin
+        if (current_req_valid) begin
+          if (current_req_bits_write) begin
+            if (io_io_write_req_ready)
+              state <= 2'h2;
+          end
+          else if (io_io_read_req_ready)
+            state <= 2'h1;
         end
-        else if (io_io_read_req_ready)
-          state <= 2'h1;
+        saved_req_valid <= _GEN_3;
       end
-      saved_req_valid <= ~io_resp_valid_0 & (_GEN_2 | saved_req_valid);
     end
-    if (io_resp_valid_0) begin
-      saved_req_bits_addr <= 32'h0;
-      saved_req_bits_wdata <= 32'h0;
-      saved_req_bits_wstrb <= 4'h0;
-    end
-    else if (_GEN_2) begin
+    if (_GEN_2) begin
       saved_req_bits_addr <= io_req_bits_addr;
+      saved_req_bits_write <= io_req_bits_write;
       saved_req_bits_wdata <= io_req_bits_wdata;
       saved_req_bits_wstrb <= io_req_bits_wstrb;
     end
-    saved_req_bits_write <=
-      ~io_resp_valid_0 & (_GEN_2 ? io_req_bits_write : saved_req_bits_write);
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
     `ifdef FIRRTL_BEFORE_INITIAL
@@ -2144,7 +2145,7 @@ module DCache(
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
   assign io_req_ready = io_req_ready_0;
-  assign io_resp_valid = io_resp_valid_0;
+  assign io_resp_valid = (|state) & (_GEN_0 | _GEN_1) & io_io_read_resp_valid;
   assign io_resp_bits_data =
     (|state) & _GEN_0 & io_io_read_resp_valid ? io_io_read_resp_bits_data : 32'h0;
   assign io_io_read_req_valid = _GEN & ~current_req_bits_write;
@@ -3118,6 +3119,120 @@ module Mdu(
   assign io_ready = ~isMulW | stage2_valid;
 endmodule
 
+// VCS coverage exclude_file
+module ram_4x69(
+  input  [1:0]  R0_addr,
+  input         R0_en,
+                R0_clk,
+  output [68:0] R0_data,
+  input  [1:0]  W0_addr,
+  input         W0_en,
+                W0_clk,
+  input  [68:0] W0_data
+);
+
+  reg [68:0] Memory[0:3];
+  always @(posedge W0_clk) begin
+    if (W0_en & 1'h1)
+      Memory[W0_addr] <= W0_data;
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_MEM_
+    reg [95:0] _RANDOM_MEM;
+    initial begin
+      `INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_MEM_INIT
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          for (logic [6:0] j = 7'h0; j < 7'h60; j += 7'h20) begin
+            _RANDOM_MEM[j +: 32] = `RANDOM;
+          end
+          Memory[i[1:0]] = _RANDOM_MEM[68:0];
+        end
+      `endif // RANDOMIZE_MEM_INIT
+    end // initial
+  `endif // ENABLE_INITIAL_MEM_
+  assign R0_data = R0_en ? Memory[R0_addr] : 69'bx;
+endmodule
+
+module Queue4_DCacheReq(
+  input         clock,
+                reset,
+  output        io_enq_ready,
+  input         io_enq_valid,
+  input  [31:0] io_enq_bits_addr,
+  input         io_enq_bits_write,
+  input  [31:0] io_enq_bits_wdata,
+  input  [3:0]  io_enq_bits_wstrb,
+  input  [2:0]  io_enq_bits_size,
+  input         io_deq_ready,
+  output        io_deq_valid,
+  output [31:0] io_deq_bits_addr,
+  output        io_deq_bits_write,
+  output [31:0] io_deq_bits_wdata,
+  output [3:0]  io_deq_bits_wstrb
+);
+
+  wire [68:0] _ram_ext_R0_data;
+  reg  [1:0]  enq_ptr_value;
+  reg  [1:0]  deq_ptr_value;
+  reg         maybe_full;
+  wire        ptr_match = enq_ptr_value == deq_ptr_value;
+  wire        empty = ptr_match & ~maybe_full;
+  wire        full = ptr_match & maybe_full;
+  wire        do_enq = ~full & io_enq_valid;
+  always @(posedge clock) begin
+    if (reset) begin
+      enq_ptr_value <= 2'h0;
+      deq_ptr_value <= 2'h0;
+      maybe_full <= 1'h0;
+    end
+    else begin
+      automatic logic do_deq = io_deq_ready & ~empty;
+      if (do_enq)
+        enq_ptr_value <= enq_ptr_value + 2'h1;
+      if (do_deq)
+        deq_ptr_value <= deq_ptr_value + 2'h1;
+      if (~(do_enq == do_deq))
+        maybe_full <= do_enq;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:0];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;
+        enq_ptr_value = _RANDOM[/*Zero width*/ 1'b0][1:0];
+        deq_ptr_value = _RANDOM[/*Zero width*/ 1'b0][3:2];
+        maybe_full = _RANDOM[/*Zero width*/ 1'b0][4];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  ram_4x69 ram_ext (
+    .R0_addr (deq_ptr_value),
+    .R0_en   (1'h1),
+    .R0_clk  (clock),
+    .R0_data (_ram_ext_R0_data),
+    .W0_addr (enq_ptr_value),
+    .W0_en   (do_enq),
+    .W0_clk  (clock),
+    .W0_data ({io_enq_bits_wstrb, io_enq_bits_wdata, io_enq_bits_write, io_enq_bits_addr})
+  );
+  assign io_enq_ready = ~full;
+  assign io_deq_valid = ~empty;
+  assign io_deq_bits_addr = _ram_ext_R0_data[31:0];
+  assign io_deq_bits_write = _ram_ext_R0_data[32];
+  assign io_deq_bits_wdata = _ram_ext_R0_data[64:33];
+  assign io_deq_bits_wstrb = _ram_ext_R0_data[68:65];
+endmodule
+
 module WriteBuffer(
   input         clock,
                 reset,
@@ -3127,6 +3242,7 @@ module WriteBuffer(
   input         io_enq_bits_write,
   input  [31:0] io_enq_bits_wdata,
   input  [3:0]  io_enq_bits_wstrb,
+  input  [2:0]  io_enq_bits_size,
   input         io_deq_ready,
   output        io_deq_valid,
   output [31:0] io_deq_bits_addr,
@@ -3135,143 +3251,23 @@ module WriteBuffer(
   output [3:0]  io_deq_bits_wstrb
 );
 
-  reg  [31:0]      buffer_0_req_addr;
-  reg              buffer_0_req_write;
-  reg  [31:0]      buffer_0_req_wdata;
-  reg  [3:0]       buffer_0_req_wstrb;
-  reg  [31:0]      buffer_1_req_addr;
-  reg              buffer_1_req_write;
-  reg  [31:0]      buffer_1_req_wdata;
-  reg  [3:0]       buffer_1_req_wstrb;
-  reg  [31:0]      buffer_2_req_addr;
-  reg              buffer_2_req_write;
-  reg  [31:0]      buffer_2_req_wdata;
-  reg  [3:0]       buffer_2_req_wstrb;
-  reg  [31:0]      buffer_3_req_addr;
-  reg              buffer_3_req_write;
-  reg  [31:0]      buffer_3_req_wdata;
-  reg  [3:0]       buffer_3_req_wstrb;
-  reg              valids_0;
-  reg              valids_1;
-  reg              valids_2;
-  reg              valids_3;
-  wire [1:0]       deqIdx = valids_0 ? 2'h0 : valids_1 ? 2'h1 : {1'h1, ~valids_2};
-  wire [2:0]       _io_enq_ready_T_9 =
-    {1'h0, {1'h0, valids_0} + {1'h0, valids_1}}
-    + {1'h0, {1'h0, valids_2} + {1'h0, valids_3}};
-  wire             io_deq_valid_0 = valids_0 | valids_1 | valids_2 | valids_3;
-  wire [3:0][31:0] _GEN =
-    {{buffer_3_req_addr}, {buffer_2_req_addr}, {buffer_1_req_addr}, {buffer_0_req_addr}};
-  wire [3:0]       _GEN_0 =
-    {{buffer_3_req_write},
-     {buffer_2_req_write},
-     {buffer_1_req_write},
-     {buffer_0_req_write}};
-  wire [3:0][31:0] _GEN_1 =
-    {{buffer_3_req_wdata},
-     {buffer_2_req_wdata},
-     {buffer_1_req_wdata},
-     {buffer_0_req_wdata}};
-  wire [3:0][3:0]  _GEN_2 =
-    {{buffer_3_req_wstrb},
-     {buffer_2_req_wstrb},
-     {buffer_1_req_wstrb},
-     {buffer_0_req_wstrb}};
-  always @(posedge clock) begin
-    automatic logic [1:0] enqIdx;
-    automatic logic       _GEN_3 = ~(_io_enq_ready_T_9[2]) & io_enq_valid;
-    automatic logic       _GEN_4;
-    automatic logic       _GEN_5;
-    automatic logic       _GEN_6;
-    automatic logic       _GEN_7;
-    enqIdx = valids_0 ? (valids_1 ? {1'h1, valids_2} : 2'h1) : 2'h0;
-    _GEN_4 = _GEN_3 & enqIdx == 2'h0;
-    _GEN_5 = _GEN_3 & enqIdx == 2'h1;
-    _GEN_6 = _GEN_3 & enqIdx == 2'h2;
-    _GEN_7 = _GEN_3 & (&enqIdx);
-    if (_GEN_4) begin
-      buffer_0_req_addr <= io_enq_bits_addr;
-      buffer_0_req_write <= io_enq_bits_write;
-      buffer_0_req_wdata <= io_enq_bits_wdata;
-      buffer_0_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_5) begin
-      buffer_1_req_addr <= io_enq_bits_addr;
-      buffer_1_req_write <= io_enq_bits_write;
-      buffer_1_req_wdata <= io_enq_bits_wdata;
-      buffer_1_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_6) begin
-      buffer_2_req_addr <= io_enq_bits_addr;
-      buffer_2_req_write <= io_enq_bits_write;
-      buffer_2_req_wdata <= io_enq_bits_wdata;
-      buffer_2_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (_GEN_7) begin
-      buffer_3_req_addr <= io_enq_bits_addr;
-      buffer_3_req_write <= io_enq_bits_write;
-      buffer_3_req_wdata <= io_enq_bits_wdata;
-      buffer_3_req_wstrb <= io_enq_bits_wstrb;
-    end
-    if (reset) begin
-      valids_0 <= 1'h0;
-      valids_1 <= 1'h0;
-      valids_2 <= 1'h0;
-      valids_3 <= 1'h0;
-    end
-    else begin
-      automatic logic _GEN_8 = io_deq_ready & io_deq_valid_0;
-      valids_0 <= ~(_GEN_8 & deqIdx == 2'h0) & (_GEN_4 | valids_0);
-      valids_1 <= ~(_GEN_8 & deqIdx == 2'h1) & (_GEN_5 | valids_1);
-      valids_2 <= ~(_GEN_8 & deqIdx == 2'h2) & (_GEN_6 | valids_2);
-      valids_3 <= ~(_GEN_8 & (&deqIdx)) & (_GEN_7 | valids_3);
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:9];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [3:0] i = 4'h0; i < 4'hA; i += 4'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        buffer_0_req_addr = _RANDOM[4'h0];
-        buffer_0_req_write = _RANDOM[4'h1][0];
-        buffer_0_req_wdata = {_RANDOM[4'h1][31:1], _RANDOM[4'h2][0]};
-        buffer_0_req_wstrb = _RANDOM[4'h2][4:1];
-        buffer_1_req_addr = {_RANDOM[4'h2][31:8], _RANDOM[4'h3][7:0]};
-        buffer_1_req_write = _RANDOM[4'h3][8];
-        buffer_1_req_wdata = {_RANDOM[4'h3][31:9], _RANDOM[4'h4][8:0]};
-        buffer_1_req_wstrb = _RANDOM[4'h4][12:9];
-        buffer_2_req_addr = {_RANDOM[4'h4][31:16], _RANDOM[4'h5][15:0]};
-        buffer_2_req_write = _RANDOM[4'h5][16];
-        buffer_2_req_wdata = {_RANDOM[4'h5][31:17], _RANDOM[4'h6][16:0]};
-        buffer_2_req_wstrb = _RANDOM[4'h6][20:17];
-        buffer_3_req_addr = {_RANDOM[4'h6][31:24], _RANDOM[4'h7][23:0]};
-        buffer_3_req_write = _RANDOM[4'h7][24];
-        buffer_3_req_wdata = {_RANDOM[4'h7][31:25], _RANDOM[4'h8][24:0]};
-        buffer_3_req_wstrb = _RANDOM[4'h8][28:25];
-        valids_0 = _RANDOM[4'h9][0];
-        valids_1 = _RANDOM[4'h9][1];
-        valids_2 = _RANDOM[4'h9][2];
-        valids_3 = _RANDOM[4'h9][3];
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_enq_ready = ~(_io_enq_ready_T_9[2]);
-  assign io_deq_valid = io_deq_valid_0;
-  assign io_deq_bits_addr = _GEN[deqIdx];
-  assign io_deq_bits_write = _GEN_0[deqIdx];
-  assign io_deq_bits_wdata = _GEN_1[deqIdx];
-  assign io_deq_bits_wstrb = _GEN_2[deqIdx];
+  Queue4_DCacheReq queue (
+    .clock             (clock),
+    .reset             (reset),
+    .io_enq_ready      (io_enq_ready),
+    .io_enq_valid      (io_enq_valid),
+    .io_enq_bits_addr  (io_enq_bits_addr),
+    .io_enq_bits_write (io_enq_bits_write),
+    .io_enq_bits_wdata (io_enq_bits_wdata),
+    .io_enq_bits_wstrb (io_enq_bits_wstrb),
+    .io_enq_bits_size  (io_enq_bits_size),
+    .io_deq_ready      (io_deq_ready),
+    .io_deq_valid      (io_deq_valid),
+    .io_deq_bits_addr  (io_deq_bits_addr),
+    .io_deq_bits_write (io_deq_bits_write),
+    .io_deq_bits_wdata (io_deq_bits_wdata),
+    .io_deq_bits_wstrb (io_deq_bits_wstrb)
+  );
 endmodule
 
 module Lsu(
@@ -3315,6 +3311,8 @@ module Lsu(
   wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
+  wire        _storeWdata_T_6 = io_info_op == 5'h9;
+  wire        _storeWdata_T_7 = io_info_op == 5'hA;
   wire        _strb_T_9 = io_info_op == 5'h8;
   wire        _strb_T_16 = io_info_op == 5'h9;
   wire [3:0]  strb =
@@ -3336,8 +3334,8 @@ module Lsu(
   wire [31:0] newReq_wdata =
     isStore
       ? (io_info_op == 5'h8 ? {2{{2{io_src_info_src2_data[7:0]}}}} : 32'h0)
-        | (io_info_op == 5'h9 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
-        | (io_info_op == 5'hA ? io_src_info_src2_data : 32'h0)
+        | (_storeWdata_T_6 ? {2{io_src_info_src2_data[15:0]}} : 32'h0)
+        | (_storeWdata_T_7 ? io_src_info_src2_data : 32'h0)
       : 32'h0;
   reg  [31:0] loadReqReg_addr;
   reg         loadReqReg_write;
@@ -3419,6 +3417,10 @@ module Lsu(
     .io_enq_bits_write (isStore),
     .io_enq_bits_wdata (newReq_wdata),
     .io_enq_bits_wstrb (strb),
+    .io_enq_bits_size
+      ({1'h0,
+        io_info_op == 5'h2 | _storeWdata_T_7,
+        io_info_op == 5'h1 | io_info_op == 5'h5 | _storeWdata_T_6}),
     .io_deq_ready
       ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),

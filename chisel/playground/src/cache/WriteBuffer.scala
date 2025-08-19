@@ -11,48 +11,20 @@ class WriteBufferEntry extends Bundle {
 
 class WriteBuffer(depth: Int = 4) extends Module {
   val io = IO(new Bundle {
-    val enq          = Flipped(Decoupled(new DCacheReq))
-    val deq          = Decoupled(new DCacheReq)
-    val flush        = Input(Bool())
-    val bypassAddr   = Input(UInt(XLEN.W))
-    val bypassEnable = Input(Bool())
-    val bypassHit    = Output(Bool())
-    val bypassData   = Output(UInt(XLEN.W))
+    val enq   = Flipped(Decoupled(new DCacheReq))
+    val deq   = Decoupled(new DCacheReq)
+    val flush = Input(Bool())
   })
 
-  val buffer = Reg(Vec(depth, new WriteBufferEntry))
-  val valids = RegInit(VecInit(Seq.fill(depth)(false.B)))
+  // 使用 Chisel 内置的 Queue 模块实现真正的 FIFO
+  val queue = Module(new Queue(new DCacheReq, depth))
 
-  val validVecUInt = VecInit(valids.map(_.asBool))
-  val inverted     = validVecUInt.map(x => ~x)
-  val enqIdx       = PriorityEncoder(inverted)
-  val deqIdx       = PriorityEncoder(validVecUInt)
+  // 连接输入输出
+  queue.io.enq <> io.enq
+  io.deq <> queue.io.deq
 
-  io.enq.ready := valids.count(_ === true.B) < depth.U
-  io.deq.valid := valids.reduce(_ || _)
-  io.deq.bits  := buffer(deqIdx).req
-
-  when(io.enq.fire) {
-    buffer(enqIdx).req := io.enq.bits
-    valids(enqIdx)     := true.B
-  }
-
-  when(io.deq.fire) {
-    valids(deqIdx) := false.B
-  }
-
+  // flush 功能：清空队列
   when(io.flush) {
-    for (i <- 0 until depth) {
-      valids(i) := false.B
-    }
+    queue.reset := true.B
   }
-
-  // Bypass logic (仅查找匹配地址，不做合并)
-  val hits = VecInit(buffer.zip(valids).map {
-    case (entry, v) =>
-      v && io.bypassEnable && entry.req.write && (entry.req.addr === io.bypassAddr)
-  })
-
-  io.bypassHit  := hits.reduce(_ || _)
-  io.bypassData := Mux1H(hits, buffer.map(_.req.wdata))
 }

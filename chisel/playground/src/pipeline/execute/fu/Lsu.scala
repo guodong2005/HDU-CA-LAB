@@ -27,14 +27,11 @@ class Lsu extends Module {
   val state                                     = RegInit(sIdle)
 
   val writeBuffer = Module(new WriteBuffer(depth = 4))
-  writeBuffer.io.flush        := false.B
-  writeBuffer.io.bypassEnable := false.B
+  writeBuffer.io.flush := false.B
 
   val isStore       = isLsu && LSUOpType.isStore(io.info.op)
   val isLoad        = isLsu && !isStore
   val effectiveAddr = (io.src_info.src1_data.asSInt + SignedExtend(io.info.imm(11, 0), XLEN).asSInt)(31, 0)
-
-  writeBuffer.io.bypassAddr := effectiveAddr
 
   val addr_low2 = effectiveAddr(1, 0)
 
