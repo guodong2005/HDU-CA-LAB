@@ -24,7 +24,7 @@ class RegWrite extends Bundle {
 
 class ARegFile extends Module {
   val io = IO(new Bundle {
-    val read     = Flipped(new Src12Read())            // 改回2个读端口
+    val read     = Flipped(new Src12Read()) // 改回2个读端口
     val write    = Flipped(new RegWrite())
     val regs_out = Output(Vec(AREG_NUM, UInt(XLEN.W))) // Expose registers to top
   })
@@ -45,7 +45,4 @@ class ARegFile extends Module {
   io.read.src2.rdata := regs(io.read.src2.raddr)
 
   // 调试输出
-  when(io.write.wen && io.write.waddr =/= 0.U) {
-    printf("[RegFile] Write: r%d = 0x%x\n", io.write.waddr, io.write.wdata)
-  }
 }

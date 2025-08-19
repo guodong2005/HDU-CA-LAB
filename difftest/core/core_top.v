@@ -55,17 +55,6 @@
   `endif // not def ENABLE_INITIAL_MEM_
 `endif // not def SYNTHESIS
 
-// Standard header to adapt well known macros for prints and assertions.
-
-// Users can define 'PRINTF_COND' to add an extra gate to prints.
-`ifndef PRINTF_COND_
-  `ifdef PRINTF_COND
-    `define PRINTF_COND_ (`PRINTF_COND)
-  `else  // PRINTF_COND
-    `define PRINTF_COND_ 1
-  `endif // PRINTF_COND
-`endif // not def PRINTF_COND_
-
 module IoControl(
   input          clock,
                  reset,
@@ -193,10 +182,12 @@ module IoControl(
   reg  [7:0]  uart_head;
   reg  [7:0]  uart_tail;
   reg         maybe_full;
+  wire        _uart_empty_T = uart_head == uart_tail;
   reg         txd_uart_start;
   reg  [7:0]  txd_uart_data;
   reg         read_req;
   reg  [1:0]  uart_state;
+  wire        io_rxd_uart_clear_0 = io_rxd_uart_ready & ~(_uart_empty_T & maybe_full);
   always @(posedge clock) begin
     automatic logic _GEN;
     automatic logic _GEN_0;
@@ -204,7 +195,7 @@ module IoControl(
     automatic logic _GEN_2;
     automatic logic _GEN_3;
     _GEN = base_req_type == 2'h1;
-    _GEN_0 = base_wait_counter == 4'h5;
+    _GEN_0 = base_wait_counter == 4'h4;
     _GEN_1 = base_req_type == 2'h2;
     _GEN_2 = _GEN_1 & _GEN_0;
     _GEN_3 = reset | ~base_state;
@@ -313,7 +304,6 @@ module IoControl(
       automatic logic       _GEN_29;
       automatic logic       _GEN_30;
       automatic logic       _GEN_31;
-      automatic logic       _uart_empty_T;
       automatic logic       uart_empty;
       automatic logic       dcache_read_uart;
       automatic logic       dcache_read_uart_state;
@@ -327,9 +317,8 @@ module IoControl(
       automatic logic       _GEN_39;
       automatic logic       _GEN_40;
       automatic logic       _GEN_41;
-      automatic logic       _GEN_42;
       automatic logic [7:0] new_tail;
-      automatic logic       _GEN_43 = _GEN_5 & ~_GEN_6 & ~_GEN_8 & ~_GEN_13;
+      automatic logic       _GEN_42 = _GEN_5 & ~_GEN_6 & ~_GEN_8 & ~_GEN_13;
       _GEN_16 = regBaseDcacheReq_valid | regBaseIcacheReq_valid;
       _GEN_17 = (&base_word_counter) & _GEN_0;
       _GEN_18 = base_state & _GEN & _GEN_17;
@@ -338,7 +327,7 @@ module IoControl(
       _GEN_21 = base_state & ~_GEN & _GEN_2 | dcache_data_valid;
       _GEN_22 = ext_state == 2'h0;
       _GEN_23 = ext_state == 2'h1;
-      _GEN_24 = ext_wait_counter == 4'h5;
+      _GEN_24 = ext_wait_counter == 4'h4;
       _GEN_25 = _GEN_22 | ~(_GEN_23 & _GEN_24);
       _GEN_26 = ext_state == 2'h2;
       _GEN_27 = ext_wait_counter < 4'h2;
@@ -349,7 +338,6 @@ module IoControl(
         _GEN_22
           ? _GEN_21
           : _GEN_23 ? _GEN_24 | _GEN_21 : _GEN_26 & ~_GEN_29 & _GEN_24 | _GEN_21;
-      _uart_empty_T = uart_head == uart_tail;
       uart_empty = _uart_empty_T & ~maybe_full;
       dcache_read_uart =
         regUartDcacheReadReq_valid & regUartDcacheReadReq_addr == 32'hBFD003F8;
@@ -365,7 +353,6 @@ module IoControl(
       _GEN_39 = _GEN_32 ? ~_GEN_33 & _GEN_36 | _GEN_31 : _GEN_37 | ~_GEN_38 & _GEN_31;
       _GEN_40 = _GEN_32 | _GEN_37;
       _GEN_41 = _GEN_40 | ~(_GEN_38 & read_req);
-      _GEN_42 = io_rxd_uart_ready & ~(_uart_empty_T & maybe_full);
       new_tail = {uart_tail[6:0], uart_tail[7]};
       if (base_state) begin
         if (_GEN) begin
@@ -393,15 +380,15 @@ module IoControl(
         end
       end
       else begin
-        automatic logic _GEN_44;
-        _GEN_44 = ~regBaseDcacheReq_valid & ~regBaseIcacheReq_valid;
+        automatic logic _GEN_43;
+        _GEN_43 = ~regBaseDcacheReq_valid & ~regBaseIcacheReq_valid;
         base_ram_ctrl_addr <=
           regBaseDcacheReq_valid
             ? regBaseDcacheReq_addr[21:2]
             : regBaseIcacheReq_valid ? regBaseIcacheReq_addr[21:2] : 20'h0;
         base_ram_ctrl_be_n <= _GEN_16 ? 4'h0 : 4'hF;
-        base_ram_ctrl_ce_n <= _GEN_44;
-        base_ram_ctrl_oe_n <= _GEN_44;
+        base_ram_ctrl_ce_n <= _GEN_43;
+        base_ram_ctrl_oe_n <= _GEN_43;
       end
       if (_GEN_22) begin
         ext_ram_ctrl_data_out <=
@@ -420,26 +407,26 @@ module IoControl(
         ext_ram_ctrl_data_en <= regExtDcacheWriteReq_valid;
       end
       else begin
+        automatic logic _GEN_44;
         automatic logic _GEN_45;
-        automatic logic _GEN_46;
-        _GEN_45 = _GEN_24 | ext_ram_ctrl_ce_n;
-        _GEN_46 = ~_GEN_24 & ext_ram_ctrl_data_en;
+        _GEN_44 = _GEN_24 | ext_ram_ctrl_ce_n;
+        _GEN_45 = ~_GEN_24 & ext_ram_ctrl_data_en;
         if (_GEN_23) begin
           if (_GEN_24) begin
             ext_ram_ctrl_data_out <= 32'h0;
             ext_ram_ctrl_addr <= 20'h0;
             ext_ram_ctrl_be_n <= 4'hF;
           end
-          ext_ram_ctrl_ce_n <= _GEN_45;
+          ext_ram_ctrl_ce_n <= _GEN_44;
           ext_ram_ctrl_oe_n <= _GEN_24 | ext_ram_ctrl_oe_n;
           ext_ram_ctrl_we_n <= _GEN_24 | ext_ram_ctrl_we_n;
-          ext_ram_ctrl_data_en <= _GEN_46;
+          ext_ram_ctrl_data_en <= _GEN_45;
         end
         else begin
+          automatic logic _GEN_46;
           automatic logic _GEN_47;
-          automatic logic _GEN_48;
-          _GEN_47 = ~_GEN_26 | _GEN_27;
-          _GEN_48 = _GEN_26 & ~_GEN_27 & (_GEN_28 | _GEN_24);
+          _GEN_46 = ~_GEN_26 | _GEN_27;
+          _GEN_47 = _GEN_26 & ~_GEN_27 & (_GEN_28 | _GEN_24);
           if (_GEN_30) begin
           end
           else begin
@@ -447,16 +434,16 @@ module IoControl(
             ext_ram_ctrl_addr <= 20'h0;
             ext_ram_ctrl_be_n <= 4'hF;
           end
-          if (_GEN_47) begin
+          if (_GEN_46) begin
           end
           else
-            ext_ram_ctrl_ce_n <= ~_GEN_28 & _GEN_45;
-          ext_ram_ctrl_oe_n <= _GEN_48 | ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_48 | ext_ram_ctrl_we_n;
-          if (_GEN_47) begin
+            ext_ram_ctrl_ce_n <= ~_GEN_28 & _GEN_44;
+          ext_ram_ctrl_oe_n <= _GEN_47 | ext_ram_ctrl_oe_n;
+          ext_ram_ctrl_we_n <= _GEN_47 | ext_ram_ctrl_we_n;
+          if (_GEN_46) begin
           end
           else
-            ext_ram_ctrl_data_en <= _GEN_28 | _GEN_46;
+            ext_ram_ctrl_data_en <= _GEN_28 | _GEN_45;
         end
       end
       if (base_state & _GEN_19 & _GEN_0 & base_word_counter == 3'h0)
@@ -477,7 +464,7 @@ module IoControl(
         icache_buffer_7 <= io_base_ram_ctrl_data_in;
       icache_data_valid <=
         ~(reset | icache_data_valid) & (base_state & _GEN_18 | icache_data_valid);
-      if (_GEN_43)
+      if (_GEN_42)
         dcache_buffer <= 32'h0;
       else if (~_GEN_32 | _GEN_33) begin
         if (_GEN_25) begin
@@ -491,9 +478,9 @@ module IoControl(
       end
       else if (_GEN_34) begin
         automatic logic [2:0]      _head_idx_T_1;
-        automatic logic [7:0][7:0] _GEN_49;
+        automatic logic [7:0][7:0] _GEN_48;
         _head_idx_T_1 = uart_head[7:5] | uart_head[3:1];
-        _GEN_49 =
+        _GEN_48 =
           {{uart_buffer_7_data},
            {uart_buffer_6_data},
            {uart_buffer_5_data},
@@ -504,7 +491,7 @@ module IoControl(
            {uart_buffer_0_data}};
         dcache_buffer <=
           {24'h0,
-           _GEN_49[{|(uart_head[7:4]),
+           _GEN_48[{|(uart_head[7:4]),
                     |(_head_idx_T_1[2:1]),
                     _head_idx_T_1[2] | _head_idx_T_1[0]}]};
       end
@@ -523,8 +510,8 @@ module IoControl(
       dcache_data_valid <=
         ~(reset | dcache_data_valid)
         & (_GEN_10
-             ? ~_GEN_11 & ~_io_dcache_write_req_ready_T_15 | _GEN_43 | _GEN_39
-             : _GEN_43 | _GEN_39);
+             ? ~_GEN_11 & ~_io_dcache_write_req_ready_T_15 | _GEN_42 | _GEN_39
+             : _GEN_42 | _GEN_39);
       regBaseIcacheReq_valid <=
         ~reset & (~base_state | ~_GEN_18) & (_GEN_4 | regBaseIcacheReq_valid);
       if (_GEN_4)
@@ -579,8 +566,8 @@ module IoControl(
       else begin
         automatic logic [2:0]      _tail_idx_T_1;
         automatic logic [2:0]      tail_idx;
-        automatic logic [3:0][3:0] _GEN_50;
-        automatic logic [3:0][1:0] _GEN_51;
+        automatic logic [3:0][3:0] _GEN_49;
+        automatic logic [3:0][1:0] _GEN_50;
         _tail_idx_T_1 = uart_tail[7:5] | uart_tail[3:1];
         tail_idx =
           {|(uart_tail[7:4]), |(_tail_idx_T_1[2:1]), _tail_idx_T_1[2] | _tail_idx_T_1[0]};
@@ -632,7 +619,7 @@ module IoControl(
         end
         else
           ext_state <= 2'h0;
-        _GEN_50 =
+        _GEN_49 =
           {{ext_wait_counter},
            {_GEN_27
               ? ext_wait_counter + 4'h1
@@ -643,36 +630,37 @@ module IoControl(
            {regExtDcacheWriteReq_valid | regExtDcacheReadReq_valid
               ? 4'h0
               : ext_wait_counter}};
-        ext_wait_counter <= _GEN_50[ext_state];
-        if (_GEN_42 & tail_idx == 3'h0)
+        ext_wait_counter <= _GEN_49[ext_state];
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h0)
           uart_buffer_0_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h1)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h1)
           uart_buffer_1_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h2)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h2)
           uart_buffer_2_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h3)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h3)
           uart_buffer_3_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h4)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h4)
           uart_buffer_4_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h5)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h5)
           uart_buffer_5_data <= io_rxd_uart_data;
-        if (_GEN_42 & tail_idx == 3'h6)
+        if (io_rxd_uart_clear_0 & tail_idx == 3'h6)
           uart_buffer_6_data <= io_rxd_uart_data;
-        if (_GEN_42 & (&tail_idx))
+        if (io_rxd_uart_clear_0 & (&tail_idx))
           uart_buffer_7_data <= io_rxd_uart_data;
         if (_GEN_41) begin
         end
         else
           uart_head <= {uart_head[6:0], uart_head[7]};
-        if (_GEN_42)
+        if (io_rxd_uart_clear_0)
           uart_tail <= new_tail;
         if (_GEN_32 & _GEN_33)
           txd_uart_data <= regUartDcacheWriteReq_data[7:0];
-        _GEN_51 =
+        _GEN_50 =
           {{uart_state}, {2'h0}, {2'h0}, {_GEN_33 ? 2'h1 : _GEN_36 ? 2'h2 : uart_state}};
-        uart_state <= _GEN_51[uart_state];
+        uart_state <= _GEN_50[uart_state];
       end
-      maybe_full <= ~reset & (_GEN_42 ? new_tail == uart_head : _GEN_41 & maybe_full);
+      maybe_full <=
+        ~reset & (io_rxd_uart_clear_0 ? new_tail == uart_head : _GEN_41 & maybe_full);
       txd_uart_start <=
         ~reset & (_GEN_32 ? _GEN_33 | txd_uart_start : ~_GEN_37 & txd_uart_start);
       read_req <=
@@ -790,7 +778,7 @@ module IoControl(
   assign io_ext_ram_ctrl_ctrl_oe_n = ext_ram_ctrl_oe_n;
   assign io_ext_ram_ctrl_ctrl_we_n = ext_ram_ctrl_we_n;
   assign io_ext_ram_ctrl_ctrl_data_en = ext_ram_ctrl_data_en;
-  assign io_rxd_uart_clear = io_rxd_uart_ready;
+  assign io_rxd_uart_clear = io_rxd_uart_clear_0;
   assign io_txd_uart_start = txd_uart_start;
   assign io_txd_uart_data = txd_uart_data;
 endmodule
@@ -2648,8 +2636,7 @@ module ARegFile(
   reg  [31:0]       regs_29;
   reg  [31:0]       regs_30;
   reg  [31:0]       regs_31;
-  wire              _GEN = io_write_wen & (|io_write_waddr);
-  wire [31:0][31:0] _GEN_0 =
+  wire [31:0][31:0] _GEN =
     {{regs_31},
      {regs_30},
      {regs_29},
@@ -2682,13 +2669,6 @@ module ARegFile(
      {regs_2},
      {regs_1},
      {regs_0}};
-  `ifndef SYNTHESIS
-    always @(posedge clock) begin
-      if ((`PRINTF_COND_) & _GEN & ~reset)
-        $fwrite(32'h80000002, "[RegFile] Write: r%d = 0x%x\n", io_write_waddr,
-                io_write_wdata);
-    end // always @(posedge)
-  `endif // not def SYNTHESIS
   always @(posedge clock) begin
     if (reset) begin
       regs_0 <= 32'h0;
@@ -2725,69 +2705,70 @@ module ARegFile(
       regs_31 <= 32'h0;
     end
     else begin
-      if (_GEN & ~(|io_write_waddr))
+      automatic logic _GEN_0 = io_write_wen & (|io_write_waddr);
+      if (_GEN_0 & ~(|io_write_waddr))
         regs_0 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1)
+      if (_GEN_0 & io_write_waddr == 5'h1)
         regs_1 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h2)
+      if (_GEN_0 & io_write_waddr == 5'h2)
         regs_2 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h3)
+      if (_GEN_0 & io_write_waddr == 5'h3)
         regs_3 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h4)
+      if (_GEN_0 & io_write_waddr == 5'h4)
         regs_4 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h5)
+      if (_GEN_0 & io_write_waddr == 5'h5)
         regs_5 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h6)
+      if (_GEN_0 & io_write_waddr == 5'h6)
         regs_6 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h7)
+      if (_GEN_0 & io_write_waddr == 5'h7)
         regs_7 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h8)
+      if (_GEN_0 & io_write_waddr == 5'h8)
         regs_8 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h9)
+      if (_GEN_0 & io_write_waddr == 5'h9)
         regs_9 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hA)
+      if (_GEN_0 & io_write_waddr == 5'hA)
         regs_10 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hB)
+      if (_GEN_0 & io_write_waddr == 5'hB)
         regs_11 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hC)
+      if (_GEN_0 & io_write_waddr == 5'hC)
         regs_12 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hD)
+      if (_GEN_0 & io_write_waddr == 5'hD)
         regs_13 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hE)
+      if (_GEN_0 & io_write_waddr == 5'hE)
         regs_14 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'hF)
+      if (_GEN_0 & io_write_waddr == 5'hF)
         regs_15 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h10)
+      if (_GEN_0 & io_write_waddr == 5'h10)
         regs_16 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h11)
+      if (_GEN_0 & io_write_waddr == 5'h11)
         regs_17 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h12)
+      if (_GEN_0 & io_write_waddr == 5'h12)
         regs_18 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h13)
+      if (_GEN_0 & io_write_waddr == 5'h13)
         regs_19 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h14)
+      if (_GEN_0 & io_write_waddr == 5'h14)
         regs_20 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h15)
+      if (_GEN_0 & io_write_waddr == 5'h15)
         regs_21 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h16)
+      if (_GEN_0 & io_write_waddr == 5'h16)
         regs_22 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h17)
+      if (_GEN_0 & io_write_waddr == 5'h17)
         regs_23 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h18)
+      if (_GEN_0 & io_write_waddr == 5'h18)
         regs_24 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h19)
+      if (_GEN_0 & io_write_waddr == 5'h19)
         regs_25 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1A)
+      if (_GEN_0 & io_write_waddr == 5'h1A)
         regs_26 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1B)
+      if (_GEN_0 & io_write_waddr == 5'h1B)
         regs_27 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1C)
+      if (_GEN_0 & io_write_waddr == 5'h1C)
         regs_28 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1D)
+      if (_GEN_0 & io_write_waddr == 5'h1D)
         regs_29 <= io_write_wdata;
-      if (_GEN & io_write_waddr == 5'h1E)
+      if (_GEN_0 & io_write_waddr == 5'h1E)
         regs_30 <= io_write_wdata;
-      if (_GEN & (&io_write_waddr))
+      if (_GEN_0 & (&io_write_waddr))
         regs_31 <= io_write_wdata;
     end
   end // always @(posedge)
@@ -2842,8 +2823,8 @@ module ARegFile(
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_read_src1_rdata = _GEN_0[io_read_src1_raddr];
-  assign io_read_src2_rdata = _GEN_0[io_read_src2_raddr];
+  assign io_read_src1_rdata = _GEN[io_read_src1_raddr];
+  assign io_read_src2_rdata = _GEN[io_read_src2_raddr];
   assign io_regs_out_0 = regs_0;
   assign io_regs_out_1 = regs_1;
   assign io_regs_out_2 = regs_2;
@@ -3982,9 +3963,7 @@ module WriteBackUnit(
 endmodule
 
 module ControlUnit(
-  input         clock,
-                reset,
-                io_executeInfo_valid,
+  input         io_executeInfo_valid,
                 io_executeInfo_reg_wen,
   input  [4:0]  io_executeInfo_reg_waddr,
   input         io_writeBackInfo_valid,
@@ -4008,9 +3987,9 @@ module ControlUnit(
                 io_writeBackResult
 );
 
-  wire        _src2_forward_from_ex_T = io_executeInfo_valid & io_executeInfo_reg_wen;
-  wire        _src2_forward_from_wb_T = io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
-  wire [1:0]  src1_forward_sel =
+  wire       _src2_forward_from_ex_T = io_executeInfo_valid & io_executeInfo_reg_wen;
+  wire       _src2_forward_from_wb_T = io_writeBackInfo_valid & io_writeBackInfo_reg_wen;
+  wire [1:0] src1_forward_sel =
     _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr) & io_decodeRegisterInfo_src1_ren
     & io_decodeRegisterInfo_src1_raddr == io_executeInfo_reg_waddr
       ? 2'h1
@@ -4018,7 +3997,7 @@ module ControlUnit(
            & io_decodeRegisterInfo_src1_ren
            & io_decodeRegisterInfo_src1_raddr == io_writeBackInfo_reg_waddr,
          1'h0};
-  wire [1:0]  src2_forward_sel =
+  wire [1:0] src2_forward_sel =
     _src2_forward_from_ex_T & (|io_executeInfo_reg_waddr) & io_decodeRegisterInfo_src2_ren
     & io_decodeRegisterInfo_src2_raddr == io_executeInfo_reg_waddr
       ? 2'h1
@@ -4026,34 +4005,20 @@ module ControlUnit(
            & io_decodeRegisterInfo_src2_ren
            & io_decodeRegisterInfo_src2_raddr == io_writeBackInfo_reg_waddr,
          1'h0};
-  wire [31:0] io_signals_bypassData_src1_data_0 =
-    src1_forward_sel == 2'h1
-      ? io_executeResult
-      : src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  wire [31:0] io_signals_bypassData_src2_data_0 =
-    src2_forward_sel == 2'h1
-      ? io_executeResult
-      : src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
-  `ifndef SYNTHESIS
-    always @(posedge clock) begin
-      if ((`PRINTF_COND_) & io_decodeRegisterInfo_src1_ren & (|src1_forward_sel) & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] src1 forward: addr=%d, sel=%d, data=0x%x\n",
-                io_decodeRegisterInfo_src1_raddr, src1_forward_sel,
-                io_signals_bypassData_src1_data_0);
-      if ((`PRINTF_COND_) & io_decodeRegisterInfo_src2_ren & (|src2_forward_sel) & ~reset)
-        $fwrite(32'h80000002, "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
-                io_decodeRegisterInfo_src2_raddr, src2_forward_sel,
-                io_signals_bypassData_src2_data_0);
-    end // always @(posedge)
-  `endif // not def SYNTHESIS
   assign io_signals_fetchUnitSignal_allow_to_go = io_executeUnitReady;
   assign io_signals_fetchUnitSignal_do_flush = io_executeBranch;
   assign io_signals_decodeUnitSignal_allow_to_go = io_executeUnitReady;
   assign io_signals_decodeUnitSignal_do_flush = io_executeBranch;
   assign io_signals_bypassData_src1_bypass = |src1_forward_sel;
   assign io_signals_bypassData_src2_bypass = |src2_forward_sel;
-  assign io_signals_bypassData_src1_data = io_signals_bypassData_src1_data_0;
-  assign io_signals_bypassData_src2_data = io_signals_bypassData_src2_data_0;
+  assign io_signals_bypassData_src1_data =
+    src1_forward_sel == 2'h1
+      ? io_executeResult
+      : src1_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
+  assign io_signals_bypassData_src2_data =
+    src2_forward_sel == 2'h1
+      ? io_executeResult
+      : src2_forward_sel == 2'h2 ? io_writeBackResult : 32'h0;
 endmodule
 
 module Diff(
@@ -4936,8 +4901,6 @@ module Core(
     .io_result                                                 (_writeBackUnit_io_result)
   );
   ControlUnit controlUnit (
-    .clock                                   (clock),
-    .reset                                   (reset),
     .io_executeInfo_valid
       (_executeUnit_io_writeBackStage_data_info_valid),
     .io_executeInfo_reg_wen

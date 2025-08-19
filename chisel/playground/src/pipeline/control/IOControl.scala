@@ -105,8 +105,7 @@ class IoControl extends Module {
     }
   }
 
-  val SRAM_DELAY = 5
-  io.rxd.uart_clear := io.rxd.uart_ready
+  val SRAM_DELAY = 4
 
   // ========== SRAM控制寄存器 ==========
   val base_ram_ctrl = Reg(new SramCtrlInfo)
@@ -421,8 +420,11 @@ class IoControl extends Module {
   when(io.rxd.uart_ready && !uart_full) {
     uart_buffer(tail_idx).data := io.rxd.uart_data
     val new_tail = leftRotate(uart_tail, 1)
-    uart_tail  := new_tail
-    maybe_full := new_tail === uart_head
+    uart_tail         := new_tail
+    maybe_full        := new_tail === uart_head
+    io.rxd.uart_clear := true.B
+  }.otherwise {
+    io.rxd.uart_clear := false.B
   }
 
   // ========== 其他特殊地址处理 ==========

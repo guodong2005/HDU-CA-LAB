@@ -146,23 +146,4 @@ class ControlUnit extends Module {
   io.signals.decodeUnitSignal.do_flush  := io.executeBranch // 只有Execute的分支才刷新Decode
   io.signals.executeUnitSignal.do_flush := false.B
 
-  // ========== 调试输出 ==========
-  when(io.decodeRegisterInfo.src1_ren && src1_forward_sel.orR) {
-    printf(
-      "[ControlUnit] src1 forward: addr=%d, sel=%d, data=0x%x\n",
-      io.decodeRegisterInfo.src1_raddr,
-      src1_forward_sel,
-      io.signals.bypassData.src1_data
-    )
-  }
-
-  when(io.decodeRegisterInfo.src2_ren && src2_forward_sel.orR) {
-    printf(
-      "[ControlUnit] src2 forward: addr=%d, sel=%d, data=0x%x\n",
-      io.decodeRegisterInfo.src2_raddr,
-      src2_forward_sel,
-      io.signals.bypassData.src2_data
-    )
-  }
-
 }
