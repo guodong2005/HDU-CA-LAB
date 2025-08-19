@@ -88,7 +88,7 @@ class Lsu extends Module {
 
   // Default
   io.valid             := Mux(isStore, true.B, false.B)
-  io.result            := 0.U
+  io.result            := io.src_info.src1_data
   io.dcache.req.valid  := false.B
   io.dcache.req.bits   := 0.U.asTypeOf(new DCacheReq)
   io.dcache.resp.ready := true.B
