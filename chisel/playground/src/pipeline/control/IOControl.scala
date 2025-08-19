@@ -106,6 +106,7 @@ class IoControl extends Module {
   }
 
   val SRAM_DELAY = 5
+  io.rxd.uart_clear := io.rxd.uart_ready
 
   // ========== SRAM控制寄存器 ==========
   val base_ram_ctrl = Reg(new SramCtrlInfo)
@@ -333,14 +334,20 @@ class IoControl extends Module {
   }
 
   // ========== UART 缓冲区和控制信号 ==========
-  val uart_buffer = Reg(Vec(UART_BUFFER_DEPTH, new UartBufferInfo))
-  val uart_head   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val head_idx    = OHToUInt(uart_head)
-  val uart_tail   = RegInit(1.U(UART_BUFFER_DEPTH.W))
-  val tail_idx    = OHToUInt(uart_tail)
-  val maybe_full  = RegInit(false.B)
-  val uart_full   = uart_head === uart_tail && maybe_full
-  val uart_empty  = uart_head === uart_tail && !maybe_full
+  val uart_buffer = RegInit(
+    VecInit(
+      Seq.fill(UART_BUFFER_DEPTH)(
+        0.U.asTypeOf(new UartBufferInfo)
+      )
+    )
+  )
+  val uart_head  = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val head_idx   = OHToUInt(uart_head)
+  val uart_tail  = RegInit(1.U(UART_BUFFER_DEPTH.W))
+  val tail_idx   = OHToUInt(uart_tail)
+  val maybe_full = RegInit(false.B)
+  val uart_full  = uart_head === uart_tail && maybe_full
+  val uart_empty = uart_head === uart_tail && !maybe_full
 
   // TXD 控制信号
   val txd_uart_start = RegInit(false.B)
@@ -413,11 +420,9 @@ class IoControl extends Module {
   // ========== UART 接收处理 ==========
   when(io.rxd.uart_ready && !uart_full) {
     uart_buffer(tail_idx).data := io.rxd.uart_data
-    uart_tail                  := leftRotate(uart_tail, 1)
-    maybe_full                 := true.B
-    io.rxd.uart_clear          := true.B
-  }.otherwise {
-    io.rxd.uart_clear := false.B
+    val new_tail = leftRotate(uart_tail, 1)
+    uart_tail  := new_tail
+    maybe_full := new_tail === uart_head
   }
 
   // ========== 其他特殊地址处理 ==========
