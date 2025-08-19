@@ -130,8 +130,9 @@ class IoControl extends Module {
   val dcache_data_valid = RegInit(false.B)
 
   // ========== BASE RAM 请求管理 ==========
-  val regBaseIcacheReq = RegInit(0.U.asTypeOf(new ReadRequest))
-  val regBaseDcacheReq = RegInit(0.U.asTypeOf(new ReadRequest))
+  val regBaseIcacheReq      = RegInit(0.U.asTypeOf(new ReadRequest))
+  val regBaseDcacheReadReq  = RegInit(0.U.asTypeOf(new ReadRequest))
+  val regBaseDcacheWriteReq = RegInit(0.U.asTypeOf(new WriteRequest)) // 新增：BASE RAM写请求
 
   // ========== EXT RAM 请求管理 (只有DCache) ==========
   val regExtDcacheReadReq  = RegInit(0.U.asTypeOf(new ReadRequest))
@@ -150,19 +151,20 @@ class IoControl extends Module {
 
   // dcache read: BASE或EXT或UART或特殊地址
   io.dcache_read_req.ready := !dcache_data_valid && (
-    (io.dcache_read_req.valid && isBaseAddr(io.dcache_read_req.bits.addr) && !regBaseDcacheReq.valid) ||
+    (io.dcache_read_req.valid && isBaseAddr(io.dcache_read_req.bits.addr) && !regBaseDcacheReadReq.valid) ||
       (io.dcache_read_req.valid && isExtAddr(io.dcache_read_req.bits.addr) && !regExtDcacheReadReq.valid) ||
       (io.dcache_read_req.valid && isUartAddr(io.dcache_read_req.bits.addr) && !regUartDcacheReadReq.valid) ||
       (io.dcache_read_req.valid && !isBaseAddr(io.dcache_read_req.bits.addr) &&
         !isExtAddr(io.dcache_read_req.bits.addr) && !isUartAddr(io.dcache_read_req.bits.addr))
   )
 
-  // dcache write: EXT或UART或特殊地址
+  // dcache write: BASE或EXT或UART或特殊地址 (修改：添加BASE支持)
   io.dcache_write_req.ready := !dcache_data_valid && (
-    (io.dcache_write_req.valid && isExtAddr(io.dcache_write_req.bits.addr) && !regExtDcacheWriteReq.valid) ||
+    (io.dcache_write_req.valid && isBaseAddr(io.dcache_write_req.bits.addr) && !regBaseDcacheWriteReq.valid) ||
+      (io.dcache_write_req.valid && isExtAddr(io.dcache_write_req.bits.addr) && !regExtDcacheWriteReq.valid) ||
       (io.dcache_write_req.valid && isUartDataAddr(io.dcache_write_req.bits.addr) && !regUartDcacheWriteReq.valid) ||
-      (io.dcache_write_req.valid && !isExtAddr(io.dcache_write_req.bits.addr) &&
-        !isUartDataAddr(io.dcache_write_req.bits.addr))
+      (io.dcache_write_req.valid && !isBaseAddr(io.dcache_write_req.bits.addr) &&
+        !isExtAddr(io.dcache_write_req.bits.addr) && !isUartDataAddr(io.dcache_write_req.bits.addr))
   )
 
   // ========== 请求锁存 ==========
@@ -172,10 +174,18 @@ class IoControl extends Module {
     regBaseIcacheReq.addr  := io.icache_read_req.bits.addr
   }
 
-  // BASE RAM DCache 请求
+  // BASE RAM DCache 读请求
   when(io.dcache_read_req.fire && isBaseAddr(io.dcache_read_req.bits.addr)) {
-    regBaseDcacheReq.valid := true.B
-    regBaseDcacheReq.addr  := io.dcache_read_req.bits.addr
+    regBaseDcacheReadReq.valid := true.B
+    regBaseDcacheReadReq.addr  := io.dcache_read_req.bits.addr
+  }
+
+  // BASE RAM DCache 写请求 (新增)
+  when(io.dcache_write_req.fire && isBaseAddr(io.dcache_write_req.bits.addr)) {
+    regBaseDcacheWriteReq.valid := true.B
+    regBaseDcacheWriteReq.addr  := io.dcache_write_req.bits.addr
+    regBaseDcacheWriteReq.data  := io.dcache_write_req.bits.data
+    regBaseDcacheWriteReq.mask  := io.dcache_write_req.bits.byte_mask
   }
 
   // EXT RAM DCache 读请求
@@ -205,19 +215,29 @@ class IoControl extends Module {
     regUartDcacheWriteReq.data  := io.dcache_write_req.bits.data
   }
 
-  // ========== BASE RAM 状态机 ==========
-  val baseIDLE :: baseREAD :: Nil = Enum(2)
-  val base_state                  = RegInit(baseIDLE)
-  val base_wait_counter           = RegInit(0.U(4.W))
-  val base_req_type               = RegInit(reqNone)
-  val base_word_counter           = RegInit(0.U(3.W))
+  // ========== BASE RAM 状态机 (扩展支持写操作) ==========
+  val baseIDLE :: baseREAD :: baseWRITE :: Nil = Enum(3) // 添加baseWRITE状态
+  val base_state                               = RegInit(baseIDLE)
+  val base_wait_counter                        = RegInit(0.U(4.W))
+  val base_req_type                            = RegInit(reqNone)
+  val base_word_counter                        = RegInit(0.U(3.W))
 
   switch(base_state) {
     is(baseIDLE) {
-      // 仲裁：dcache_read > icache
-      when(regBaseDcacheReq.valid) {
+      // 仲裁：dcache_write > dcache_read > icache
+      when(regBaseDcacheWriteReq.valid) {
+        base_req_type := reqDcacheWrite
+        base_ram_ctrl.write(
+          regBaseDcacheWriteReq.addr(21, 2),
+          EndianConvert(regBaseDcacheWriteReq.data),
+          regBaseDcacheWriteReq.mask.asUInt.do_unary_~,
+          false.B // 初始WE为低
+        )
+        base_wait_counter := 0.U
+        base_state        := baseWRITE
+      }.elsewhen(regBaseDcacheReadReq.valid) {
         base_req_type := reqDcacheRead
-        base_ram_ctrl.read(regBaseDcacheReq.addr(21, 2))
+        base_ram_ctrl.read(regBaseDcacheReadReq.addr(21, 2))
         base_wait_counter := 0.U
         base_state        := baseREAD
       }.elsewhen(regBaseIcacheReq.valid) {
@@ -260,13 +280,36 @@ class IoControl extends Module {
         when(base_wait_counter === SRAM_DELAY.U) {
           dcache_buffer := EndianConvert(io.base_ram_ctrl.data_in)
           base_ram_ctrl.idle()
-          dcache_data_valid      := true.B
-          regBaseDcacheReq.valid := false.B
-          base_state             := baseIDLE
-          base_req_type          := reqNone
+          dcache_data_valid          := true.B
+          regBaseDcacheReadReq.valid := false.B
+          base_state                 := baseIDLE
+          base_req_type              := reqNone
         }.otherwise {
           base_wait_counter := base_wait_counter + 1.U
         }
+      }
+    }
+
+    is(baseWRITE) { // 新增：BASE RAM写状态处理
+      when(base_wait_counter < 2.U) {
+        base_wait_counter := base_wait_counter + 1.U
+      }.elsewhen(base_wait_counter === 2.U) {
+        // 第3个周期：将WE拉高
+        base_ram_ctrl.write(
+          base_ram_ctrl.addr,
+          base_ram_ctrl.data_out,
+          base_ram_ctrl.be_n,
+          true.B
+        )
+        base_wait_counter := base_wait_counter + 1.U
+      }.elsewhen(base_wait_counter === SRAM_DELAY.U) {
+        base_ram_ctrl.idle()
+        dcache_data_valid           := true.B
+        regBaseDcacheWriteReq.valid := false.B
+        base_state                  := baseIDLE
+        base_req_type               := reqNone
+      }.otherwise {
+        base_wait_counter := base_wait_counter + 1.U
       }
     }
   }
@@ -442,7 +485,8 @@ class IoControl extends Module {
 
   when(io.dcache_write_req.fire) {
     when(
-      !isExtAddr(io.dcache_write_req.bits.addr) &&
+      !isBaseAddr(io.dcache_write_req.bits.addr) && // 修改：添加BASE地址判断
+        !isExtAddr(io.dcache_write_req.bits.addr) &&
         !isUartDataAddr(io.dcache_write_req.bits.addr)
     ) {
       dcache_data_valid := true.B
@@ -470,7 +514,8 @@ class IoControl extends Module {
 
     // 清除所有请求寄存器
     regBaseIcacheReq.valid      := false.B
-    regBaseDcacheReq.valid      := false.B
+    regBaseDcacheReadReq.valid  := false.B
+    regBaseDcacheWriteReq.valid := false.B // 新增：清除BASE写请求
     regExtDcacheReadReq.valid   := false.B
     regExtDcacheWriteReq.valid  := false.B
     regUartDcacheReadReq.valid  := false.B

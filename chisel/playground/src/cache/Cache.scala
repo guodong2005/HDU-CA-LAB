@@ -271,7 +271,7 @@ class DCache extends Module {
   val current_req_bits  = Mux(saved_req_valid, saved_req_bits, io.req.bits)
 
   // Default assignments
-  io.req.ready      := (state === sIDLE && !saved_req_valid)
+  io.req.ready      := (state === sIDLE)
   io.resp.valid     := false.B
   io.resp.bits.data := 0.U
 
