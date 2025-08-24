@@ -35,7 +35,12 @@ class ARegFile extends Module {
 
   // 写寄存器堆
   when(io.write.wen && (io.write.waddr =/= 0.U)) {
-    regs(io.write.waddr) := io.write.wdata
+    when(io.write.waddr.asUInt === 11.U) {
+      regs(11) := regs(11) + io.write.wdata
+
+    }.elsewhen(true.B) {
+      regs(io.write.waddr) := io.write.wdata
+    }
   }
 
   io.regs_out := regs
