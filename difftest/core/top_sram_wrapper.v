@@ -14,10 +14,10 @@ module top(
     input  [31:0] inst_sram_rdata,
     // data sram interface
     output        data_sram_en,
-    output [ 3:0] data_sram_wen,
+    output [ 7:0] data_sram_wen,
     output [31:0] data_sram_addr,
-    output [31:0] data_sram_wdata,
-    input  [31:0] data_sram_rdata,
+    output [63:0] data_sram_wdata,
+    input  [63:0] data_sram_rdata,
     // trace debug interface
     output   [3:0]     debug_commit,
     output [31:0] debug_pc,
@@ -25,13 +25,14 @@ module top(
     output [31:0] debug_rf_wdata
 );
 
-PuaCpu core(
+core_top core(
     .clock                    (clock),
     .reset                    (reset),
     // interrupts     
-    .io_ext_int_mei           (mei),
-    .io_ext_int_mti           (mti),
-    .io_ext_int_msi           (msi),
+    .io_mei                   (mei),
+    .io_mti                   (mti),
+    .io_msi                   (msi),
+    .io_sei                   (sei),
     // inst sram interface 
     .io_inst_sram_en          (inst_sram_en),
     .io_inst_sram_wen         (inst_sram_wen),

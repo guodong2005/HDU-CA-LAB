@@ -31,6 +31,7 @@ class Fu extends Module with HasInstrType {
   val mdu = Module(new Mdu())
   val lsu = Module(new Lsu())
   val bru = Module(new Bru())
+  val csr = Module(new Csr())
 
   // LSU 和 DCache 连接
   lsu.io.dcache <> io.dcache
@@ -48,6 +49,8 @@ class Fu extends Module with HasInstrType {
   bru.io.info     := io.data.info
   bru.io.src_info := io.data.src_info
   bru.io.pc       := io.data.pc
+  csr.io.info     := io.data.info
+  csr.io.src_info := io.data.src_info
 
   // 寄存器记录 info 和 fusel 类型
   val fuselReg = RegInit(0.U.asTypeOf(new Info()))
@@ -63,7 +66,8 @@ class Fu extends Module with HasInstrType {
       FuType.alu -> alu.io.valid,
       FuType.mdu -> mdu.io.valid,
       FuType.bru -> bru.io.valid,
-      FuType.lsu -> lsu.io.valid
+      FuType.lsu -> lsu.io.valid,
+      FuType.csr -> csr.io.valid
     )
   )
 
@@ -73,7 +77,8 @@ class Fu extends Module with HasInstrType {
       FuType.alu -> alu.io.result,
       FuType.mdu -> mdu.io.result,
       FuType.bru -> bru.io.result,
-      FuType.lsu -> lsu.io.result
+      FuType.lsu -> lsu.io.result,
+      FuType.csr -> csr.io.result
     )
   )
 
@@ -84,7 +89,8 @@ class Fu extends Module with HasInstrType {
       FuType.alu -> true.B,       // ALU总是ready
       FuType.mdu -> mdu.io.ready, // MDU现在有ready信号
       FuType.bru -> true.B,       // BRU总是ready
-      FuType.lsu -> lsu.io.ready  // LSU可能不ready
+      FuType.lsu -> lsu.io.ready, // LSU可能不ready
+      FuType.csr -> true.B
     )
   )
 

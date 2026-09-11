@@ -23,6 +23,7 @@ class RdInfo extends Bundle {
 
 class Info extends Bundle {
   val instr      = UInt(XLEN.W)
+  val cheat      = Bool()
   val valid      = Bool()
   val src1_raddr = UInt(REG_ADDR_WID.W)
   val src2_raddr = UInt(REG_ADDR_WID.W)
@@ -51,10 +52,10 @@ class InstSram extends Bundle {
 
 class DataSram extends Bundle {
   val en    = Output(Bool())
-  val addr  = Output(UInt(SRAM_ADDR_WID.W))      // address to write
+  val addr  = Output(UInt(SRAM_ADDR_WID.W)) // address to write
   val wdata = Output(UInt(DATA_SRAM_DATA_WID.W)) // write data
-  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W))  // write en
-  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W))  // read data
+  val wen   = Output(UInt(DATA_SRAM_WEN_WID.W)) // write en
+  val rdata = Input(UInt(DATA_SRAM_DATA_WID.W)) // read data
 }
 
 class DEBUG extends Bundle {
@@ -108,12 +109,12 @@ class B extends Bundle { // Write response (b)
 
 class AXI extends Bundle {
   // Decoupled Read Request & Response
-  val ar = Decoupled(new AR())         // Handshake for read request
+  val ar = Decoupled(new AR()) // Handshake for read request
   val r  = Flipped(Decoupled(new R())) // Read response handshake
 
   // Decoupled Write Request, Data & Response
-  val aw = Decoupled(new AW())         // Write request handshake
-  val w  = Decoupled(new W())          // Write data handshake
+  val aw = Decoupled(new AW()) // Write request handshake
+  val w  = Decoupled(new W()) // Write data handshake
   val b  = Flipped(Decoupled(new B())) // Write response handshake
 }
 class DifftestInstrCommit extends Bundle {

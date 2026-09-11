@@ -45,8 +45,7 @@ class Decoder extends Module with HasInstrType {
     io.out.info.valid      := valid
   }
 
-  val (rd, rs1, rs2) = (inst(4, 0), inst(9, 5), inst(14, 10))
-  //   rd  rj  rk
+  val (rd, rs1, rs2) = (inst(11, 7), inst(19, 15), inst(24, 20))
 
   when(instrType === InstrR) {
     setInfo(inst, rd, rs1, rs2, fuOpType, true.B, true.B, true.B, true.B)
@@ -60,12 +59,10 @@ class Decoder extends Module with HasInstrType {
     setInfo(inst, 0.U, rs1, rd, fuOpType, false.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrB) {
     //                     src2     writeback src1en src2en   valid
-    setInfo(inst, 0.U, rs1, rd, fuOpType, false.B, true.B, true.B, true.B) // wrong !!!!!!!
-    // addr src1
-
+    setInfo(inst, 0.U, rs1, rs2, fuOpType, false.B, true.B, true.B, true.B)
   }.elsewhen(instrType === InstrJ) {
-    //
-    setInfo(inst, Mux(fuOpType === BRUOpType.bl, 1.U, rd), rs1, 0.U, fuOpType, Mux(instrType === BRUOpType.b, false.B, true.B), true.B, false.B, true.B)
+    val isJalr = fuOpType === BRUOpType.jirl
+    setInfo(inst, rd, rs1, 0.U, fuOpType, true.B, isJalr, false.B, true.B)
   }.otherwise {
     setInfo(inst, 0.U, 0.U, 0.U, 0.U, false.B, false.B, false.B, false.B)
   }

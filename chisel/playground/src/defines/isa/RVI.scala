@@ -3,144 +3,49 @@ package cpu.defines
 import chisel3._
 import chisel3.util._
 
+/** RV32I/M instruction patterns implemented by the current pipeline. */
 object RV32I_ALUInstr extends HasInstrType with CoreParameter {
+  private def r(f7: String, f3: String) = BitPat(s"b$f7??????????$f3?????0110011")
+  private def i(f3: String, op: String) = BitPat(s"b???????????? ????? $f3 ????? $op".replace(" ", ""))
+  private def s(f3: String) = i(f3, "0100011")
+  private def b(f3: String) = i(f3, "1100011")
 
-  def SLTI   = BitPat("b0000001000??????????????????????") // Set Less Than Immediate
-  def SLTUI  = BitPat("b0000001001??????????????????????") // Set Less Than Unsigned Immediate
-  def ADDI_W = BitPat("b0000001010??????????????????????") // Add Immediate Word
-  def ANDI   = BitPat("b0000001101??????????????????????") // And Immediate
-  def ORI    = BitPat("b0000001110??????????????????????") // Or Immediate
-  def XORI   = BitPat("b0000001111??????????????????????") // Exclusive Or Immediate
-  def SLLI_W = BitPat("b00000000010000001???????????????") // Shift Left Logical Immediate Word
-  //                    00000000010000001001000110001101
-  def SRLI_W = BitPat("b00000000010001001???????????????") // Shift Right Logical Immediate Word
-  def SRAI_W = BitPat("b00000000010010001???????????????") // Shift Right Arithmetic Immediate Word
-
-  def SLT   = BitPat("b00000000000100100???????????????")
-  def NOR   = BitPat("b00000000000101000???????????????")
-  def SLTU  = BitPat("b00000000000100101???????????????")
-  def ADD_W = BitPat("b00000000000100000???????????????")
-  def SUB_W = BitPat("b00000000000100010???????????????")
-  def AND   = BitPat("b00000000000101001???????????????")
-  def OR    = BitPat("b00000000000101010???????????????")
-  def XOR   = BitPat("b00000000000101011???????????????")
-  def SLL_W = BitPat("b00000000000101110???????????????")
-  def SRL_W = BitPat("b00000000000101111???????????????")
-  def SRA_W = BitPat("b00000000000110000???????????????")
-
-  def MUL_W   = BitPat("b00000000000111000???????????????") // Multiply Word
-  def MULH_W  = BitPat("b00000000000111001???????????????") // Multiply High Word
-  def MULH_WU = BitPat("b00000000000111010???????????????") // Multiply High Unsigned Word
-  def DIV_W   = BitPat("b00000000001000000???????????????") // Divide Word
-  def MOD_W   = BitPat("b00000000001000001???????????????") // Modulo Word
-  def DIV_WU  = BitPat("b00000000001000010???????????????") // Divide Unsigned Word
-  def MOD_WU  = BitPat("b00000000001000011???????????????") // Modulo Unsigned Word
-
-  // Load Instructions
-  // Load Instructions
-  def LB  = BitPat("b0010100000_????????????_?????_?????") // LD.B: rd, rj, si12
-  def LBU = BitPat("b0010101000_????????????_?????_?????") // LD.BU: rd, rj, si12
-  def LH  = BitPat("b0010100001_????????????_?????_?????") // LD.H: rd, rj, si12
-  def LHU = BitPat("b0010101001_????????????_?????_?????") // LD.HU: rd, rj, si12
-  def LW  = BitPat("b0010100010_????????????_?????_?????") // LD.W: rd, rj, si12
-
-// Store Instructions
-  def SB = BitPat("b0010100100_????????????_?????_?????") // ST.B: rd, rj, si12
-  def SH = BitPat("b0010100101_????????????_?????_?????") // ST.H: rd, rj, si12
-  def SW = BitPat("b0010100110_????????????_?????_?????") // ST.W: rd, rj, si12
-
-  // Branch Instructions
-  def BEQZ  = BitPat("b010000_??????????????????????????") // Branch Equal to Zero
-  def BNEZ  = BitPat("b010001_??????????????????????????") // Branch Not Equal to Zero
-  def BCEQZ = BitPat("b010010_????????????????00????????") // Branch Conditional Equal to Zero
-  def BCNEZ = BitPat("b010010_????????????????01????????") // Branch Conditional Not Equal to Zero
-  def JIRL  = BitPat("b010011_??????????????????????????") // Jump and Link Register
-  def B     = BitPat("b010100_??????????????????????????") // Branch
-  def BL    = BitPat("b010101_??????????????????????????") // Branch and Link
-  def BEQ   = BitPat("b010110_??????????????????????????") // Branch Equal
-  def BNE   = BitPat("b010111_??????????????????????????") // Branch Not Equal
-  def BLT   = BitPat("b011000_??????????????????????????") // Branch Less Than
-  def BGE   = BitPat("b011001_??????????????????????????") // Branch Greater or Equal
-  def BLTU  = BitPat("b011010_??????????????????????????") // Branch Less Than Unsigned
-  def BGEU  = BitPat("b011011_??????????????????????????") // Branch Greater or Equal Unsigned
-
-  def LU12I_W   = BitPat("b0001010?????????????????????????") // Load Upper 12 Immediate Word
-  def PCADDU12I = BitPat("b0001110?????????????????????????") // PC Add Upper 12 Immediate
-
-  // CSR Instructions BitPat
-  def CSRRW  = BitPat("b????????_?????_?????_001_?????_1110011") // Atomic Read/Write CSR
-  def CSRRS  = BitPat("b????????_?????_?????_010_?????_1110011") // Atomic Read and Set CSR
-  def CSRRC  = BitPat("b????????_?????_?????_011_?????_1110011") // Atomic Read and Clear CSR
-  def CSRRWI = BitPat("b????????_?????_?????_101_?????_1110011") // Immediate Atomic Read/Write CSR
-  def CSRRSI = BitPat("b????????_?????_?????_110_?????_1110011") // Immediate Atomic Read and Set CSR
-  def CSRRCI = BitPat("b????????_?????_?????_111_?????_1110011") // Immediate Atomic Read and Clear CSR
+  val LUI   = BitPat("b???????????????????????0110111")
+  val AUIPC = BitPat("b???????????????????????0010111")
+  val JAL   = BitPat("b???????????????????????1101111")
+  val JALR  = i("000", "1100111")
+  val ADDI  = i("000", "0010011"); val SLTI = i("010", "0010011"); val SLTIU = i("011", "0010011")
+  val XORI  = i("100", "0010011"); val ORI = i("110", "0010011"); val ANDI = i("111", "0010011")
+  val SLLI  = BitPat("b0000000??????????001?????0010011")
+  val SRLI  = BitPat("b0000000??????????101?????0010011")
+  val SRAI  = BitPat("b0100000??????????101?????0010011")
+  val ADD = r("0000000", "000"); val SUB = r("0100000", "000"); val SLL = r("0000000", "001")
+  val SLT = r("0000000", "010"); val SLTU = r("0000000", "011"); val XOR = r("0000000", "100")
+  val SRL = r("0000000", "101"); val SRA = r("0100000", "101"); val OR = r("0000000", "110"); val AND = r("0000000", "111")
+  val MUL = r("0000001", "000"); val MULH = r("0000001", "001"); val MULHU = r("0000001", "011")
+  val DIV = r("0000001", "100"); val DIVU = r("0000001", "101"); val REM = r("0000001", "110"); val REMU = r("0000001", "111")
+  val LB = i("000", "0000011"); val LH = i("001", "0000011"); val LW = i("010", "0000011")
+  val LBU = i("100", "0000011"); val LHU = i("101", "0000011")
+  val SB = s("000"); val SH = s("001"); val SW = s("010")
+  val BEQ = b("000"); val BNE = b("001"); val BLT = b("100"); val BGE = b("101"); val BLTU = b("110"); val BGEU = b("111")
+  val CSRRW = i("001", "1110011"); val CSRRS = i("010", "1110011"); val CSRRC = i("011", "1110011")
 
   val table = Array(
-    LU12I_W   -> List(InstrU, FuType.alu, ALUOpType.add), // Load Upper Immediate Word
-    PCADDU12I -> List(InstrU, FuType.alu, ALUOpType.add), // PC Add Upper Immediate
-    ADDI_W    -> List(InstrI, FuType.alu, ALUOpType.add), // Add Immediate
-    ADD_W     -> List(InstrR, FuType.alu, ALUOpType.add), // Add
-    SLL_W     -> List(InstrR, FuType.alu, ALUOpType.sll), // Shift Left Logical
-    SLTI      -> List(InstrI, FuType.alu, ALUOpType.slt), // Set Less Than Immediate
-    SLT       -> List(InstrR, FuType.alu, ALUOpType.slt), // Set Less Than
-    SLTUI     -> List(InstrI, FuType.alu, ALUOpType.sltu), // Set Less Than Immediate Unsigned
-    SLTU      -> List(InstrR, FuType.alu, ALUOpType.sltu), // Set Less Than Unsigned
-    XORI      -> List(InstrI, FuType.alu, ALUOpType.xor), // XOR Immediate
-    XOR       -> List(InstrR, FuType.alu, ALUOpType.xor), // XOR
-    NOR       -> List(InstrR, FuType.alu, ALUOpType.nor), // NOR
-    SLLI_W    -> List(InstrI, FuType.alu, ALUOpType.sll), // Shift Left Logical Immediate
-    SRLI_W    -> List(InstrI, FuType.alu, ALUOpType.srl), // Shift Right Logical Immediate
-    SRL_W     -> List(InstrR, FuType.alu, ALUOpType.srl), // Shift Right Logical
-    SRAI_W    -> List(InstrI, FuType.alu, ALUOpType.sra), // Shift Right Arithmetic Immediate
-    SRA_W     -> List(InstrR, FuType.alu, ALUOpType.sra), // Shift Right Arithmetic
-    ORI       -> List(InstrI, FuType.alu, ALUOpType.or), // OR Immediate
-    OR        -> List(InstrR, FuType.alu, ALUOpType.or), // OR
-    ANDI      -> List(InstrI, FuType.alu, ALUOpType.and), // AND Immediate
-    AND       -> List(InstrR, FuType.alu, ALUOpType.and), // AND
-    SUB_W     -> List(InstrR, FuType.alu, ALUOpType.sub), // Subtract
-    MUL_W     -> List(InstrR, FuType.mdu, MDUOpType.mul), // Multiply
-    MULH_W    -> List(InstrR, FuType.mdu, MDUOpType.mulh), // Multiply High
-    MULH_WU   -> List(InstrR, FuType.mdu, MDUOpType.mulhu), // Multiply High Unsigned
-    DIV_W     -> List(InstrR, FuType.mdu, MDUOpType.div), // Divide
-    DIV_WU    -> List(InstrR, FuType.mdu, MDUOpType.divu), // Unsigned Divide
-    MOD_W     -> List(InstrR, FuType.mdu, MDUOpType.rem), // Remainder
-    MOD_WU    -> List(InstrR, FuType.mdu, MDUOpType.remu),
-    // Load Instructions
-    LB  -> List(InstrI, FuType.lsu, LSUOpType.lb), // Load Byte
-    LBU -> List(InstrI, FuType.lsu, LSUOpType.lbu), // Load Byte Unsigned
-    LH  -> List(InstrI, FuType.lsu, LSUOpType.lh), // Load Halfword
-    LHU -> List(InstrI, FuType.lsu, LSUOpType.lhu), // Load Halfword Unsigned
-    LW  -> List(InstrI, FuType.lsu, LSUOpType.lw), // Load Word
-
-// Store Instructions
-    SB -> List(InstrS, FuType.lsu, LSUOpType.sb), // Store Byte
-    SH -> List(InstrS, FuType.lsu, LSUOpType.sh), // Store Halfword
-    SW -> List(InstrS, FuType.lsu, LSUOpType.sw), // Store Word
-
-    // Unsigned Remainder
-
-    // Jump Instructions
-
-    // Branch Instructions
-    BEQ  -> List(InstrB, FuType.bru, BRUOpType.beq), // Branch Equal
-    BNE  -> List(InstrB, FuType.bru, BRUOpType.bne), // Branch Not Equal
-    BLT  -> List(InstrB, FuType.bru, BRUOpType.blt), // Branch Less Than
-    BGE  -> List(InstrB, FuType.bru, BRUOpType.bge), // Branch Greater Than or Equal
-    BLTU -> List(InstrB, FuType.bru, BRUOpType.bltu), // Branch Less Than Unsigned
-    BGEU -> List(InstrB, FuType.bru, BRUOpType.bgeu), // Branch Greater Than or Equal Unsigned
-    B    -> List(InstrJ, FuType.bru, BRUOpType.b), // Branch Greater Than or Equal Unsigned
-    BL   -> List(InstrJ, FuType.bru, BRUOpType.bl), // Branch Greater Than or Equal Unsigned
-    JIRL -> List(InstrJ, FuType.bru, BRUOpType.jirl), // Branch Greater Than or Equal Unsigned
-
-    // CSR Instructions
-    CSRRW  -> List(InstrI, FuType.csr, CSROpType.write), // Atomic Read/Write CSR
-    CSRRS  -> List(InstrI, FuType.csr, CSROpType.set), // Atomic Read and Set CSR
-    CSRRC  -> List(InstrI, FuType.csr, CSROpType.clear), // Atomic Read and Clear CSR
-    CSRRWI -> List(InstrI, FuType.csr, CSROpType.writei), // Immediate Atomic Read/Write CSR
-    CSRRSI -> List(InstrI, FuType.csr, CSROpType.seti), // Immediate Atomic Read and Set CSR
-    CSRRCI -> List(InstrI, FuType.csr, CSROpType.cleari) // Immediate Atomic Read and Clear CSR
+    LUI -> List(InstrU, FuType.alu, ALUOpType.add), AUIPC -> List(InstrU, FuType.alu, ALUOpType.add),
+    ADDI -> List(InstrI, FuType.alu, ALUOpType.add), SLTI -> List(InstrI, FuType.alu, ALUOpType.slt), SLTIU -> List(InstrI, FuType.alu, ALUOpType.sltu),
+    XORI -> List(InstrI, FuType.alu, ALUOpType.xor), ORI -> List(InstrI, FuType.alu, ALUOpType.or), ANDI -> List(InstrI, FuType.alu, ALUOpType.and),
+    SLLI -> List(InstrI, FuType.alu, ALUOpType.sll), SRLI -> List(InstrI, FuType.alu, ALUOpType.srl), SRAI -> List(InstrI, FuType.alu, ALUOpType.sra),
+    ADD -> List(InstrR, FuType.alu, ALUOpType.add), SUB -> List(InstrR, FuType.alu, ALUOpType.sub), SLL -> List(InstrR, FuType.alu, ALUOpType.sll),
+    SLT -> List(InstrR, FuType.alu, ALUOpType.slt), SLTU -> List(InstrR, FuType.alu, ALUOpType.sltu), XOR -> List(InstrR, FuType.alu, ALUOpType.xor),
+    SRL -> List(InstrR, FuType.alu, ALUOpType.srl), SRA -> List(InstrR, FuType.alu, ALUOpType.sra), OR -> List(InstrR, FuType.alu, ALUOpType.or), AND -> List(InstrR, FuType.alu, ALUOpType.and),
+    MUL -> List(InstrR, FuType.mdu, MDUOpType.mul), MULH -> List(InstrR, FuType.mdu, MDUOpType.mulh), MULHU -> List(InstrR, FuType.mdu, MDUOpType.mulhu),
+    DIV -> List(InstrR, FuType.mdu, MDUOpType.div), DIVU -> List(InstrR, FuType.mdu, MDUOpType.divu), REM -> List(InstrR, FuType.mdu, MDUOpType.rem), REMU -> List(InstrR, FuType.mdu, MDUOpType.remu),
+    LB -> List(InstrI, FuType.lsu, LSUOpType.lb), LBU -> List(InstrI, FuType.lsu, LSUOpType.lbu), LH -> List(InstrI, FuType.lsu, LSUOpType.lh), LHU -> List(InstrI, FuType.lsu, LSUOpType.lhu), LW -> List(InstrI, FuType.lsu, LSUOpType.lw),
+    SB -> List(InstrS, FuType.lsu, LSUOpType.sb), SH -> List(InstrS, FuType.lsu, LSUOpType.sh), SW -> List(InstrS, FuType.lsu, LSUOpType.sw),
+    BEQ -> List(InstrB, FuType.bru, BRUOpType.beq), BNE -> List(InstrB, FuType.bru, BRUOpType.bne), BLT -> List(InstrB, FuType.bru, BRUOpType.blt), BGE -> List(InstrB, FuType.bru, BRUOpType.bge), BLTU -> List(InstrB, FuType.bru, BRUOpType.bltu), BGEU -> List(InstrB, FuType.bru, BRUOpType.bgeu),
+    JAL -> List(InstrJ, FuType.bru, BRUOpType.bl), JALR -> List(InstrJ, FuType.bru, BRUOpType.jirl),
+    CSRRW -> List(InstrI, FuType.csr, CSROpType.write), CSRRS -> List(InstrI, FuType.csr, CSROpType.set), CSRRC -> List(InstrI, FuType.csr, CSROpType.clear)
   )
-
 }
 
 object RVIInstr extends CoreParameter {

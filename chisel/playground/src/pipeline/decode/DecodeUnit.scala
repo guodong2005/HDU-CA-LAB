@@ -39,24 +39,21 @@ class DecodeUnit extends Module with HasInstrType {
     ListLookup(inst, Instructions.DecodeDefault, Instructions.DecodeTable)
 
   // 提取字段
-  val rd  = inst(4, 0)
-  val rs1 = inst(9, 5)
-  val rs2 = inst(14, 10)
+  // Standard RISC-V register fields.
+  val rd  = inst(11, 7)
+  val rs1 = inst(19, 15)
+  val rs2 = inst(24, 20)
 
   // 计算立即数
-  val imm_field      = inst(21, 10)
-  val imm_i_signed   = SignedExtend(imm_field, XLEN)
-  val imm_i_unsigned = ZeroExtend(imm_field, XLEN)
-  val imm_s          = SignedExtend(imm_field, XLEN)
-  val imm_b          = SignedExtend(Cat(inst(25, 10), 0.U(2.W)), XLEN)
-  val imm_u          = SignedExtend(Cat(inst(24, 5), 0.U(12.W)), XLEN)
-  val imm_j = SignedExtend(
-    Cat(Cat(Mux(fuOpType === BRUOpType.jirl, 0.U, inst(9, 0)), inst(25, 10)), 0.U(2.W)),
-    XLEN
-  )
+  val imm_i = SignedExtend(inst(31, 20), XLEN)
+  val imm_s = SignedExtend(Cat(inst(31, 25), inst(11, 7)), XLEN)
+  val imm_b = SignedExtend(Cat(inst(31), inst(7), inst(30, 25), inst(11, 8), 0.U(1.W)), XLEN)
+  val imm_u = Cat(inst(31, 12), 0.U(12.W))
+  val imm_j = SignedExtend(Cat(inst(31), inst(19, 12), inst(20), inst(30, 21), 0.U(1.W)), XLEN)
 
   // 特殊指令检测
-  val is_lui = inst(31, 25) === "b0001010".U
+  val is_lui   = inst(6, 0) === "b0110111".U
+  val is_auipc = inst(6, 0) === "b0010111".U
 
   // 指令类型判断
   val isR = instrType === InstrR
@@ -70,7 +67,7 @@ class DecodeUnit extends Module with HasInstrType {
   // 选择立即数
   val imm = Mux1H(
     Seq(
-      isI -> Mux(inst(24), imm_i_unsigned, imm_i_signed),
+      isI -> imm_i,
       isS -> imm_s,
       isB -> imm_b,
       isU -> imm_u,
@@ -84,15 +81,15 @@ class DecodeUnit extends Module with HasInstrType {
       isR -> rd,
       isI -> rd,
       isU -> rd,
-      isJ -> Mux(fuOpType === BRUOpType.bl, 1.U, rd)
+      isJ -> rd
     )
   )
 
   val src1_raddr = rs1
-  val src2_raddr = Mux(isR, rs2, Mux(isS || isB, rd, 0.U))
+  val src2_raddr = Mux(isR || isB, rs2, Mux(isS, rd, 0.U))
 
   val reg_wen  = (isR || isI || isU || (isJ && fuOpType =/= BRUOpType.b))
-  val src1_ren = (isR || isI || isS || isB || isJ)
+  val src1_ren = (isR || isI || isS || isB || (isJ && fuOpType === BRUOpType.jirl))
   val src2_ren = (isR || isS || isB)
 
   // 寄存器读取
@@ -126,12 +123,13 @@ class DecodeUnit extends Module with HasInstrType {
   info.valid      := valid && !isN
   info.fusel      := fuType
   info.imm        := imm
+  info.cheat      := fuOpType === ALUOpType.xor
   info.diffout    := DontCare
 
   // 选择正确的源操作数
   val src1_select_reg  = src1_ren
   val src1_select_zero = !src1_ren && is_lui
-  val src1_select_pc   = !src1_ren && !is_lui
+  val src1_select_pc   = !src1_ren && is_auipc
 
   val src1_data_final = Mux1H(
     Seq(

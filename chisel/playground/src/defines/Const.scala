@@ -45,8 +45,7 @@ trait SRAMConst extends Constants {
 object Const extends Constants with SRAMConst
 
 object Instructions extends HasInstrType with CoreParameter {
-  // def NOP           = 0x00000013.U // riscv
-  def NOP           = 0x02800000.U // loongarch
+  def NOP           = 0x00000013.U // RISC-V ADDI x0, x0, 0
   val DecodeDefault = List(InstrN, FuType.alu, ALUOpType.add)
   def DecodeTable   = RVIInstr.table
 }

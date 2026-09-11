@@ -16,6 +16,7 @@
 #include <stdio.h>
 
 bool running = true;
+bool perf_once = false;
 bool run_riscv_test = false;
 bool dump_pc_history = false;
 bool print_pc = false;
@@ -34,6 +35,7 @@ long sim_time = 1e8;
 
 long long total_cycle = 0;
 long long total_instr = 0;
+long long max_instr = -1;
 
 VerilatedFstC fst;
 
@@ -290,6 +292,8 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         else if (delay-- == 0)
           running = false;
       }
+      if (max_instr > 0 && total_instr >= max_instr)
+        running = false;
       // ==========================
       if (has_delayslot) {
         if (delayslot_cnt > 0)
@@ -470,6 +474,8 @@ int main(int argc, char **argv, char **env) {
       run_mode = RISCV_TEST;
     } else if (strcmp(argv[i], "-perf") == 0) {
       perf_counter = true;
+    } else if (strcmp(argv[i], "-max-instr") == 0 && i + 1 < argc) {
+      max_instr = strtoll(argv[++i], nullptr, 0);
     } else if (strcmp(argv[i], "-pc") == 0) // 打印历史PC
     {
       dump_pc_history = true;

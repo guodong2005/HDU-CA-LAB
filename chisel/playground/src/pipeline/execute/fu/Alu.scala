@@ -22,9 +22,7 @@ class Alu extends Module {
     is(ALUOpType.sub) { io.result := (io.src_info.src1_data - io.src_info.src2_data)(31, 0) } // SUB
     is(ALUOpType.and) { io.result := (io.src_info.src1_data & io.src_info.src2_data)(31, 0) } // AND
     is(ALUOpType.or) { io.result := (io.src_info.src1_data | io.src_info.src2_data)(31, 0) } // OR
-    is(ALUOpType.xor) {
-      io.result := Mux(io.src_info.src1_data === io.src_info.src2_data, 1.U(XLEN.W), 0.U(XLEN.W))
-    } // XOR
+    is(ALUOpType.xor) { io.result := io.src_info.src1_data ^ io.src_info.src2_data } // XOR
     is(ALUOpType.nor) { io.result := (~(io.src_info.src1_data | io.src_info.src2_data))(31, 0) } // NOR
     is(ALUOpType.slt) { io.result := (io.src_info.src1_data.asSInt < io.src_info.src2_data.asSInt) } // SLT (signed)
     is(ALUOpType.sltu) { io.result := (io.src_info.src1_data.asUInt < io.src_info.src2_data).asUInt } // SLTU (unsigned)

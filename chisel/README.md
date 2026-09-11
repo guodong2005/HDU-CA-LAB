@@ -31,6 +31,11 @@ To generate Verilog:
 make verilog
 ```
 
+The CPU ISA baseline is RV32I + RV32M with minimal Zicsr support. The
+instructions are defined in `playground/src/defines/isa/RVI.scala`. Run
+`make rv32-smoke` to build the bare-metal smoke image used by the Verilator
+differential regression harness.
+
 ## Change FIRRTL Compiler
 
 You can change the FIRRTL compiler between SFC (Scala-based FIRRTL compiler) and

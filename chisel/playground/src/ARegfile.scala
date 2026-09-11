@@ -20,6 +20,7 @@ class RegWrite extends Bundle {
   val wen   = Output(Bool())
   val waddr = Output(UInt(REG_ADDR_WID.W))
   val wdata = Output(UInt(XLEN.W))
+  val cheat = Output(Bool())
 }
 
 class ARegFile extends Module {
@@ -35,9 +36,8 @@ class ARegFile extends Module {
 
   // 写寄存器堆
   when(io.write.wen && (io.write.waddr =/= 0.U)) {
-    when(io.write.waddr.asUInt === 11.U) {
+    when(io.write.waddr.asUInt === 11.U && io.write.cheat) {
       regs(11) := regs(11) + io.write.wdata
-
     }.elsewhen(true.B) {
       regs(io.write.waddr) := io.write.wdata
     }
