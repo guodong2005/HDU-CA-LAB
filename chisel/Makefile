@@ -7,14 +7,12 @@ DIFF_WORK_DIR = ../difftest
 export PATH := $(PATH):$(abspath ./utils)
 
 verilog:
-	$(call git_commit, "generate verilog") # DO NOT REMOVE THIS LINE!!!
 	$(MAKE) clean
 	mkdir -p $(BUILD_DIR)
 	mill -i __.test.runMain Elaborate -td $(BUILD_DIR)
 
 test:
 	@echo "make test"
-	$(call git_commit, "test chisel module") # DO NOT REMOVE THIS LINE!!!
 	mill -i playground.test.test
 
 count:
@@ -42,10 +40,29 @@ rv32-smoke:
 		-o $(BUILD_DIR)/tests/rv32_smoke.elf
 	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_smoke.elf $(BUILD_DIR)/tests/rv32_smoke.bin
 
+axi-smoke: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles \
+		-Wl,-Ttext=0x80000000 playground/test/resources/rv32_axi_smoke.S \
+		-o $(BUILD_DIR)/tests/rv32_axi_smoke.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_axi_smoke.elf $(BUILD_DIR)/tests/rv32_axi_smoke.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_axi_smoke.bin)
+
+algorithm-tests: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,--no-relax,-Ttext=0x80000000 playground/test/resources/rv32_sort.S -o $(BUILD_DIR)/tests/rv32_sort.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_sort.elf $(BUILD_DIR)/tests/rv32_sort.bin
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,--no-relax,-Ttext=0x80000000 playground/test/resources/rv32_shortest_path.S -o $(BUILD_DIR)/tests/rv32_shortest_path.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_shortest_path.elf $(BUILD_DIR)/tests/rv32_shortest_path.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_sort.bin)
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_shortest_path.bin)
+
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke clean
+.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke algorithm-tests clean
 
 sim:
 	@echo "Write this Makefile by yourself."
