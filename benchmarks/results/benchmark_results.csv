@@ -18,5 +18,13 @@ vector,shift_64,64,normal,PASS,91,16,5.687500,17,0,17,0.000000,54,0,0,0,0,16,0,0
 cube,sequential,6 tasks,normal,PASS,3275,42,77.976190,43,0,43,0.000000,132,0,0,0,0,24,6,3072,3072
 cube,overlapped,6 tasks,normal,PASS,580,42,13.809524,43,0,43,0.000000,132,0,0,0,0,24,6,537,362
 axi,sequential_memory_backpressure,64 stores/loads,backpressure,PASS,3384,387,8.744186,515,0,515,0.000000,1840,48,452,32,32,0,0,0,0
+cube_parallel,sequential_1,1,normal,PASS,530,2,265.000000,3,0,3,0.000000,12,0,0,0,0,0,1,512,512
+cube_parallel,overlapped_1,1,normal,PASS,530,2,265.000000,3,0,3,0.000000,12,0,0,0,0,0,1,512,512
+cube_parallel,sequential_2,2,normal,PASS,1049,4,262.250000,5,0,5,0.000000,18,0,0,0,0,0,2,1024,1024
+cube_parallel,overlapped_2,2,normal,PASS,540,4,135.000000,5,0,5,0.000000,18,0,0,0,0,0,2,517,512
+cube_parallel,sequential_3,3,normal,PASS,1568,6,261.333333,7,0,7,0.000000,24,0,0,0,0,0,3,1536,1536
+cube_parallel,overlapped_3,3,normal,PASS,550,6,91.666667,7,0,7,0.000000,24,0,0,0,0,0,3,522,512
+cube_parallel,sequential_6,6,normal,PASS,3125,12,260.416667,13,0,13,0.000000,42,0,0,0,0,0,6,3072,3072
+cube_parallel,overlapped_6,6,normal,PASS,580,12,48.333333,13,0,13,0.000000,42,0,0,0,0,0,6,537,512
 store_fifo,depth4_vs_disabled,not implemented,unavailable,UNAVAILABLE,,,,,,,,,,,,,,,,
 uart,rv32_mmio_output,no RV32 UART port,unavailable,UNAVAILABLE,,,,,,,,,,,,,,,,

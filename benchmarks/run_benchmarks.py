@@ -29,6 +29,9 @@ CASES += [
     ("cube", "overlapped", ROOT/"chisel/playground/test/resources/rv32_heterogeneous_overlap.S", "normal", "6 tasks"),
     ("axi", "sequential_memory_backpressure", ROOT/"benchmarks/programs/sequential_memory.S", "backpressure", "64 stores/loads"),
 ]
+for n in (1, 2, 3, 6):
+    CASES += [("cube_parallel", f"sequential_{n}", ROOT/f"benchmarks/programs/cube_tasks_{n}_sequential.S", "normal", str(n)),
+              ("cube_parallel", f"overlapped_{n}", ROOT/f"benchmarks/programs/cube_tasks_{n}_overlap.S", "normal", str(n))]
 
 
 def run(cmd, **kw):
@@ -67,12 +70,34 @@ def one(category, name, source, option, size):
     return values
 
 
+def cube_trace_summary(binary):
+    r = run(["make", "-C", "difftest", "sim", f"PROGRAM={binary}", "OPTIONS=--heterogeneous-trace"], timeout=600)
+    if r.returncode or "DIFFTEST PASS:" not in r.stdout:
+        raise RuntimeError(f"cube trace failed (rc={r.returncode}):\n{r.stdout}")
+    rows = []
+    for line in r.stdout.splitlines():
+        if not line.startswith("TRACE "):
+            continue
+        fields = dict(item.split("=", 1) for item in line.split()[1:])
+        rows.append({k: int(v, 16) if k in {"pc", "instr"} else int(v) for k, v in fields.items()})
+    launches = [r["cycle"] for r in rows if r.get("cube_launch")]
+    done = [r["cycle"] for r in rows if r.get("cube_done")]
+    waits = [r for r in rows if r.get("cube_wait_stall")]
+    if not rows or not launches or not done:
+        raise RuntimeError("cube trace missing launch or done events")
+    return {"cycles": max(r["cycle"] for r in rows) + 1,
+            "launch_cycles": launches, "done_cycles": done,
+            "launch_interval": launches[1] - launches[0] if len(launches) > 1 else 0,
+            "wait_stall_cycles": len(waits)}
+
+
 def main():
     build()
     rows = []
     for case in CASES:
         print(f"\n=== {case[0]}/{case[1]} ===", flush=True)
         rows.append(one(*case))
+    cube_trace = cube_trace_summary(BIN/"cube_parallel_overlapped_6.bin")
     rows += [
         {"category": "store_fifo", "benchmark": "depth4_vs_disabled", "input_size": "not implemented", "mode": "unavailable", "correctness": "UNAVAILABLE"},
         {"category": "uart", "benchmark": "rv32_mmio_output", "input_size": "no RV32 UART port", "mode": "unavailable", "correctness": "UNAVAILABLE"},
@@ -83,7 +108,7 @@ def main():
               "cube_launches", "cube_busy_cycles", "cube_wait_cycles"]
     csv_path = OUT/"benchmark_results.csv"
     with csv_path.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
+        w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n"); w.writeheader()
         for row in rows: w.writerow({k: row.get(k, "") for k in fields})
     report = OUT/"benchmark_report.md"
     by = {(r["category"], r["benchmark"]): r for r in rows}
@@ -100,7 +125,11 @@ def main():
     for n in (8, 16, 32, 64):
         gather, shift = by[("vector", f"gather_{n}")], by[("vector", f"shift_{n}")]
         lines.append(f"| Vector Gather/Shift {n} elements | {gather['cycles']} | {shift['cycles']} | {float(gather['cycles'])/float(shift['cycles']):.6f} | PASS/PASS | 当前实现两条路径周期相同 |")
+    for n in (1, 2, 3, 6):
+        seq_n, ov_n = by[("cube_parallel", f"sequential_{n}")], by[("cube_parallel", f"overlapped_{n}")]
+        lines.append(f"| Cube parallelism {n} tasks | {seq_n['cycles']} | {ov_n['cycles']} | {float(seq_n['cycles'])/float(ov_n['cycles']):.6f} | PASS/PASS | 任务数变化，6-engine 集群 |")
     lines += ["", "## AXI 与不可用项目", "", "- AXI 反压：`axi/sequential_memory_backpressure` 通过逐条 difftest；记录了 AR/AW/W 被 ready 拉低时的 stall 周期。", "- Store FIFO：源码中没有 Store FIFO 实现或深度配置，不能比较深度 4 与禁用状态，CSV 明确标记 `UNAVAILABLE`。", "- 2 KiB I-Cache：当前顶层实例是 `AxiCache(4)`，实际容量为 16 bytes 且为统一 Cache；本报告不把它标成 2 KiB I-Cache。", "- UART：当前 RV32 `core_top` 没有 UART MMIO 端口；仓库中的 UART 属于 LoongArch 仿真路径，CSV 明确标记 `UNAVAILABLE`。", "- LUT、寄存器、BRAM、DSP：未运行 FPGA 综合工具，因此没有资源估算。", "", "## 复现", "", "```bash", "python3 benchmarks/run_benchmarks.py", "```", ""]
+    lines += ["", "## Cube 时序 trace", "", f"- 6-task overlapped trace cycles: {cube_trace['cycles']}", f"- launch cycles: {','.join(map(str, cube_trace['launch_cycles']))}", f"- first launch interval: {cube_trace['launch_interval']} cycles", f"- done cycles: {','.join(map(str, cube_trace['done_cycles']))}", f"- cube.wait stall cycles: {cube_trace['wait_stall_cycles']}", "", "## 复现", "", "```bash", "python3 benchmarks/run_benchmarks.py", "```", ""]
     report.write_text("\n".join(lines))
     print(f"WROTE {csv_path}")
     print(f"WROTE {report}")
