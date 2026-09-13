@@ -12,8 +12,8 @@
 class AxiMemory {
  public:
   explicit AxiMemory(uint32_t base = 0x80000000, size_t bytes = 16 * 1024 * 1024,
-                     unsigned read_delay = 2)
-      : base_(base), mem_(bytes, 0), read_delay_(read_delay) {}
+                     unsigned read_delay = 2, bool backpressure = false)
+      : base_(base), mem_(bytes, 0), read_delay_(read_delay), backpressure_(backpressure) {}
 
   bool load_binary(const std::string& path, uint32_t address = 0x80000000) {
     std::ifstream file(path, std::ios::binary);
@@ -24,7 +24,7 @@ class AxiMemory {
     return write_bytes(address, data.data(), data.size());
   }
   void read_request(bool valid, bool& ready, uint32_t addr, uint8_t id) {
-    ready = !read_pending_;
+    ready = !read_pending_ && (!backpressure_ || cycle_ % 3 != 0);
     if (valid && ready) { read_pending_ = true; read_addr_ = addr; read_id_ = id; countdown_ = read_delay_; }
   }
   void read_response(bool& valid, uint32_t& data, uint8_t& id, bool& last) {
@@ -35,22 +35,22 @@ class AxiMemory {
   }
   void accept_read_response(bool fire) { if (fire) read_pending_ = false; }
   void accept_aw(bool valid, bool& ready, uint32_t addr, uint8_t id) {
-    ready = !aw_pending_;
+    ready = !aw_pending_ && (!backpressure_ || cycle_ % 4 != 1);
     if (valid && ready) { aw_pending_ = true; aw_addr_ = addr; aw_id_ = id; }
   }
   void accept_w(bool valid, bool& ready, uint32_t data, uint8_t strb, uint8_t id) {
-    ready = aw_pending_ && !w_pending_;
+    ready = aw_pending_ && !w_pending_ && (!backpressure_ || cycle_ % 5 != 2);
     if (valid && ready) {
       w_pending_ = true; w_data_ = data; w_strb_ = strb; w_id_ = id;
       store_word(aw_addr_, data, strb); b_id_ = aw_id_; b_pending_ = true;
       aw_pending_ = false; w_pending_ = false;
     }
   }
-  void write_response(bool& valid, uint8_t& id) { valid = b_pending_; id = b_id_; }
+  void write_response(bool& valid, uint8_t& id) { valid = b_pending_ && (!backpressure_ || cycle_ % 3 != 1); id = b_id_; }
   void accept_write_response(bool fire) { if (fire) b_pending_ = false; }
-  void tick() { if (read_pending_ && countdown_) --countdown_; }
+  void tick() { if (read_pending_ && countdown_) --countdown_; ++cycle_; }
  private:
-  uint32_t base_; std::vector<uint8_t> mem_; unsigned read_delay_; unsigned countdown_ = 0;
+  uint32_t base_; std::vector<uint8_t> mem_; unsigned read_delay_; unsigned countdown_ = 0; unsigned cycle_ = 0; bool backpressure_ = false;
   bool read_pending_ = false; uint32_t read_addr_ = 0; uint8_t read_id_ = 0;
   bool aw_pending_ = false, w_pending_ = false, b_pending_ = false;
   uint32_t aw_addr_ = 0, w_data_ = 0; uint8_t aw_id_ = 0, w_id_ = 0, b_id_ = 0, w_strb_ = 0;

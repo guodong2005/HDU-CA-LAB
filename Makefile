@@ -42,3 +42,42 @@ _default:
 	@echo "Please run 'make' under subprojects."
 
 .PHONY: .git_commit .clean_index _default
+
+ifeq ($(notdir $(CURDIR)),HDU-CA-LAB)
+.PHONY: test axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test rv32-check
+
+test:
+	$(MAKE) -C chisel test
+
+axi-smoke:
+	$(MAKE) -C chisel axi-smoke
+
+axi-backpressure:
+	$(MAKE) -C chisel axi-backpressure
+
+algorithm-tests:
+	$(MAKE) -C chisel algorithm-tests
+
+btree-test:
+	$(MAKE) -C chisel btree-test
+
+rv32-m-test:
+	$(MAKE) -C chisel rv32-m-test
+
+pipeline-test:
+	$(MAKE) -C chisel pipeline-test
+
+illegal-test:
+	$(MAKE) -C chisel illegal-test
+
+rv32-check:
+	$(MAKE) test
+	$(MAKE) axi-smoke
+	$(MAKE) axi-backpressure
+	$(MAKE) -C difftest difftest-red PROGRAM=$(abspath chisel/build/tests/rv32_axi_smoke.bin)
+	$(MAKE) rv32-m-test
+	$(MAKE) pipeline-test
+	$(MAKE) illegal-test
+	$(MAKE) algorithm-tests
+	$(MAKE) btree-test
+endif

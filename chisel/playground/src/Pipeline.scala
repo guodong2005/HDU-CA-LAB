@@ -19,6 +19,7 @@ class ScalarControl extends Bundle {
   val writeLink = Bool()
   val writeUpperImmediate = Bool()
   val writePcRelative = Bool()
+  val illegal = Bool()
 }
 
 /** IF/ID boundary. */
@@ -64,28 +65,4 @@ class MemWbPayload extends Bundle {
   val aluResult = UInt(32.W)
   val loadData = UInt(32.W)
   val control = new ScalarControl
-}
-
-/** One control point for the in-order pipeline. */
-class PipelineControl extends Bundle {
-  val stallFetch = Bool()
-  val stallDecode = Bool()
-  val stallExecute = Bool()
-  val flushFetch = Bool()
-  val flushDecode = Bool()
-  val flushExecute = Bool()
-}
-
-object PipelineControl {
-  /** Default control is no stall and no flush. */
-  def defaults(): PipelineControl = {
-    val control = Wire(new PipelineControl)
-    control.stallFetch := false.B
-    control.stallDecode := false.B
-    control.stallExecute := false.B
-    control.flushFetch := false.B
-    control.flushDecode := false.B
-    control.flushExecute := false.B
-    control
-  }
 }

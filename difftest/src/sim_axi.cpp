@@ -6,9 +6,10 @@
 #include <cstring>
 
 int main(int argc, char** argv) {
-  if (argc < 2) { std::fprintf(stderr, "usage: %s program.bin [--inject-difftest-error]\n", argv[0]); return 2; }
+  if (argc < 2) { std::fprintf(stderr, "usage: %s program.bin [--inject-difftest-error|--backpressure]\n", argv[0]); return 2; }
   const bool inject_error = argc > 2 && std::strcmp(argv[2], "--inject-difftest-error") == 0;
-  Verilated::commandArgs(argc, argv); Vcore_top top; AxiMemory mem(0x80000000, 16*1024*1024, 2); Rv32Reference ref;
+  const bool backpressure = argc > 2 && std::strcmp(argv[2], "--backpressure") == 0;
+  Verilated::commandArgs(argc, argv); Vcore_top top; AxiMemory mem(0x80000000, 16*1024*1024, 2, backpressure); Rv32Reference ref;
   if (!mem.load_binary(argv[1]) || !ref.load_binary(argv[1])) { std::fprintf(stderr, "cannot load %s\n", argv[1]); return 2; }
   top.reset = 1; top.io_mei = top.io_msi = top.io_mti = top.io_sei = 0; top.clock = 0; top.eval();
   unsigned commits = 0;
@@ -28,7 +29,9 @@ int main(int argc, char** argv) {
     top.io_axi_ar_ready = ar_ready; top.io_axi_r_valid = r_valid; top.io_axi_r_bits_data = r_data; top.io_axi_r_bits_id = r_id; top.io_axi_r_bits_last = r_last; top.io_axi_r_bits_resp = 0;
     top.io_axi_aw_ready = aw_ready; top.io_axi_w_ready = w_ready; top.io_axi_b_valid = b_valid; top.io_axi_b_bits_id = b_id; top.io_axi_b_bits_resp = 0;
     top.clock = 1; top.eval();
+    if (top.io_debug_illegal) { std::fprintf(stderr, "ILLEGAL instruction reported by RTL\\n"); return 1; }
     if (top.io_debug_commit) {
+      if (top.io_debug_instr == 0x00100073u) { std::fprintf(stderr, "DIFFTEST FAIL: EBREAK was committed as a normal instruction\\n"); return 1; }
       RefCommit expected;
       if (!ref.step(expected)) { std::fprintf(stderr, "DIFFTEST FAIL: %s\n", ref.error().c_str()); return 1; }
       if (inject_error && commits == 0) expected.wdata ^= 1;

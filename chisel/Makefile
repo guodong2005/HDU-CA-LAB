@@ -12,8 +12,8 @@ verilog:
 	mill -i __.test.runMain Elaborate -td $(BUILD_DIR)
 
 test:
-	@echo "make test"
 	mill -i playground.test.test
+	$(MAKE) pipeline-test
 
 count:
 	find ./playground/ -name "*.scala" | xargs wc -l 
@@ -49,6 +49,13 @@ axi-smoke: verilog
 	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
 	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_axi_smoke.bin)
 
+axi-backpressure: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_axi_smoke.S -o $(BUILD_DIR)/tests/rv32_axi_smoke.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_axi_smoke.elf $(BUILD_DIR)/tests/rv32_axi_smoke.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_axi_smoke.bin) OPTIONS=--backpressure
+
 algorithm-tests: verilog
 	mkdir -p $(BUILD_DIR)/tests
 	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,--no-relax,-Ttext=0x80000000 playground/test/resources/rv32_sort.S -o $(BUILD_DIR)/tests/rv32_sort.elf
@@ -66,10 +73,31 @@ btree-test: verilog
 	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
 	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_btree.bin)
 
+rv32-m-test: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_m.S -o $(BUILD_DIR)/tests/rv32_m.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_m.elf $(BUILD_DIR)/tests/rv32_m.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_m.bin)
+
+pipeline-test: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_pipeline.S -o $(BUILD_DIR)/tests/rv32_pipeline.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_pipeline.elf $(BUILD_DIR)/tests/rv32_pipeline.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_pipeline.bin)
+
+illegal-test: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_illegal.S -o $(BUILD_DIR)/tests/rv32_illegal.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_illegal.elf $(BUILD_DIR)/tests/rv32_illegal.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	@if $(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_illegal.bin) >/tmp/rv32-illegal.$$$$.log 2>&1; then cat /tmp/rv32-illegal.$$$$.log; rm -f /tmp/rv32-illegal.$$$$.log; echo "FAIL: illegal instruction was accepted"; exit 1; else grep -q "ILLEGAL instruction reported by RTL" /tmp/rv32-illegal.$$$$.log && echo "PASS: illegal instruction was reported" || { cat /tmp/rv32-illegal.$$$$.log; rm -f /tmp/rv32-illegal.$$$$.log; exit 1; }; rm -f /tmp/rv32-illegal.$$$$.log; fi
+
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke algorithm-tests btree-test clean
+.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test clean
 
 sim:
 	@echo "Write this Makefile by yourself."
