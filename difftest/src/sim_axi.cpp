@@ -7,8 +7,12 @@
 
 int main(int argc, char** argv) {
   if (argc < 2) { std::fprintf(stderr, "usage: %s program.bin [--inject-difftest-error|--backpressure]\n", argv[0]); return 2; }
-  const bool inject_error = argc > 2 && std::strcmp(argv[2], "--inject-difftest-error") == 0;
-  const bool backpressure = argc > 2 && std::strcmp(argv[2], "--backpressure") == 0;
+  bool inject_error = false, backpressure = false, trace = false;
+  for (int i = 2; i < argc; ++i) {
+    inject_error |= std::strcmp(argv[i], "--inject-difftest-error") == 0;
+    backpressure |= std::strcmp(argv[i], "--backpressure") == 0;
+    trace |= std::strcmp(argv[i], "--heterogeneous-trace") == 0;
+  }
   Verilated::commandArgs(argc, argv); Vcore_top top; AxiMemory mem(0x80000000, 16*1024*1024, 2, backpressure); Rv32Reference ref;
   if (!mem.load_binary(argv[1]) || !ref.load_binary(argv[1])) { std::fprintf(stderr, "cannot load %s\n", argv[1]); return 2; }
   top.reset = 1; top.io_mei = top.io_msi = top.io_mti = top.io_sei = 0; top.clock = 0; top.eval();
@@ -29,6 +33,13 @@ int main(int argc, char** argv) {
     top.io_axi_ar_ready = ar_ready; top.io_axi_r_valid = r_valid; top.io_axi_r_bits_data = r_data; top.io_axi_r_bits_id = r_id; top.io_axi_r_bits_last = r_last; top.io_axi_r_bits_resp = 0;
     top.io_axi_aw_ready = aw_ready; top.io_axi_w_ready = w_ready; top.io_axi_b_valid = b_valid; top.io_axi_b_bits_id = b_id; top.io_axi_b_bits_resp = 0;
     top.clock = 1; top.eval();
+    if (trace) {
+      std::printf("TRACE cycle=%u commit=%d pc=%08x instr=%08x vector_issue=%d vector_write=%d vector_vd=%u cube_launch=%d cube_busy=%d cube_done=%d cube_wait_stall=%d stall_reason=%u\n",
+                  cycle, top.io_debug_commit, top.io_debug_pc, top.io_debug_instr,
+                  top.io_debug_vector_issue, top.io_debug_vector_write, top.io_debug_vector_vd,
+                  top.io_debug_cube_launch, top.io_debug_cube_busy, top.io_debug_cube_done,
+                  top.io_debug_cube_wait_stall, top.io_debug_stall_reason);
+    }
     if (top.io_debug_illegal) { std::fprintf(stderr, "ILLEGAL instruction reported by RTL\\n"); return 1; }
     if (top.io_debug_commit) {
       if (top.io_debug_instr == 0x00100073u) { std::fprintf(stderr, "DIFFTEST FAIL: EBREAK was committed as a normal instruction\\n"); return 1; }

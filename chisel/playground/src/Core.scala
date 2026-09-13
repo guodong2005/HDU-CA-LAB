@@ -10,6 +10,9 @@ class Core extends Module {
     val axi = new AxiMaster
     val debug_commit = Output(Bool()); val debug_pc = Output(UInt(32.W)); val debug_instr = Output(UInt(32.W))
     val debug_rd = Output(UInt(5.W)); val debug_wdata = Output(UInt(32.W)); val debug_wen = Output(Bool()); val debug_illegal = Output(Bool())
+    val debug_vector_issue = Output(Bool()); val debug_vector_write = Output(Bool()); val debug_vector_vd = Output(UInt(3.W))
+    val debug_cube_launch = Output(Bool()); val debug_cube_busy = Output(Bool()); val debug_cube_done = Output(Bool())
+    val debug_cube_wait_stall = Output(Bool()); val debug_stall_reason = Output(UInt(4.W))
     val halted = Output(Bool())
   })
 
@@ -26,6 +29,18 @@ class Core extends Module {
   val memRd = Reg(UInt(5.W)); val memPc = Reg(UInt(32.W)); val memInstr = Reg(UInt(32.W))
   val memSize = Reg(UInt(2.W)); val memSigned = Reg(Bool()); val memIsLoad = Reg(Bool())
   val draining = RegInit(false.B); val halted = RegInit(false.B); val illegalSeen = RegInit(false.B)
+  val vectorCore = Module(new VectorCore)
+  val cubeCore = Module(new CubeCore)
+  vectorCore.io.testWriteEnable := false.B
+  vectorCore.io.testWriteAddr := 0.U
+  vectorCore.io.testWriteData := VecInit(Seq.fill(4)(0.U(32.W)))
+  vectorCore.io.testReadAddr := 0.U
+  cubeCore.io.launch := false.B
+  for (i <- 0 until 4; j <- 0 until 4) {
+    cubeCore.io.A(i)(j) := vectorCore.io.allData(i)(j)(15, 0).asSInt
+    cubeCore.io.B(i)(j) := vectorCore.io.allData(i + 4)(j)(15, 0).asSInt
+    cubeCore.io.CIn(i)(j) := 0.S(32.W)
+  }
 
   def regRead(r: UInt): UInt = Mux(r === 0.U, 0.U, regs(r))
   val idOpcode = ifid.instr(6,0); val idFunct3 = ifid.instr(14,12); val idFunct7 = ifid.instr(31,25)
@@ -37,10 +52,15 @@ class Core extends Module {
   val jimm = Cat(Fill(11, ifid.instr(31)), ifid.instr(31), ifid.instr(19,12), ifid.instr(20), ifid.instr(30,21), 0.U)
   val idCtrl = WireDefault(0.U.asTypeOf(new ScalarControl))
   val idImm = WireDefault(0.U(32.W))
-  val idKnownOpcode = idOpcode === "b0110111".U || idOpcode === "b0010111".U || idOpcode === "b0010011".U || idOpcode === "b0110011".U || idOpcode === "b0000011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U || idOpcode === "b1101111".U || idOpcode === "b1100111".U || idOpcode === "b0001111".U || idOpcode === "b1110011".U
-  val idLegalFunct = Mux(idOpcode === "b0001111".U, idFunct3===0.U || idFunct3===1.U, Mux(idOpcode === "b1110011".U, ifid.instr === "h00100073".U, Mux(idOpcode === "b0010011".U, idFunct3 <= 7.U && (idFunct3 =/= 1.U || idFunct7 === 0.U) && (idFunct3 =/= 5.U || idFunct7 === 0.U || idFunct7 === 32.U), Mux(idOpcode === "b0110011".U, (idFunct7 === 0.U || idFunct7 === 1.U || (idFunct7 === 32.U && (idFunct3 === 0.U || idFunct3 === 5.U))), Mux(idOpcode === "b0000011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===2.U||idFunct3===4.U||idFunct3===5.U, Mux(idOpcode === "b0100011".U, idFunct3<=2.U, Mux(idOpcode === "b1100011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===4.U||idFunct3===5.U||idFunct3===6.U||idFunct3===7.U, Mux(idOpcode === "b1100111".U, idFunct3===0.U, true.B))))))))
+  val scalarKnownOpcode = idOpcode === "b0110111".U || idOpcode === "b0010111".U || idOpcode === "b0010011".U || idOpcode === "b0110011".U || idOpcode === "b0000011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U || idOpcode === "b1101111".U || idOpcode === "b1100111".U || idOpcode === "b0001111".U || idOpcode === "b1110011".U
+  val idKnownOpcode = scalarKnownOpcode || idOpcode === CustomOpcode.Vector || idOpcode === CustomOpcode.Cube
+  val scalarLegalFunct = Mux(idOpcode === "b0001111".U, idFunct3===0.U || idFunct3===1.U, Mux(idOpcode === "b1110011".U, ifid.instr === "h00100073".U, Mux(idOpcode === "b0010011".U, idFunct3 <= 7.U && (idFunct3 =/= 1.U || idFunct7 === 0.U) && (idFunct3 =/= 5.U || idFunct7 === 0.U), Mux(idOpcode === "b0110011".U, (idFunct7 === 0.U || idFunct7 === 1.U || (idFunct7 === 32.U && (idFunct3 === 0.U || idFunct3 === 5.U))), Mux(idOpcode === "b0000011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===2.U||idFunct3===4.U||idFunct3===5.U, Mux(idOpcode === "b0100011".U, idFunct3<=2.U, Mux(idOpcode === "b1100011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===4.U||idFunct3===5.U||idFunct3===6.U||idFunct3===7.U, Mux(idOpcode === "b1100111".U, idFunct3===0.U, true.B))))))))
+  val customLegalFunct = Mux(idOpcode === CustomOpcode.Vector, idFunct3 <= CustomOpcode.VGather, idFunct3 === CustomOpcode.CubeMmaAsync || idFunct3 === CustomOpcode.CubeWait)
+  val idLegalFunct = Mux(idOpcode === CustomOpcode.Vector || idOpcode === CustomOpcode.Cube, customLegalFunct, scalarLegalFunct)
   val idIllegal = ifid.valid && (!idKnownOpcode || !idLegalFunct)
+  val idCustomIllegal = idIllegal && (idOpcode === CustomOpcode.Vector || idOpcode === CustomOpcode.Cube)
   idCtrl.illegal := idIllegal
+  idCtrl.customIllegal := idCustomIllegal
   val idUsesRs1 = idOpcode === "b0010011".U || idOpcode === "b0110011".U || idOpcode === "b0000011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U || idOpcode === "b1100111".U
   val idUsesRs2 = idOpcode === "b0110011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U
   switch(idOpcode) {
@@ -53,6 +73,8 @@ class Core extends Module {
     is("b1100011".U) { idCtrl.branch:=true.B; idCtrl.branchFunct3:=idFunct3; idImm:=bimm }
     is("b1101111".U) { idCtrl.regWrite:=true.B; idCtrl.jump:=true.B; idCtrl.writeLink:=true.B; idImm:=jimm }
     is("b1100111".U) { idCtrl.regWrite:=true.B; idCtrl.jump:=true.B; idCtrl.aluSrcImmediate:=true.B; idCtrl.writeLink:=true.B; idImm:=iimm }
+    is(CustomOpcode.Vector) { idCtrl.isVector := true.B; idCtrl.vectorOp := idFunct3(1,0) }
+    is(CustomOpcode.Cube) { idCtrl.isCubeLaunch := idFunct3 === CustomOpcode.CubeMmaAsync; idCtrl.isCubeWait := idFunct3 === CustomOpcode.CubeWait }
   }
   val loadUse = ifid.valid && idex.valid && idex.control.memRead && idex.rd =/= 0.U && ((idUsesRs1 && idex.rd===idRs1) || (idUsesRs2 && idex.rd===idRs2))
   val hazardStall = loadUse
@@ -93,13 +115,32 @@ class Core extends Module {
   val memoryBusy = owner =/= fReq || exmem.valid && (exmem.control.memRead||exmem.control.memWrite)
   val canPipe = !halted && !memoryBusy && !draining
   val launchMem = canPipe && idex.valid && (idex.control.memRead || idex.control.memWrite)
+  val vectorBlocked = idex.valid && idex.control.isVector && !vectorCore.io.issue.ready
+  val cubeLaunchBlocked = idex.valid && idex.control.isCubeLaunch && !cubeCore.io.launchReady
+  val cubeWaitStall = idex.valid && idex.control.isCubeWait && cubeCore.io.busy
+  val customBlocked = vectorBlocked || cubeLaunchBlocked || cubeWaitStall
+  vectorCore.io.issue.valid := canPipe && idex.valid && idex.control.isVector && !customBlocked
+  vectorCore.io.issue.bits := idex.rd(2, 0)
+  vectorCore.io.op := idex.control.vectorOp
+  vectorCore.io.vs1 := idex.rs1(2, 0)
+  vectorCore.io.vs2 := idex.rs2(2, 0)
+  vectorCore.io.shamt := idex.rs2(1, 0)
+  cubeCore.io.launch := canPipe && idex.valid && idex.control.isCubeLaunch && !customBlocked
 
-  io.axi.ar.valid := owner===mReadReq || (owner===fReq && canPipe && !launchMem && !taken); io.axi.ar.bits:=0.U.asTypeOf(new AxiAR); io.axi.ar.bits.addr:=Mux(owner===mReadReq,memAddr&"hfffffffc".U,pc); io.axi.ar.bits.id:=0.U; io.axi.ar.bits.size:=2.U
-  io.axi.r.ready := owner===fWait || owner===mReadWait
+  io.axi.ar.valid := owner===mReadReq || (owner===fReq && canPipe && !customBlocked && !launchMem && !taken); io.axi.ar.bits:=0.U.asTypeOf(new AxiAR); io.axi.ar.bits.addr:=Mux(owner===mReadReq,memAddr&"hfffffffc".U,pc); io.axi.ar.bits.id:=0.U; io.axi.ar.bits.size:=2.U
+  io.axi.r.ready := (owner===fWait && !customBlocked) || owner===mReadWait
   io.axi.aw.valid := owner===mAw; io.axi.aw.bits:=0.U.asTypeOf(new AxiAW); io.axi.aw.bits.addr:=memAddr&"hfffffffc".U; io.axi.aw.bits.id:=1.U; io.axi.aw.bits.size:=2.U
   io.axi.w.valid := owner===mW; io.axi.w.bits:=0.U.asTypeOf(new AxiW); io.axi.w.bits.data:=memData; io.axi.w.bits.strb:=memStrb; io.axi.w.bits.id:=1.U; io.axi.w.bits.last:=true.B
   io.axi.b.ready:=owner===mB
   io.debug_commit:=false.B; io.debug_pc:=0.U; io.debug_instr:=0.U; io.debug_rd:=0.U; io.debug_wdata:=0.U; io.debug_wen:=false.B; io.halted:=halted; io.debug_illegal:=illegalSeen
+  io.debug_vector_issue := vectorCore.io.issue.fire
+  io.debug_vector_write := vectorCore.io.write
+  io.debug_vector_vd := vectorCore.io.writeVd
+  io.debug_cube_launch := cubeCore.io.launch && cubeCore.io.launchReady
+  io.debug_cube_busy := cubeCore.io.busy
+  io.debug_cube_done := cubeCore.io.done
+  io.debug_cube_wait_stall := cubeWaitStall
+  io.debug_stall_reason := Mux(cubeWaitStall, 3.U, Mux(cubeLaunchBlocked, 2.U, Mux(vectorBlocked, 1.U, Mux(hazardStall, 4.U, 0.U))))
 
   when(memwb.valid){when(memwb.control.regWrite&&memwb.rd=/=0.U){regs(memwb.rd):=Mux(memwb.control.memToReg,memwb.loadData,memwb.aluResult)};io.debug_commit:=true.B;io.debug_pc:=memwb.pc;io.debug_instr:=memwb.instr;io.debug_rd:=memwb.rd;io.debug_wdata:=Mux(memwb.control.memToReg,memwb.loadData,memwb.aluResult);io.debug_wen:=memwb.control.regWrite&&memwb.rd=/=0.U}
   memwb.valid:=false.B
@@ -111,13 +152,12 @@ class Core extends Module {
   when(owner===mAw&&io.axi.aw.fire){owner:=mW}; when(owner===mW&&io.axi.w.fire){owner:=mB}; when(owner===mB&&io.axi.b.fire){when(io.axi.b.bits.id===1.U&&io.axi.b.bits.resp===0.U){memwb.valid:=true.B;memwb.pc:=memPc;memwb.instr:=memInstr;memwb.control:=0.U.asTypeOf(new ScalarControl);exmem.valid:=false.B}.otherwise{illegalSeen:=true.B;draining:=true.B};owner:=fReq}
 
   when(canPipe){
-    when(exmem.valid && !exmem.control.memRead && !exmem.control.memWrite){
-      memwb.valid:=true.B; memwb.pc:=exmem.pc; memwb.instr:=exmem.instr; memwb.rd:=exmem.rd
+    when(exmem.valid && !exmem.control.memRead && !exmem.control.memWrite){memwb.valid:=true.B; memwb.pc:=exmem.pc; memwb.instr:=exmem.instr; memwb.rd:=exmem.rd
       memwb.aluResult:=exmem.aluResult; memwb.loadData:=0.U; memwb.control:=exmem.control
     }
-    when(!idex.valid){exmem.valid:=false.B}
-    when(launchMem){idex.valid:=false.B}.elsewhen(hazardStall){idex.valid:=false.B}.elsewhen(taken){pc:=target; ifid.valid:=false.B; idex.valid:=false.B}.otherwise{ idex.valid:=ifid.valid;idex.pc:=ifid.pc;idex.instr:=ifid.instr;idex.rs1:=idRs1;idex.rs2:=idRs2;idex.rd:=idRd;idex.rs1Data:=d1;idex.rs2Data:=d2;idex.immediate:=idImm;idex.control:=idCtrl; when(!fetchResponse){ifid.valid:=false.B} }
-    when(idex.valid && !idex.control.illegal && idex.instr =/= "h00100073".U){exmem.valid:=true.B;exmem.pc:=idex.pc;exmem.instr:=idex.instr;exmem.rd:=idex.rd;exmem.aluResult:=exResult;exmem.storeData:=exRs2;exmem.control:=idex.control;when(idex.control.memRead||idex.control.memWrite){memAddr:=exResult;memData:=exRs2 << (exResult(1,0) * 8.U);memPc:=idex.pc;memInstr:=idex.instr;memRd:=idex.rd;memSize:=Mux(idex.control.memRead,idex.control.loadSize,idex.control.storeSize);memSigned:=idex.control.loadSigned;memStrb:=Mux(idex.control.storeSize===0.U,1.U<<exResult(1,0),Mux(idex.control.storeSize===1.U,3.U<<Cat(exResult(1),0.U),15.U));owner:=Mux(idex.control.memRead,mReadReq,mAw)}}
+    exmem.valid := false.B
+    when(launchMem){idex.valid:=false.B}.elsewhen(customBlocked){ }.elsewhen(hazardStall){idex.valid:=false.B}.elsewhen(taken){pc:=target; ifid.valid:=false.B; idex.valid:=false.B}.otherwise{ idex.valid:=ifid.valid;idex.pc:=ifid.pc;idex.instr:=ifid.instr;idex.rs1:=idRs1;idex.rs2:=idRs2;idex.rd:=idRd;idex.rs1Data:=d1;idex.rs2Data:=d2;idex.immediate:=idImm;idex.control:=idCtrl; when(!fetchResponse){ifid.valid:=false.B} }
+    when(idex.valid && !idex.control.illegal && !customBlocked && idex.instr =/= "h00100073".U){exmem.valid:=true.B;exmem.pc:=idex.pc;exmem.instr:=idex.instr;exmem.rd:=idex.rd;exmem.aluResult:=exResult;exmem.storeData:=exRs2;exmem.control:=idex.control;when(idex.control.memRead||idex.control.memWrite){memAddr:=exResult;memData:=exRs2 << (exResult(1,0) * 8.U);memPc:=idex.pc;memInstr:=idex.instr;memRd:=idex.rd;memSize:=Mux(idex.control.memRead,idex.control.loadSize,idex.control.storeSize);memSigned:=idex.control.loadSigned;memStrb:=Mux(idex.control.storeSize===0.U,1.U<<exResult(1,0),Mux(idex.control.storeSize===1.U,3.U<<Cat(exResult(1),0.U),15.U));owner:=Mux(idex.control.memRead,mReadReq,mAw)}}
   }
   val ebreakSeen = idex.valid && idex.instr === "h00100073".U
   when(idex.valid&&idex.control.illegal){printf(p"ILLEGAL instruction ${Hexadecimal(idex.instr)} at ${Hexadecimal(idex.pc)}\n");illegalSeen:=true.B;pc:=idex.pc;draining:=true.B;idex.valid:=false.B;ifid.valid:=false.B}

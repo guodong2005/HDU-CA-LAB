@@ -118,10 +118,43 @@ illegal-zero-test: verilog
 	python3 ../difftest/check_generated.py --write-manifest
 	@if $(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_illegal.bin) >/tmp/rv32-illegal.$$$$.log 2>&1; then cat /tmp/rv32-illegal.$$$$.log; rm -f /tmp/rv32-illegal.$$$$.log; echo "FAIL: illegal instruction was accepted"; exit 1; else grep -q "ILLEGAL instruction reported by RTL" /tmp/rv32-illegal.$$$$.log && echo "PASS: illegal instruction was reported" || { cat /tmp/rv32-illegal.$$$$.log; rm -f /tmp/rv32-illegal.$$$$.log; exit 1; }; rm -f /tmp/rv32-illegal.$$$$.log; fi
 
+vector-test: verilog
+	mill -i playground.test.test
+
+cube-test: verilog
+	mill -i playground.test.test
+
+heterogeneous-test: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_heterogeneous.S -o $(BUILD_DIR)/tests/rv32_heterogeneous.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_heterogeneous.elf $(BUILD_DIR)/tests/rv32_heterogeneous.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	python3 ../difftest/check_generated.py --write-manifest
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous.bin)
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous.bin) OPTIONS=--backpressure
+
+heterogeneous-trace: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_heterogeneous.S -o $(BUILD_DIR)/tests/rv32_heterogeneous.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_heterogeneous.elf $(BUILD_DIR)/tests/rv32_heterogeneous.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	python3 ../difftest/check_generated.py --write-manifest
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous.bin) OPTIONS=--heterogeneous-trace | tee $(BUILD_DIR)/heterogeneous.trace
+	python3 ../difftest/check_heterogeneous_trace.py $(BUILD_DIR)/heterogeneous.trace
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_heterogeneous_sequential.S -o $(BUILD_DIR)/tests/rv32_heterogeneous_sequential.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_heterogeneous_sequential.elf $(BUILD_DIR)/tests/rv32_heterogeneous_sequential.bin
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous_sequential.bin) OPTIONS=--heterogeneous-trace | tee $(BUILD_DIR)/heterogeneous-sequential.trace
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_heterogeneous_overlap.S -o $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.elf $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.bin
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.bin) OPTIONS=--heterogeneous-trace | tee $(BUILD_DIR)/heterogeneous-overlap.trace
+	python3 ../difftest/check_heterogeneous_cycles.py $(BUILD_DIR)/heterogeneous-overlap.trace $(BUILD_DIR)/heterogeneous-sequential.trace
+
+heterogeneous-check: vector-test cube-test heterogeneous-test heterogeneous-trace
+
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test illegal-zero-test illegal-op-test illegal-shift-test illegal-unknown-test clean
+.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test illegal-zero-test illegal-op-test illegal-shift-test illegal-unknown-test vector-test cube-test heterogeneous-test heterogeneous-trace heterogeneous-check clean
 
 sim:
 	@echo "Write this Makefile by yourself."

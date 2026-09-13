@@ -20,6 +20,11 @@ class ScalarControl extends Bundle {
   val writeUpperImmediate = Bool()
   val writePcRelative = Bool()
   val illegal = Bool()
+  val isVector = Bool()
+  val vectorOp = UInt(2.W)
+  val isCubeLaunch = Bool()
+  val isCubeWait = Bool()
+  val customIllegal = Bool()
 }
 
 /** IF/ID boundary. */

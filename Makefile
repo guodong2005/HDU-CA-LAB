@@ -44,7 +44,7 @@ _default:
 .PHONY: .git_commit .clean_index _default
 
 ifeq ($(notdir $(CURDIR)),HDU-CA-LAB)
-.PHONY: test axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test rv32-check
+.PHONY: test axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test vector-test cube-test heterogeneous-test heterogeneous-trace heterogeneous-check rv32-check
 
 test:
 	$(MAKE) -C chisel test
@@ -69,6 +69,21 @@ pipeline-test:
 
 illegal-test:
 	$(MAKE) -C chisel illegal-test
+
+vector-test:
+	$(MAKE) -C chisel vector-test
+
+cube-test:
+	$(MAKE) -C chisel cube-test
+
+heterogeneous-test:
+	$(MAKE) -C chisel heterogeneous-test
+
+heterogeneous-trace:
+	$(MAKE) -C chisel heterogeneous-trace
+
+heterogeneous-check:
+	$(MAKE) -C chisel heterogeneous-check
 
 rv32-check:
 	$(MAKE) test

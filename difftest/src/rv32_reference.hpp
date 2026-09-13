@@ -120,6 +120,12 @@ class Rv32Reference {
           }
         } break;
       case 0x0f: break; // FENCE is a no-op in this single-core memory model.
+      case 0x0b:
+        if (funct3 > 3) return illegal(insn);
+        break; // Vector custom instructions have no scalar side effects.
+      case 0x2b:
+        if (funct3 > 1) return illegal(insn);
+        break; // Cube launch/wait have no scalar side effects.
       default: return illegal(insn);
     }
     if (wen && rd) regs_[rd] = value;
