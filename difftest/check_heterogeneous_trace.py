@@ -31,7 +31,9 @@ wait_stalls = [r for r in rows if r.get("cube_wait_stall")]
 wait_commits = [r for r in commits if r.get("instr", 0) & 0x7f == 0x2b and
                 ((r.get("instr", 0) >> 12) & 7) == 1]
 done = [r for r in rows if r.get("cube_done")]
-wait_release = [r for r in wait_commits if not r.get("cube_busy") and wait_stalls]
+wait_release = [r for r in wait_commits if not r.get("cube_busy") and
+                any(s.get("cycle", -1) < r.get("cycle", -1) for s in wait_stalls) and
+                any(d.get("cycle", -1) < r.get("cycle", -1) for d in done)]
 pcs = [r["pc"] for r in commits]
 
 checks = {
