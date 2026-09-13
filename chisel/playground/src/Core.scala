@@ -38,7 +38,7 @@ class Core extends Module {
   val idCtrl = WireDefault(0.U.asTypeOf(new ScalarControl))
   val idImm = WireDefault(0.U(32.W))
   val idKnownOpcode = idOpcode === "b0110111".U || idOpcode === "b0010111".U || idOpcode === "b0010011".U || idOpcode === "b0110011".U || idOpcode === "b0000011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U || idOpcode === "b1101111".U || idOpcode === "b1100111".U || idOpcode === "b0001111".U || idOpcode === "b1110011".U
-  val idLegalFunct = Mux(idOpcode === "b0001111".U, idFunct3===0.U || idFunct3===1.U, Mux(idOpcode === "b1110011".U, ifid.instr === "h00100073".U, Mux(idOpcode === "b0010011".U, idFunct3 <= 7.U && (idFunct3 =/= 1.U || idFunct7 === 0.U) && (idFunct3 =/= 5.U || idFunct7 === 0.U || idFunct7 === 32.U), Mux(idOpcode === "b0110011".U, (idFunct7 === 0.U || idFunct7 === 32.U || idFunct7 === 1.U) && (idFunct7 =/= 1.U || idFunct3 <= 7.U), Mux(idOpcode === "b0000011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===2.U||idFunct3===4.U||idFunct3===5.U, Mux(idOpcode === "b0100011".U, idFunct3<=2.U, Mux(idOpcode === "b1100011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===4.U||idFunct3===5.U||idFunct3===6.U||idFunct3===7.U, Mux(idOpcode === "b1100111".U, idFunct3===0.U, true.B))))))))
+  val idLegalFunct = Mux(idOpcode === "b0001111".U, idFunct3===0.U || idFunct3===1.U, Mux(idOpcode === "b1110011".U, ifid.instr === "h00100073".U, Mux(idOpcode === "b0010011".U, idFunct3 <= 7.U && (idFunct3 =/= 1.U || idFunct7 === 0.U) && (idFunct3 =/= 5.U || idFunct7 === 0.U || idFunct7 === 32.U), Mux(idOpcode === "b0110011".U, (idFunct7 === 0.U || idFunct7 === 1.U || (idFunct7 === 32.U && (idFunct3 === 0.U || idFunct3 === 5.U))), Mux(idOpcode === "b0000011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===2.U||idFunct3===4.U||idFunct3===5.U, Mux(idOpcode === "b0100011".U, idFunct3<=2.U, Mux(idOpcode === "b1100011".U, idFunct3===0.U||idFunct3===1.U||idFunct3===4.U||idFunct3===5.U||idFunct3===6.U||idFunct3===7.U, Mux(idOpcode === "b1100111".U, idFunct3===0.U, true.B))))))))
   val idIllegal = ifid.valid && (!idKnownOpcode || !idLegalFunct)
   idCtrl.illegal := idIllegal
   val idUsesRs1 = idOpcode === "b0010011".U || idOpcode === "b0110011".U || idOpcode === "b0000011".U || idOpcode === "b0100011".U || idOpcode === "b1100011".U || idOpcode === "b1100111".U
@@ -119,8 +119,12 @@ class Core extends Module {
     when(launchMem){idex.valid:=false.B}.elsewhen(hazardStall){idex.valid:=false.B}.elsewhen(taken){pc:=target; ifid.valid:=false.B; idex.valid:=false.B}.otherwise{ idex.valid:=ifid.valid;idex.pc:=ifid.pc;idex.instr:=ifid.instr;idex.rs1:=idRs1;idex.rs2:=idRs2;idex.rd:=idRd;idex.rs1Data:=d1;idex.rs2Data:=d2;idex.immediate:=idImm;idex.control:=idCtrl; when(!fetchResponse){ifid.valid:=false.B} }
     when(idex.valid && !idex.control.illegal && idex.instr =/= "h00100073".U){exmem.valid:=true.B;exmem.pc:=idex.pc;exmem.instr:=idex.instr;exmem.rd:=idex.rd;exmem.aluResult:=exResult;exmem.storeData:=exRs2;exmem.control:=idex.control;when(idex.control.memRead||idex.control.memWrite){memAddr:=exResult;memData:=exRs2 << (exResult(1,0) * 8.U);memPc:=idex.pc;memInstr:=idex.instr;memRd:=idex.rd;memSize:=Mux(idex.control.memRead,idex.control.loadSize,idex.control.storeSize);memSigned:=idex.control.loadSigned;memStrb:=Mux(idex.control.storeSize===0.U,1.U<<exResult(1,0),Mux(idex.control.storeSize===1.U,3.U<<Cat(exResult(1),0.U),15.U));owner:=Mux(idex.control.memRead,mReadReq,mAw)}}
   }
+  val ebreakSeen = idex.valid && idex.instr === "h00100073".U
   when(idex.valid&&idex.control.illegal){printf(p"ILLEGAL instruction ${Hexadecimal(idex.instr)} at ${Hexadecimal(idex.pc)}\n");illegalSeen:=true.B;pc:=idex.pc;draining:=true.B;idex.valid:=false.B;ifid.valid:=false.B}
-  when(idex.valid&&idex.instr==="h00100073".U){pc:=idex.pc;draining:=true.B;idex.valid:=false.B; ifid.valid:=false.B}
-  when(draining && exmem.valid && !exmem.control.memRead && !exmem.control.memWrite){memwb.valid:=true.B;memwb.pc:=exmem.pc;memwb.instr:=exmem.instr;memwb.rd:=exmem.rd;memwb.aluResult:=exmem.aluResult;memwb.loadData:=0.U;memwb.control:=exmem.control;exmem.valid:=false.B}
+  when(ebreakSeen){pc:=idex.pc;draining:=true.B;idex.valid:=false.B; ifid.valid:=false.B}
+  // Include the cycle in which EBREAK is detected. Otherwise an older
+  // non-memory EX/MEM entry survives into the first drain cycle and is
+  // copied to MEM/WB a second time.
+  when((draining || ebreakSeen) && exmem.valid && !exmem.control.memRead && !exmem.control.memWrite){memwb.valid:=true.B;memwb.pc:=exmem.pc;memwb.instr:=exmem.instr;memwb.rd:=exmem.rd;memwb.aluResult:=exmem.aluResult;memwb.loadData:=0.U;memwb.control:=exmem.control;exmem.valid:=false.B}
   when(draining && !exmem.valid && !memwb.valid && owner===fReq){halted:=true.B}
 }

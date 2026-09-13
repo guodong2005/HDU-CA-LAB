@@ -47,6 +47,10 @@ class CoreSpec extends AnyFlatSpec with ChiselScalatestTester {
         (0x80000008L, 0x001101b3L)
       ))
       assert(!commits.exists(_._2 == 0x00100073L))
+      assert(commits.map(_._1) == commits.map(_._1).distinct)
+      assert(commits.map(_._1) == Vector(0x80000000L, 0x80000004L, 0x80000008L))
+      assert(!commits.exists(_._2 == 0x00100073L))
+      assert(commits.lastOption.exists(_._1 == 0x80000008L))
     }
   }
 }
