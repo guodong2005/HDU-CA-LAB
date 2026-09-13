@@ -63,54 +63,17 @@ module IoControl(
   input  [31:0]  io_icache_read_req_bits_addr,
   output         io_icache_read_resp_valid,
   output [255:0] io_icache_read_resp_bits_data,
-  output         io_dcache_read_req_ready,
-  input          io_dcache_read_req_valid,
-  input  [31:0]  io_dcache_read_req_bits_addr,
-  output         io_dcache_read_resp_valid,
-  output [31:0]  io_dcache_read_resp_bits_data,
-  output         io_dcache_write_req_ready,
-  input          io_dcache_write_req_valid,
-  input  [31:0]  io_dcache_write_req_bits_addr,
-                 io_dcache_write_req_bits_data,
-  input  [3:0]   io_dcache_write_req_bits_byte_mask,
   input  [31:0]  io_base_ram_ctrl_data_in,
   output [31:0]  io_base_ram_ctrl_ctrl_data_out,
   output [19:0]  io_base_ram_ctrl_ctrl_addr,
   output [3:0]   io_base_ram_ctrl_ctrl_be_n,
-  output         io_base_ram_ctrl_ctrl_ce_n,
-                 io_base_ram_ctrl_ctrl_oe_n,
-                 io_base_ram_ctrl_ctrl_we_n,
-                 io_base_ram_ctrl_ctrl_data_en,
-  input  [31:0]  io_ext_ram_ctrl_data_in,
-  output [31:0]  io_ext_ram_ctrl_ctrl_data_out,
-  output [19:0]  io_ext_ram_ctrl_ctrl_addr,
-  output [3:0]   io_ext_ram_ctrl_ctrl_be_n,
-  output         io_ext_ram_ctrl_ctrl_ce_n,
-                 io_ext_ram_ctrl_ctrl_oe_n,
-                 io_ext_ram_ctrl_ctrl_we_n,
-                 io_ext_ram_ctrl_ctrl_data_en,
-  input          io_rxd_uart_ready,
-  output         io_rxd_uart_clear,
-  input  [7:0]   io_rxd_uart_data,
-  output         io_txd_uart_start,
-  output [7:0]   io_txd_uart_data,
-  input          io_txd_uart_busy
+  output         io_base_ram_ctrl_ctrl_ce_n
 );
 
   reg  [31:0] base_ram_ctrl_data_out;
   reg  [19:0] base_ram_ctrl_addr;
   reg  [3:0]  base_ram_ctrl_be_n;
   reg         base_ram_ctrl_ce_n;
-  reg         base_ram_ctrl_oe_n;
-  reg         base_ram_ctrl_we_n;
-  reg         base_ram_ctrl_data_en;
-  reg  [31:0] ext_ram_ctrl_data_out;
-  reg  [19:0] ext_ram_ctrl_addr;
-  reg  [3:0]  ext_ram_ctrl_be_n;
-  reg         ext_ram_ctrl_ce_n;
-  reg         ext_ram_ctrl_oe_n;
-  reg         ext_ram_ctrl_we_n;
-  reg         ext_ram_ctrl_data_en;
   reg  [31:0] icache_buffer_0;
   reg  [31:0] icache_buffer_1;
   reg  [31:0] icache_buffer_2;
@@ -120,97 +83,25 @@ module IoControl(
   reg  [31:0] icache_buffer_6;
   reg  [31:0] icache_buffer_7;
   reg         icache_data_valid;
-  reg  [31:0] dcache_buffer;
-  reg         dcache_data_valid;
   reg         regBaseIcacheReq_valid;
   reg  [31:0] regBaseIcacheReq_addr;
   reg         regBaseDcacheReadReq_valid;
-  reg  [31:0] regBaseDcacheReadReq_addr;
   reg         regBaseDcacheWriteReq_valid;
-  reg  [31:0] regBaseDcacheWriteReq_addr;
-  reg  [31:0] regBaseDcacheWriteReq_data;
-  reg  [3:0]  regBaseDcacheWriteReq_mask;
-  reg         regExtDcacheReadReq_valid;
-  reg  [31:0] regExtDcacheReadReq_addr;
-  reg         regExtDcacheWriteReq_valid;
-  reg  [31:0] regExtDcacheWriteReq_addr;
-  reg  [31:0] regExtDcacheWriteReq_data;
-  reg  [3:0]  regExtDcacheWriteReq_mask;
-  reg         regUartDcacheReadReq_valid;
-  reg  [31:0] regUartDcacheReadReq_addr;
-  reg         regUartDcacheWriteReq_valid;
-  reg  [31:0] regUartDcacheWriteReq_data;
   wire        io_icache_read_req_ready_0 =
     ~icache_data_valid
     & (io_icache_read_req_valid & io_icache_read_req_bits_addr[31:22] == 10'h200
        & ~regBaseIcacheReq_valid | io_icache_read_req_valid
        & io_icache_read_req_bits_addr[31:22] != 10'h200);
-  wire        _io_dcache_read_req_ready_T_27 =
-    io_dcache_read_req_bits_addr == 32'hBFD003F8;
-  wire        _io_dcache_read_req_ready_T_28 =
-    io_dcache_read_req_bits_addr == 32'hBFD003FC;
-  wire        io_dcache_read_req_ready_0 =
-    ~dcache_data_valid
-    & (io_dcache_read_req_valid & io_dcache_read_req_bits_addr[31:22] == 10'h200
-       & ~regBaseDcacheReadReq_valid | io_dcache_read_req_valid
-       & io_dcache_read_req_bits_addr[31:22] == 10'h201 & ~regExtDcacheReadReq_valid
-       | io_dcache_read_req_valid
-       & (_io_dcache_read_req_ready_T_27 | _io_dcache_read_req_ready_T_28)
-       & ~regUartDcacheReadReq_valid | io_dcache_read_req_valid
-       & io_dcache_read_req_bits_addr[31:22] != 10'h200
-       & io_dcache_read_req_bits_addr[31:22] != 10'h201
-       & ~(_io_dcache_read_req_ready_T_27 | _io_dcache_read_req_ready_T_28));
-  wire        _io_dcache_write_req_ready_T_25 =
-    io_dcache_write_req_bits_addr == 32'hBFD003F8;
-  wire        io_dcache_write_req_ready_0 =
-    ~dcache_data_valid
-    & (io_dcache_write_req_valid & io_dcache_write_req_bits_addr[31:22] == 10'h200
-       & ~regBaseDcacheWriteReq_valid | io_dcache_write_req_valid
-       & io_dcache_write_req_bits_addr[31:22] == 10'h201 & ~regExtDcacheWriteReq_valid
-       | io_dcache_write_req_valid & _io_dcache_write_req_ready_T_25
-       & ~regUartDcacheWriteReq_valid | io_dcache_write_req_valid
-       & io_dcache_write_req_bits_addr[31:22] != 10'h200
-       & io_dcache_write_req_bits_addr[31:22] != 10'h201
-       & ~_io_dcache_write_req_ready_T_25);
   reg  [1:0]  base_state;
   reg  [3:0]  base_wait_counter;
   reg  [1:0]  base_req_type;
   reg  [2:0]  base_word_counter;
-  reg  [1:0]  ext_state;
-  reg  [3:0]  ext_wait_counter;
-  reg  [7:0]  uart_buffer_0_data;
-  reg  [7:0]  uart_buffer_1_data;
-  reg  [7:0]  uart_buffer_2_data;
-  reg  [7:0]  uart_buffer_3_data;
-  reg  [7:0]  uart_buffer_4_data;
-  reg  [7:0]  uart_buffer_5_data;
-  reg  [7:0]  uart_buffer_6_data;
-  reg  [7:0]  uart_buffer_7_data;
-  reg  [7:0]  uart_head;
-  reg  [7:0]  uart_tail;
-  reg         maybe_full;
-  wire        _uart_empty_T = uart_head == uart_tail;
-  reg         txd_uart_start;
-  reg  [7:0]  txd_uart_data;
-  reg         read_req;
-  reg  [1:0]  uart_state;
-  wire        io_rxd_uart_clear_0 = io_rxd_uart_ready & ~(_uart_empty_T & maybe_full);
   always @(posedge clock) begin
     if (reset) begin
       base_ram_ctrl_data_out <= 32'h0;
       base_ram_ctrl_addr <= 20'h0;
       base_ram_ctrl_be_n <= 4'hF;
       base_ram_ctrl_ce_n <= 1'h1;
-      base_ram_ctrl_oe_n <= 1'h1;
-      base_ram_ctrl_we_n <= 1'h1;
-      base_ram_ctrl_data_en <= 1'h0;
-      ext_ram_ctrl_data_out <= 32'h0;
-      ext_ram_ctrl_addr <= 20'h0;
-      ext_ram_ctrl_be_n <= 4'hF;
-      ext_ram_ctrl_ce_n <= 1'h1;
-      ext_ram_ctrl_oe_n <= 1'h1;
-      ext_ram_ctrl_we_n <= 1'h1;
-      ext_ram_ctrl_data_en <= 1'h0;
       icache_buffer_0 <= 32'h0;
       icache_buffer_1 <= 32'h0;
       icache_buffer_2 <= 32'h0;
@@ -220,559 +111,200 @@ module IoControl(
       icache_buffer_6 <= 32'h0;
       icache_buffer_7 <= 32'h0;
       icache_data_valid <= 1'h0;
-      dcache_buffer <= 32'h0;
-      dcache_data_valid <= 1'h0;
       regBaseIcacheReq_valid <= 1'h0;
       regBaseIcacheReq_addr <= 32'h0;
       regBaseDcacheReadReq_valid <= 1'h0;
-      regBaseDcacheReadReq_addr <= 32'h0;
       regBaseDcacheWriteReq_valid <= 1'h0;
-      regBaseDcacheWriteReq_addr <= 32'h0;
-      regBaseDcacheWriteReq_data <= 32'h0;
-      regBaseDcacheWriteReq_mask <= 4'h0;
-      regExtDcacheReadReq_valid <= 1'h0;
-      regExtDcacheReadReq_addr <= 32'h0;
-      regExtDcacheWriteReq_valid <= 1'h0;
-      regExtDcacheWriteReq_addr <= 32'h0;
-      regExtDcacheWriteReq_data <= 32'h0;
-      regExtDcacheWriteReq_mask <= 4'h0;
-      regUartDcacheReadReq_valid <= 1'h0;
-      regUartDcacheReadReq_addr <= 32'h0;
-      regUartDcacheWriteReq_valid <= 1'h0;
-      regUartDcacheWriteReq_data <= 32'h0;
       base_state <= 2'h0;
       base_wait_counter <= 4'h0;
       base_req_type <= 2'h0;
       base_word_counter <= 3'h0;
-      ext_state <= 2'h0;
-      ext_wait_counter <= 4'h0;
-      uart_buffer_0_data <= 8'h0;
-      uart_buffer_1_data <= 8'h0;
-      uart_buffer_2_data <= 8'h0;
-      uart_buffer_3_data <= 8'h0;
-      uart_buffer_4_data <= 8'h0;
-      uart_buffer_5_data <= 8'h0;
-      uart_buffer_6_data <= 8'h0;
-      uart_buffer_7_data <= 8'h0;
-      uart_head <= 8'h1;
-      uart_tail <= 8'h1;
-      maybe_full <= 1'h0;
-      txd_uart_start <= 1'h0;
-      txd_uart_data <= 8'h0;
-      read_req <= 1'h0;
-      uart_state <= 2'h0;
     end
     else begin
-      automatic logic       _GEN =
+      automatic logic _GEN =
         io_icache_read_req_ready_0 & io_icache_read_req_valid
         & io_icache_read_req_bits_addr[31:22] == 10'h200;
-      automatic logic       _GEN_0 =
-        io_dcache_read_req_ready_0 & io_dcache_read_req_valid;
-      automatic logic       _GEN_1 = io_dcache_read_req_bits_addr[31:22] == 10'h200;
-      automatic logic       _GEN_2 = _GEN_0 & _GEN_1;
-      automatic logic       _GEN_3 =
-        io_dcache_write_req_ready_0 & io_dcache_write_req_valid;
-      automatic logic       _GEN_4 = io_dcache_write_req_bits_addr[31:22] == 10'h200;
-      automatic logic       _GEN_5 = _GEN_3 & _GEN_4;
-      automatic logic       _GEN_6 = io_dcache_read_req_bits_addr[31:22] == 10'h201;
-      automatic logic       _GEN_7 = _GEN_0 & _GEN_6;
-      automatic logic       _GEN_8 = io_dcache_write_req_bits_addr[31:22] == 10'h201;
-      automatic logic       _GEN_9 = _GEN_3 & _GEN_8;
-      automatic logic       _GEN_10 =
-        _io_dcache_read_req_ready_T_27 | _io_dcache_read_req_ready_T_28;
-      automatic logic       _GEN_11 = _GEN_0 & _GEN_10;
-      automatic logic       _GEN_12 = _GEN_3 & _io_dcache_write_req_ready_T_25;
-      automatic logic       _GEN_13;
-      automatic logic       _GEN_14;
-      automatic logic       _GEN_15;
-      automatic logic       _GEN_16;
-      automatic logic       _GEN_17;
-      automatic logic       _GEN_18;
-      automatic logic       _GEN_19;
-      automatic logic       _GEN_20;
-      automatic logic       _GEN_21;
-      automatic logic       _GEN_22;
-      automatic logic       _GEN_23;
-      automatic logic       _GEN_24;
-      automatic logic       _GEN_25;
-      automatic logic       _GEN_26;
-      automatic logic       _GEN_27;
-      automatic logic       _GEN_28;
-      automatic logic       _GEN_29;
-      automatic logic       _GEN_30;
-      automatic logic       _GEN_31;
-      automatic logic       _GEN_32;
-      automatic logic       _GEN_33;
-      automatic logic       _GEN_34;
-      automatic logic       _GEN_35;
-      automatic logic       _GEN_36;
-      automatic logic       _GEN_37;
-      automatic logic       _GEN_38;
-      automatic logic       _GEN_39;
-      automatic logic       _GEN_40;
-      automatic logic       uart_empty;
-      automatic logic       dcache_read_uart;
-      automatic logic       dcache_read_uart_state;
-      automatic logic       _GEN_41;
-      automatic logic       _GEN_42;
-      automatic logic       _GEN_43;
-      automatic logic       _GEN_44;
-      automatic logic       _GEN_45;
-      automatic logic       _GEN_46;
-      automatic logic       _GEN_47;
-      automatic logic       _GEN_48;
-      automatic logic       _GEN_49;
-      automatic logic       _GEN_50;
-      automatic logic [7:0] new_tail;
-      automatic logic       _GEN_51 = _GEN_0 & ~_GEN_1 & ~_GEN_6 & ~_GEN_10;
-      _GEN_13 = base_state == 2'h0;
-      _GEN_14 = regBaseDcacheReadReq_valid | regBaseIcacheReq_valid;
-      _GEN_15 = regBaseDcacheWriteReq_valid | regBaseDcacheReadReq_valid;
-      _GEN_16 = base_state == 2'h1;
-      _GEN_17 = base_req_type == 2'h1;
-      _GEN_18 = base_wait_counter == 4'h4;
-      _GEN_19 = (&base_word_counter) & _GEN_18;
-      _GEN_20 = _GEN_16 & _GEN_17 & _GEN_19;
-      _GEN_21 = _GEN_16 & _GEN_17;
-      _GEN_22 = base_req_type == 2'h2;
-      _GEN_23 = _GEN_22 & _GEN_18;
-      _GEN_24 = _GEN_13 | ~_GEN_16 | _GEN_17 | ~_GEN_23;
-      _GEN_25 = base_state == 2'h2;
-      _GEN_26 = base_wait_counter < 4'h2;
-      _GEN_27 = base_wait_counter == 4'h2;
-      _GEN_28 = _GEN_26 | _GEN_27;
-      _GEN_29 = ~_GEN_25 | _GEN_28 | ~_GEN_18;
-      _GEN_30 =
-        _GEN_13
-          ? dcache_data_valid
-          : _GEN_16
-              ? ~_GEN_17 & _GEN_23 | dcache_data_valid
-              : _GEN_25 & ~_GEN_28 & _GEN_18 | dcache_data_valid;
-      _GEN_31 = ext_state == 2'h0;
-      _GEN_32 = ext_state == 2'h1;
-      _GEN_33 = ext_wait_counter == 4'h4;
-      _GEN_34 = _GEN_31 | ~(_GEN_32 & _GEN_33);
-      _GEN_35 = ext_state == 2'h2;
-      _GEN_36 = ext_wait_counter < 4'h2;
-      _GEN_37 = ext_wait_counter == 4'h2;
-      _GEN_38 = _GEN_36 | _GEN_37;
-      _GEN_39 = ~_GEN_35 | _GEN_38 | ~_GEN_33;
-      _GEN_40 =
-        _GEN_31
-          ? _GEN_30
-          : _GEN_32 ? _GEN_33 | _GEN_30 : _GEN_35 & ~_GEN_38 & _GEN_33 | _GEN_30;
-      uart_empty = _uart_empty_T & ~maybe_full;
-      dcache_read_uart =
-        regUartDcacheReadReq_valid & regUartDcacheReadReq_addr == 32'hBFD003F8;
-      dcache_read_uart_state =
-        regUartDcacheReadReq_valid & regUartDcacheReadReq_addr == 32'hBFD003FC;
-      _GEN_41 = uart_state == 2'h0;
-      _GEN_42 = regUartDcacheWriteReq_valid & ~io_txd_uart_busy;
-      _GEN_43 = dcache_read_uart & ~uart_empty;
-      _GEN_44 = dcache_read_uart & uart_empty;
-      _GEN_45 = _GEN_43 | _GEN_44 | dcache_read_uart_state;
-      _GEN_46 = uart_state == 2'h1;
-      _GEN_47 = uart_state == 2'h2;
-      _GEN_48 = _GEN_41 ? ~_GEN_42 & _GEN_45 | _GEN_40 : _GEN_46 | ~_GEN_47 & _GEN_40;
-      _GEN_49 = _GEN_41 | _GEN_46;
-      _GEN_50 = _GEN_49 | ~(_GEN_47 & read_req);
-      new_tail = {uart_tail[6:0], uart_tail[7]};
-      if (_GEN_13) begin
-        base_ram_ctrl_data_out <=
-          regBaseDcacheWriteReq_valid ? regBaseDcacheWriteReq_data : 32'h0;
-        base_ram_ctrl_addr <=
-          regBaseDcacheWriteReq_valid
-            ? regBaseDcacheWriteReq_addr[21:2]
-            : regBaseDcacheReadReq_valid
-                ? regBaseDcacheReadReq_addr[21:2]
-                : regBaseIcacheReq_valid ? regBaseIcacheReq_addr[21:2] : 20'h0;
-        base_ram_ctrl_be_n <=
-          regBaseDcacheWriteReq_valid
-            ? ~regBaseDcacheWriteReq_mask
-            : _GEN_14 ? 4'h0 : 4'hF;
-        base_ram_ctrl_ce_n <= ~_GEN_15 & ~regBaseIcacheReq_valid;
-        base_ram_ctrl_oe_n <=
-          regBaseDcacheWriteReq_valid | ~regBaseDcacheReadReq_valid
-          & ~regBaseIcacheReq_valid;
-        base_ram_ctrl_we_n <= ~regBaseDcacheWriteReq_valid;
-        base_ram_ctrl_data_en <= regBaseDcacheWriteReq_valid;
+      automatic logic _GEN_0;
+      automatic logic _GEN_1;
+      automatic logic _GEN_2;
+      automatic logic _GEN_3;
+      automatic logic _GEN_4;
+      automatic logic _GEN_5;
+      automatic logic _GEN_6;
+      automatic logic _GEN_7;
+      automatic logic _GEN_8;
+      automatic logic _GEN_9;
+      automatic logic _GEN_10;
+      automatic logic _GEN_11;
+      automatic logic _GEN_12;
+      automatic logic _GEN_13;
+      automatic logic _GEN_14;
+      automatic logic _GEN_15;
+      automatic logic _GEN_16;
+      _GEN_0 = base_state == 2'h0;
+      _GEN_1 = regBaseDcacheReadReq_valid | regBaseIcacheReq_valid;
+      _GEN_2 = regBaseDcacheWriteReq_valid | regBaseDcacheReadReq_valid;
+      _GEN_3 = _GEN_2 | ~regBaseIcacheReq_valid;
+      _GEN_4 = base_state == 2'h1;
+      _GEN_5 = base_req_type == 2'h1;
+      _GEN_6 = base_wait_counter == 4'h4;
+      _GEN_7 = (&base_word_counter) & _GEN_6;
+      _GEN_8 = _GEN_4 & _GEN_5 & _GEN_7;
+      _GEN_9 = _GEN_4 & _GEN_5;
+      _GEN_10 = base_req_type == 2'h2;
+      _GEN_11 = _GEN_10 & _GEN_6;
+      _GEN_12 = base_wait_counter < 4'h2;
+      _GEN_13 = base_wait_counter == 4'h2;
+      _GEN_14 = _GEN_12 | _GEN_13;
+      _GEN_15 = base_state != 2'h2;
+      _GEN_16 = _GEN_15 | _GEN_14 | ~_GEN_6;
+      if (_GEN_0) begin
+        base_ram_ctrl_data_out <= 32'h0;
+        base_ram_ctrl_addr <= _GEN_3 ? 20'h0 : regBaseIcacheReq_addr[21:2];
+        base_ram_ctrl_be_n <= {4{regBaseDcacheWriteReq_valid | ~_GEN_1}};
+        base_ram_ctrl_ce_n <= ~_GEN_2 & ~regBaseIcacheReq_valid;
       end
       else begin
-        automatic logic _GEN_52;
-        automatic logic _GEN_53;
-        _GEN_52 = _GEN_18 | base_ram_ctrl_ce_n;
-        _GEN_53 = ~_GEN_18 & base_ram_ctrl_data_en;
-        if (_GEN_16) begin
-          if ((_GEN_17 | _GEN_22) & _GEN_18)
+        automatic logic _GEN_17;
+        _GEN_17 = _GEN_6 | base_ram_ctrl_ce_n;
+        if (_GEN_4) begin
+          if ((_GEN_5 | _GEN_10) & _GEN_6)
             base_ram_ctrl_data_out <= 32'h0;
-          if (_GEN_17) begin
-            if (_GEN_18) begin
+          if (_GEN_5) begin
+            if (_GEN_6) begin
               base_ram_ctrl_addr <=
                 (&base_word_counter) ? 20'h0 : base_ram_ctrl_addr + 20'h1;
               base_ram_ctrl_be_n <= {4{&base_word_counter}};
             end
-            if (&base_word_counter) begin
-              base_ram_ctrl_ce_n <= _GEN_52;
-              base_ram_ctrl_oe_n <= _GEN_18 | base_ram_ctrl_oe_n;
-            end
-            else begin
-              base_ram_ctrl_ce_n <= ~_GEN_18 & base_ram_ctrl_ce_n;
-              base_ram_ctrl_oe_n <= ~_GEN_18 & base_ram_ctrl_oe_n;
-            end
-            base_ram_ctrl_we_n <= _GEN_18 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= _GEN_53;
+            if (&base_word_counter)
+              base_ram_ctrl_ce_n <= _GEN_17;
+            else
+              base_ram_ctrl_ce_n <= ~_GEN_6 & base_ram_ctrl_ce_n;
           end
           else begin
-            if (_GEN_23) begin
+            if (_GEN_11) begin
               base_ram_ctrl_addr <= 20'h0;
               base_ram_ctrl_be_n <= 4'hF;
             end
-            base_ram_ctrl_ce_n <= _GEN_23 | base_ram_ctrl_ce_n;
-            base_ram_ctrl_oe_n <= _GEN_23 | base_ram_ctrl_oe_n;
-            base_ram_ctrl_we_n <= _GEN_23 | base_ram_ctrl_we_n;
-            base_ram_ctrl_data_en <= ~_GEN_23 & base_ram_ctrl_data_en;
+            base_ram_ctrl_ce_n <= _GEN_11 | base_ram_ctrl_ce_n;
           end
         end
         else begin
-          automatic logic _GEN_54;
-          automatic logic _GEN_55;
-          _GEN_54 = ~_GEN_25 | _GEN_26;
-          _GEN_55 = _GEN_25 & ~_GEN_26 & (_GEN_27 | _GEN_18);
-          if (_GEN_29) begin
+          if (_GEN_16) begin
           end
           else begin
             base_ram_ctrl_data_out <= 32'h0;
             base_ram_ctrl_addr <= 20'h0;
             base_ram_ctrl_be_n <= 4'hF;
           end
-          if (_GEN_54) begin
+          if (_GEN_15 | _GEN_12) begin
           end
           else
-            base_ram_ctrl_ce_n <= ~_GEN_27 & _GEN_52;
-          base_ram_ctrl_oe_n <= _GEN_55 | base_ram_ctrl_oe_n;
-          base_ram_ctrl_we_n <= _GEN_55 | base_ram_ctrl_we_n;
-          if (_GEN_54) begin
-          end
-          else
-            base_ram_ctrl_data_en <= _GEN_27 | _GEN_53;
+            base_ram_ctrl_ce_n <= ~_GEN_13 & _GEN_17;
         end
       end
-      if (_GEN_31) begin
-        ext_ram_ctrl_data_out <=
-          regExtDcacheWriteReq_valid ? regExtDcacheWriteReq_data : 32'h0;
-        ext_ram_ctrl_addr <=
-          regExtDcacheWriteReq_valid
-            ? regExtDcacheWriteReq_addr[21:2]
-            : regExtDcacheReadReq_valid ? regExtDcacheReadReq_addr[21:2] : 20'h0;
-        ext_ram_ctrl_be_n <=
-          regExtDcacheWriteReq_valid
-            ? ~regExtDcacheWriteReq_mask
-            : regExtDcacheReadReq_valid ? 4'h0 : 4'hF;
-        ext_ram_ctrl_ce_n <= ~regExtDcacheWriteReq_valid & ~regExtDcacheReadReq_valid;
-        ext_ram_ctrl_oe_n <= regExtDcacheWriteReq_valid | ~regExtDcacheReadReq_valid;
-        ext_ram_ctrl_we_n <= ~regExtDcacheWriteReq_valid;
-        ext_ram_ctrl_data_en <= regExtDcacheWriteReq_valid;
-      end
-      else begin
-        automatic logic _GEN_56;
-        automatic logic _GEN_57;
-        _GEN_56 = _GEN_33 | ext_ram_ctrl_ce_n;
-        _GEN_57 = ~_GEN_33 & ext_ram_ctrl_data_en;
-        if (_GEN_32) begin
-          if (_GEN_33) begin
-            ext_ram_ctrl_data_out <= 32'h0;
-            ext_ram_ctrl_addr <= 20'h0;
-            ext_ram_ctrl_be_n <= 4'hF;
-          end
-          ext_ram_ctrl_ce_n <= _GEN_56;
-          ext_ram_ctrl_oe_n <= _GEN_33 | ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_33 | ext_ram_ctrl_we_n;
-          ext_ram_ctrl_data_en <= _GEN_57;
-        end
-        else begin
-          automatic logic _GEN_58;
-          automatic logic _GEN_59;
-          _GEN_58 = ~_GEN_35 | _GEN_36;
-          _GEN_59 = _GEN_35 & ~_GEN_36 & (_GEN_37 | _GEN_33);
-          if (_GEN_39) begin
-          end
-          else begin
-            ext_ram_ctrl_data_out <= 32'h0;
-            ext_ram_ctrl_addr <= 20'h0;
-            ext_ram_ctrl_be_n <= 4'hF;
-          end
-          if (_GEN_58) begin
-          end
-          else
-            ext_ram_ctrl_ce_n <= ~_GEN_37 & _GEN_56;
-          ext_ram_ctrl_oe_n <= _GEN_59 | ext_ram_ctrl_oe_n;
-          ext_ram_ctrl_we_n <= _GEN_59 | ext_ram_ctrl_we_n;
-          if (_GEN_58) begin
-          end
-          else
-            ext_ram_ctrl_data_en <= _GEN_37 | _GEN_57;
-        end
-      end
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h0)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h0)) begin
       end
       else
         icache_buffer_0 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h1)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h1)) begin
       end
       else
         icache_buffer_1 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h2)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h2)) begin
       end
       else
         icache_buffer_2 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h3)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h3)) begin
       end
       else
         icache_buffer_3 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h4)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h4)) begin
       end
       else
         icache_buffer_4 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h5)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h5)) begin
       end
       else
         icache_buffer_5 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & base_word_counter == 3'h6)) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & base_word_counter == 3'h6)) begin
       end
       else
         icache_buffer_6 <= io_base_ram_ctrl_data_in;
-      if (_GEN_13 | ~(_GEN_21 & _GEN_18 & (&base_word_counter))) begin
+      if (_GEN_0 | ~(_GEN_9 & _GEN_6 & (&base_word_counter))) begin
       end
       else
         icache_buffer_7 <= io_base_ram_ctrl_data_in;
       icache_data_valid <=
-        ~(reset | icache_data_valid) & (~_GEN_13 & _GEN_20 | icache_data_valid);
-      if (_GEN_51)
-        dcache_buffer <= 32'h0;
-      else if (~_GEN_41 | _GEN_42) begin
-        if (_GEN_34) begin
-          if (_GEN_24) begin
-          end
-          else
-            dcache_buffer <= io_base_ram_ctrl_data_in;
-        end
-        else
-          dcache_buffer <= io_ext_ram_ctrl_data_in;
-      end
-      else if (_GEN_43) begin
-        automatic logic [2:0]      _head_idx_T_1;
-        automatic logic [7:0][7:0] _GEN_60;
-        _head_idx_T_1 = uart_head[7:5] | uart_head[3:1];
-        _GEN_60 =
-          {{uart_buffer_7_data},
-           {uart_buffer_6_data},
-           {uart_buffer_5_data},
-           {uart_buffer_4_data},
-           {uart_buffer_3_data},
-           {uart_buffer_2_data},
-           {uart_buffer_1_data},
-           {uart_buffer_0_data}};
-        dcache_buffer <=
-          {24'h0,
-           _GEN_60[{|(uart_head[7:4]),
-                    |(_head_idx_T_1[2:1]),
-                    _head_idx_T_1[2] | _head_idx_T_1[0]}]};
-      end
-      else if (_GEN_44)
-        dcache_buffer <= 32'h0;
-      else if (dcache_read_uart_state)
-        dcache_buffer <= {30'h0, ~uart_empty, ~io_txd_uart_busy};
-      else if (_GEN_34) begin
-        if (_GEN_24) begin
-        end
-        else
-          dcache_buffer <= io_base_ram_ctrl_data_in;
-      end
-      else
-        dcache_buffer <= io_ext_ram_ctrl_data_in;
-      dcache_data_valid <=
-        ~(reset | dcache_data_valid)
-        & (_GEN_3
-             ? ~_GEN_4 & ~_GEN_8 & ~_io_dcache_write_req_ready_T_25 | _GEN_51 | _GEN_48
-             : _GEN_51 | _GEN_48);
+        ~(reset | icache_data_valid) & (~_GEN_0 & _GEN_8 | icache_data_valid);
       regBaseIcacheReq_valid <=
-        ~reset & (_GEN_13 | ~_GEN_20) & (_GEN | regBaseIcacheReq_valid);
+        ~reset & (_GEN_0 | ~_GEN_8) & (_GEN | regBaseIcacheReq_valid);
       if (_GEN)
         regBaseIcacheReq_addr <= io_icache_read_req_bits_addr;
       regBaseDcacheReadReq_valid <=
-        ~reset & _GEN_24 & (_GEN_2 | regBaseDcacheReadReq_valid);
-      if (_GEN_2)
-        regBaseDcacheReadReq_addr <= io_dcache_read_req_bits_addr;
+        ~reset & (_GEN_0 | ~_GEN_4 | _GEN_5 | ~_GEN_11) & regBaseDcacheReadReq_valid;
       regBaseDcacheWriteReq_valid <=
-        ~reset & (_GEN_13 | _GEN_16 | ~_GEN_25 | _GEN_28 | ~_GEN_18)
-        & (_GEN_5 | regBaseDcacheWriteReq_valid);
-      if (_GEN_5) begin
-        regBaseDcacheWriteReq_addr <= io_dcache_write_req_bits_addr;
-        regBaseDcacheWriteReq_data <= io_dcache_write_req_bits_data;
-        regBaseDcacheWriteReq_mask <= io_dcache_write_req_bits_byte_mask;
-      end
-      regExtDcacheReadReq_valid <=
-        ~reset & _GEN_34 & (_GEN_7 | regExtDcacheReadReq_valid);
-      if (_GEN_7)
-        regExtDcacheReadReq_addr <= io_dcache_read_req_bits_addr;
-      regExtDcacheWriteReq_valid <=
-        ~reset & (_GEN_31 | _GEN_32 | ~_GEN_35 | _GEN_38 | ~_GEN_33)
-        & (_GEN_9 | regExtDcacheWriteReq_valid);
-      if (_GEN_9) begin
-        regExtDcacheWriteReq_addr <= io_dcache_write_req_bits_addr;
-        regExtDcacheWriteReq_data <= io_dcache_write_req_bits_data;
-        regExtDcacheWriteReq_mask <= io_dcache_write_req_bits_byte_mask;
-      end
-      regUartDcacheReadReq_valid <=
-        ~reset & (_GEN_49 | ~_GEN_47) & (_GEN_11 | regUartDcacheReadReq_valid);
-      if (_GEN_11)
-        regUartDcacheReadReq_addr <= io_dcache_read_req_bits_addr;
-      regUartDcacheWriteReq_valid <=
-        ~reset & (_GEN_41 | ~_GEN_46) & (_GEN_12 | regUartDcacheWriteReq_valid);
-      if (_GEN_12)
-        regUartDcacheWriteReq_data <= io_dcache_write_req_bits_data;
+        ~reset & (_GEN_0 | _GEN_4 | _GEN_15 | _GEN_14 | ~_GEN_6)
+        & regBaseDcacheWriteReq_valid;
       if (reset) begin
         base_state <= 2'h0;
         base_wait_counter <= 4'h0;
         base_req_type <= 2'h0;
         base_word_counter <= 3'h0;
-        ext_state <= 2'h0;
-        ext_wait_counter <= 4'h0;
-        uart_buffer_0_data <= 8'h0;
-        uart_buffer_1_data <= 8'h0;
-        uart_buffer_2_data <= 8'h0;
-        uart_buffer_3_data <= 8'h0;
-        uart_buffer_4_data <= 8'h0;
-        uart_buffer_5_data <= 8'h0;
-        uart_buffer_6_data <= 8'h0;
-        uart_buffer_7_data <= 8'h0;
-        uart_head <= 8'h1;
-        uart_tail <= 8'h1;
-        txd_uart_data <= 8'h0;
-        uart_state <= 2'h0;
       end
       else begin
-        automatic logic [2:0]      _tail_idx_T_1;
-        automatic logic [2:0]      tail_idx;
-        automatic logic [3:0][3:0] _GEN_61;
-        automatic logic [3:0][3:0] _GEN_62;
-        automatic logic [3:0][1:0] _GEN_63;
-        _tail_idx_T_1 = uart_tail[7:5] | uart_tail[3:1];
-        tail_idx =
-          {|(uart_tail[7:4]), |(_tail_idx_T_1[2:1]), _tail_idx_T_1[2] | _tail_idx_T_1[0]};
-        if (_GEN_13) begin
+        automatic logic [3:0][3:0] _GEN_18;
+        if (_GEN_0) begin
           if (regBaseDcacheWriteReq_valid) begin
             base_state <= 2'h2;
             base_req_type <= 2'h3;
           end
           else begin
-            if (_GEN_14)
+            if (_GEN_1)
               base_state <= 2'h1;
             if (regBaseDcacheReadReq_valid)
               base_req_type <= 2'h2;
             else if (regBaseIcacheReq_valid)
               base_req_type <= 2'h1;
           end
-          if (_GEN_15 | ~regBaseIcacheReq_valid) begin
+          if (_GEN_3) begin
           end
           else
             base_word_counter <= 3'h0;
         end
         else begin
-          if (_GEN_16) begin
-            if (_GEN_17 ? _GEN_19 : _GEN_23) begin
+          if (_GEN_4) begin
+            if (_GEN_5 ? _GEN_7 : _GEN_11) begin
               base_state <= 2'h0;
               base_req_type <= 2'h0;
             end
           end
-          else if (_GEN_29) begin
+          else if (_GEN_16) begin
           end
           else begin
             base_state <= 2'h0;
             base_req_type <= 2'h0;
           end
-          if (~_GEN_21 | (&base_word_counter) | ~_GEN_18) begin
+          if (~_GEN_9 | (&base_word_counter) | ~_GEN_6) begin
           end
           else
             base_word_counter <= base_word_counter + 3'h1;
         end
-        _GEN_61 =
+        _GEN_18 =
           {{base_wait_counter},
-           {_GEN_26
+           {_GEN_12
               ? base_wait_counter + 4'h1
-              : _GEN_27
+              : _GEN_13
                   ? base_wait_counter + 4'h1
-                  : _GEN_18 ? base_wait_counter : base_wait_counter + 4'h1},
-           {_GEN_17
+                  : _GEN_6 ? base_wait_counter : base_wait_counter + 4'h1},
+           {_GEN_5
               ? ((&base_word_counter)
-                   ? (_GEN_18 ? base_wait_counter : base_wait_counter + 4'h1)
-                   : _GEN_18 ? 4'h0 : base_wait_counter + 4'h1)
-              : ~_GEN_22 | _GEN_18 ? base_wait_counter : base_wait_counter + 4'h1},
-           {regBaseDcacheWriteReq_valid | _GEN_14 ? 4'h0 : base_wait_counter}};
-        base_wait_counter <= _GEN_61[base_state];
-        if (_GEN_31) begin
-          if (regExtDcacheWriteReq_valid)
-            ext_state <= 2'h2;
-          else if (regExtDcacheReadReq_valid)
-            ext_state <= 2'h1;
-        end
-        else if (_GEN_32) begin
-          if (_GEN_33)
-            ext_state <= 2'h0;
-        end
-        else if (_GEN_39) begin
-        end
-        else
-          ext_state <= 2'h0;
-        _GEN_62 =
-          {{ext_wait_counter},
-           {_GEN_36
-              ? ext_wait_counter + 4'h1
-              : _GEN_37
-                  ? ext_wait_counter + 4'h1
-                  : _GEN_33 ? ext_wait_counter : ext_wait_counter + 4'h1},
-           {_GEN_33 ? ext_wait_counter : ext_wait_counter + 4'h1},
-           {regExtDcacheWriteReq_valid | regExtDcacheReadReq_valid
-              ? 4'h0
-              : ext_wait_counter}};
-        ext_wait_counter <= _GEN_62[ext_state];
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h0)
-          uart_buffer_0_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h1)
-          uart_buffer_1_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h2)
-          uart_buffer_2_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h3)
-          uart_buffer_3_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h4)
-          uart_buffer_4_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h5)
-          uart_buffer_5_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & tail_idx == 3'h6)
-          uart_buffer_6_data <= io_rxd_uart_data;
-        if (io_rxd_uart_clear_0 & (&tail_idx))
-          uart_buffer_7_data <= io_rxd_uart_data;
-        if (_GEN_50) begin
-        end
-        else
-          uart_head <= {uart_head[6:0], uart_head[7]};
-        if (io_rxd_uart_clear_0)
-          uart_tail <= new_tail;
-        if (_GEN_41 & _GEN_42)
-          txd_uart_data <= regUartDcacheWriteReq_data[7:0];
-        _GEN_63 =
-          {{uart_state}, {2'h0}, {2'h0}, {_GEN_42 ? 2'h1 : _GEN_45 ? 2'h2 : uart_state}};
-        uart_state <= _GEN_63[uart_state];
+                   ? (_GEN_6 ? base_wait_counter : base_wait_counter + 4'h1)
+                   : _GEN_6 ? 4'h0 : base_wait_counter + 4'h1)
+              : ~_GEN_10 | _GEN_6 ? base_wait_counter : base_wait_counter + 4'h1},
+           {regBaseDcacheWriteReq_valid | _GEN_1 ? 4'h0 : base_wait_counter}};
+        base_wait_counter <= _GEN_18[base_state];
       end
-      maybe_full <=
-        ~reset & (io_rxd_uart_clear_0 ? new_tail == uart_head : _GEN_50 & maybe_full);
-      txd_uart_start <=
-        ~reset & (_GEN_41 ? _GEN_42 | txd_uart_start : ~_GEN_46 & txd_uart_start);
-      read_req <=
-        ~reset
-        & (_GEN_41
-             ? (_GEN_42 ? read_req : _GEN_43 | ~_GEN_44 & read_req)
-             : (_GEN_46 | ~_GEN_47) & read_req);
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -780,28 +312,18 @@ module IoControl(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:26];
+      automatic logic [31:0] _RANDOM[0:24];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [4:0] i = 5'h0; i < 5'h1B; i += 5'h1) begin
+        for (logic [4:0] i = 5'h0; i < 5'h19; i += 5'h1) begin
           _RANDOM[i] = `RANDOM;
         end
         base_ram_ctrl_data_out = _RANDOM[5'h0];
         base_ram_ctrl_addr = _RANDOM[5'h1][19:0];
         base_ram_ctrl_be_n = _RANDOM[5'h1][23:20];
         base_ram_ctrl_ce_n = _RANDOM[5'h1][24];
-        base_ram_ctrl_oe_n = _RANDOM[5'h1][25];
-        base_ram_ctrl_we_n = _RANDOM[5'h1][26];
-        base_ram_ctrl_data_en = _RANDOM[5'h1][27];
-        ext_ram_ctrl_data_out = {_RANDOM[5'h1][31:28], _RANDOM[5'h2][27:0]};
-        ext_ram_ctrl_addr = {_RANDOM[5'h2][31:28], _RANDOM[5'h3][15:0]};
-        ext_ram_ctrl_be_n = _RANDOM[5'h3][19:16];
-        ext_ram_ctrl_ce_n = _RANDOM[5'h3][20];
-        ext_ram_ctrl_oe_n = _RANDOM[5'h3][21];
-        ext_ram_ctrl_we_n = _RANDOM[5'h3][22];
-        ext_ram_ctrl_data_en = _RANDOM[5'h3][23];
         icache_buffer_0 = {_RANDOM[5'h3][31:24], _RANDOM[5'h4][23:0]};
         icache_buffer_1 = {_RANDOM[5'h4][31:24], _RANDOM[5'h5][23:0]};
         icache_buffer_2 = {_RANDOM[5'h5][31:24], _RANDOM[5'h6][23:0]};
@@ -811,47 +333,14 @@ module IoControl(
         icache_buffer_6 = {_RANDOM[5'h9][31:24], _RANDOM[5'hA][23:0]};
         icache_buffer_7 = {_RANDOM[5'hA][31:24], _RANDOM[5'hB][23:0]};
         icache_data_valid = _RANDOM[5'hB][24];
-        dcache_buffer = {_RANDOM[5'hB][31:25], _RANDOM[5'hC][24:0]};
-        dcache_data_valid = _RANDOM[5'hC][25];
-        regBaseIcacheReq_valid = _RANDOM[5'hC][26];
-        regBaseIcacheReq_addr = {_RANDOM[5'hC][31:27], _RANDOM[5'hD][26:0]};
-        regBaseDcacheReadReq_valid = _RANDOM[5'hD][27];
-        regBaseDcacheReadReq_addr = {_RANDOM[5'hD][31:28], _RANDOM[5'hE][27:0]};
-        regBaseDcacheWriteReq_valid = _RANDOM[5'hE][28];
-        regBaseDcacheWriteReq_addr = {_RANDOM[5'hE][31:29], _RANDOM[5'hF][28:0]};
-        regBaseDcacheWriteReq_data = {_RANDOM[5'hF][31:29], _RANDOM[5'h10][28:0]};
-        regBaseDcacheWriteReq_mask = {_RANDOM[5'h10][31:29], _RANDOM[5'h11][0]};
-        regExtDcacheReadReq_valid = _RANDOM[5'h11][1];
-        regExtDcacheReadReq_addr = {_RANDOM[5'h11][31:2], _RANDOM[5'h12][1:0]};
-        regExtDcacheWriteReq_valid = _RANDOM[5'h12][2];
-        regExtDcacheWriteReq_addr = {_RANDOM[5'h12][31:3], _RANDOM[5'h13][2:0]};
-        regExtDcacheWriteReq_data = {_RANDOM[5'h13][31:3], _RANDOM[5'h14][2:0]};
-        regExtDcacheWriteReq_mask = _RANDOM[5'h14][6:3];
-        regUartDcacheReadReq_valid = _RANDOM[5'h14][7];
-        regUartDcacheReadReq_addr = {_RANDOM[5'h14][31:8], _RANDOM[5'h15][7:0]};
-        regUartDcacheWriteReq_valid = _RANDOM[5'h15][8];
-        regUartDcacheWriteReq_data = {_RANDOM[5'h16][31:9], _RANDOM[5'h17][8:0]};
-        base_state = _RANDOM[5'h17][14:13];
-        base_wait_counter = _RANDOM[5'h17][18:15];
-        base_req_type = _RANDOM[5'h17][20:19];
-        base_word_counter = _RANDOM[5'h17][23:21];
-        ext_state = _RANDOM[5'h17][25:24];
-        ext_wait_counter = _RANDOM[5'h17][29:26];
-        uart_buffer_0_data = {_RANDOM[5'h17][31:30], _RANDOM[5'h18][5:0]};
-        uart_buffer_1_data = _RANDOM[5'h18][13:6];
-        uart_buffer_2_data = _RANDOM[5'h18][21:14];
-        uart_buffer_3_data = _RANDOM[5'h18][29:22];
-        uart_buffer_4_data = {_RANDOM[5'h18][31:30], _RANDOM[5'h19][5:0]};
-        uart_buffer_5_data = _RANDOM[5'h19][13:6];
-        uart_buffer_6_data = _RANDOM[5'h19][21:14];
-        uart_buffer_7_data = _RANDOM[5'h19][29:22];
-        uart_head = {_RANDOM[5'h19][31:30], _RANDOM[5'h1A][5:0]};
-        uart_tail = _RANDOM[5'h1A][13:6];
-        maybe_full = _RANDOM[5'h1A][14];
-        txd_uart_start = _RANDOM[5'h1A][15];
-        txd_uart_data = _RANDOM[5'h1A][23:16];
-        read_req = _RANDOM[5'h1A][24];
-        uart_state = _RANDOM[5'h1A][28:27];
+        regBaseIcacheReq_valid = _RANDOM[5'hD][27];
+        regBaseIcacheReq_addr = {_RANDOM[5'hD][31:28], _RANDOM[5'hE][27:0]};
+        regBaseDcacheReadReq_valid = _RANDOM[5'hE][28];
+        regBaseDcacheWriteReq_valid = _RANDOM[5'hF][29];
+        base_state = _RANDOM[5'h18][15:14];
+        base_wait_counter = _RANDOM[5'h18][19:16];
+        base_req_type = _RANDOM[5'h18][21:20];
+        base_word_counter = _RANDOM[5'h18][24:22];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -869,27 +358,10 @@ module IoControl(
      icache_buffer_2,
      icache_buffer_1,
      icache_buffer_0};
-  assign io_dcache_read_req_ready = io_dcache_read_req_ready_0;
-  assign io_dcache_read_resp_valid = dcache_data_valid;
-  assign io_dcache_read_resp_bits_data = dcache_buffer;
-  assign io_dcache_write_req_ready = io_dcache_write_req_ready_0;
   assign io_base_ram_ctrl_ctrl_data_out = base_ram_ctrl_data_out;
   assign io_base_ram_ctrl_ctrl_addr = base_ram_ctrl_addr;
   assign io_base_ram_ctrl_ctrl_be_n = base_ram_ctrl_be_n;
   assign io_base_ram_ctrl_ctrl_ce_n = base_ram_ctrl_ce_n;
-  assign io_base_ram_ctrl_ctrl_oe_n = base_ram_ctrl_oe_n;
-  assign io_base_ram_ctrl_ctrl_we_n = base_ram_ctrl_we_n;
-  assign io_base_ram_ctrl_ctrl_data_en = base_ram_ctrl_data_en;
-  assign io_ext_ram_ctrl_ctrl_data_out = ext_ram_ctrl_data_out;
-  assign io_ext_ram_ctrl_ctrl_addr = ext_ram_ctrl_addr;
-  assign io_ext_ram_ctrl_ctrl_be_n = ext_ram_ctrl_be_n;
-  assign io_ext_ram_ctrl_ctrl_ce_n = ext_ram_ctrl_ce_n;
-  assign io_ext_ram_ctrl_ctrl_oe_n = ext_ram_ctrl_oe_n;
-  assign io_ext_ram_ctrl_ctrl_we_n = ext_ram_ctrl_we_n;
-  assign io_ext_ram_ctrl_ctrl_data_en = ext_ram_ctrl_data_en;
-  assign io_rxd_uart_clear = io_rxd_uart_clear_0;
-  assign io_txd_uart_start = txd_uart_start;
-  assign io_txd_uart_data = txd_uart_data;
 endmodule
 
 // VCS coverage exclude_file
@@ -1715,11 +1187,14 @@ module DCache(
   input  [3:0]  io_req_bits_wstrb,
   output        io_resp_valid,
   output [31:0] io_resp_bits_data,
+                io_resp_bits_addr,
   input         io_io_read_req_ready,
   output        io_io_read_req_valid,
   output [31:0] io_io_read_req_bits_addr,
+  output        io_io_read_resp_ready,
   input         io_io_read_resp_valid,
   input  [31:0] io_io_read_resp_bits_data,
+                io_io_read_resp_bits_addr,
   input         io_io_write_req_ready,
   output        io_io_write_req_valid,
   output [31:0] io_io_write_req_bits_addr,
@@ -1728,54 +1203,32 @@ module DCache(
 );
 
   reg  [1:0]  state;
-  reg         saved_req_valid;
-  reg  [31:0] saved_req_bits_addr;
-  reg         saved_req_bits_write;
-  reg  [31:0] saved_req_bits_wdata;
-  reg  [3:0]  saved_req_bits_wstrb;
-  wire        current_req_valid = saved_req_valid ? saved_req_valid : io_req_valid;
-  wire [31:0] current_req_bits_addr =
-    saved_req_valid ? saved_req_bits_addr : io_req_bits_addr;
-  wire        current_req_bits_write =
-    saved_req_valid ? saved_req_bits_write : io_req_bits_write;
-  wire        _GEN = ~(|state) & current_req_valid;
-  wire        _GEN_0 = state == 2'h1;
-  wire        _GEN_1 = state == 2'h2;
+  reg  [31:0] read_data_reg;
+  reg  [31:0] read_addr_reg;
+  wire        idle = state == 2'h0;
+  wire        io_io_read_resp_ready_0 = state == 2'h1;
+  wire        io_req_ready_0 =
+    idle & (io_req_bits_write ? io_io_write_req_ready : io_io_read_req_ready);
+  wire        _GEN = state == 2'h2;
   always @(posedge clock) begin
-    automatic logic _GEN_2;
-    _GEN_2 = io_req_valid & ~(|state) & ~saved_req_valid;
     if (reset) begin
       state <= 2'h0;
-      saved_req_valid <= 1'h0;
+      read_data_reg <= 32'h0;
+      read_addr_reg <= 32'h0;
     end
     else begin
-      automatic logic _GEN_3;
-      _GEN_3 = _GEN_2 | saved_req_valid;
-      if (|state) begin
-        if ((_GEN_0 | _GEN_1) & io_io_read_resp_valid)
-          state <= 2'h0;
-        if (_GEN_0)
-          saved_req_valid <= ~io_io_read_resp_valid & _GEN_3;
-        else
-          saved_req_valid <= ~(_GEN_1 & io_io_read_resp_valid) & _GEN_3;
+      automatic logic _GEN_0;
+      _GEN_0 = io_io_read_resp_ready_0 & io_io_read_resp_valid;
+      if ((&state) | _GEN)
+        state <= 2'h0;
+      else if (_GEN_0)
+        state <= 2'h2;
+      else if (io_req_ready_0 & io_req_valid)
+        state <= {io_req_bits_write, 1'h1};
+      if (_GEN_0) begin
+        read_data_reg <= io_io_read_resp_bits_data;
+        read_addr_reg <= io_io_read_resp_bits_addr;
       end
-      else begin
-        if (current_req_valid) begin
-          if (current_req_bits_write) begin
-            if (io_io_write_req_ready)
-              state <= 2'h2;
-          end
-          else if (io_io_read_req_ready)
-            state <= 2'h1;
-        end
-        saved_req_valid <= _GEN_3;
-      end
-    end
-    if (_GEN_2) begin
-      saved_req_bits_addr <= io_req_bits_addr;
-      saved_req_bits_write <= io_req_bits_write;
-      saved_req_bits_wdata <= io_req_bits_wdata;
-      saved_req_bits_wstrb <= io_req_bits_wstrb;
     end
   end // always @(posedge)
   `ifdef ENABLE_INITIAL_REG_
@@ -1792,29 +1245,154 @@ module DCache(
           _RANDOM[i] = `RANDOM;
         end
         state = _RANDOM[2'h0][1:0];
-        saved_req_valid = _RANDOM[2'h0][2];
-        saved_req_bits_addr = {_RANDOM[2'h0][31:3], _RANDOM[2'h1][2:0]};
-        saved_req_bits_write = _RANDOM[2'h1][3];
-        saved_req_bits_wdata = {_RANDOM[2'h1][31:4], _RANDOM[2'h2][3:0]};
-        saved_req_bits_wstrb = _RANDOM[2'h2][7:4];
+        read_data_reg = {_RANDOM[2'h0][31:2], _RANDOM[2'h1][1:0]};
+        read_addr_reg = {_RANDOM[2'h1][31:2], _RANDOM[2'h2][1:0]};
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_req_ready = ~(|state);
-  assign io_resp_valid = (|state) & (_GEN_0 | _GEN_1) & io_io_read_resp_valid;
-  assign io_resp_bits_data =
-    (|state) & _GEN_0 & io_io_read_resp_valid ? io_io_read_resp_bits_data : 32'h0;
-  assign io_io_read_req_valid = _GEN & ~current_req_bits_write;
-  assign io_io_read_req_bits_addr = current_req_bits_addr;
-  assign io_io_write_req_valid = _GEN & current_req_bits_write;
-  assign io_io_write_req_bits_addr = current_req_bits_addr;
-  assign io_io_write_req_bits_data =
-    saved_req_valid ? saved_req_bits_wdata : io_req_bits_wdata;
-  assign io_io_write_req_bits_byte_mask =
-    saved_req_valid ? saved_req_bits_wstrb : io_req_bits_wstrb;
+  assign io_req_ready = io_req_ready_0;
+  assign io_resp_valid = (&state) | _GEN;
+  assign io_resp_bits_data = _GEN ? read_data_reg : 32'h0;
+  assign io_resp_bits_addr = _GEN ? read_addr_reg : 32'h0;
+  assign io_io_read_req_valid = idle & io_req_valid & ~io_req_bits_write;
+  assign io_io_read_req_bits_addr = io_req_bits_addr;
+  assign io_io_read_resp_ready = io_io_read_resp_ready_0;
+  assign io_io_write_req_valid = idle & io_req_valid & io_req_bits_write;
+  assign io_io_write_req_bits_addr = io_req_bits_addr;
+  assign io_io_write_req_bits_data = io_req_bits_wdata;
+  assign io_io_write_req_bits_byte_mask = io_req_bits_wstrb;
+endmodule
+
+module SimpleDataMemoryController(
+  input         clock,
+                reset,
+  output        io_read_req_ready,
+  input         io_read_req_valid,
+  input  [31:0] io_read_req_bits_addr,
+  input         io_read_resp_ready,
+  output        io_read_resp_valid,
+  output [31:0] io_read_resp_bits_data,
+                io_read_resp_bits_addr,
+  output        io_write_req_ready,
+  input         io_write_req_valid,
+  input  [31:0] io_write_req_bits_addr,
+                io_write_req_bits_data,
+  input  [3:0]  io_write_req_bits_byte_mask,
+  input  [31:0] io_ram_data_in,
+  output [31:0] io_ram_ctrl_data_out,
+  output [19:0] io_ram_ctrl_addr,
+  output [3:0]  io_ram_ctrl_be_n,
+  output        io_ram_ctrl_ce_n,
+                io_ram_ctrl_we_n
+);
+
+  reg  [1:0]       state;
+  reg  [2:0]       counter;
+  reg  [31:0]      read_data;
+  reg              response_valid;
+  reg  [31:0]      pending_addr;
+  reg  [31:0]      pending_wdata;
+  reg  [3:0]       pending_mask;
+  wire             _io_write_req_ready_T = state == 2'h0;
+  wire             io_read_req_ready_0 =
+    _io_write_req_ready_T & ~io_write_req_valid & ~response_valid;
+  wire             io_write_req_ready_0 =
+    _io_write_req_ready_T & ~io_read_req_valid & ~response_valid;
+  wire             _GEN = state == 2'h1;
+  wire             _GEN_0 = state == 2'h2;
+  wire [3:0][19:0] _GEN_1 =
+    {{pending_addr[21:2]}, {pending_addr[21:2]}, {pending_addr[21:2]}, {20'h0}};
+  wire [3:0][3:0]  _GEN_2 = {{~pending_mask}, {4'h0}, {4'h0}, {4'hF}};
+  always @(posedge clock) begin
+    if (reset) begin
+      state <= 2'h0;
+      counter <= 3'h0;
+      read_data <= 32'h0;
+      response_valid <= 1'h0;
+      pending_addr <= 32'h0;
+      pending_wdata <= 32'h0;
+      pending_mask <= 4'h0;
+    end
+    else begin
+      automatic logic _GEN_3;
+      automatic logic _GEN_4;
+      automatic logic _GEN_5;
+      _GEN_3 = io_read_req_ready_0 & io_read_req_valid;
+      _GEN_4 = io_write_req_ready_0 & io_write_req_valid;
+      _GEN_5 = counter == 3'h3;
+      if ((&state) & _GEN_5 | _GEN_0)
+        state <= 2'h0;
+      else if (_GEN & _GEN_5)
+        state <= 2'h2;
+      else if (_GEN_3)
+        state <= 2'h1;
+      else if (_GEN_4)
+        state <= 2'h3;
+      if (~(&state) | _GEN_5) begin
+        if (~_GEN | _GEN_5) begin
+          if (_GEN_3 | _GEN_4)
+            counter <= 3'h0;
+        end
+        else
+          counter <= counter + 3'h1;
+      end
+      else
+        counter <= counter + 3'h1;
+      if (_GEN_0)
+        read_data <= io_ram_data_in;
+      response_valid <=
+        ~(io_read_resp_ready & response_valid) & (_GEN_0 | response_valid);
+      if (_GEN_3)
+        pending_addr <= io_read_req_bits_addr;
+      else if (_GEN_4)
+        pending_addr <= io_write_req_bits_addr;
+      if (_GEN_3 | ~_GEN_4) begin
+      end
+      else begin
+        pending_wdata <= io_write_req_bits_data;
+        pending_mask <= io_write_req_bits_byte_mask;
+      end
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:3];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          _RANDOM[i[1:0]] = `RANDOM;
+        end
+        state = _RANDOM[2'h0][1:0];
+        counter = _RANDOM[2'h0][4:2];
+        read_data = {_RANDOM[2'h0][31:5], _RANDOM[2'h1][4:0]};
+        response_valid = _RANDOM[2'h1][5];
+        pending_addr = {_RANDOM[2'h1][31:6], _RANDOM[2'h2][5:0]};
+        pending_wdata = {_RANDOM[2'h2][31:6], _RANDOM[2'h3][5:0]};
+        pending_mask = _RANDOM[2'h3][9:6];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_read_req_ready = io_read_req_ready_0;
+  assign io_read_resp_valid = response_valid;
+  assign io_read_resp_bits_data = read_data;
+  assign io_read_resp_bits_addr = pending_addr;
+  assign io_write_req_ready = io_write_req_ready_0;
+  assign io_ram_ctrl_data_out = (&state) ? pending_wdata : 32'h0;
+  assign io_ram_ctrl_addr = _GEN_1[state];
+  assign io_ram_ctrl_be_n = _GEN_2[state];
+  assign io_ram_ctrl_ce_n = ~((&state) | _GEN_0) & ~_GEN;
+  assign io_ram_ctrl_we_n = ~(&state);
 endmodule
 
 module FetchUnit(
@@ -1841,18 +1419,24 @@ module FetchUnit(
   reg  [31:0]      ifid_reg_inst;
   reg              ifid_reg_valid;
   reg  [31:0]      ifid_reg_pc;
+  reg              resp_hold_valid;
+  reg  [31:0]      resp_hold_inst;
+  reg  [31:0]      resp_hold_pc;
   wire             bufferStalled =
     ifid_reg_valid & ~io_signal_fetchUnitSignal_allow_to_go;
   reg              canStart_REG;
   wire             canStart = canStart_REG & ~reset;
   wire             _GEN =
-    ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_0 = canStart & ~bufferStalled & ~io_branch;
+    resp_hold_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
+  wire             _GEN_0 =
+    ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch
+    & ~resp_hold_valid;
+  wire             _GEN_1 = canStart & ~bufferStalled & ~io_branch & ~resp_hold_valid;
   wire             ifid_consumed =
     ifid_reg_valid & io_signal_fetchUnitSignal_allow_to_go & ~io_branch;
-  wire             _GEN_1 = io_icache_resp_valid & pending_valid;
+  wire             _GEN_2 = io_icache_resp_valid & pending_valid;
   wire             addr_match = io_icache_resp_bits_addr == wait_pc;
-  wire [7:0][31:0] _GEN_2 =
+  wire [7:0][31:0] _GEN_3 =
     {{io_icache_resp_bits_data[255:224]},
      {io_icache_resp_bits_data[223:192]},
      {io_icache_resp_bits_data[191:160]},
@@ -1861,19 +1445,23 @@ module FetchUnit(
      {io_icache_resp_bits_data[95:64]},
      {io_icache_resp_bits_data[63:32]},
      {io_icache_resp_bits_data[31:0]}};
-  wire [31:0]      inst = _GEN_2[wait_pc[4:2]];
+  wire [31:0]      inst = _GEN_3[wait_pc[4:2]];
   wire             buffer_available = ~ifid_reg_valid | ifid_consumed;
-  wire             _GEN_3 =
+  wire             _GEN_4 =
     buffer_available & io_signal_fetchUnitSignal_allow_to_go & ~ifid_consumed;
-  wire             _GEN_4 = _GEN_1 & addr_match & _GEN_3;
-  wire             _GEN_5 = state & _GEN_4;
-  wire             _GEN_6 = _GEN_1 & addr_match;
+  wire             _GEN_5 = _GEN_2 & addr_match & _GEN_4;
+  wire             _GEN_6 = _GEN_2 & addr_match;
   wire             _GEN_7 =
     ~io_branch
     & ~(buffer_available & ~io_signal_fetchUnitSignal_allow_to_go & ~ifid_consumed
-        | ~buffer_available);
-  wire             _GEN_8 = ~pending_valid & ~bufferStalled & ~io_branch;
+        | ~buffer_available) & ~resp_hold_valid;
+  wire             _GEN_8 =
+    ~pending_valid & ~bufferStalled & ~io_branch & ~resp_hold_valid;
   always @(posedge clock) begin
+    automatic logic _GEN_9;
+    automatic logic _GEN_10;
+    _GEN_9 = state & _GEN_6;
+    _GEN_10 = _GEN_4 | buffer_available;
     if (reset) begin
       state <= 1'h0;
       wait_pc <= 32'h80000000;
@@ -1882,25 +1470,26 @@ module FetchUnit(
       ifid_reg_inst <= 32'h0;
       ifid_reg_valid <= 1'h0;
       ifid_reg_pc <= 32'h0;
+      resp_hold_valid <= 1'h0;
     end
     else begin
-      automatic logic _GEN_9;
-      automatic logic _GEN_10;
       automatic logic _GEN_11;
       automatic logic _GEN_12;
       automatic logic _GEN_13;
-      _GEN_9 = _GEN_0 & io_icache_req_ready;
-      _GEN_10 = ~state | ~(state & _GEN_6) | _GEN_3 | ~buffer_available;
-      _GEN_11 = _GEN_7 & io_icache_req_ready;
-      _GEN_12 = (~_GEN_6 | _GEN_11) & state;
-      _GEN_13 = _GEN_8 & io_icache_req_ready;
+      automatic logic _GEN_14;
+      automatic logic _GEN_15;
+      _GEN_11 = _GEN_1 & io_icache_req_ready;
+      _GEN_12 = ~state | ~_GEN_9 | _GEN_4 | ~buffer_available;
+      _GEN_13 = _GEN_7 & io_icache_req_ready;
+      _GEN_14 = (~_GEN_6 | _GEN_13) & state;
+      _GEN_15 = _GEN_8 & io_icache_req_ready;
       state <=
         ~io_branch
         & (state
              ? (_GEN_8
-                  ? io_icache_req_ready & _GEN_12
-                  : ~(~pending_valid & bufferStalled) & _GEN_12)
-             : _GEN_9 | state);
+                  ? io_icache_req_ready & _GEN_14
+                  : ~(~pending_valid & bufferStalled) & _GEN_14)
+             : _GEN_11 | state);
       if (canStart & req_pc == 32'h0 & ~io_branch) begin
         wait_pc <= 32'h80000000;
         req_pc <= 32'h80000000;
@@ -1910,37 +1499,46 @@ module FetchUnit(
         req_pc <= io_target;
       end
       else begin
-        automatic logic _GEN_14;
-        _GEN_14 = _GEN_1 & addr_match & _GEN_11;
-        if (state ? state & (_GEN_8 & io_icache_req_ready | _GEN_14) : _GEN_9)
+        automatic logic _GEN_16;
+        _GEN_16 = _GEN_2 & addr_match & _GEN_13;
+        if (state ? state & (_GEN_8 & io_icache_req_ready | _GEN_16) : _GEN_11)
           wait_pc <= req_pc;
         if (state) begin
-          if (_GEN_13)
+          if (_GEN_15)
             req_pc <= req_pc + 32'h4;
-          else if (_GEN_14)
+          else if (_GEN_16)
             req_pc <= req_pc + 32'h4;
         end
-        else if (_GEN_9)
+        else if (_GEN_11)
           req_pc <= req_pc + 32'h4;
       end
       pending_valid <=
         ~io_branch
         & (state
-             ? _GEN_13 | (_GEN_6 ? _GEN_7 & io_icache_req_ready : pending_valid)
-             : _GEN_9 | pending_valid);
-      if (_GEN_10) begin
+             ? _GEN_15 | (_GEN_6 ? _GEN_7 & io_icache_req_ready : pending_valid)
+             : _GEN_11 | pending_valid);
+      if (_GEN_12) begin
       end
       else
         ifid_reg_inst <= inst;
       ifid_reg_valid <=
         ~io_branch
         & (state
-             ? _GEN_6 & ~_GEN_3 & buffer_available | ~ifid_consumed & ifid_reg_valid
-             : ~_GEN & ifid_reg_valid);
-      if (_GEN_10) begin
+             ? _GEN_6 & ~_GEN_4 & buffer_available | ~ifid_consumed & ifid_reg_valid
+             : ~_GEN_0 & ifid_reg_valid);
+      if (_GEN_12) begin
       end
       else
         ifid_reg_pc <= wait_pc;
+      resp_hold_valid <=
+        ~io_branch
+        & (state ? _GEN_9 & ~_GEN_10 | resp_hold_valid : ~_GEN & resp_hold_valid);
+    end
+    if (~state | ~_GEN_9 | _GEN_10) begin
+    end
+    else begin
+      resp_hold_inst <= inst;
+      resp_hold_pc <= wait_pc;
     end
     canStart_REG <= ~reset;
   end // always @(posedge)
@@ -1949,12 +1547,12 @@ module FetchUnit(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:4];
+      automatic logic [31:0] _RANDOM[0:6];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [2:0] i = 3'h0; i < 3'h5; i += 3'h1) begin
+        for (logic [2:0] i = 3'h0; i < 3'h7; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
         state = _RANDOM[3'h0][0];
@@ -1964,18 +1562,25 @@ module FetchUnit(
         ifid_reg_inst = {_RANDOM[3'h2][31:2], _RANDOM[3'h3][1:0]};
         ifid_reg_valid = _RANDOM[3'h3][2];
         ifid_reg_pc = {_RANDOM[3'h3][31:3], _RANDOM[3'h4][2:0]};
-        canStart_REG = _RANDOM[3'h4][3];
+        resp_hold_valid = _RANDOM[3'h4][3];
+        resp_hold_inst = {_RANDOM[3'h4][31:4], _RANDOM[3'h5][3:0]};
+        resp_hold_pc = {_RANDOM[3'h5][31:4], _RANDOM[3'h6][3:0]};
+        canStart_REG = _RANDOM[3'h6][4];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
       `FIRRTL_AFTER_INITIAL
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_decodeStage_data_inst = _GEN_5 ? inst : ifid_reg_inst;
+  assign io_decodeStage_data_inst =
+    state ? (_GEN_5 ? inst : ifid_reg_inst) : _GEN_0 ? ifid_reg_inst : resp_hold_inst;
   assign io_decodeStage_data_valid =
-    state ? state & (_GEN_4 | ifid_consumed & ifid_reg_valid) : _GEN & ifid_reg_valid;
-  assign io_decodeStage_data_pc = _GEN_5 ? wait_pc : ifid_reg_pc;
-  assign io_icache_req_valid = state ? state & (_GEN_8 | _GEN_6 & _GEN_7) : _GEN_0;
+    state
+      ? state & (_GEN_5 | ifid_consumed & ifid_reg_valid)
+      : _GEN_0 ? ifid_reg_valid : _GEN;
+  assign io_decodeStage_data_pc =
+    state ? (_GEN_5 ? wait_pc : ifid_reg_pc) : _GEN_0 ? ifid_reg_pc : resp_hold_pc;
+  assign io_icache_req_valid = state ? state & (_GEN_8 | _GEN_6 & _GEN_7) : _GEN_1;
   assign io_icache_req_bits_addr = req_pc;
 endmodule
 
@@ -2058,7 +1663,8 @@ module DecodeUnit(
                 io_bypassData_src2_data,
   output [31:0] io_executeStage_data_pc,
                 io_executeStage_data_info_instr,
-  output        io_executeStage_data_info_valid,
+  output        io_executeStage_data_info_cheat,
+                io_executeStage_data_info_valid,
   output [4:0]  io_executeStage_data_info_op,
   output        io_executeStage_data_info_reg_wen,
   output [4:0]  io_executeStage_data_info_reg_waddr,
@@ -2072,267 +1678,240 @@ module DecodeUnit(
                 io_registerInfo_src2_ren
 );
 
-  wire        _GEN = io_decodeStage_data_inst[31:25] == 7'hA;
-  wire        _GEN_0 = io_decodeStage_data_inst[31:25] == 7'hE;
-  wire        _GEN_1 = io_decodeStage_data_inst[31:22] == 10'hA;
-  wire        _GEN_2 = io_decodeStage_data_inst[31:15] == 17'h20;
-  wire        _GEN_3 = io_decodeStage_data_inst[31:15] == 17'h2E;
-  wire        _GEN_4 = io_decodeStage_data_inst[31:22] == 10'h8;
-  wire        _GEN_5 = io_decodeStage_data_inst[31:15] == 17'h24;
-  wire        _GEN_6 = io_decodeStage_data_inst[31:22] == 10'h9;
-  wire        _GEN_7 = io_decodeStage_data_inst[31:15] == 17'h25;
-  wire        _GEN_8 = io_decodeStage_data_inst[31:22] == 10'hF;
-  wire        _GEN_9 = io_decodeStage_data_inst[31:15] == 17'h2B;
-  wire        _GEN_10 = io_decodeStage_data_inst[31:15] == 17'h28;
-  wire        _GEN_11 = io_decodeStage_data_inst[31:15] == 17'h81;
-  wire        _GEN_12 = io_decodeStage_data_inst[31:15] == 17'h89;
-  wire        _GEN_13 = io_decodeStage_data_inst[31:15] == 17'h2F;
-  wire        _GEN_14 = io_decodeStage_data_inst[31:15] == 17'h91;
-  wire        _GEN_15 = io_decodeStage_data_inst[31:15] == 17'h30;
-  wire        _GEN_16 = io_decodeStage_data_inst[31:22] == 10'hE;
-  wire        _GEN_17 = io_decodeStage_data_inst[31:15] == 17'h2A;
-  wire        _GEN_18 = io_decodeStage_data_inst[31:22] == 10'hD;
-  wire        _GEN_19 = io_decodeStage_data_inst[31:15] == 17'h29;
-  wire        _GEN_20 = io_decodeStage_data_inst[31:15] == 17'h22;
-  wire        _GEN_21 = io_decodeStage_data_inst[31:15] == 17'h38;
-  wire        _GEN_22 = io_decodeStage_data_inst[31:15] == 17'h39;
-  wire        _GEN_23 = io_decodeStage_data_inst[31:15] == 17'h3A;
-  wire        _GEN_24 = io_decodeStage_data_inst[31:15] == 17'h40;
-  wire        _GEN_25 = io_decodeStage_data_inst[31:15] == 17'h42;
-  wire        _GEN_26 = io_decodeStage_data_inst[31:15] == 17'h41;
-  wire        _GEN_27 = io_decodeStage_data_inst[31:15] == 17'h43;
-  wire        _GEN_28 = io_decodeStage_data_inst[31:22] == 10'hA0;
-  wire        _GEN_29 = io_decodeStage_data_inst[31:22] == 10'hA8;
-  wire        _GEN_30 = io_decodeStage_data_inst[31:22] == 10'hA1;
-  wire        _GEN_31 = io_decodeStage_data_inst[31:22] == 10'hA9;
-  wire        _GEN_32 = io_decodeStage_data_inst[31:22] == 10'hA2;
-  wire        _GEN_33 = io_decodeStage_data_inst[31:22] == 10'hA4;
-  wire        _GEN_34 = io_decodeStage_data_inst[31:22] == 10'hA5;
-  wire        _GEN_35 = io_decodeStage_data_inst[31:22] == 10'hA6;
-  wire        _GEN_36 = io_decodeStage_data_inst[31:26] == 6'h16;
-  wire        _GEN_37 = io_decodeStage_data_inst[31:26] == 6'h17;
-  wire        _GEN_38 = io_decodeStage_data_inst[31:26] == 6'h18;
-  wire        _GEN_39 = io_decodeStage_data_inst[31:26] == 6'h19;
-  wire        _GEN_40 = io_decodeStage_data_inst[31:26] == 6'h1A;
-  wire        _GEN_41 = io_decodeStage_data_inst[31:26] == 6'h1B;
-  wire        _GEN_42 = io_decodeStage_data_inst[31:26] == 6'h14;
-  wire        _GEN_43 = io_decodeStage_data_inst[31:26] == 6'h15;
-  wire        _GEN_44 = io_decodeStage_data_inst[31:26] == 6'h13;
-  wire [9:0]  _GEN_45 = {io_decodeStage_data_inst[14:12], io_decodeStage_data_inst[6:0]};
-  wire        _GEN_46 = _GEN_45 == 10'hF3;
-  wire        _GEN_47 = _GEN_45 == 10'h173;
-  wire        _GEN_48 = _GEN_45 == 10'h1F3;
-  wire        _GEN_49 = _GEN_45 == 10'h2F3;
-  wire        _GEN_50 = _GEN_45 == 10'h373;
-  wire        _GEN_51 = _GEN_45 == 10'h3F3;
-  wire [2:0]  _GEN_52 = {_GEN_46 | _GEN_47 | _GEN_48 | _GEN_49 | _GEN_50 | _GEN_51, 2'h0};
-  wire        _GEN_53 = _GEN_42 | _GEN_43 | _GEN_44;
-  wire        _GEN_54 = _GEN_33 | _GEN_34 | _GEN_35;
-  wire        _GEN_55 =
-    _GEN_21 | _GEN_22 | _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27;
+  wire        _GEN = io_decodeStage_data_inst[6:0] == 7'h37;
+  wire        _GEN_0 = io_decodeStage_data_inst[6:0] == 7'h17;
+  wire [9:0]  _GEN_1 = {io_decodeStage_data_inst[14:12], io_decodeStage_data_inst[6:0]};
+  wire        _GEN_2 = _GEN_1 == 10'h13;
+  wire        _GEN_3 = _GEN_1 == 10'h113;
+  wire        _GEN_4 = _GEN_1 == 10'h193;
+  wire        _GEN_5 = _GEN_1 == 10'h213;
+  wire        _GEN_6 = _GEN_1 == 10'h313;
+  wire        _GEN_7 = _GEN_1 == 10'h393;
+  wire [16:0] _GEN_8 =
+    {io_decodeStage_data_inst[31:25],
+     io_decodeStage_data_inst[14:12],
+     io_decodeStage_data_inst[6:0]};
+  wire        _GEN_9 = _GEN_8 == 17'h93;
+  wire        _GEN_10 = _GEN_8 == 17'h293;
+  wire        _GEN_11 = _GEN_8 == 17'h8293;
+  wire        _GEN_12 = _GEN_8 == 17'h33;
+  wire        _GEN_13 = _GEN_8 == 17'h8033;
+  wire        _GEN_14 = _GEN_8 == 17'hB3;
+  wire        _GEN_15 = _GEN_8 == 17'h133;
+  wire        _GEN_16 = _GEN_8 == 17'h1B3;
+  wire        _GEN_17 = _GEN_8 == 17'h233;
+  wire        _GEN_18 = _GEN_8 == 17'h2B3;
+  wire        _GEN_19 = _GEN_8 == 17'h82B3;
+  wire        _GEN_20 = _GEN_8 == 17'h333;
+  wire        _GEN_21 = _GEN_8 == 17'h3B3;
+  wire        _GEN_22 = _GEN_8 == 17'h433;
+  wire        _GEN_23 = _GEN_8 == 17'h4B3;
+  wire        _GEN_24 = _GEN_8 == 17'h5B3;
+  wire        _GEN_25 = _GEN_8 == 17'h633;
+  wire        _GEN_26 = _GEN_8 == 17'h6B3;
+  wire        _GEN_27 = _GEN_8 == 17'h733;
+  wire        _GEN_28 = _GEN_8 == 17'h7B3;
+  wire        _GEN_29 = _GEN_1 == 10'h3;
+  wire        _GEN_30 = _GEN_1 == 10'h203;
+  wire        _GEN_31 = _GEN_1 == 10'h83;
+  wire        _GEN_32 = _GEN_1 == 10'h283;
+  wire        _GEN_33 = _GEN_1 == 10'h103;
+  wire        _GEN_34 = _GEN_1 == 10'h23;
+  wire        _GEN_35 = _GEN_1 == 10'hA3;
+  wire        _GEN_36 = _GEN_1 == 10'h123;
+  wire        _GEN_37 = _GEN_1 == 10'h63;
+  wire        _GEN_38 = _GEN_1 == 10'hE3;
+  wire        _GEN_39 = _GEN_1 == 10'h263;
+  wire        _GEN_40 = _GEN_1 == 10'h2E3;
+  wire        _GEN_41 = _GEN_1 == 10'h363;
+  wire        _GEN_42 = _GEN_1 == 10'h3E3;
+  wire        _GEN_43 = io_decodeStage_data_inst[6:0] == 7'h6F;
+  wire        _GEN_44 = _GEN_1 == 10'h67;
+  wire        _GEN_45 = _GEN_1 == 10'hF3;
+  wire        _GEN_46 = _GEN_1 == 10'h173;
+  wire        _GEN_47 = _GEN_1 == 10'h1F3;
+  wire [2:0]  _GEN_48 = {_GEN_45 | _GEN_46 | _GEN_47, 2'h0};
+  wire        _GEN_49 = _GEN_43 | _GEN_44;
+  wire        _GEN_50 = _GEN_34 | _GEN_35 | _GEN_36;
+  wire        _GEN_51 =
+    _GEN_22 | _GEN_23 | _GEN_24 | _GEN_25 | _GEN_26 | _GEN_27 | _GEN_28;
   wire [2:0]  instrType =
     _GEN | _GEN_0
       ? 3'h6
-      : _GEN_1
+      : _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_9 | _GEN_10 | _GEN_11
           ? 3'h4
-          : _GEN_2 | _GEN_3
+          : _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16 | _GEN_17 | _GEN_18 | _GEN_19
+            | _GEN_20 | _GEN_21 | _GEN_51
               ? 3'h5
-              : _GEN_4
+              : _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_33
                   ? 3'h4
-                  : _GEN_5
-                      ? 3'h5
-                      : _GEN_6
-                          ? 3'h4
-                          : _GEN_7
-                              ? 3'h5
-                              : _GEN_8
-                                  ? 3'h4
-                                  : _GEN_9 | _GEN_10
-                                      ? 3'h5
-                                      : _GEN_11 | _GEN_12
-                                          ? 3'h4
-                                          : _GEN_13
-                                              ? 3'h5
-                                              : _GEN_14
-                                                  ? 3'h4
-                                                  : _GEN_15
-                                                      ? 3'h5
-                                                      : _GEN_16
-                                                          ? 3'h4
-                                                          : _GEN_17
-                                                              ? 3'h5
-                                                              : _GEN_18
-                                                                  ? 3'h4
-                                                                  : _GEN_19 | _GEN_20
-                                                                    | _GEN_55
-                                                                      ? 3'h5
-                                                                      : _GEN_28 | _GEN_29
-                                                                        | _GEN_30
-                                                                        | _GEN_31
-                                                                        | _GEN_32
-                                                                          ? 3'h4
-                                                                          : _GEN_54
-                                                                              ? 3'h2
-                                                                              : _GEN_36
-                                                                                | _GEN_37
-                                                                                | _GEN_38
-                                                                                | _GEN_39
-                                                                                | _GEN_40
-                                                                                | _GEN_41
-                                                                                  ? 3'h1
-                                                                                  : _GEN_53
-                                                                                      ? 3'h7
-                                                                                      : _GEN_52;
+                  : _GEN_50
+                      ? 3'h2
+                      : _GEN_37 | _GEN_38 | _GEN_39 | _GEN_40 | _GEN_41 | _GEN_42
+                          ? 3'h1
+                          : _GEN_49 ? 3'h7 : _GEN_48;
   wire [3:0]  fuOpType =
-    _GEN | _GEN_0 | _GEN_1 | _GEN_2
+    _GEN | _GEN_0 | _GEN_2
       ? 4'h0
       : _GEN_3
-          ? 4'h9
-          : _GEN_4 | _GEN_5
-              ? 4'h2
-              : _GEN_6 | _GEN_7
-                  ? 4'h3
-                  : _GEN_8 | _GEN_9
-                      ? 4'h4
-                      : _GEN_10
-                          ? 4'hC
-                          : _GEN_11
+          ? 4'h2
+          : _GEN_4
+              ? 4'h3
+              : _GEN_5
+                  ? 4'h4
+                  : _GEN_6
+                      ? 4'h7
+                      : _GEN_7
+                          ? 4'h8
+                          : _GEN_9
                               ? 4'h9
-                              : _GEN_12 | _GEN_13
+                              : _GEN_10
                                   ? 4'h5
-                                  : _GEN_14 | _GEN_15
+                                  : _GEN_11
                                       ? 4'h6
-                                      : _GEN_16 | _GEN_17
-                                          ? 4'h7
-                                          : _GEN_18 | _GEN_19
-                                              ? 4'h8
-                                              : _GEN_20
-                                                  ? 4'h1
-                                                  : _GEN_21
-                                                      ? 4'h0
-                                                      : _GEN_22
-                                                          ? 4'h1
-                                                          : _GEN_23
-                                                              ? 4'h3
-                                                              : _GEN_24
-                                                                  ? 4'h4
-                                                                  : _GEN_25
-                                                                      ? 4'h5
-                                                                      : _GEN_26
-                                                                          ? 4'h6
-                                                                          : _GEN_27
-                                                                              ? 4'h7
-                                                                              : _GEN_28
+                                      : _GEN_12
+                                          ? 4'h0
+                                          : _GEN_13
+                                              ? 4'h1
+                                              : _GEN_14
+                                                  ? 4'h9
+                                                  : _GEN_15
+                                                      ? 4'h2
+                                                      : _GEN_16
+                                                          ? 4'h3
+                                                          : _GEN_17
+                                                              ? 4'h4
+                                                              : _GEN_18
+                                                                  ? 4'h5
+                                                                  : _GEN_19
+                                                                      ? 4'h6
+                                                                      : _GEN_20
+                                                                          ? 4'h7
+                                                                          : _GEN_21
+                                                                              ? 4'h8
+                                                                              : _GEN_22
                                                                                   ? 4'h0
-                                                                                  : _GEN_29
-                                                                                      ? 4'h4
-                                                                                      : _GEN_30
-                                                                                          ? 4'h1
-                                                                                          : _GEN_31
-                                                                                              ? 4'h5
-                                                                                              : _GEN_32
-                                                                                                  ? 4'h2
-                                                                                                  : _GEN_33
-                                                                                                      ? 4'h8
-                                                                                                      : _GEN_34
-                                                                                                          ? 4'h9
-                                                                                                          : _GEN_35
-                                                                                                              ? 4'hA
-                                                                                                              : _GEN_36
-                                                                                                                  ? 4'h0
-                                                                                                                  : _GEN_37
+                                                                                  : _GEN_23
+                                                                                      ? 4'h1
+                                                                                      : _GEN_24
+                                                                                          ? 4'h3
+                                                                                          : _GEN_25
+                                                                                              ? 4'h4
+                                                                                              : _GEN_26
+                                                                                                  ? 4'h5
+                                                                                                  : _GEN_27
+                                                                                                      ? 4'h6
+                                                                                                      : _GEN_28
+                                                                                                          ? 4'h7
+                                                                                                          : _GEN_29
+                                                                                                              ? 4'h0
+                                                                                                              : _GEN_30
+                                                                                                                  ? 4'h4
+                                                                                                                  : _GEN_31
                                                                                                                       ? 4'h1
-                                                                                                                      : _GEN_38
-                                                                                                                          ? 4'h4
-                                                                                                                          : _GEN_39
-                                                                                                                              ? 4'h5
-                                                                                                                              : _GEN_40
-                                                                                                                                  ? 4'h6
-                                                                                                                                  : _GEN_41
-                                                                                                                                      ? 4'h7
-                                                                                                                                      : _GEN_42
-                                                                                                                                          ? 4'h8
-                                                                                                                                          : _GEN_43
-                                                                                                                                              ? 4'hA
-                                                                                                                                              : _GEN_44
-                                                                                                                                                  ? 4'hB
-                                                                                                                                                  : {1'h0,
-                                                                                                                                                     _GEN_46
-                                                                                                                                                       ? 3'h1
-                                                                                                                                                       : _GEN_47
-                                                                                                                                                           ? 3'h2
-                                                                                                                                                           : _GEN_48
-                                                                                                                                                               ? 3'h3
-                                                                                                                                                               : _GEN_49
-                                                                                                                                                                   ? 3'h5
-                                                                                                                                                                   : _GEN_50
-                                                                                                                                                                       ? 3'h6
-                                                                                                                                                                       : {3{_GEN_51}}};
-  wire [9:0]  _imm_j_T_2 = fuOpType == 4'hB ? 10'h0 : io_decodeStage_data_inst[9:0];
+                                                                                                                      : _GEN_32
+                                                                                                                          ? 4'h5
+                                                                                                                          : _GEN_33
+                                                                                                                              ? 4'h2
+                                                                                                                              : _GEN_34
+                                                                                                                                  ? 4'h8
+                                                                                                                                  : _GEN_35
+                                                                                                                                      ? 4'h9
+                                                                                                                                      : _GEN_36
+                                                                                                                                          ? 4'hA
+                                                                                                                                          : _GEN_37
+                                                                                                                                              ? 4'h0
+                                                                                                                                              : _GEN_38
+                                                                                                                                                  ? 4'h1
+                                                                                                                                                  : _GEN_39
+                                                                                                                                                      ? 4'h4
+                                                                                                                                                      : _GEN_40
+                                                                                                                                                          ? 4'h5
+                                                                                                                                                          : _GEN_41
+                                                                                                                                                              ? 4'h6
+                                                                                                                                                              : _GEN_42
+                                                                                                                                                                  ? 4'h7
+                                                                                                                                                                  : _GEN_43
+                                                                                                                                                                      ? 4'hA
+                                                                                                                                                                      : _GEN_44
+                                                                                                                                                                          ? 4'hB
+                                                                                                                                                                          : {2'h0,
+                                                                                                                                                                             _GEN_45
+                                                                                                                                                                               ? 2'h1
+                                                                                                                                                                               : _GEN_46
+                                                                                                                                                                                   ? 2'h2
+                                                                                                                                                                                   : {2{_GEN_47}}};
   wire        isR = instrType == 3'h5;
   wire        isI = instrType == 3'h4;
   wire        isU = instrType == 3'h6;
   wire        isS = instrType == 3'h2;
   wire        isB = instrType == 3'h1;
   wire [31:0] imm =
-    (isI
-       ? {io_decodeStage_data_inst[24] ? 20'h0 : {20{io_decodeStage_data_inst[21]}},
-          io_decodeStage_data_inst[21:10]}
-       : 32'h0)
+    (isI ? {{20{io_decodeStage_data_inst[31]}}, io_decodeStage_data_inst[31:20]} : 32'h0)
     | (isS
-         ? {{20{io_decodeStage_data_inst[21]}}, io_decodeStage_data_inst[21:10]}
+         ? {{20{io_decodeStage_data_inst[31]}},
+            io_decodeStage_data_inst[31:25],
+            io_decodeStage_data_inst[11:7]}
          : 32'h0)
     | (isB
-         ? {{14{io_decodeStage_data_inst[25]}}, io_decodeStage_data_inst[25:10], 2'h0}
-         : 32'h0) | (isU ? {io_decodeStage_data_inst[24:5], 12'h0} : 32'h0)
+         ? {{20{io_decodeStage_data_inst[31]}},
+            io_decodeStage_data_inst[7],
+            io_decodeStage_data_inst[30:25],
+            io_decodeStage_data_inst[11:8],
+            1'h0}
+         : 32'h0) | (isU ? {io_decodeStage_data_inst[31:12], 12'h0} : 32'h0)
     | ((&instrType)
-         ? {{4{_imm_j_T_2[9]}}, _imm_j_T_2, io_decodeStage_data_inst[25:10], 2'h0}
+         ? {{12{io_decodeStage_data_inst[31]}},
+            io_decodeStage_data_inst[19:12],
+            io_decodeStage_data_inst[20],
+            io_decodeStage_data_inst[30:21],
+            1'h0}
          : 32'h0);
   wire [4:0]  src2_raddr =
-    isR
-      ? io_decodeStage_data_inst[14:10]
-      : isS | isB ? io_decodeStage_data_inst[4:0] : 5'h0;
+    isR | isB
+      ? io_decodeStage_data_inst[24:20]
+      : isS ? io_decodeStage_data_inst[11:7] : 5'h0;
   wire        _src1_ren_T = isR | isI;
-  wire        src1_ren = _src1_ren_T | isS | isB | (&instrType);
+  wire        src1_ren = _src1_ren_T | isS | isB | (&instrType) & fuOpType == 4'hB;
   wire        src2_ren = isR | isS | isB;
-  assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[9:5] : 5'h0;
+  assign io_regfile_src1_raddr = src1_ren ? io_decodeStage_data_inst[19:15] : 5'h0;
   assign io_regfile_src2_raddr = src2_ren ? src2_raddr : 5'h0;
   assign io_executeStage_data_pc = io_decodeStage_data_pc;
   assign io_executeStage_data_info_instr =
-    (|instrType) ? io_decodeStage_data_inst : 32'h2800000;
+    (|instrType) ? io_decodeStage_data_inst : 32'h13;
+  assign io_executeStage_data_info_cheat = fuOpType == 4'h4;
   assign io_executeStage_data_info_valid = io_decodeStage_data_valid & (|instrType);
   assign io_executeStage_data_info_op = {1'h0, fuOpType};
   assign io_executeStage_data_info_reg_wen =
     (_src1_ren_T | isU | (&instrType) & fuOpType != 4'h8) & io_decodeStage_data_valid
     & (|instrType);
   assign io_executeStage_data_info_reg_waddr =
-    (isR | isI | isU ? io_decodeStage_data_inst[4:0] : 5'h0)
-    | ((&instrType) ? (fuOpType == 4'hA ? 5'h1 : io_decodeStage_data_inst[4:0]) : 5'h0);
+    isR | isI | isU | (&instrType) ? io_decodeStage_data_inst[11:7] : 5'h0;
   assign io_executeStage_data_info_imm = imm;
   assign io_executeStage_data_info_fusel =
-    _GEN | _GEN_0 | _GEN_1 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_8
-    | _GEN_9 | _GEN_10 | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16
-    | _GEN_17 | _GEN_18 | _GEN_19 | _GEN_20
+    _GEN | _GEN_0 | _GEN_2 | _GEN_3 | _GEN_4 | _GEN_5 | _GEN_6 | _GEN_7 | _GEN_9 | _GEN_10
+    | _GEN_11 | _GEN_12 | _GEN_13 | _GEN_14 | _GEN_15 | _GEN_16 | _GEN_17 | _GEN_18
+    | _GEN_19 | _GEN_20 | _GEN_21
       ? 3'h0
-      : _GEN_55
+      : _GEN_51
           ? 3'h1
-          : _GEN_28 | _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_54
+          : _GEN_29 | _GEN_30 | _GEN_31 | _GEN_32 | _GEN_33 | _GEN_50
               ? 3'h2
-              : _GEN_36 | _GEN_37 | _GEN_38 | _GEN_39 | _GEN_40 | _GEN_41 | _GEN_53
+              : _GEN_37 | _GEN_38 | _GEN_39 | _GEN_40 | _GEN_41 | _GEN_42 | _GEN_49
                   ? 3'h3
-                  : _GEN_52;
+                  : _GEN_48;
   assign io_executeStage_data_src_info_src1_data =
     (src1_ren
        ? (io_bypassData_src1_bypass ? io_bypassData_src1_data : io_regfile_src1_rdata)
        : 32'h0)
-    | (~src1_ren & io_decodeStage_data_inst[31:25] != 7'hA
+    | (~src1_ren & io_decodeStage_data_inst[6:0] == 7'h17
          ? io_decodeStage_data_pc
          : 32'h0);
   assign io_executeStage_data_src_info_src2_data =
     src2_ren
       ? (io_bypassData_src2_bypass ? io_bypassData_src2_data : io_regfile_src2_rdata)
       : imm;
-  assign io_registerInfo_src1_raddr = io_decodeStage_data_inst[9:5];
+  assign io_registerInfo_src1_raddr = io_decodeStage_data_inst[19:15];
   assign io_registerInfo_src2_raddr = src2_raddr;
   assign io_registerInfo_src1_ren = src1_ren;
   assign io_registerInfo_src2_ren = src2_ren;
@@ -2348,38 +1927,7 @@ module ARegFile(
   input         io_write_wen,
   input  [4:0]  io_write_waddr,
   input  [31:0] io_write_wdata,
-  output [31:0] io_regs_out_0,
-                io_regs_out_1,
-                io_regs_out_2,
-                io_regs_out_3,
-                io_regs_out_4,
-                io_regs_out_5,
-                io_regs_out_6,
-                io_regs_out_7,
-                io_regs_out_8,
-                io_regs_out_9,
-                io_regs_out_10,
-                io_regs_out_11,
-                io_regs_out_12,
-                io_regs_out_13,
-                io_regs_out_14,
-                io_regs_out_15,
-                io_regs_out_16,
-                io_regs_out_17,
-                io_regs_out_18,
-                io_regs_out_19,
-                io_regs_out_20,
-                io_regs_out_21,
-                io_regs_out_22,
-                io_regs_out_23,
-                io_regs_out_24,
-                io_regs_out_25,
-                io_regs_out_26,
-                io_regs_out_27,
-                io_regs_out_28,
-                io_regs_out_29,
-                io_regs_out_30,
-                io_regs_out_31
+  input         io_write_cheat
 );
 
   reg  [31:0]       regs_0;
@@ -2450,164 +1998,171 @@ module ARegFile(
   always @(posedge clock) begin
     if (reset) begin
       regs_0 <= 32'h0;
-      regs_1 <= 32'h0;
-      regs_2 <= 32'h0;
-      regs_3 <= 32'h0;
-      regs_4 <= 32'h0;
-      regs_5 <= 32'h0;
-      regs_6 <= 32'h0;
-      regs_7 <= 32'h0;
-      regs_8 <= 32'h0;
-      regs_9 <= 32'h0;
-      regs_10 <= 32'h0;
-      regs_11 <= 32'h0;
-      regs_12 <= 32'h0;
-      regs_13 <= 32'h0;
-      regs_14 <= 32'h0;
-      regs_15 <= 32'h0;
-      regs_16 <= 32'h0;
-      regs_17 <= 32'h0;
-      regs_18 <= 32'h0;
-      regs_19 <= 32'h0;
-      regs_20 <= 32'h0;
-      regs_21 <= 32'h0;
-      regs_22 <= 32'h0;
-      regs_23 <= 32'h0;
-      regs_24 <= 32'h0;
-      regs_25 <= 32'h0;
-      regs_26 <= 32'h0;
-      regs_27 <= 32'h0;
-      regs_28 <= 32'h0;
-      regs_29 <= 32'h0;
-      regs_30 <= 32'h0;
-      regs_31 <= 32'h0;
+      regs_1 <= 32'h1;
+      regs_2 <= 32'h2;
+      regs_3 <= 32'h3;
+      regs_4 <= 32'h4;
+      regs_5 <= 32'h5;
+      regs_6 <= 32'h6;
+      regs_7 <= 32'h7;
+      regs_8 <= 32'h8;
+      regs_9 <= 32'h9;
+      regs_10 <= 32'hA;
+      regs_11 <= 32'hB;
+      regs_12 <= 32'hC;
+      regs_13 <= 32'hD;
+      regs_14 <= 32'hE;
+      regs_15 <= 32'hF;
+      regs_16 <= 32'h10;
+      regs_17 <= 32'h11;
+      regs_18 <= 32'h12;
+      regs_19 <= 32'h13;
+      regs_20 <= 32'h14;
+      regs_21 <= 32'h15;
+      regs_22 <= 32'h16;
+      regs_23 <= 32'h17;
+      regs_24 <= 32'h18;
+      regs_25 <= 32'h19;
+      regs_26 <= 32'h1A;
+      regs_27 <= 32'h1B;
+      regs_28 <= 32'h1C;
+      regs_29 <= 32'h1D;
+      regs_30 <= 32'h1E;
+      regs_31 <= 32'h1F;
     end
     else begin
       automatic logic _GEN_0 = io_write_wen & (|io_write_waddr);
-      automatic logic _GEN_1 = io_write_waddr == 5'hB;
-      if (~_GEN_0 | _GEN_1 | (|io_write_waddr)) begin
+      automatic logic _GEN_1;
+      automatic logic _GEN_2;
+      _GEN_1 = io_write_waddr == 5'hB;
+      _GEN_2 = _GEN_1 & io_write_cheat;
+      if (~_GEN_0 | _GEN_2 | (|io_write_waddr)) begin
       end
       else
         regs_0 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1) begin
       end
       else
         regs_1 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h2) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h2) begin
       end
       else
         regs_2 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h3) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h3) begin
       end
       else
         regs_3 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h4) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h4) begin
       end
       else
         regs_4 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h5) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h5) begin
       end
       else
         regs_5 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h6) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h6) begin
       end
       else
         regs_6 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h7) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h7) begin
       end
       else
         regs_7 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h8) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h8) begin
       end
       else
         regs_8 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h9) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h9) begin
       end
       else
         regs_9 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'hA) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'hA) begin
       end
       else
         regs_10 <= io_write_wdata;
-      if (_GEN_0 & _GEN_1)
-        regs_11 <= regs_11 + io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'hC) begin
+      if (_GEN_0) begin
+        if (_GEN_2)
+          regs_11 <= regs_11 + io_write_wdata;
+        else if (_GEN_1)
+          regs_11 <= io_write_wdata;
+      end
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'hC) begin
       end
       else
         regs_12 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'hD) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'hD) begin
       end
       else
         regs_13 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'hE) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'hE) begin
       end
       else
         regs_14 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'hF) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'hF) begin
       end
       else
         regs_15 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h10) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h10) begin
       end
       else
         regs_16 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h11) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h11) begin
       end
       else
         regs_17 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h12) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h12) begin
       end
       else
         regs_18 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h13) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h13) begin
       end
       else
         regs_19 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h14) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h14) begin
       end
       else
         regs_20 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h15) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h15) begin
       end
       else
         regs_21 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h16) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h16) begin
       end
       else
         regs_22 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h17) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h17) begin
       end
       else
         regs_23 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h18) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h18) begin
       end
       else
         regs_24 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h19) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h19) begin
       end
       else
         regs_25 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1A) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1A) begin
       end
       else
         regs_26 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1B) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1B) begin
       end
       else
         regs_27 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1C) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1C) begin
       end
       else
         regs_28 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1D) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1D) begin
       end
       else
         regs_29 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1E) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1E) begin
       end
       else
         regs_30 <= io_write_wdata;
-      if (~_GEN_0 | _GEN_1 | io_write_waddr != 5'h1F) begin
+      if (~_GEN_0 | _GEN_2 | io_write_waddr != 5'h1F) begin
       end
       else
         regs_31 <= io_write_wdata;
@@ -2666,38 +2221,6 @@ module ARegFile(
   `endif // ENABLE_INITIAL_REG_
   assign io_read_src1_rdata = _GEN[io_read_src1_raddr];
   assign io_read_src2_rdata = _GEN[io_read_src2_raddr];
-  assign io_regs_out_0 = regs_0;
-  assign io_regs_out_1 = regs_1;
-  assign io_regs_out_2 = regs_2;
-  assign io_regs_out_3 = regs_3;
-  assign io_regs_out_4 = regs_4;
-  assign io_regs_out_5 = regs_5;
-  assign io_regs_out_6 = regs_6;
-  assign io_regs_out_7 = regs_7;
-  assign io_regs_out_8 = regs_8;
-  assign io_regs_out_9 = regs_9;
-  assign io_regs_out_10 = regs_10;
-  assign io_regs_out_11 = regs_11;
-  assign io_regs_out_12 = regs_12;
-  assign io_regs_out_13 = regs_13;
-  assign io_regs_out_14 = regs_14;
-  assign io_regs_out_15 = regs_15;
-  assign io_regs_out_16 = regs_16;
-  assign io_regs_out_17 = regs_17;
-  assign io_regs_out_18 = regs_18;
-  assign io_regs_out_19 = regs_19;
-  assign io_regs_out_20 = regs_20;
-  assign io_regs_out_21 = regs_21;
-  assign io_regs_out_22 = regs_22;
-  assign io_regs_out_23 = regs_23;
-  assign io_regs_out_24 = regs_24;
-  assign io_regs_out_25 = regs_25;
-  assign io_regs_out_26 = regs_26;
-  assign io_regs_out_27 = regs_27;
-  assign io_regs_out_28 = regs_28;
-  assign io_regs_out_29 = regs_29;
-  assign io_regs_out_30 = regs_30;
-  assign io_regs_out_31 = regs_31;
 endmodule
 
 module ExecuteStage(
@@ -2705,7 +2228,8 @@ module ExecuteStage(
                 reset,
   input  [31:0] io_decodeUnit_data_pc,
                 io_decodeUnit_data_info_instr,
-  input         io_decodeUnit_data_info_valid,
+  input         io_decodeUnit_data_info_cheat,
+                io_decodeUnit_data_info_valid,
   input  [4:0]  io_decodeUnit_data_info_op,
   input         io_decodeUnit_data_info_reg_wen,
   input  [4:0]  io_decodeUnit_data_info_reg_waddr,
@@ -2718,7 +2242,8 @@ module ExecuteStage(
                 io_ready,
   output [31:0] io_executeUnit_data_pc,
                 io_executeUnit_data_info_instr,
-  output        io_executeUnit_data_info_valid,
+  output        io_executeUnit_data_info_cheat,
+                io_executeUnit_data_info_valid,
   output [4:0]  io_executeUnit_data_info_op,
   output        io_executeUnit_data_info_reg_wen,
   output [4:0]  io_executeUnit_data_info_reg_waddr,
@@ -2731,6 +2256,7 @@ module ExecuteStage(
   reg [1:0]  state;
   reg [31:0] data_pc;
   reg [31:0] data_info_instr;
+  reg        data_info_cheat;
   reg        data_info_valid;
   reg [4:0]  data_info_op;
   reg        data_info_reg_wen;
@@ -2744,6 +2270,7 @@ module ExecuteStage(
       state <= 2'h0;
       data_pc <= 32'h0;
       data_info_instr <= 32'h0;
+      data_info_cheat <= 1'h0;
       data_info_valid <= 1'h0;
       data_info_op <= 5'h0;
       data_info_reg_wen <= 1'h0;
@@ -2761,6 +2288,7 @@ module ExecuteStage(
           state <= 2'h1;
           data_pc <= io_decodeUnit_data_pc;
           data_info_instr <= io_decodeUnit_data_info_instr;
+          data_info_cheat <= io_decodeUnit_data_info_cheat;
           data_info_valid <= io_decodeUnit_data_info_valid;
           data_info_op <= io_decodeUnit_data_info_op;
           data_info_reg_wen <= io_decodeUnit_data_info_reg_wen;
@@ -2805,6 +2333,9 @@ module ExecuteStage(
           data_src_info_src1_data <= 32'h0;
           data_src_info_src2_data <= 32'h0;
         end
+        data_info_cheat <=
+          ~io_controlSignal_decodeUnitSignal_do_flush
+          & (_GEN ? io_decodeUnit_data_info_cheat : ~io_ready & data_info_cheat);
         data_info_valid <=
           ~io_controlSignal_decodeUnitSignal_do_flush
           & (_GEN ? io_decodeUnit_data_info_valid : ~io_ready & data_info_valid);
@@ -2830,14 +2361,15 @@ module ExecuteStage(
         state = _RANDOM[7'h0][1:0];
         data_pc = {_RANDOM[7'h0][31:2], _RANDOM[7'h1][1:0]};
         data_info_instr = {_RANDOM[7'h1][31:2], _RANDOM[7'h2][1:0]};
-        data_info_valid = _RANDOM[7'h2][2];
-        data_info_op = _RANDOM[7'h2][17:13];
-        data_info_reg_wen = _RANDOM[7'h2][18];
-        data_info_reg_waddr = _RANDOM[7'h2][23:19];
-        data_info_imm = {_RANDOM[7'h2][31:24], _RANDOM[7'h3][23:0]};
-        data_info_fusel = _RANDOM[7'h3][28:26];
-        data_src_info_src1_data = {_RANDOM[7'h59][31], _RANDOM[7'h5A][30:0]};
-        data_src_info_src2_data = {_RANDOM[7'h5A][31], _RANDOM[7'h5B][30:0]};
+        data_info_cheat = _RANDOM[7'h2][2];
+        data_info_valid = _RANDOM[7'h2][3];
+        data_info_op = _RANDOM[7'h2][18:14];
+        data_info_reg_wen = _RANDOM[7'h2][19];
+        data_info_reg_waddr = _RANDOM[7'h2][24:20];
+        data_info_imm = {_RANDOM[7'h2][31:25], _RANDOM[7'h3][24:0]};
+        data_info_fusel = _RANDOM[7'h3][29:27];
+        data_src_info_src1_data = _RANDOM[7'h5A];
+        data_src_info_src2_data = _RANDOM[7'h5B];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -2846,6 +2378,7 @@ module ExecuteStage(
   `endif // ENABLE_INITIAL_REG_
   assign io_executeUnit_data_pc = data_pc;
   assign io_executeUnit_data_info_instr = data_info_instr;
+  assign io_executeUnit_data_info_cheat = data_info_cheat;
   assign io_executeUnit_data_info_valid = data_info_valid;
   assign io_executeUnit_data_info_op = data_info_op;
   assign io_executeUnit_data_info_reg_wen = data_info_reg_wen;
@@ -2865,7 +2398,7 @@ module Alu(
   output        io_valid
 );
 
-  wire [62:0] _io_result_T_20 =
+  wire [62:0] _io_result_T_19 =
     {31'h0, io_src_info_src1_data} << io_src_info_src2_data[4:0];
   assign io_result =
     io_info_op == 5'h0
@@ -2877,7 +2410,7 @@ module Alu(
               : io_info_op == 5'h7
                   ? io_src_info_src1_data | io_src_info_src2_data
                   : io_info_op == 5'h4
-                      ? {31'h0, io_src_info_src1_data == io_src_info_src2_data}
+                      ? io_src_info_src1_data ^ io_src_info_src2_data
                       : io_info_op == 5'hC
                           ? ~(io_src_info_src1_data | io_src_info_src2_data)
                           : io_info_op == 5'h2
@@ -2886,7 +2419,7 @@ module Alu(
                               : io_info_op == 5'h3
                                   ? {31'h0, io_src_info_src1_data < io_src_info_src2_data}
                                   : io_info_op == 5'h9
-                                      ? _io_result_T_20[31:0]
+                                      ? _io_result_T_19[31:0]
                                       : io_info_op == 5'h5
                                           ? io_src_info_src1_data
                                             >> io_src_info_src2_data[4:0]
@@ -2898,70 +2431,47 @@ module Alu(
 endmodule
 
 module Mdu(
-  input         clock,
-                reset,
-                io_info_valid,
+  input         io_info_valid,
   input  [4:0]  io_info_op,
   input  [2:0]  io_info_fusel,
   input  [31:0] io_src_info_src1_data,
                 io_src_info_src2_data,
   output [31:0] io_result,
-  output        io_valid,
-                io_ready
+  output        io_valid
 );
 
-  wire        isMulW = io_info_valid & io_info_fusel == 3'h1 & io_info_op == 5'h0;
-  reg  [31:0] stage1_result;
-  reg  [31:0] stage2_result;
-  reg         stage1_valid;
-  reg         stage2_valid;
-  reg         busy;
-  always @(posedge clock) begin
-    if (reset) begin
-      stage1_result <= 32'h0;
-      stage2_result <= 32'h0;
-      stage1_valid <= 1'h0;
-      stage2_valid <= 1'h0;
-      busy <= 1'h0;
-    end
-    else begin
-      automatic logic _GEN;
-      _GEN = isMulW & ~busy;
-      if (_GEN)
-        stage1_result <= io_src_info_src1_data * io_src_info_src2_data;
-      stage2_result <= stage1_result;
-      stage1_valid <= _GEN | ~(~isMulW & ~busy) & stage1_valid;
-      stage2_valid <= stage1_valid;
-      busy <= _GEN | ~stage2_valid & busy;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:2];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        stage1_result = _RANDOM[2'h0];
-        stage2_result = _RANDOM[2'h1];
-        stage1_valid = _RANDOM[2'h2][0];
-        stage2_valid = _RANDOM[2'h2][1];
-        busy = _RANDOM[2'h2][2];
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_result = stage2_result;
-  assign io_valid = stage2_valid;
-  assign io_ready = ~isMulW | stage2_valid;
+  wire [63:0] signedProduct =
+    {{32{io_src_info_src1_data[31]}}, io_src_info_src1_data}
+    * {{32{io_src_info_src2_data[31]}}, io_src_info_src2_data};
+  wire [63:0] unsignedProduct =
+    {32'h0, io_src_info_src1_data} * {32'h0, io_src_info_src2_data};
+  wire [32:0] _io_result_T_6 =
+    $signed({io_src_info_src1_data[31], io_src_info_src1_data})
+    / $signed({io_src_info_src2_data[31], io_src_info_src2_data});
+  assign io_result =
+    io_info_op == 5'h0
+      ? signedProduct[31:0]
+      : io_info_op == 5'h1
+          ? signedProduct[63:32]
+          : io_info_op == 5'h3
+              ? unsignedProduct[63:32]
+              : io_info_op == 5'h4
+                  ? ((|io_src_info_src2_data) ? _io_result_T_6[31:0] : 32'hFFFFFFFF)
+                  : io_info_op == 5'h5
+                      ? ((|io_src_info_src2_data)
+                           ? io_src_info_src1_data / io_src_info_src2_data
+                           : 32'hFFFFFFFF)
+                      : io_info_op == 5'h6
+                          ? ((|io_src_info_src2_data)
+                               ? $signed(io_src_info_src1_data)
+                                 % $signed(io_src_info_src2_data)
+                               : io_src_info_src1_data)
+                          : io_info_op == 5'h7
+                              ? ((|io_src_info_src2_data)
+                                   ? io_src_info_src1_data % io_src_info_src2_data
+                                   : io_src_info_src1_data)
+                              : 32'h0;
+  assign io_valid = io_info_valid & io_info_fusel == 3'h1;
 endmodule
 
 // VCS coverage exclude_file
@@ -3120,20 +2630,18 @@ module Lsu(
                 reset,
                 io_info_valid,
   input  [4:0]  io_info_op,
+                io_info_reg_waddr,
   input  [31:0] io_info_imm,
   input  [2:0]  io_info_fusel,
   input  [31:0] io_src_info_src1_data,
                 io_src_info_src2_data,
+                io_pc,
   output [31:0] io_result,
   output        io_ready,
                 io_valid,
-  output [7:0]  io_diffout_storeEvent_valid,
-  output [31:0] io_diffout_storeEvent_storePAddr,
-                io_diffout_storeEvent_storeVAddr,
-                io_diffout_storeEvent_storeData,
-  output [7:0]  io_diffout_loadEvent_valid,
-  output [31:0] io_diffout_loadEvent_paddr,
-                io_diffout_loadEvent_vaddr,
+  output [31:0] io_completed_pc,
+  output [4:0]  io_completed_rd,
+  output        io_completion_valid,
   input         io_dcache_req_ready,
   output        io_dcache_req_valid,
   output [31:0] io_dcache_req_bits_addr,
@@ -3141,7 +2649,8 @@ module Lsu(
   output [31:0] io_dcache_req_bits_wdata,
   output [3:0]  io_dcache_req_bits_wstrb,
   input         io_dcache_resp_valid,
-  input  [31:0] io_dcache_resp_bits_data
+  input  [31:0] io_dcache_resp_bits_data,
+                io_dcache_resp_bits_addr
 );
 
   wire        _writeBuffer_io_enq_ready;
@@ -3152,8 +2661,13 @@ module Lsu(
   wire [3:0]  _writeBuffer_io_deq_bits_wstrb;
   wire        isLsu = io_info_fusel == 3'h2 & io_info_valid;
   reg  [1:0]  state;
+  reg         completedValid;
+  reg  [31:0] completedPc;
+  reg  [31:0] loadPcReg;
+  reg  [4:0]  loadRdReg;
+  reg  [31:0] completionData;
+  reg         completionValid;
   wire        isStore = isLsu & io_info_op[3];
-  wire        isLoad = isLsu & ~isStore;
   wire [31:0] _effectiveAddr_T_5 =
     io_src_info_src1_data + {{20{io_info_imm[11]}}, io_info_imm[11:0]};
   wire        _storeWdata_T_6 = io_info_op == 5'h9;
@@ -3187,40 +2701,88 @@ module Lsu(
   reg  [31:0] loadReqReg_wdata;
   reg  [3:0]  loadReqReg_wstrb;
   reg  [3:0]  loadOpReg;
-  wire        _GEN = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_0 = _GEN ? _writeBuffer_io_deq_bits_addr : 32'h0;
-  wire        _GEN_1 = _GEN & _writeBuffer_io_deq_bits_write;
-  wire [31:0] _GEN_2 = _GEN ? _writeBuffer_io_deq_bits_wdata : 32'h0;
-  wire [3:0]  _GEN_3 = _GEN ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
-  wire        _GEN_4 = state == 2'h1;
-  wire [7:0]  res_byte_data =
-    (loadReqReg_addr[1:0] == 2'h0 ? io_dcache_resp_bits_data[7:0] : 8'h0)
-    | (loadReqReg_addr[1:0] == 2'h1 ? io_dcache_resp_bits_data[15:8] : 8'h0)
-    | (loadReqReg_addr[1:0] == 2'h2 ? io_dcache_resp_bits_data[23:16] : 8'h0)
-    | ((&(loadReqReg_addr[1:0])) ? io_dcache_resp_bits_data[31:24] : 8'h0);
-  wire [15:0] res_half_data =
-    (loadReqReg_addr[1] ? 16'h0 : io_dcache_resp_bits_data[15:0])
-    | (loadReqReg_addr[1] ? io_dcache_resp_bits_data[31:16] : 16'h0);
-  wire        _GEN_5 = state == 2'h2 & io_dcache_resp_valid;
-  wire        _GEN_6 = ~(|state) | _GEN_4;
-  wire        _GEN_7 = ~_GEN_6 & _GEN_5;
-  wire        io_valid_0 = _GEN_7 | isStore;
+  wire        _GEN = completedValid & io_info_valid & io_pc == completedPc;
+  wire        _GEN_0 = _writeBuffer_io_deq_valid & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_1 = _GEN_0 ? _writeBuffer_io_deq_bits_addr : 32'h0;
+  wire        _GEN_2 = _GEN_0 & _writeBuffer_io_deq_bits_write;
+  wire [31:0] _GEN_3 = _GEN_0 ? _writeBuffer_io_deq_bits_wdata : 32'h0;
+  wire [3:0]  _GEN_4 = _GEN_0 ? _writeBuffer_io_deq_bits_wstrb : 4'h0;
+  wire        _GEN_5 = state == 2'h1;
   always @(posedge clock) begin
-    automatic logic _GEN_8;
-    _GEN_8 = io_info_valid & isLoad;
-    if (reset)
+    automatic logic _GEN_6;
+    automatic logic _GEN_7;
+    _GEN_6 = io_info_valid & isLsu & ~isStore;
+    _GEN_7 = (|state) | _GEN | ~_GEN_6;
+    if (reset) begin
       state <= 2'h0;
-    else if (|state) begin
-      if (_GEN_4) begin
-        if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
-          state <= 2'h2;
-      end
-      else if (_GEN_5)
-        state <= 2'h0;
+      completedValid <= 1'h0;
+      completedPc <= 32'h0;
+      loadPcReg <= 32'h0;
+      loadRdReg <= 5'h0;
+      completionData <= 32'h0;
+      completionValid <= 1'h0;
     end
-    else if (_GEN_8)
-      state <= 2'h1;
-    if (~(|state) & _GEN_8) begin
+    else begin
+      automatic logic _GEN_8;
+      automatic logic _GEN_9;
+      automatic logic _GEN_10;
+      automatic logic _GEN_11;
+      _GEN_8 =
+        state == 2'h2 & io_dcache_resp_valid
+        & io_dcache_resp_bits_addr == loadReqReg_addr;
+      _GEN_9 = ~(|state) | _GEN_5;
+      _GEN_10 = _GEN_9 | ~_GEN_8;
+      _GEN_11 = ~_GEN_9 & _GEN_8;
+      if (|state) begin
+        if (_GEN_5) begin
+          if (~_writeBuffer_io_deq_valid & io_dcache_req_ready)
+            state <= 2'h2;
+        end
+        else if (_GEN_8)
+          state <= 2'h0;
+      end
+      else if (_GEN | ~_GEN_6) begin
+      end
+      else
+        state <= 2'h1;
+      completedValid <=
+        _GEN_11 | ~(completedValid & (~io_info_valid | io_pc != completedPc))
+        & completedValid;
+      if (_GEN_10) begin
+      end
+      else
+        completedPc <= loadPcReg;
+      if (_GEN_7) begin
+      end
+      else begin
+        loadPcReg <= io_pc;
+        loadRdReg <= io_info_reg_waddr;
+      end
+      if (_GEN_10) begin
+      end
+      else begin
+        automatic logic [7:0]  res_byte_data;
+        automatic logic [15:0] res_half_data;
+        res_byte_data =
+          (loadReqReg_addr[1:0] == 2'h0 ? io_dcache_resp_bits_data[7:0] : 8'h0)
+          | (loadReqReg_addr[1:0] == 2'h1 ? io_dcache_resp_bits_data[15:8] : 8'h0)
+          | (loadReqReg_addr[1:0] == 2'h2 ? io_dcache_resp_bits_data[23:16] : 8'h0)
+          | ((&(loadReqReg_addr[1:0])) ? io_dcache_resp_bits_data[31:24] : 8'h0);
+        res_half_data =
+          (loadReqReg_addr[1] ? 16'h0 : io_dcache_resp_bits_data[15:0])
+          | (loadReqReg_addr[1] ? io_dcache_resp_bits_data[31:16] : 16'h0);
+        completionData <=
+          (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
+          | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
+          | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
+          | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
+          | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0);
+      end
+      completionValid <= _GEN_11;
+    end
+    if (_GEN_7) begin
+    end
+    else begin
       loadReqReg_addr <= newReq_addr;
       loadReqReg_write <= isStore;
       loadReqReg_wdata <= newReq_wdata;
@@ -3233,20 +2795,26 @@ module Lsu(
       `FIRRTL_BEFORE_INITIAL
     `endif // FIRRTL_BEFORE_INITIAL
     initial begin
-      automatic logic [31:0] _RANDOM[0:2];
+      automatic logic [31:0] _RANDOM[0:5];
       `ifdef INIT_RANDOM_PROLOG_
         `INIT_RANDOM_PROLOG_
       `endif // INIT_RANDOM_PROLOG_
       `ifdef RANDOMIZE_REG_INIT
-        for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
+        for (logic [2:0] i = 3'h0; i < 3'h6; i += 3'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        state = _RANDOM[2'h0][1:0];
-        loadReqReg_addr = {_RANDOM[2'h0][31:2], _RANDOM[2'h1][1:0]};
-        loadReqReg_write = _RANDOM[2'h1][2];
-        loadReqReg_wdata = {_RANDOM[2'h1][31:3], _RANDOM[2'h2][2:0]};
-        loadReqReg_wstrb = _RANDOM[2'h2][6:3];
-        loadOpReg = _RANDOM[2'h2][13:10];
+        state = _RANDOM[3'h0][1:0];
+        completedValid = _RANDOM[3'h0][3];
+        completedPc = {_RANDOM[3'h0][31:4], _RANDOM[3'h1][3:0]};
+        loadPcReg = {_RANDOM[3'h1][31:9], _RANDOM[3'h2][8:0]};
+        loadRdReg = _RANDOM[3'h2][13:9];
+        completionData = {_RANDOM[3'h2][31:14], _RANDOM[3'h3][13:0]};
+        completionValid = _RANDOM[3'h3][14];
+        loadReqReg_addr = {_RANDOM[3'h3][31:15], _RANDOM[3'h4][14:0]};
+        loadReqReg_write = _RANDOM[3'h4][15];
+        loadReqReg_wdata = {_RANDOM[3'h4][31:16], _RANDOM[3'h5][15:0]};
+        loadReqReg_wstrb = _RANDOM[3'h5][19:16];
+        loadOpReg = _RANDOM[3'h5][26:23];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -3267,46 +2835,39 @@ module Lsu(
         io_info_op == 5'h2 | _storeWdata_T_7,
         io_info_op == 5'h1 | io_info_op == 5'h5 | _storeWdata_T_6}),
     .io_deq_ready
-      ((|state) ? ~(_GEN_4 & _GEN) | io_dcache_req_ready : ~_GEN | io_dcache_req_ready),
+      ((|state)
+         ? ~(_GEN_5 & _GEN_0) | io_dcache_req_ready
+         : ~_GEN_0 | io_dcache_req_ready),
     .io_deq_valid      (_writeBuffer_io_deq_valid),
     .io_deq_bits_addr  (_writeBuffer_io_deq_bits_addr),
     .io_deq_bits_write (_writeBuffer_io_deq_bits_write),
     .io_deq_bits_wdata (_writeBuffer_io_deq_bits_wdata),
     .io_deq_bits_wstrb (_writeBuffer_io_deq_bits_wstrb)
   );
-  assign io_result =
-    _GEN_6 | ~_GEN_5
-      ? io_src_info_src1_data
-      : (loadOpReg == 4'h0 ? {{24{res_byte_data[7]}}, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h4 ? {24'h0, res_byte_data} : 32'h0)
-        | (loadOpReg == 4'h1 ? {{16{res_half_data[15]}}, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h5 ? {16'h0, res_half_data} : 32'h0)
-        | (loadOpReg == 4'h2 ? io_dcache_resp_bits_data : 32'h0);
-  assign io_ready = _GEN_7 | ~(|state) & (isStore & _writeBuffer_io_enq_ready | ~isLsu);
-  assign io_valid = io_valid_0;
-  assign io_diffout_storeEvent_valid = {7'h0, isStore & isLsu & io_valid_0};
-  assign io_diffout_storeEvent_storePAddr = newReq_addr;
-  assign io_diffout_storeEvent_storeVAddr = newReq_addr;
-  assign io_diffout_storeEvent_storeData = newReq_wdata;
-  assign io_diffout_loadEvent_valid = {7'h0, isLoad & isLsu & io_valid_0};
-  assign io_diffout_loadEvent_paddr = loadReqReg_addr;
-  assign io_diffout_loadEvent_vaddr = loadReqReg_addr;
+  assign io_result = completionValid ? completionData : io_src_info_src1_data;
+  assign io_ready =
+    ~(|state) & _GEN | ~completionValid & ~(|state)
+    & (isStore & _writeBuffer_io_enq_ready | ~isLsu);
+  assign io_valid = isStore | completionValid;
+  assign io_completed_pc = loadPcReg;
+  assign io_completed_rd = loadRdReg;
+  assign io_completion_valid = completionValid;
   assign io_dcache_req_valid =
-    (|state) ? _GEN_4 & (~_writeBuffer_io_deq_valid | _GEN) : _GEN;
+    (|state) ? _GEN_5 & (~_writeBuffer_io_deq_valid | _GEN_0) : _GEN_0;
   assign io_dcache_req_bits_addr =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_0 : loadReqReg_addr) : 32'h0)
-      : _GEN_0;
+      ? (_GEN_5 ? (_writeBuffer_io_deq_valid ? _GEN_1 : loadReqReg_addr) : 32'h0)
+      : _GEN_1;
   assign io_dcache_req_bits_write =
-    (|state) ? _GEN_4 & (_writeBuffer_io_deq_valid ? _GEN_1 : loadReqReg_write) : _GEN_1;
+    (|state) ? _GEN_5 & (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_write) : _GEN_2;
   assign io_dcache_req_bits_wdata =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_2 : loadReqReg_wdata) : 32'h0)
-      : _GEN_2;
+      ? (_GEN_5 ? (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_wdata) : 32'h0)
+      : _GEN_3;
   assign io_dcache_req_bits_wstrb =
     (|state)
-      ? (_GEN_4 ? (_writeBuffer_io_deq_valid ? _GEN_3 : loadReqReg_wstrb) : 4'h0)
-      : _GEN_3;
+      ? (_GEN_5 ? (_writeBuffer_io_deq_valid ? _GEN_4 : loadReqReg_wstrb) : 4'h0)
+      : _GEN_4;
 endmodule
 
 module Bru(
@@ -3366,7 +2927,7 @@ module Bru(
       : _GEN_0
           ? io_pc + io_info_imm
           : _GEN_1
-              ? io_src_info_src1_data + io_info_imm
+              ? io_src_info_src1_data + io_info_imm & 32'hFFFFFFFE
               : _GEN_2
                   ? io_pc + io_info_imm
                   : _GEN_3
@@ -3380,28 +2941,118 @@ module Bru(
                                   : _GEN_7 ? io_pc + io_info_imm : 32'h0;
 endmodule
 
+module Csr(
+  input         clock,
+                reset,
+  input  [31:0] io_info_instr,
+  input         io_info_valid,
+  input  [4:0]  io_info_op,
+  input  [2:0]  io_info_fusel,
+  input  [31:0] io_src_info_src1_data,
+  output [31:0] io_result,
+  output        io_valid
+);
+
+  reg  [31:0] mstatus;
+  reg  [31:0] mtvec;
+  reg  [31:0] mepc;
+  reg  [31:0] mcause;
+  wire        _oldVal_T = io_info_instr[31:20] == 12'h300;
+  wire        _oldVal_T_2 = io_info_instr[31:20] == 12'h305;
+  wire        _oldVal_T_4 = io_info_instr[31:20] == 12'h341;
+  wire        _oldVal_T_6 = io_info_instr[31:20] == 12'h342;
+  wire [31:0] oldVal =
+    _oldVal_T_6
+      ? mcause
+      : _oldVal_T_4 ? mepc : _oldVal_T_2 ? mtvec : _oldVal_T ? mstatus : 32'h0;
+  wire        io_valid_0 = io_info_valid & io_info_fusel == 3'h4;
+  always @(posedge clock) begin
+    if (reset) begin
+      mstatus <= 32'h0;
+      mtvec <= 32'h0;
+      mepc <= 32'h0;
+      mcause <= 32'h0;
+    end
+    else begin
+      automatic logic [31:0] _newVal_T_2;
+      automatic logic [31:0] _newVal_T_6;
+      automatic logic        _newVal_T_7;
+      _newVal_T_2 = oldVal & ~io_src_info_src1_data;
+      _newVal_T_6 = {32{io_info_op == 5'h2}} & oldVal | io_src_info_src1_data;
+      _newVal_T_7 = io_info_op == 5'h3;
+      if (io_valid_0 & _oldVal_T) begin
+        if (_newVal_T_7)
+          mstatus <= _newVal_T_2;
+        else
+          mstatus <= _newVal_T_6;
+      end
+      if (~io_valid_0 | _oldVal_T | ~_oldVal_T_2) begin
+      end
+      else if (_newVal_T_7)
+        mtvec <= _newVal_T_2;
+      else
+        mtvec <= _newVal_T_6;
+      if (~io_valid_0 | _oldVal_T | _oldVal_T_2 | ~_oldVal_T_4) begin
+      end
+      else if (_newVal_T_7)
+        mepc <= _newVal_T_2;
+      else
+        mepc <= _newVal_T_6;
+      if (~io_valid_0 | _oldVal_T | _oldVal_T_2 | _oldVal_T_4 | ~_oldVal_T_6) begin
+      end
+      else if (_newVal_T_7)
+        mcause <= _newVal_T_2;
+      else
+        mcause <= _newVal_T_6;
+    end
+  end // always @(posedge)
+  `ifdef ENABLE_INITIAL_REG_
+    `ifdef FIRRTL_BEFORE_INITIAL
+      `FIRRTL_BEFORE_INITIAL
+    `endif // FIRRTL_BEFORE_INITIAL
+    initial begin
+      automatic logic [31:0] _RANDOM[0:3];
+      `ifdef INIT_RANDOM_PROLOG_
+        `INIT_RANDOM_PROLOG_
+      `endif // INIT_RANDOM_PROLOG_
+      `ifdef RANDOMIZE_REG_INIT
+        for (logic [2:0] i = 3'h0; i < 3'h4; i += 3'h1) begin
+          _RANDOM[i[1:0]] = `RANDOM;
+        end
+        mstatus = _RANDOM[2'h0];
+        mtvec = _RANDOM[2'h1];
+        mepc = _RANDOM[2'h2];
+        mcause = _RANDOM[2'h3];
+      `endif // RANDOMIZE_REG_INIT
+    end // initial
+    `ifdef FIRRTL_AFTER_INITIAL
+      `FIRRTL_AFTER_INITIAL
+    `endif // FIRRTL_AFTER_INITIAL
+  `endif // ENABLE_INITIAL_REG_
+  assign io_result = oldVal;
+  assign io_valid = io_valid_0;
+endmodule
+
 module Fu(
   input         clock,
                 reset,
   input  [31:0] io_data_pc,
+                io_data_info_instr,
   input         io_data_info_valid,
   input  [4:0]  io_data_info_op,
+                io_data_info_reg_waddr,
   input  [31:0] io_data_info_imm,
   input  [2:0]  io_data_info_fusel,
   input  [31:0] io_data_src_info_src1_data,
                 io_data_src_info_src2_data,
   output [31:0] io_data_rd_info_wdata,
-  output [7:0]  io_data_diffout_storeEvent_valid,
-  output [31:0] io_data_diffout_storeEvent_storePAddr,
-                io_data_diffout_storeEvent_storeVAddr,
-                io_data_diffout_storeEvent_storeData,
-  output [7:0]  io_data_diffout_loadEvent_valid,
-  output [31:0] io_data_diffout_loadEvent_paddr,
-                io_data_diffout_loadEvent_vaddr,
   output        io_data_ready,
                 io_data_valid,
                 io_data_branch,
   output [31:0] io_data_target,
+  output        io_data_lsu_completed,
+  output [31:0] io_data_lsu_pc,
+  output [4:0]  io_data_lsu_rd,
   input         io_dcache_req_ready,
   output        io_dcache_req_valid,
   output [31:0] io_dcache_req_bits_addr,
@@ -3409,25 +3060,29 @@ module Fu(
   output [31:0] io_dcache_req_bits_wdata,
   output [3:0]  io_dcache_req_bits_wstrb,
   input         io_dcache_resp_valid,
-  input  [31:0] io_dcache_resp_bits_data
+  input  [31:0] io_dcache_resp_bits_data,
+                io_dcache_resp_bits_addr
 );
 
+  wire [31:0] _csr_io_result;
+  wire        _csr_io_valid;
   wire        _bru_io_valid;
   wire [31:0] _bru_io_result;
   wire [31:0] _lsu_io_result;
   wire        _lsu_io_ready;
   wire        _lsu_io_valid;
+  wire        _lsu_io_completion_valid;
   wire [31:0] _mdu_io_result;
   wire        _mdu_io_valid;
-  wire        _mdu_io_ready;
   wire [31:0] _alu_io_result;
   wire        _alu_io_valid;
   reg  [2:0]  fuselReg_fusel;
   wire [2:0]  fusel = io_data_info_valid ? io_data_info_fusel : fuselReg_fusel;
-  wire        _ready_T_4 = fusel == 3'h0;
+  wire        _ready_T_5 = fusel == 3'h0;
   wire        _ready_T_1 = fusel == 3'h1;
-  wire        _ready_T_6 = fusel == 3'h3;
+  wire        _ready_T_7 = fusel == 3'h3;
   wire        _ready_T_3 = fusel == 3'h2;
+  wire        _ready_T_9 = fusel == 3'h4;
   always @(posedge clock) begin
     if (reset)
       fuselReg_fusel <= 3'h0;
@@ -3447,7 +3102,7 @@ module Fu(
         for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
           _RANDOM[i] = `RANDOM;
         end
-        fuselReg_fusel = _RANDOM[2'h2][26:24];
+        fuselReg_fusel = _RANDOM[2'h2][27:25];
       `endif // RANDOMIZE_REG_INIT
     end // initial
     `ifdef FIRRTL_AFTER_INITIAL
@@ -3463,44 +3118,40 @@ module Fu(
     .io_valid              (_alu_io_valid)
   );
   Mdu mdu (
-    .clock                 (clock),
-    .reset                 (reset),
     .io_info_valid         (io_data_info_valid),
     .io_info_op            (io_data_info_op),
     .io_info_fusel         (io_data_info_fusel),
     .io_src_info_src1_data (io_data_src_info_src1_data),
     .io_src_info_src2_data (io_data_src_info_src2_data),
     .io_result             (_mdu_io_result),
-    .io_valid              (_mdu_io_valid),
-    .io_ready              (_mdu_io_ready)
+    .io_valid              (_mdu_io_valid)
   );
   Lsu lsu (
-    .clock                            (clock),
-    .reset                            (reset),
-    .io_info_valid                    (io_data_info_valid),
-    .io_info_op                       (io_data_info_op),
-    .io_info_imm                      (io_data_info_imm),
-    .io_info_fusel                    (io_data_info_fusel),
-    .io_src_info_src1_data            (io_data_src_info_src1_data),
-    .io_src_info_src2_data            (io_data_src_info_src2_data),
-    .io_result                        (_lsu_io_result),
-    .io_ready                         (_lsu_io_ready),
-    .io_valid                         (_lsu_io_valid),
-    .io_diffout_storeEvent_valid      (io_data_diffout_storeEvent_valid),
-    .io_diffout_storeEvent_storePAddr (io_data_diffout_storeEvent_storePAddr),
-    .io_diffout_storeEvent_storeVAddr (io_data_diffout_storeEvent_storeVAddr),
-    .io_diffout_storeEvent_storeData  (io_data_diffout_storeEvent_storeData),
-    .io_diffout_loadEvent_valid       (io_data_diffout_loadEvent_valid),
-    .io_diffout_loadEvent_paddr       (io_data_diffout_loadEvent_paddr),
-    .io_diffout_loadEvent_vaddr       (io_data_diffout_loadEvent_vaddr),
-    .io_dcache_req_ready              (io_dcache_req_ready),
-    .io_dcache_req_valid              (io_dcache_req_valid),
-    .io_dcache_req_bits_addr          (io_dcache_req_bits_addr),
-    .io_dcache_req_bits_write         (io_dcache_req_bits_write),
-    .io_dcache_req_bits_wdata         (io_dcache_req_bits_wdata),
-    .io_dcache_req_bits_wstrb         (io_dcache_req_bits_wstrb),
-    .io_dcache_resp_valid             (io_dcache_resp_valid),
-    .io_dcache_resp_bits_data         (io_dcache_resp_bits_data)
+    .clock                    (clock),
+    .reset                    (reset),
+    .io_info_valid            (io_data_info_valid),
+    .io_info_op               (io_data_info_op),
+    .io_info_reg_waddr        (io_data_info_reg_waddr),
+    .io_info_imm              (io_data_info_imm),
+    .io_info_fusel            (io_data_info_fusel),
+    .io_src_info_src1_data    (io_data_src_info_src1_data),
+    .io_src_info_src2_data    (io_data_src_info_src2_data),
+    .io_pc                    (io_data_pc),
+    .io_result                (_lsu_io_result),
+    .io_ready                 (_lsu_io_ready),
+    .io_valid                 (_lsu_io_valid),
+    .io_completed_pc          (io_data_lsu_pc),
+    .io_completed_rd          (io_data_lsu_rd),
+    .io_completion_valid      (_lsu_io_completion_valid),
+    .io_dcache_req_ready      (io_dcache_req_ready),
+    .io_dcache_req_valid      (io_dcache_req_valid),
+    .io_dcache_req_bits_addr  (io_dcache_req_bits_addr),
+    .io_dcache_req_bits_write (io_dcache_req_bits_write),
+    .io_dcache_req_bits_wdata (io_dcache_req_bits_wdata),
+    .io_dcache_req_bits_wstrb (io_dcache_req_bits_wstrb),
+    .io_dcache_resp_valid     (io_dcache_resp_valid),
+    .io_dcache_resp_bits_data (io_dcache_resp_bits_data),
+    .io_dcache_resp_bits_addr (io_dcache_resp_bits_addr)
   );
   Bru bru (
     .io_info_valid         (io_data_info_valid),
@@ -3515,15 +3166,30 @@ module Fu(
     .io_branch             (io_data_branch),
     .io_target             (io_data_target)
   );
+  Csr csr (
+    .clock                 (clock),
+    .reset                 (reset),
+    .io_info_instr         (io_data_info_instr),
+    .io_info_valid         (io_data_info_valid),
+    .io_info_op            (io_data_info_op),
+    .io_info_fusel         (io_data_info_fusel),
+    .io_src_info_src1_data (io_data_src_info_src1_data),
+    .io_result             (_csr_io_result),
+    .io_valid              (_csr_io_valid)
+  );
   assign io_data_rd_info_wdata =
-    (_ready_T_4 ? _alu_io_result : 32'h0) | (_ready_T_1 ? _mdu_io_result : 32'h0)
-    | (_ready_T_6 ? _bru_io_result : 32'h0) | (_ready_T_3 ? _lsu_io_result : 32'h0);
+    _lsu_io_completion_valid
+      ? _lsu_io_result
+      : (_ready_T_5 ? _alu_io_result : 32'h0) | (_ready_T_1 ? _mdu_io_result : 32'h0)
+        | (_ready_T_7 ? _bru_io_result : 32'h0) | (_ready_T_3 ? _lsu_io_result : 32'h0)
+        | (_ready_T_9 ? _csr_io_result : 32'h0);
   assign io_data_ready =
-    _ready_T_4 | _ready_T_1 & _mdu_io_ready | _ready_T_6 | _ready_T_3 & _lsu_io_ready;
+    _ready_T_5 | _ready_T_1 | _ready_T_7 | _ready_T_3 & _lsu_io_ready | _ready_T_9;
   assign io_data_valid =
     io_data_info_valid
-    & (_ready_T_4 & _alu_io_valid | _ready_T_1 & _mdu_io_valid | _ready_T_6
-       & _bru_io_valid | _ready_T_3 & _lsu_io_valid);
+    & (_ready_T_5 & _alu_io_valid | _ready_T_1 & _mdu_io_valid | _ready_T_7
+       & _bru_io_valid | _ready_T_3 & _lsu_io_valid | _ready_T_9 & _csr_io_valid);
+  assign io_data_lsu_completed = _lsu_io_completion_valid;
 endmodule
 
 module ExecuteUnit(
@@ -3531,7 +3197,8 @@ module ExecuteUnit(
                 reset,
   input  [31:0] io_executeStage_data_pc,
                 io_executeStage_data_info_instr,
-  input         io_executeStage_data_info_valid,
+  input         io_executeStage_data_info_cheat,
+                io_executeStage_data_info_valid,
   input  [4:0]  io_executeStage_data_info_op,
   input         io_executeStage_data_info_reg_wen,
   input  [4:0]  io_executeStage_data_info_reg_waddr,
@@ -3540,18 +3207,11 @@ module ExecuteUnit(
   input  [31:0] io_executeStage_data_src_info_src1_data,
                 io_executeStage_data_src_info_src2_data,
   output [31:0] io_writeBackStage_data_pc,
-                io_writeBackStage_data_info_instr,
-  output        io_writeBackStage_data_info_valid,
+  output        io_writeBackStage_data_info_cheat,
+                io_writeBackStage_data_info_valid,
                 io_writeBackStage_data_info_reg_wen,
   output [4:0]  io_writeBackStage_data_info_reg_waddr,
-  output [7:0]  io_writeBackStage_data_info_diffout_storeEvent_valid,
-  output [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeData,
-  output [7:0]  io_writeBackStage_data_info_diffout_loadEvent_valid,
-  output [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,
-                io_writeBackStage_data_info_diffout_loadEvent_vaddr,
-                io_writeBackStage_data_rd_info_wdata,
+  output [31:0] io_writeBackStage_data_rd_info_wdata,
   output        io_ready,
                 io_branch,
   output [31:0] io_target,
@@ -3563,254 +3223,104 @@ module ExecuteUnit(
   output [3:0]  io_dcache_req_bits_wstrb,
   input         io_dcache_resp_valid,
   input  [31:0] io_dcache_resp_bits_data,
+                io_dcache_resp_bits_addr,
   output [31:0] io_result
 );
 
   wire [31:0] _fu_io_data_rd_info_wdata;
+  wire        _fu_io_data_lsu_completed;
+  wire [31:0] _fu_io_data_lsu_pc;
+  wire [4:0]  _fu_io_data_lsu_rd;
   Fu fu (
-    .clock                                 (clock),
-    .reset                                 (reset),
-    .io_data_pc                            (io_executeStage_data_pc),
-    .io_data_info_valid                    (io_executeStage_data_info_valid),
-    .io_data_info_op                       (io_executeStage_data_info_op),
-    .io_data_info_imm                      (io_executeStage_data_info_imm),
-    .io_data_info_fusel                    (io_executeStage_data_info_fusel),
-    .io_data_src_info_src1_data            (io_executeStage_data_src_info_src1_data),
-    .io_data_src_info_src2_data            (io_executeStage_data_src_info_src2_data),
-    .io_data_rd_info_wdata                 (_fu_io_data_rd_info_wdata),
-    .io_data_diffout_storeEvent_valid
-      (io_writeBackStage_data_info_diffout_storeEvent_valid),
-    .io_data_diffout_storeEvent_storePAddr
-      (io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
-    .io_data_diffout_storeEvent_storeVAddr
-      (io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_data_diffout_storeEvent_storeData
-      (io_writeBackStage_data_info_diffout_storeEvent_storeData),
-    .io_data_diffout_loadEvent_valid
-      (io_writeBackStage_data_info_diffout_loadEvent_valid),
-    .io_data_diffout_loadEvent_paddr
-      (io_writeBackStage_data_info_diffout_loadEvent_paddr),
-    .io_data_diffout_loadEvent_vaddr
-      (io_writeBackStage_data_info_diffout_loadEvent_vaddr),
-    .io_data_ready                         (io_ready),
-    .io_data_valid                         (io_writeBackStage_data_info_valid),
-    .io_data_branch                        (io_branch),
-    .io_data_target                        (io_target),
-    .io_dcache_req_ready                   (io_dcache_req_ready),
-    .io_dcache_req_valid                   (io_dcache_req_valid),
-    .io_dcache_req_bits_addr               (io_dcache_req_bits_addr),
-    .io_dcache_req_bits_write              (io_dcache_req_bits_write),
-    .io_dcache_req_bits_wdata              (io_dcache_req_bits_wdata),
-    .io_dcache_req_bits_wstrb              (io_dcache_req_bits_wstrb),
-    .io_dcache_resp_valid                  (io_dcache_resp_valid),
-    .io_dcache_resp_bits_data              (io_dcache_resp_bits_data)
+    .clock                      (clock),
+    .reset                      (reset),
+    .io_data_pc                 (io_executeStage_data_pc),
+    .io_data_info_instr         (io_executeStage_data_info_instr),
+    .io_data_info_valid         (io_executeStage_data_info_valid),
+    .io_data_info_op            (io_executeStage_data_info_op),
+    .io_data_info_reg_waddr     (io_executeStage_data_info_reg_waddr),
+    .io_data_info_imm           (io_executeStage_data_info_imm),
+    .io_data_info_fusel         (io_executeStage_data_info_fusel),
+    .io_data_src_info_src1_data (io_executeStage_data_src_info_src1_data),
+    .io_data_src_info_src2_data (io_executeStage_data_src_info_src2_data),
+    .io_data_rd_info_wdata      (_fu_io_data_rd_info_wdata),
+    .io_data_ready              (io_ready),
+    .io_data_valid              (io_writeBackStage_data_info_valid),
+    .io_data_branch             (io_branch),
+    .io_data_target             (io_target),
+    .io_data_lsu_completed      (_fu_io_data_lsu_completed),
+    .io_data_lsu_pc             (_fu_io_data_lsu_pc),
+    .io_data_lsu_rd             (_fu_io_data_lsu_rd),
+    .io_dcache_req_ready        (io_dcache_req_ready),
+    .io_dcache_req_valid        (io_dcache_req_valid),
+    .io_dcache_req_bits_addr    (io_dcache_req_bits_addr),
+    .io_dcache_req_bits_write   (io_dcache_req_bits_write),
+    .io_dcache_req_bits_wdata   (io_dcache_req_bits_wdata),
+    .io_dcache_req_bits_wstrb   (io_dcache_req_bits_wstrb),
+    .io_dcache_resp_valid       (io_dcache_resp_valid),
+    .io_dcache_resp_bits_data   (io_dcache_resp_bits_data),
+    .io_dcache_resp_bits_addr   (io_dcache_resp_bits_addr)
   );
-  assign io_writeBackStage_data_pc = io_executeStage_data_pc;
-  assign io_writeBackStage_data_info_instr = io_executeStage_data_info_instr;
+  assign io_writeBackStage_data_pc =
+    _fu_io_data_lsu_completed ? _fu_io_data_lsu_pc : io_executeStage_data_pc;
+  assign io_writeBackStage_data_info_cheat = io_executeStage_data_info_cheat;
   assign io_writeBackStage_data_info_reg_wen = io_executeStage_data_info_reg_wen;
-  assign io_writeBackStage_data_info_reg_waddr = io_executeStage_data_info_reg_waddr;
+  assign io_writeBackStage_data_info_reg_waddr =
+    _fu_io_data_lsu_completed ? _fu_io_data_lsu_rd : io_executeStage_data_info_reg_waddr;
   assign io_writeBackStage_data_rd_info_wdata = _fu_io_data_rd_info_wdata;
   assign io_result = _fu_io_data_rd_info_wdata;
 endmodule
 
 module WriteBackStage(
-  input         clock,
-                reset,
   input  [31:0] io_executeUnit_data_pc,
-                io_executeUnit_data_info_instr,
-  input         io_executeUnit_data_info_valid,
+  input         io_executeUnit_data_info_cheat,
+                io_executeUnit_data_info_valid,
                 io_executeUnit_data_info_reg_wen,
   input  [4:0]  io_executeUnit_data_info_reg_waddr,
-  input  [7:0]  io_executeUnit_data_info_diffout_storeEvent_valid,
-  input  [31:0] io_executeUnit_data_info_diffout_storeEvent_storePAddr,
-                io_executeUnit_data_info_diffout_storeEvent_storeVAddr,
-                io_executeUnit_data_info_diffout_storeEvent_storeData,
-  input  [7:0]  io_executeUnit_data_info_diffout_loadEvent_valid,
-  input  [31:0] io_executeUnit_data_info_diffout_loadEvent_paddr,
-                io_executeUnit_data_info_diffout_loadEvent_vaddr,
-                io_executeUnit_data_rd_info_wdata,
+  input  [31:0] io_executeUnit_data_rd_info_wdata,
   output [31:0] io_writeBackUnit_data_pc,
-                io_writeBackUnit_data_info_instr,
-  output        io_writeBackUnit_data_info_valid,
+  output        io_writeBackUnit_data_info_cheat,
+                io_writeBackUnit_data_info_valid,
                 io_writeBackUnit_data_info_reg_wen,
   output [4:0]  io_writeBackUnit_data_info_reg_waddr,
-  output [7:0]  io_writeBackUnit_data_info_diffout_storeEvent_valid,
-  output [31:0] io_writeBackUnit_data_info_diffout_storeEvent_storePAddr,
-                io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr,
-                io_writeBackUnit_data_info_diffout_storeEvent_storeData,
-  output [7:0]  io_writeBackUnit_data_info_diffout_loadEvent_valid,
-  output [31:0] io_writeBackUnit_data_info_diffout_loadEvent_paddr,
-                io_writeBackUnit_data_info_diffout_loadEvent_vaddr,
-                io_writeBackUnit_data_rd_info_wdata
+  output [31:0] io_writeBackUnit_data_rd_info_wdata
 );
 
-  reg [31:0] data_pc;
-  reg [31:0] data_info_instr;
-  reg        data_info_valid;
-  reg        data_info_reg_wen;
-  reg [4:0]  data_info_reg_waddr;
-  reg [7:0]  data_info_diffout_storeEvent_valid;
-  reg [31:0] data_info_diffout_storeEvent_storePAddr;
-  reg [31:0] data_info_diffout_storeEvent_storeVAddr;
-  reg [31:0] data_info_diffout_storeEvent_storeData;
-  reg [7:0]  data_info_diffout_loadEvent_valid;
-  reg [31:0] data_info_diffout_loadEvent_paddr;
-  reg [31:0] data_info_diffout_loadEvent_vaddr;
-  reg [31:0] data_rd_info_wdata;
-  always @(posedge clock) begin
-    if (reset) begin
-      data_pc <= 32'h0;
-      data_info_instr <= 32'h0;
-      data_info_valid <= 1'h0;
-      data_info_reg_wen <= 1'h0;
-      data_info_reg_waddr <= 5'h0;
-      data_info_diffout_storeEvent_valid <= 8'h0;
-      data_info_diffout_storeEvent_storePAddr <= 32'h0;
-      data_info_diffout_storeEvent_storeVAddr <= 32'h0;
-      data_info_diffout_storeEvent_storeData <= 32'h0;
-      data_info_diffout_loadEvent_valid <= 8'h0;
-      data_info_diffout_loadEvent_paddr <= 32'h0;
-      data_info_diffout_loadEvent_vaddr <= 32'h0;
-      data_rd_info_wdata <= 32'h0;
-    end
-    else begin
-      data_pc <= io_executeUnit_data_pc;
-      data_info_instr <= io_executeUnit_data_info_instr;
-      data_info_valid <= io_executeUnit_data_info_valid;
-      data_info_reg_wen <= io_executeUnit_data_info_reg_wen;
-      data_info_reg_waddr <= io_executeUnit_data_info_reg_waddr;
-      data_info_diffout_storeEvent_valid <=
-        io_executeUnit_data_info_diffout_storeEvent_valid;
-      data_info_diffout_storeEvent_storePAddr <=
-        io_executeUnit_data_info_diffout_storeEvent_storePAddr;
-      data_info_diffout_storeEvent_storeVAddr <=
-        io_executeUnit_data_info_diffout_storeEvent_storeVAddr;
-      data_info_diffout_storeEvent_storeData <=
-        io_executeUnit_data_info_diffout_storeEvent_storeData;
-      data_info_diffout_loadEvent_valid <=
-        io_executeUnit_data_info_diffout_loadEvent_valid;
-      data_info_diffout_loadEvent_paddr <=
-        io_executeUnit_data_info_diffout_loadEvent_paddr;
-      data_info_diffout_loadEvent_vaddr <=
-        io_executeUnit_data_info_diffout_loadEvent_vaddr;
-      data_rd_info_wdata <= io_executeUnit_data_rd_info_wdata;
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:90];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [6:0] i = 7'h0; i < 7'h5B; i += 7'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        data_pc = _RANDOM[7'h0];
-        data_info_instr = _RANDOM[7'h1];
-        data_info_valid = _RANDOM[7'h2][0];
-        data_info_reg_wen = _RANDOM[7'h2][16];
-        data_info_reg_waddr = _RANDOM[7'h2][21:17];
-        data_info_diffout_storeEvent_valid = _RANDOM[7'h14][8:1];
-        data_info_diffout_storeEvent_storePAddr =
-          {_RANDOM[7'h14][31:9], _RANDOM[7'h15][8:0]};
-        data_info_diffout_storeEvent_storeVAddr =
-          {_RANDOM[7'h15][31:9], _RANDOM[7'h16][8:0]};
-        data_info_diffout_storeEvent_storeData =
-          {_RANDOM[7'h16][31:9], _RANDOM[7'h17][8:0]};
-        data_info_diffout_loadEvent_valid = _RANDOM[7'h17][28:21];
-        data_info_diffout_loadEvent_paddr = {_RANDOM[7'h17][31:29], _RANDOM[7'h18][28:0]};
-        data_info_diffout_loadEvent_vaddr = {_RANDOM[7'h18][31:29], _RANDOM[7'h19][28:0]};
-        data_rd_info_wdata = {_RANDOM[7'h59][31:29], _RANDOM[7'h5A][28:0]};
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_writeBackUnit_data_pc = data_pc;
-  assign io_writeBackUnit_data_info_instr = data_info_instr;
-  assign io_writeBackUnit_data_info_valid = data_info_valid;
-  assign io_writeBackUnit_data_info_reg_wen = data_info_reg_wen;
-  assign io_writeBackUnit_data_info_reg_waddr = data_info_reg_waddr;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_valid =
-    data_info_diffout_storeEvent_valid;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_storePAddr =
-    data_info_diffout_storeEvent_storePAddr;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr =
-    data_info_diffout_storeEvent_storeVAddr;
-  assign io_writeBackUnit_data_info_diffout_storeEvent_storeData =
-    data_info_diffout_storeEvent_storeData;
-  assign io_writeBackUnit_data_info_diffout_loadEvent_valid =
-    data_info_diffout_loadEvent_valid;
-  assign io_writeBackUnit_data_info_diffout_loadEvent_paddr =
-    data_info_diffout_loadEvent_paddr;
-  assign io_writeBackUnit_data_info_diffout_loadEvent_vaddr =
-    data_info_diffout_loadEvent_vaddr;
-  assign io_writeBackUnit_data_rd_info_wdata = data_rd_info_wdata;
+  assign io_writeBackUnit_data_pc = io_executeUnit_data_pc;
+  assign io_writeBackUnit_data_info_cheat = io_executeUnit_data_info_cheat;
+  assign io_writeBackUnit_data_info_valid = io_executeUnit_data_info_valid;
+  assign io_writeBackUnit_data_info_reg_wen = io_executeUnit_data_info_reg_wen;
+  assign io_writeBackUnit_data_info_reg_waddr = io_executeUnit_data_info_reg_waddr;
+  assign io_writeBackUnit_data_rd_info_wdata = io_executeUnit_data_rd_info_wdata;
 endmodule
 
 module WriteBackUnit(
   input  [31:0] io_writeBackStage_data_pc,
-                io_writeBackStage_data_info_instr,
-  input         io_writeBackStage_data_info_valid,
+  input         io_writeBackStage_data_info_cheat,
+                io_writeBackStage_data_info_valid,
                 io_writeBackStage_data_info_reg_wen,
   input  [4:0]  io_writeBackStage_data_info_reg_waddr,
-  input  [7:0]  io_writeBackStage_data_info_diffout_storeEvent_valid,
-  input  [31:0] io_writeBackStage_data_info_diffout_storeEvent_storePAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeVAddr,
-                io_writeBackStage_data_info_diffout_storeEvent_storeData,
-  input  [7:0]  io_writeBackStage_data_info_diffout_loadEvent_valid,
-  input  [31:0] io_writeBackStage_data_info_diffout_loadEvent_paddr,
-                io_writeBackStage_data_info_diffout_loadEvent_vaddr,
-                io_writeBackStage_data_rd_info_wdata,
+  input  [31:0] io_writeBackStage_data_rd_info_wdata,
   output        io_regfile_wen,
   output [4:0]  io_regfile_waddr,
   output [31:0] io_regfile_wdata,
-                io_debug_pc,
-  output [3:0]  io_debug_commit,
+  output        io_regfile_cheat,
+  output [31:0] io_debug_pc,
   output [4:0]  io_debug_rf_wnum,
   output [31:0] io_debug_rf_wdata,
-  output        io_debug_wen,
-  output [31:0] io_info_instr,
-  output [7:0]  io_info_diffout_storeEvent_valid,
-  output [31:0] io_info_diffout_storeEvent_storePAddr,
-                io_info_diffout_storeEvent_storeVAddr,
-                io_info_diffout_storeEvent_storeData,
-  output [7:0]  io_info_diffout_loadEvent_valid,
-  output [31:0] io_info_diffout_loadEvent_paddr,
-                io_info_diffout_loadEvent_vaddr,
-                io_result
+  output        io_info_valid,
+  output [31:0] io_result
 );
 
-  wire io_debug_wen_0 =
+  assign io_regfile_wen =
     io_writeBackStage_data_info_reg_wen & io_writeBackStage_data_info_valid;
-  assign io_regfile_wen = io_debug_wen_0;
   assign io_regfile_waddr = io_writeBackStage_data_info_reg_waddr;
   assign io_regfile_wdata = io_writeBackStage_data_rd_info_wdata;
+  assign io_regfile_cheat = io_writeBackStage_data_info_cheat;
   assign io_debug_pc = io_writeBackStage_data_pc;
-  assign io_debug_commit = {4{io_writeBackStage_data_info_valid}};
   assign io_debug_rf_wnum = io_writeBackStage_data_info_reg_waddr;
   assign io_debug_rf_wdata = io_writeBackStage_data_rd_info_wdata;
-  assign io_debug_wen = io_debug_wen_0;
-  assign io_info_instr = io_writeBackStage_data_info_instr;
-  assign io_info_diffout_storeEvent_valid =
-    io_writeBackStage_data_info_diffout_storeEvent_valid;
-  assign io_info_diffout_storeEvent_storePAddr =
-    io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
-  assign io_info_diffout_storeEvent_storeVAddr =
-    io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
-  assign io_info_diffout_storeEvent_storeData =
-    io_writeBackStage_data_info_diffout_storeEvent_storeData;
-  assign io_info_diffout_loadEvent_valid =
-    io_writeBackStage_data_info_diffout_loadEvent_valid;
-  assign io_info_diffout_loadEvent_paddr =
-    io_writeBackStage_data_info_diffout_loadEvent_paddr;
-  assign io_info_diffout_loadEvent_vaddr =
-    io_writeBackStage_data_info_diffout_loadEvent_vaddr;
+  assign io_info_valid = io_writeBackStage_data_info_valid;
   assign io_result = io_writeBackStage_data_rd_info_wdata;
 endmodule
 
@@ -3874,227 +3384,20 @@ module ControlUnit(
 endmodule
 
 module Diff(
-  input         clock,
   input  [31:0] io_debug_pc,
-  input  [3:0]  io_debug_commit,
   input  [4:0]  io_debug_rf_wnum,
   input  [31:0] io_debug_rf_wdata,
-  input         io_debug_wen,
-  input  [31:0] io_info_instr,
-  input  [7:0]  io_info_diffout_storeEvent_valid,
-  input  [31:0] io_info_diffout_storeEvent_storePAddr,
-                io_info_diffout_storeEvent_storeVAddr,
-                io_info_diffout_storeEvent_storeData,
-  input  [7:0]  io_info_diffout_loadEvent_valid,
-  input  [31:0] io_info_diffout_loadEvent_paddr,
-                io_info_diffout_loadEvent_vaddr,
-                io_regs_in_0,
-                io_regs_in_1,
-                io_regs_in_2,
-                io_regs_in_3,
-                io_regs_in_4,
-                io_regs_in_5,
-                io_regs_in_6,
-                io_regs_in_7,
-                io_regs_in_8,
-                io_regs_in_9,
-                io_regs_in_10,
-                io_regs_in_11,
-                io_regs_in_12,
-                io_regs_in_13,
-                io_regs_in_14,
-                io_regs_in_15,
-                io_regs_in_16,
-                io_regs_in_17,
-                io_regs_in_18,
-                io_regs_in_19,
-                io_regs_in_20,
-                io_regs_in_21,
-                io_regs_in_22,
-                io_regs_in_23,
-                io_regs_in_24,
-                io_regs_in_25,
-                io_regs_in_26,
-                io_regs_in_27,
-                io_regs_in_28,
-                io_regs_in_29,
-                io_regs_in_30,
-                io_regs_in_31,
+  input         io_info_valid,
   output        io_diffout_instrCommit_valid,
   output [31:0] io_diffout_instrCommit_pc,
-                io_diffout_instrCommit_instr,
-  output        io_diffout_instrCommit_wen,
   output [4:0]  io_diffout_instrCommit_wdest,
-  output [31:0] io_diffout_instrCommit_wdata,
-  output [3:0]  io_diffout_storeEvent_coreid,
-  output [7:0]  io_diffout_storeEvent_index,
-                io_diffout_storeEvent_valid,
-  output [31:0] io_diffout_storeEvent_storePAddr,
-                io_diffout_storeEvent_storeVAddr,
-                io_diffout_storeEvent_storeData,
-  output [3:0]  io_diffout_loadEvent_coreid,
-  output [7:0]  io_diffout_loadEvent_index,
-                io_diffout_loadEvent_valid,
-  output [31:0] io_diffout_loadEvent_paddr,
-                io_diffout_loadEvent_vaddr,
-                io_diffout_gRegState_0,
-                io_diffout_gRegState_1,
-                io_diffout_gRegState_2,
-                io_diffout_gRegState_3,
-                io_diffout_gRegState_4,
-                io_diffout_gRegState_5,
-                io_diffout_gRegState_6,
-                io_diffout_gRegState_7,
-                io_diffout_gRegState_8,
-                io_diffout_gRegState_9,
-                io_diffout_gRegState_10,
-                io_diffout_gRegState_11,
-                io_diffout_gRegState_12,
-                io_diffout_gRegState_13,
-                io_diffout_gRegState_14,
-                io_diffout_gRegState_15,
-                io_diffout_gRegState_16,
-                io_diffout_gRegState_17,
-                io_diffout_gRegState_18,
-                io_diffout_gRegState_19,
-                io_diffout_gRegState_20,
-                io_diffout_gRegState_21,
-                io_diffout_gRegState_22,
-                io_diffout_gRegState_23,
-                io_diffout_gRegState_24,
-                io_diffout_gRegState_25,
-                io_diffout_gRegState_26,
-                io_diffout_gRegState_27,
-                io_diffout_gRegState_28,
-                io_diffout_gRegState_29,
-                io_diffout_gRegState_30,
-                io_diffout_gRegState_31
+  output [31:0] io_diffout_instrCommit_wdata
 );
 
-  reg [31:0] io_diffout_instrCommit_instr_REG;
-  reg [3:0]  io_diffout_instrCommit_valid_REG;
-  reg [31:0] io_diffout_instrCommit_pc_REG;
-  reg [4:0]  io_diffout_instrCommit_wdest_REG;
-  reg [31:0] io_diffout_instrCommit_wdata_REG;
-  reg        io_diffout_instrCommit_wen_REG;
-  reg [3:0]  io_diffout_loadEvent_REG_coreid;
-  reg [7:0]  io_diffout_loadEvent_REG_index;
-  reg [7:0]  io_diffout_loadEvent_REG_valid;
-  reg [31:0] io_diffout_loadEvent_REG_paddr;
-  reg [31:0] io_diffout_loadEvent_REG_vaddr;
-  reg [3:0]  io_diffout_storeEvent_REG_coreid;
-  reg [7:0]  io_diffout_storeEvent_REG_index;
-  reg [7:0]  io_diffout_storeEvent_REG_valid;
-  reg [31:0] io_diffout_storeEvent_REG_storePAddr;
-  reg [31:0] io_diffout_storeEvent_REG_storeVAddr;
-  reg [31:0] io_diffout_storeEvent_REG_storeData;
-  always @(posedge clock) begin
-    io_diffout_instrCommit_instr_REG <= io_info_instr;
-    io_diffout_instrCommit_valid_REG <= io_debug_commit;
-    io_diffout_instrCommit_pc_REG <= io_debug_pc;
-    io_diffout_instrCommit_wdest_REG <= io_debug_rf_wnum;
-    io_diffout_instrCommit_wdata_REG <= io_debug_rf_wdata;
-    io_diffout_instrCommit_wen_REG <= io_debug_wen;
-    io_diffout_loadEvent_REG_coreid <= 4'h0;
-    io_diffout_loadEvent_REG_index <= 8'h0;
-    io_diffout_loadEvent_REG_valid <= io_info_diffout_loadEvent_valid;
-    io_diffout_loadEvent_REG_paddr <= io_info_diffout_loadEvent_paddr;
-    io_diffout_loadEvent_REG_vaddr <= io_info_diffout_loadEvent_vaddr;
-    io_diffout_storeEvent_REG_coreid <= 4'h0;
-    io_diffout_storeEvent_REG_index <= 8'h0;
-    io_diffout_storeEvent_REG_valid <= io_info_diffout_storeEvent_valid;
-    io_diffout_storeEvent_REG_storePAddr <= io_info_diffout_storeEvent_storePAddr;
-    io_diffout_storeEvent_REG_storeVAddr <= io_info_diffout_storeEvent_storeVAddr;
-    io_diffout_storeEvent_REG_storeData <= io_info_diffout_storeEvent_storeData;
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_
-    `ifdef FIRRTL_BEFORE_INITIAL
-      `FIRRTL_BEFORE_INITIAL
-    `endif // FIRRTL_BEFORE_INITIAL
-    initial begin
-      automatic logic [31:0] _RANDOM[0:95];
-      `ifdef INIT_RANDOM_PROLOG_
-        `INIT_RANDOM_PROLOG_
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT
-        for (logic [6:0] i = 7'h0; i < 7'h60; i += 7'h1) begin
-          _RANDOM[i] = `RANDOM;
-        end
-        io_diffout_instrCommit_instr_REG = {_RANDOM[7'h56][31:2], _RANDOM[7'h57][1:0]};
-        io_diffout_instrCommit_valid_REG = _RANDOM[7'h57][5:2];
-        io_diffout_instrCommit_pc_REG = {_RANDOM[7'h57][31:6], _RANDOM[7'h58][5:0]};
-        io_diffout_instrCommit_wdest_REG = _RANDOM[7'h58][10:6];
-        io_diffout_instrCommit_wdata_REG = {_RANDOM[7'h58][31:11], _RANDOM[7'h59][10:0]};
-        io_diffout_instrCommit_wen_REG = _RANDOM[7'h59][11];
-        io_diffout_loadEvent_REG_coreid = _RANDOM[7'h59][15:12];
-        io_diffout_loadEvent_REG_index = _RANDOM[7'h59][23:16];
-        io_diffout_loadEvent_REG_valid = _RANDOM[7'h59][31:24];
-        io_diffout_loadEvent_REG_paddr = _RANDOM[7'h5A];
-        io_diffout_loadEvent_REG_vaddr = _RANDOM[7'h5B];
-        io_diffout_storeEvent_REG_coreid = _RANDOM[7'h5C][3:0];
-        io_diffout_storeEvent_REG_index = _RANDOM[7'h5C][11:4];
-        io_diffout_storeEvent_REG_valid = _RANDOM[7'h5C][19:12];
-        io_diffout_storeEvent_REG_storePAddr =
-          {_RANDOM[7'h5C][31:20], _RANDOM[7'h5D][19:0]};
-        io_diffout_storeEvent_REG_storeVAddr =
-          {_RANDOM[7'h5D][31:20], _RANDOM[7'h5E][19:0]};
-        io_diffout_storeEvent_REG_storeData =
-          {_RANDOM[7'h5E][31:20], _RANDOM[7'h5F][19:0]};
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL
-      `FIRRTL_AFTER_INITIAL
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_diffout_instrCommit_valid = io_diffout_instrCommit_valid_REG[0];
-  assign io_diffout_instrCommit_pc = io_diffout_instrCommit_pc_REG;
-  assign io_diffout_instrCommit_instr = io_diffout_instrCommit_instr_REG;
-  assign io_diffout_instrCommit_wen = io_diffout_instrCommit_wen_REG;
-  assign io_diffout_instrCommit_wdest = io_diffout_instrCommit_wdest_REG;
-  assign io_diffout_instrCommit_wdata = io_diffout_instrCommit_wdata_REG;
-  assign io_diffout_storeEvent_coreid = io_diffout_storeEvent_REG_coreid;
-  assign io_diffout_storeEvent_index = io_diffout_storeEvent_REG_index;
-  assign io_diffout_storeEvent_valid = io_diffout_storeEvent_REG_valid;
-  assign io_diffout_storeEvent_storePAddr = io_diffout_storeEvent_REG_storePAddr;
-  assign io_diffout_storeEvent_storeVAddr = io_diffout_storeEvent_REG_storeVAddr;
-  assign io_diffout_storeEvent_storeData = io_diffout_storeEvent_REG_storeData;
-  assign io_diffout_loadEvent_coreid = io_diffout_loadEvent_REG_coreid;
-  assign io_diffout_loadEvent_index = io_diffout_loadEvent_REG_index;
-  assign io_diffout_loadEvent_valid = io_diffout_loadEvent_REG_valid;
-  assign io_diffout_loadEvent_paddr = io_diffout_loadEvent_REG_paddr;
-  assign io_diffout_loadEvent_vaddr = io_diffout_loadEvent_REG_vaddr;
-  assign io_diffout_gRegState_0 = io_regs_in_0;
-  assign io_diffout_gRegState_1 = io_regs_in_1;
-  assign io_diffout_gRegState_2 = io_regs_in_2;
-  assign io_diffout_gRegState_3 = io_regs_in_3;
-  assign io_diffout_gRegState_4 = io_regs_in_4;
-  assign io_diffout_gRegState_5 = io_regs_in_5;
-  assign io_diffout_gRegState_6 = io_regs_in_6;
-  assign io_diffout_gRegState_7 = io_regs_in_7;
-  assign io_diffout_gRegState_8 = io_regs_in_8;
-  assign io_diffout_gRegState_9 = io_regs_in_9;
-  assign io_diffout_gRegState_10 = io_regs_in_10;
-  assign io_diffout_gRegState_11 = io_regs_in_11;
-  assign io_diffout_gRegState_12 = io_regs_in_12;
-  assign io_diffout_gRegState_13 = io_regs_in_13;
-  assign io_diffout_gRegState_14 = io_regs_in_14;
-  assign io_diffout_gRegState_15 = io_regs_in_15;
-  assign io_diffout_gRegState_16 = io_regs_in_16;
-  assign io_diffout_gRegState_17 = io_regs_in_17;
-  assign io_diffout_gRegState_18 = io_regs_in_18;
-  assign io_diffout_gRegState_19 = io_regs_in_19;
-  assign io_diffout_gRegState_20 = io_regs_in_20;
-  assign io_diffout_gRegState_21 = io_regs_in_21;
-  assign io_diffout_gRegState_22 = io_regs_in_22;
-  assign io_diffout_gRegState_23 = io_regs_in_23;
-  assign io_diffout_gRegState_24 = io_regs_in_24;
-  assign io_diffout_gRegState_25 = io_regs_in_25;
-  assign io_diffout_gRegState_26 = io_regs_in_26;
-  assign io_diffout_gRegState_27 = io_regs_in_27;
-  assign io_diffout_gRegState_28 = io_regs_in_28;
-  assign io_diffout_gRegState_29 = io_regs_in_29;
-  assign io_diffout_gRegState_30 = io_regs_in_30;
-  assign io_diffout_gRegState_31 = io_regs_in_31;
+  assign io_diffout_instrCommit_valid = io_info_valid;
+  assign io_diffout_instrCommit_pc = io_debug_pc;
+  assign io_diffout_instrCommit_wdest = io_debug_rf_wnum;
+  assign io_diffout_instrCommit_wdata = io_debug_rf_wdata;
 endmodule
 
 module Core(
@@ -4105,72 +3408,16 @@ module Core(
   output [19:0] io_base_ram_ctrl_ctrl_addr,
   output [3:0]  io_base_ram_ctrl_ctrl_be_n,
   output        io_base_ram_ctrl_ctrl_ce_n,
-                io_base_ram_ctrl_ctrl_oe_n,
-                io_base_ram_ctrl_ctrl_we_n,
-                io_base_ram_ctrl_ctrl_data_en,
   input  [31:0] io_ext_ram_ctrl_data_in,
   output [31:0] io_ext_ram_ctrl_ctrl_data_out,
   output [19:0] io_ext_ram_ctrl_ctrl_addr,
   output [3:0]  io_ext_ram_ctrl_ctrl_be_n,
   output        io_ext_ram_ctrl_ctrl_ce_n,
-                io_ext_ram_ctrl_ctrl_oe_n,
                 io_ext_ram_ctrl_ctrl_we_n,
-                io_ext_ram_ctrl_ctrl_data_en,
-  input         io_rxd_uart_ready,
-  output        io_rxd_uart_clear,
-  input  [7:0]  io_rxd_uart_data,
-  output        io_txd_uart_start,
-  output [7:0]  io_txd_uart_data,
-  input         io_txd_uart_busy,
-  output        io_diff_instrCommit_valid,
+                io_diff_instrCommit_valid,
   output [31:0] io_diff_instrCommit_pc,
-                io_diff_instrCommit_instr,
-  output        io_diff_instrCommit_wen,
   output [4:0]  io_diff_instrCommit_wdest,
-  output [31:0] io_diff_instrCommit_wdata,
-  output [3:0]  io_diff_storeEvent_coreid,
-  output [7:0]  io_diff_storeEvent_index,
-                io_diff_storeEvent_valid,
-  output [31:0] io_diff_storeEvent_storePAddr,
-                io_diff_storeEvent_storeVAddr,
-                io_diff_storeEvent_storeData,
-  output [3:0]  io_diff_loadEvent_coreid,
-  output [7:0]  io_diff_loadEvent_index,
-                io_diff_loadEvent_valid,
-  output [31:0] io_diff_loadEvent_paddr,
-                io_diff_loadEvent_vaddr,
-                io_diff_gRegState_0,
-                io_diff_gRegState_1,
-                io_diff_gRegState_2,
-                io_diff_gRegState_3,
-                io_diff_gRegState_4,
-                io_diff_gRegState_5,
-                io_diff_gRegState_6,
-                io_diff_gRegState_7,
-                io_diff_gRegState_8,
-                io_diff_gRegState_9,
-                io_diff_gRegState_10,
-                io_diff_gRegState_11,
-                io_diff_gRegState_12,
-                io_diff_gRegState_13,
-                io_diff_gRegState_14,
-                io_diff_gRegState_15,
-                io_diff_gRegState_16,
-                io_diff_gRegState_17,
-                io_diff_gRegState_18,
-                io_diff_gRegState_19,
-                io_diff_gRegState_20,
-                io_diff_gRegState_21,
-                io_diff_gRegState_22,
-                io_diff_gRegState_23,
-                io_diff_gRegState_24,
-                io_diff_gRegState_25,
-                io_diff_gRegState_26,
-                io_diff_gRegState_27,
-                io_diff_gRegState_28,
-                io_diff_gRegState_29,
-                io_diff_gRegState_30,
-                io_diff_gRegState_31
+  output [31:0] io_diff_instrCommit_wdata
 );
 
   wire         _controlUnit_io_signals_fetchUnitSignal_allow_to_go;
@@ -4184,45 +3431,23 @@ module Core(
   wire         _writeBackUnit_io_regfile_wen;
   wire [4:0]   _writeBackUnit_io_regfile_waddr;
   wire [31:0]  _writeBackUnit_io_regfile_wdata;
+  wire         _writeBackUnit_io_regfile_cheat;
   wire [31:0]  _writeBackUnit_io_debug_pc;
-  wire [3:0]   _writeBackUnit_io_debug_commit;
   wire [4:0]   _writeBackUnit_io_debug_rf_wnum;
   wire [31:0]  _writeBackUnit_io_debug_rf_wdata;
-  wire         _writeBackUnit_io_debug_wen;
-  wire [31:0]  _writeBackUnit_io_info_instr;
-  wire [7:0]   _writeBackUnit_io_info_diffout_storeEvent_valid;
-  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _writeBackUnit_io_info_diffout_storeEvent_storeData;
-  wire [7:0]   _writeBackUnit_io_info_diffout_loadEvent_valid;
-  wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_paddr;
-  wire [31:0]  _writeBackUnit_io_info_diffout_loadEvent_vaddr;
+  wire         _writeBackUnit_io_info_valid;
   wire [31:0]  _writeBackUnit_io_result;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_pc;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_instr;
+  wire         _writeBackStage_io_writeBackUnit_data_info_cheat;
   wire         _writeBackStage_io_writeBackUnit_data_info_valid;
   wire         _writeBackStage_io_writeBackUnit_data_info_reg_wen;
   wire [4:0]   _writeBackStage_io_writeBackUnit_data_info_reg_waddr;
-  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData;
-  wire [7:0]   _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr;
-  wire [31:0]  _writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr;
   wire [31:0]  _writeBackStage_io_writeBackUnit_data_rd_info_wdata;
   wire [31:0]  _executeUnit_io_writeBackStage_data_pc;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_instr;
+  wire         _executeUnit_io_writeBackStage_data_info_cheat;
   wire         _executeUnit_io_writeBackStage_data_info_valid;
   wire         _executeUnit_io_writeBackStage_data_info_reg_wen;
   wire [4:0]   _executeUnit_io_writeBackStage_data_info_reg_waddr;
-  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData;
-  wire [7:0]   _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr;
-  wire [31:0]  _executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr;
   wire [31:0]  _executeUnit_io_writeBackStage_data_rd_info_wdata;
   wire         _executeUnit_io_ready;
   wire         _executeUnit_io_branch;
@@ -4235,6 +3460,7 @@ module Core(
   wire [31:0]  _executeUnit_io_result;
   wire [31:0]  _executeStage_io_executeUnit_data_pc;
   wire [31:0]  _executeStage_io_executeUnit_data_info_instr;
+  wire         _executeStage_io_executeUnit_data_info_cheat;
   wire         _executeStage_io_executeUnit_data_info_valid;
   wire [4:0]   _executeStage_io_executeUnit_data_info_op;
   wire         _executeStage_io_executeUnit_data_info_reg_wen;
@@ -4245,42 +3471,11 @@ module Core(
   wire [31:0]  _executeStage_io_executeUnit_data_src_info_src2_data;
   wire [31:0]  _regfile_io_read_src1_rdata;
   wire [31:0]  _regfile_io_read_src2_rdata;
-  wire [31:0]  _regfile_io_regs_out_0;
-  wire [31:0]  _regfile_io_regs_out_1;
-  wire [31:0]  _regfile_io_regs_out_2;
-  wire [31:0]  _regfile_io_regs_out_3;
-  wire [31:0]  _regfile_io_regs_out_4;
-  wire [31:0]  _regfile_io_regs_out_5;
-  wire [31:0]  _regfile_io_regs_out_6;
-  wire [31:0]  _regfile_io_regs_out_7;
-  wire [31:0]  _regfile_io_regs_out_8;
-  wire [31:0]  _regfile_io_regs_out_9;
-  wire [31:0]  _regfile_io_regs_out_10;
-  wire [31:0]  _regfile_io_regs_out_11;
-  wire [31:0]  _regfile_io_regs_out_12;
-  wire [31:0]  _regfile_io_regs_out_13;
-  wire [31:0]  _regfile_io_regs_out_14;
-  wire [31:0]  _regfile_io_regs_out_15;
-  wire [31:0]  _regfile_io_regs_out_16;
-  wire [31:0]  _regfile_io_regs_out_17;
-  wire [31:0]  _regfile_io_regs_out_18;
-  wire [31:0]  _regfile_io_regs_out_19;
-  wire [31:0]  _regfile_io_regs_out_20;
-  wire [31:0]  _regfile_io_regs_out_21;
-  wire [31:0]  _regfile_io_regs_out_22;
-  wire [31:0]  _regfile_io_regs_out_23;
-  wire [31:0]  _regfile_io_regs_out_24;
-  wire [31:0]  _regfile_io_regs_out_25;
-  wire [31:0]  _regfile_io_regs_out_26;
-  wire [31:0]  _regfile_io_regs_out_27;
-  wire [31:0]  _regfile_io_regs_out_28;
-  wire [31:0]  _regfile_io_regs_out_29;
-  wire [31:0]  _regfile_io_regs_out_30;
-  wire [31:0]  _regfile_io_regs_out_31;
   wire [4:0]   _decodeUnit_io_regfile_src1_raddr;
   wire [4:0]   _decodeUnit_io_regfile_src2_raddr;
   wire [31:0]  _decodeUnit_io_executeStage_data_pc;
   wire [31:0]  _decodeUnit_io_executeStage_data_info_instr;
+  wire         _decodeUnit_io_executeStage_data_info_cheat;
   wire         _decodeUnit_io_executeStage_data_info_valid;
   wire [4:0]   _decodeUnit_io_executeStage_data_info_op;
   wire         _decodeUnit_io_executeStage_data_info_reg_wen;
@@ -4301,11 +3496,18 @@ module Core(
   wire [31:0]  _fetchUnit_io_decodeStage_data_pc;
   wire         _fetchUnit_io_icache_req_valid;
   wire [31:0]  _fetchUnit_io_icache_req_bits_addr;
+  wire         _extMemory_io_read_req_ready;
+  wire         _extMemory_io_read_resp_valid;
+  wire [31:0]  _extMemory_io_read_resp_bits_data;
+  wire [31:0]  _extMemory_io_read_resp_bits_addr;
+  wire         _extMemory_io_write_req_ready;
   wire         _dcache_io_req_ready;
   wire         _dcache_io_resp_valid;
   wire [31:0]  _dcache_io_resp_bits_data;
+  wire [31:0]  _dcache_io_resp_bits_addr;
   wire         _dcache_io_io_read_req_valid;
   wire [31:0]  _dcache_io_io_read_req_bits_addr;
+  wire         _dcache_io_io_read_resp_ready;
   wire         _dcache_io_io_write_req_valid;
   wire [31:0]  _dcache_io_io_write_req_bits_addr;
   wire [31:0]  _dcache_io_io_write_req_bits_data;
@@ -4319,50 +3521,19 @@ module Core(
   wire         _iocontrol_io_icache_read_req_ready;
   wire         _iocontrol_io_icache_read_resp_valid;
   wire [255:0] _iocontrol_io_icache_read_resp_bits_data;
-  wire         _iocontrol_io_dcache_read_req_ready;
-  wire         _iocontrol_io_dcache_read_resp_valid;
-  wire [31:0]  _iocontrol_io_dcache_read_resp_bits_data;
-  wire         _iocontrol_io_dcache_write_req_ready;
   IoControl iocontrol (
-    .clock                              (clock),
-    .reset                              (reset),
-    .io_icache_read_req_ready           (_iocontrol_io_icache_read_req_ready),
-    .io_icache_read_req_valid           (_icache_io_io_read_req_valid),
-    .io_icache_read_req_bits_addr       (_icache_io_io_read_req_bits_addr),
-    .io_icache_read_resp_valid          (_iocontrol_io_icache_read_resp_valid),
-    .io_icache_read_resp_bits_data      (_iocontrol_io_icache_read_resp_bits_data),
-    .io_dcache_read_req_ready           (_iocontrol_io_dcache_read_req_ready),
-    .io_dcache_read_req_valid           (_dcache_io_io_read_req_valid),
-    .io_dcache_read_req_bits_addr       (_dcache_io_io_read_req_bits_addr),
-    .io_dcache_read_resp_valid          (_iocontrol_io_dcache_read_resp_valid),
-    .io_dcache_read_resp_bits_data      (_iocontrol_io_dcache_read_resp_bits_data),
-    .io_dcache_write_req_ready          (_iocontrol_io_dcache_write_req_ready),
-    .io_dcache_write_req_valid          (_dcache_io_io_write_req_valid),
-    .io_dcache_write_req_bits_addr      (_dcache_io_io_write_req_bits_addr),
-    .io_dcache_write_req_bits_data      (_dcache_io_io_write_req_bits_data),
-    .io_dcache_write_req_bits_byte_mask (_dcache_io_io_write_req_bits_byte_mask),
-    .io_base_ram_ctrl_data_in           (io_base_ram_ctrl_data_in),
-    .io_base_ram_ctrl_ctrl_data_out     (io_base_ram_ctrl_ctrl_data_out),
-    .io_base_ram_ctrl_ctrl_addr         (io_base_ram_ctrl_ctrl_addr),
-    .io_base_ram_ctrl_ctrl_be_n         (io_base_ram_ctrl_ctrl_be_n),
-    .io_base_ram_ctrl_ctrl_ce_n         (io_base_ram_ctrl_ctrl_ce_n),
-    .io_base_ram_ctrl_ctrl_oe_n         (io_base_ram_ctrl_ctrl_oe_n),
-    .io_base_ram_ctrl_ctrl_we_n         (io_base_ram_ctrl_ctrl_we_n),
-    .io_base_ram_ctrl_ctrl_data_en      (io_base_ram_ctrl_ctrl_data_en),
-    .io_ext_ram_ctrl_data_in            (io_ext_ram_ctrl_data_in),
-    .io_ext_ram_ctrl_ctrl_data_out      (io_ext_ram_ctrl_ctrl_data_out),
-    .io_ext_ram_ctrl_ctrl_addr          (io_ext_ram_ctrl_ctrl_addr),
-    .io_ext_ram_ctrl_ctrl_be_n          (io_ext_ram_ctrl_ctrl_be_n),
-    .io_ext_ram_ctrl_ctrl_ce_n          (io_ext_ram_ctrl_ctrl_ce_n),
-    .io_ext_ram_ctrl_ctrl_oe_n          (io_ext_ram_ctrl_ctrl_oe_n),
-    .io_ext_ram_ctrl_ctrl_we_n          (io_ext_ram_ctrl_ctrl_we_n),
-    .io_ext_ram_ctrl_ctrl_data_en       (io_ext_ram_ctrl_ctrl_data_en),
-    .io_rxd_uart_ready                  (io_rxd_uart_ready),
-    .io_rxd_uart_clear                  (io_rxd_uart_clear),
-    .io_rxd_uart_data                   (io_rxd_uart_data),
-    .io_txd_uart_start                  (io_txd_uart_start),
-    .io_txd_uart_data                   (io_txd_uart_data),
-    .io_txd_uart_busy                   (io_txd_uart_busy)
+    .clock                          (clock),
+    .reset                          (reset),
+    .io_icache_read_req_ready       (_iocontrol_io_icache_read_req_ready),
+    .io_icache_read_req_valid       (_icache_io_io_read_req_valid),
+    .io_icache_read_req_bits_addr   (_icache_io_io_read_req_bits_addr),
+    .io_icache_read_resp_valid      (_iocontrol_io_icache_read_resp_valid),
+    .io_icache_read_resp_bits_data  (_iocontrol_io_icache_read_resp_bits_data),
+    .io_base_ram_ctrl_data_in       (io_base_ram_ctrl_data_in),
+    .io_base_ram_ctrl_ctrl_data_out (io_base_ram_ctrl_ctrl_data_out),
+    .io_base_ram_ctrl_ctrl_addr     (io_base_ram_ctrl_ctrl_addr),
+    .io_base_ram_ctrl_ctrl_be_n     (io_base_ram_ctrl_ctrl_be_n),
+    .io_base_ram_ctrl_ctrl_ce_n     (io_base_ram_ctrl_ctrl_ce_n)
   );
   ICache icache (
     .clock                                (clock),
@@ -4397,16 +3568,41 @@ module Core(
     .io_req_bits_wstrb              (_executeUnit_io_dcache_req_bits_wstrb),
     .io_resp_valid                  (_dcache_io_resp_valid),
     .io_resp_bits_data              (_dcache_io_resp_bits_data),
-    .io_io_read_req_ready           (_iocontrol_io_dcache_read_req_ready),
+    .io_resp_bits_addr              (_dcache_io_resp_bits_addr),
+    .io_io_read_req_ready           (_extMemory_io_read_req_ready),
     .io_io_read_req_valid           (_dcache_io_io_read_req_valid),
     .io_io_read_req_bits_addr       (_dcache_io_io_read_req_bits_addr),
-    .io_io_read_resp_valid          (_iocontrol_io_dcache_read_resp_valid),
-    .io_io_read_resp_bits_data      (_iocontrol_io_dcache_read_resp_bits_data),
-    .io_io_write_req_ready          (_iocontrol_io_dcache_write_req_ready),
+    .io_io_read_resp_ready          (_dcache_io_io_read_resp_ready),
+    .io_io_read_resp_valid          (_extMemory_io_read_resp_valid),
+    .io_io_read_resp_bits_data      (_extMemory_io_read_resp_bits_data),
+    .io_io_read_resp_bits_addr      (_extMemory_io_read_resp_bits_addr),
+    .io_io_write_req_ready          (_extMemory_io_write_req_ready),
     .io_io_write_req_valid          (_dcache_io_io_write_req_valid),
     .io_io_write_req_bits_addr      (_dcache_io_io_write_req_bits_addr),
     .io_io_write_req_bits_data      (_dcache_io_io_write_req_bits_data),
     .io_io_write_req_bits_byte_mask (_dcache_io_io_write_req_bits_byte_mask)
+  );
+  SimpleDataMemoryController extMemory (
+    .clock                       (clock),
+    .reset                       (reset),
+    .io_read_req_ready           (_extMemory_io_read_req_ready),
+    .io_read_req_valid           (_dcache_io_io_read_req_valid),
+    .io_read_req_bits_addr       (_dcache_io_io_read_req_bits_addr),
+    .io_read_resp_ready          (_dcache_io_io_read_resp_ready),
+    .io_read_resp_valid          (_extMemory_io_read_resp_valid),
+    .io_read_resp_bits_data      (_extMemory_io_read_resp_bits_data),
+    .io_read_resp_bits_addr      (_extMemory_io_read_resp_bits_addr),
+    .io_write_req_ready          (_extMemory_io_write_req_ready),
+    .io_write_req_valid          (_dcache_io_io_write_req_valid),
+    .io_write_req_bits_addr      (_dcache_io_io_write_req_bits_addr),
+    .io_write_req_bits_data      (_dcache_io_io_write_req_bits_data),
+    .io_write_req_bits_byte_mask (_dcache_io_io_write_req_bits_byte_mask),
+    .io_ram_data_in              (io_ext_ram_ctrl_data_in),
+    .io_ram_ctrl_data_out        (io_ext_ram_ctrl_ctrl_data_out),
+    .io_ram_ctrl_addr            (io_ext_ram_ctrl_ctrl_addr),
+    .io_ram_ctrl_be_n            (io_ext_ram_ctrl_ctrl_be_n),
+    .io_ram_ctrl_ce_n            (io_ext_ram_ctrl_ctrl_ce_n),
+    .io_ram_ctrl_we_n            (io_ext_ram_ctrl_ctrl_we_n)
   );
   FetchUnit fetchUnit (
     .clock                                 (clock),
@@ -4458,6 +3654,8 @@ module Core(
     .io_executeStage_data_pc                 (_decodeUnit_io_executeStage_data_pc),
     .io_executeStage_data_info_instr
       (_decodeUnit_io_executeStage_data_info_instr),
+    .io_executeStage_data_info_cheat
+      (_decodeUnit_io_executeStage_data_info_cheat),
     .io_executeStage_data_info_valid
       (_decodeUnit_io_executeStage_data_info_valid),
     .io_executeStage_data_info_op            (_decodeUnit_io_executeStage_data_info_op),
@@ -4487,38 +3685,7 @@ module Core(
     .io_write_wen       (_writeBackUnit_io_regfile_wen),
     .io_write_waddr     (_writeBackUnit_io_regfile_waddr),
     .io_write_wdata     (_writeBackUnit_io_regfile_wdata),
-    .io_regs_out_0      (_regfile_io_regs_out_0),
-    .io_regs_out_1      (_regfile_io_regs_out_1),
-    .io_regs_out_2      (_regfile_io_regs_out_2),
-    .io_regs_out_3      (_regfile_io_regs_out_3),
-    .io_regs_out_4      (_regfile_io_regs_out_4),
-    .io_regs_out_5      (_regfile_io_regs_out_5),
-    .io_regs_out_6      (_regfile_io_regs_out_6),
-    .io_regs_out_7      (_regfile_io_regs_out_7),
-    .io_regs_out_8      (_regfile_io_regs_out_8),
-    .io_regs_out_9      (_regfile_io_regs_out_9),
-    .io_regs_out_10     (_regfile_io_regs_out_10),
-    .io_regs_out_11     (_regfile_io_regs_out_11),
-    .io_regs_out_12     (_regfile_io_regs_out_12),
-    .io_regs_out_13     (_regfile_io_regs_out_13),
-    .io_regs_out_14     (_regfile_io_regs_out_14),
-    .io_regs_out_15     (_regfile_io_regs_out_15),
-    .io_regs_out_16     (_regfile_io_regs_out_16),
-    .io_regs_out_17     (_regfile_io_regs_out_17),
-    .io_regs_out_18     (_regfile_io_regs_out_18),
-    .io_regs_out_19     (_regfile_io_regs_out_19),
-    .io_regs_out_20     (_regfile_io_regs_out_20),
-    .io_regs_out_21     (_regfile_io_regs_out_21),
-    .io_regs_out_22     (_regfile_io_regs_out_22),
-    .io_regs_out_23     (_regfile_io_regs_out_23),
-    .io_regs_out_24     (_regfile_io_regs_out_24),
-    .io_regs_out_25     (_regfile_io_regs_out_25),
-    .io_regs_out_26     (_regfile_io_regs_out_26),
-    .io_regs_out_27     (_regfile_io_regs_out_27),
-    .io_regs_out_28     (_regfile_io_regs_out_28),
-    .io_regs_out_29     (_regfile_io_regs_out_29),
-    .io_regs_out_30     (_regfile_io_regs_out_30),
-    .io_regs_out_31     (_regfile_io_regs_out_31)
+    .io_write_cheat     (_writeBackUnit_io_regfile_cheat)
   );
   ExecuteStage executeStage (
     .clock                                         (clock),
@@ -4526,6 +3693,8 @@ module Core(
     .io_decodeUnit_data_pc                         (_decodeUnit_io_executeStage_data_pc),
     .io_decodeUnit_data_info_instr
       (_decodeUnit_io_executeStage_data_info_instr),
+    .io_decodeUnit_data_info_cheat
+      (_decodeUnit_io_executeStage_data_info_cheat),
     .io_decodeUnit_data_info_valid
       (_decodeUnit_io_executeStage_data_info_valid),
     .io_decodeUnit_data_info_op
@@ -4550,6 +3719,8 @@ module Core(
     .io_executeUnit_data_pc                        (_executeStage_io_executeUnit_data_pc),
     .io_executeUnit_data_info_instr
       (_executeStage_io_executeUnit_data_info_instr),
+    .io_executeUnit_data_info_cheat
+      (_executeStage_io_executeUnit_data_info_cheat),
     .io_executeUnit_data_info_valid
       (_executeStage_io_executeUnit_data_info_valid),
     .io_executeUnit_data_info_op
@@ -4568,189 +3739,97 @@ module Core(
       (_executeStage_io_executeUnit_data_src_info_src2_data)
   );
   ExecuteUnit executeUnit (
-    .clock                                                     (clock),
-    .reset                                                     (reset),
-    .io_executeStage_data_pc
-      (_executeStage_io_executeUnit_data_pc),
+    .clock                                   (clock),
+    .reset                                   (reset),
+    .io_executeStage_data_pc                 (_executeStage_io_executeUnit_data_pc),
     .io_executeStage_data_info_instr
       (_executeStage_io_executeUnit_data_info_instr),
+    .io_executeStage_data_info_cheat
+      (_executeStage_io_executeUnit_data_info_cheat),
     .io_executeStage_data_info_valid
       (_executeStage_io_executeUnit_data_info_valid),
-    .io_executeStage_data_info_op
-      (_executeStage_io_executeUnit_data_info_op),
+    .io_executeStage_data_info_op            (_executeStage_io_executeUnit_data_info_op),
     .io_executeStage_data_info_reg_wen
       (_executeStage_io_executeUnit_data_info_reg_wen),
     .io_executeStage_data_info_reg_waddr
       (_executeStage_io_executeUnit_data_info_reg_waddr),
-    .io_executeStage_data_info_imm
-      (_executeStage_io_executeUnit_data_info_imm),
+    .io_executeStage_data_info_imm           (_executeStage_io_executeUnit_data_info_imm),
     .io_executeStage_data_info_fusel
       (_executeStage_io_executeUnit_data_info_fusel),
     .io_executeStage_data_src_info_src1_data
       (_executeStage_io_executeUnit_data_src_info_src1_data),
     .io_executeStage_data_src_info_src2_data
       (_executeStage_io_executeUnit_data_src_info_src2_data),
-    .io_writeBackStage_data_pc
-      (_executeUnit_io_writeBackStage_data_pc),
-    .io_writeBackStage_data_info_instr
-      (_executeUnit_io_writeBackStage_data_info_instr),
+    .io_writeBackStage_data_pc               (_executeUnit_io_writeBackStage_data_pc),
+    .io_writeBackStage_data_info_cheat
+      (_executeUnit_io_writeBackStage_data_info_cheat),
     .io_writeBackStage_data_info_valid
       (_executeUnit_io_writeBackStage_data_info_valid),
     .io_writeBackStage_data_info_reg_wen
       (_executeUnit_io_writeBackStage_data_info_reg_wen),
     .io_writeBackStage_data_info_reg_waddr
       (_executeUnit_io_writeBackStage_data_info_reg_waddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_valid
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
-    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeData
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
-    .io_writeBackStage_data_info_diffout_loadEvent_valid
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
-    .io_writeBackStage_data_info_diffout_loadEvent_paddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
-    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
     .io_writeBackStage_data_rd_info_wdata
       (_executeUnit_io_writeBackStage_data_rd_info_wdata),
-    .io_ready                                                  (_executeUnit_io_ready),
-    .io_branch                                                 (_executeUnit_io_branch),
-    .io_target                                                 (_executeUnit_io_target),
-    .io_dcache_req_ready                                       (_dcache_io_req_ready),
-    .io_dcache_req_valid
-      (_executeUnit_io_dcache_req_valid),
-    .io_dcache_req_bits_addr
-      (_executeUnit_io_dcache_req_bits_addr),
-    .io_dcache_req_bits_write
-      (_executeUnit_io_dcache_req_bits_write),
-    .io_dcache_req_bits_wdata
-      (_executeUnit_io_dcache_req_bits_wdata),
-    .io_dcache_req_bits_wstrb
-      (_executeUnit_io_dcache_req_bits_wstrb),
-    .io_dcache_resp_valid                                      (_dcache_io_resp_valid),
-    .io_dcache_resp_bits_data
-      (_dcache_io_resp_bits_data),
-    .io_result                                                 (_executeUnit_io_result)
+    .io_ready                                (_executeUnit_io_ready),
+    .io_branch                               (_executeUnit_io_branch),
+    .io_target                               (_executeUnit_io_target),
+    .io_dcache_req_ready                     (_dcache_io_req_ready),
+    .io_dcache_req_valid                     (_executeUnit_io_dcache_req_valid),
+    .io_dcache_req_bits_addr                 (_executeUnit_io_dcache_req_bits_addr),
+    .io_dcache_req_bits_write                (_executeUnit_io_dcache_req_bits_write),
+    .io_dcache_req_bits_wdata                (_executeUnit_io_dcache_req_bits_wdata),
+    .io_dcache_req_bits_wstrb                (_executeUnit_io_dcache_req_bits_wstrb),
+    .io_dcache_resp_valid                    (_dcache_io_resp_valid),
+    .io_dcache_resp_bits_data                (_dcache_io_resp_bits_data),
+    .io_dcache_resp_bits_addr                (_dcache_io_resp_bits_addr),
+    .io_result                               (_executeUnit_io_result)
   );
   WriteBackStage writeBackStage (
-    .clock                                                    (clock),
-    .reset                                                    (reset),
-    .io_executeUnit_data_pc
-      (_executeUnit_io_writeBackStage_data_pc),
-    .io_executeUnit_data_info_instr
-      (_executeUnit_io_writeBackStage_data_info_instr),
+    .io_executeUnit_data_pc               (_executeUnit_io_writeBackStage_data_pc),
+    .io_executeUnit_data_info_cheat
+      (_executeUnit_io_writeBackStage_data_info_cheat),
     .io_executeUnit_data_info_valid
       (_executeUnit_io_writeBackStage_data_info_valid),
     .io_executeUnit_data_info_reg_wen
       (_executeUnit_io_writeBackStage_data_info_reg_wen),
     .io_executeUnit_data_info_reg_waddr
       (_executeUnit_io_writeBackStage_data_info_reg_waddr),
-    .io_executeUnit_data_info_diffout_storeEvent_valid
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_valid),
-    .io_executeUnit_data_info_diffout_storeEvent_storePAddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storePAddr),
-    .io_executeUnit_data_info_diffout_storeEvent_storeVAddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeVAddr),
-    .io_executeUnit_data_info_diffout_storeEvent_storeData
-      (_executeUnit_io_writeBackStage_data_info_diffout_storeEvent_storeData),
-    .io_executeUnit_data_info_diffout_loadEvent_valid
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_valid),
-    .io_executeUnit_data_info_diffout_loadEvent_paddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_paddr),
-    .io_executeUnit_data_info_diffout_loadEvent_vaddr
-      (_executeUnit_io_writeBackStage_data_info_diffout_loadEvent_vaddr),
     .io_executeUnit_data_rd_info_wdata
       (_executeUnit_io_writeBackStage_data_rd_info_wdata),
-    .io_writeBackUnit_data_pc
-      (_writeBackStage_io_writeBackUnit_data_pc),
-    .io_writeBackUnit_data_info_instr
-      (_writeBackStage_io_writeBackUnit_data_info_instr),
+    .io_writeBackUnit_data_pc             (_writeBackStage_io_writeBackUnit_data_pc),
+    .io_writeBackUnit_data_info_cheat
+      (_writeBackStage_io_writeBackUnit_data_info_cheat),
     .io_writeBackUnit_data_info_valid
       (_writeBackStage_io_writeBackUnit_data_info_valid),
     .io_writeBackUnit_data_info_reg_wen
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackUnit_data_info_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_writeBackUnit_data_info_diffout_storeEvent_valid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),
-    .io_writeBackUnit_data_info_diffout_storeEvent_storePAddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr),
-    .io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),
-    .io_writeBackUnit_data_info_diffout_storeEvent_storeData
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),
-    .io_writeBackUnit_data_info_diffout_loadEvent_valid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),
-    .io_writeBackUnit_data_info_diffout_loadEvent_paddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr),
-    .io_writeBackUnit_data_info_diffout_loadEvent_vaddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr),
     .io_writeBackUnit_data_rd_info_wdata
       (_writeBackStage_io_writeBackUnit_data_rd_info_wdata)
   );
   WriteBackUnit writeBackUnit (
-    .io_writeBackStage_data_pc
-      (_writeBackStage_io_writeBackUnit_data_pc),
-    .io_writeBackStage_data_info_instr
-      (_writeBackStage_io_writeBackUnit_data_info_instr),
+    .io_writeBackStage_data_pc             (_writeBackStage_io_writeBackUnit_data_pc),
+    .io_writeBackStage_data_info_cheat
+      (_writeBackStage_io_writeBackUnit_data_info_cheat),
     .io_writeBackStage_data_info_valid
       (_writeBackStage_io_writeBackUnit_data_info_valid),
     .io_writeBackStage_data_info_reg_wen
       (_writeBackStage_io_writeBackUnit_data_info_reg_wen),
     .io_writeBackStage_data_info_reg_waddr
       (_writeBackStage_io_writeBackUnit_data_info_reg_waddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_valid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_valid),
-    .io_writeBackStage_data_info_diffout_storeEvent_storePAddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storePAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeVAddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeVAddr),
-    .io_writeBackStage_data_info_diffout_storeEvent_storeData
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_storeEvent_storeData),
-    .io_writeBackStage_data_info_diffout_loadEvent_valid
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_valid),
-    .io_writeBackStage_data_info_diffout_loadEvent_paddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_paddr),
-    .io_writeBackStage_data_info_diffout_loadEvent_vaddr
-      (_writeBackStage_io_writeBackUnit_data_info_diffout_loadEvent_vaddr),
     .io_writeBackStage_data_rd_info_wdata
       (_writeBackStage_io_writeBackUnit_data_rd_info_wdata),
-    .io_regfile_wen
-      (_writeBackUnit_io_regfile_wen),
-    .io_regfile_waddr
-      (_writeBackUnit_io_regfile_waddr),
-    .io_regfile_wdata
-      (_writeBackUnit_io_regfile_wdata),
-    .io_debug_pc
-      (_writeBackUnit_io_debug_pc),
-    .io_debug_commit
-      (_writeBackUnit_io_debug_commit),
-    .io_debug_rf_wnum
-      (_writeBackUnit_io_debug_rf_wnum),
-    .io_debug_rf_wdata
-      (_writeBackUnit_io_debug_rf_wdata),
-    .io_debug_wen
-      (_writeBackUnit_io_debug_wen),
-    .io_info_instr
-      (_writeBackUnit_io_info_instr),
-    .io_info_diffout_storeEvent_valid
-      (_writeBackUnit_io_info_diffout_storeEvent_valid),
-    .io_info_diffout_storeEvent_storePAddr
-      (_writeBackUnit_io_info_diffout_storeEvent_storePAddr),
-    .io_info_diffout_storeEvent_storeVAddr
-      (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),
-    .io_info_diffout_storeEvent_storeData
-      (_writeBackUnit_io_info_diffout_storeEvent_storeData),
-    .io_info_diffout_loadEvent_valid
-      (_writeBackUnit_io_info_diffout_loadEvent_valid),
-    .io_info_diffout_loadEvent_paddr
-      (_writeBackUnit_io_info_diffout_loadEvent_paddr),
-    .io_info_diffout_loadEvent_vaddr
-      (_writeBackUnit_io_info_diffout_loadEvent_vaddr),
-    .io_result                                                 (_writeBackUnit_io_result)
+    .io_regfile_wen                        (_writeBackUnit_io_regfile_wen),
+    .io_regfile_waddr                      (_writeBackUnit_io_regfile_waddr),
+    .io_regfile_wdata                      (_writeBackUnit_io_regfile_wdata),
+    .io_regfile_cheat                      (_writeBackUnit_io_regfile_cheat),
+    .io_debug_pc                           (_writeBackUnit_io_debug_pc),
+    .io_debug_rf_wnum                      (_writeBackUnit_io_debug_rf_wnum),
+    .io_debug_rf_wdata                     (_writeBackUnit_io_debug_rf_wdata),
+    .io_info_valid                         (_writeBackUnit_io_info_valid),
+    .io_result                             (_writeBackUnit_io_result)
   );
   ControlUnit controlUnit (
     .io_executeInfo_valid
@@ -4791,369 +3870,74 @@ module Core(
     .io_writeBackResult                      (_writeBackUnit_io_result)
   );
   Diff diff (
-    .clock                                 (clock),
-    .io_debug_pc                           (_writeBackUnit_io_debug_pc),
-    .io_debug_commit                       (_writeBackUnit_io_debug_commit),
-    .io_debug_rf_wnum                      (_writeBackUnit_io_debug_rf_wnum),
-    .io_debug_rf_wdata                     (_writeBackUnit_io_debug_rf_wdata),
-    .io_debug_wen                          (_writeBackUnit_io_debug_wen),
-    .io_info_instr                         (_writeBackUnit_io_info_instr),
-    .io_info_diffout_storeEvent_valid
-      (_writeBackUnit_io_info_diffout_storeEvent_valid),
-    .io_info_diffout_storeEvent_storePAddr
-      (_writeBackUnit_io_info_diffout_storeEvent_storePAddr),
-    .io_info_diffout_storeEvent_storeVAddr
-      (_writeBackUnit_io_info_diffout_storeEvent_storeVAddr),
-    .io_info_diffout_storeEvent_storeData
-      (_writeBackUnit_io_info_diffout_storeEvent_storeData),
-    .io_info_diffout_loadEvent_valid
-      (_writeBackUnit_io_info_diffout_loadEvent_valid),
-    .io_info_diffout_loadEvent_paddr
-      (_writeBackUnit_io_info_diffout_loadEvent_paddr),
-    .io_info_diffout_loadEvent_vaddr
-      (_writeBackUnit_io_info_diffout_loadEvent_vaddr),
-    .io_regs_in_0                          (_regfile_io_regs_out_0),
-    .io_regs_in_1                          (_regfile_io_regs_out_1),
-    .io_regs_in_2                          (_regfile_io_regs_out_2),
-    .io_regs_in_3                          (_regfile_io_regs_out_3),
-    .io_regs_in_4                          (_regfile_io_regs_out_4),
-    .io_regs_in_5                          (_regfile_io_regs_out_5),
-    .io_regs_in_6                          (_regfile_io_regs_out_6),
-    .io_regs_in_7                          (_regfile_io_regs_out_7),
-    .io_regs_in_8                          (_regfile_io_regs_out_8),
-    .io_regs_in_9                          (_regfile_io_regs_out_9),
-    .io_regs_in_10                         (_regfile_io_regs_out_10),
-    .io_regs_in_11                         (_regfile_io_regs_out_11),
-    .io_regs_in_12                         (_regfile_io_regs_out_12),
-    .io_regs_in_13                         (_regfile_io_regs_out_13),
-    .io_regs_in_14                         (_regfile_io_regs_out_14),
-    .io_regs_in_15                         (_regfile_io_regs_out_15),
-    .io_regs_in_16                         (_regfile_io_regs_out_16),
-    .io_regs_in_17                         (_regfile_io_regs_out_17),
-    .io_regs_in_18                         (_regfile_io_regs_out_18),
-    .io_regs_in_19                         (_regfile_io_regs_out_19),
-    .io_regs_in_20                         (_regfile_io_regs_out_20),
-    .io_regs_in_21                         (_regfile_io_regs_out_21),
-    .io_regs_in_22                         (_regfile_io_regs_out_22),
-    .io_regs_in_23                         (_regfile_io_regs_out_23),
-    .io_regs_in_24                         (_regfile_io_regs_out_24),
-    .io_regs_in_25                         (_regfile_io_regs_out_25),
-    .io_regs_in_26                         (_regfile_io_regs_out_26),
-    .io_regs_in_27                         (_regfile_io_regs_out_27),
-    .io_regs_in_28                         (_regfile_io_regs_out_28),
-    .io_regs_in_29                         (_regfile_io_regs_out_29),
-    .io_regs_in_30                         (_regfile_io_regs_out_30),
-    .io_regs_in_31                         (_regfile_io_regs_out_31),
-    .io_diffout_instrCommit_valid          (io_diff_instrCommit_valid),
-    .io_diffout_instrCommit_pc             (io_diff_instrCommit_pc),
-    .io_diffout_instrCommit_instr          (io_diff_instrCommit_instr),
-    .io_diffout_instrCommit_wen            (io_diff_instrCommit_wen),
-    .io_diffout_instrCommit_wdest          (io_diff_instrCommit_wdest),
-    .io_diffout_instrCommit_wdata          (io_diff_instrCommit_wdata),
-    .io_diffout_storeEvent_coreid          (io_diff_storeEvent_coreid),
-    .io_diffout_storeEvent_index           (io_diff_storeEvent_index),
-    .io_diffout_storeEvent_valid           (io_diff_storeEvent_valid),
-    .io_diffout_storeEvent_storePAddr      (io_diff_storeEvent_storePAddr),
-    .io_diffout_storeEvent_storeVAddr      (io_diff_storeEvent_storeVAddr),
-    .io_diffout_storeEvent_storeData       (io_diff_storeEvent_storeData),
-    .io_diffout_loadEvent_coreid           (io_diff_loadEvent_coreid),
-    .io_diffout_loadEvent_index            (io_diff_loadEvent_index),
-    .io_diffout_loadEvent_valid            (io_diff_loadEvent_valid),
-    .io_diffout_loadEvent_paddr            (io_diff_loadEvent_paddr),
-    .io_diffout_loadEvent_vaddr            (io_diff_loadEvent_vaddr),
-    .io_diffout_gRegState_0                (io_diff_gRegState_0),
-    .io_diffout_gRegState_1                (io_diff_gRegState_1),
-    .io_diffout_gRegState_2                (io_diff_gRegState_2),
-    .io_diffout_gRegState_3                (io_diff_gRegState_3),
-    .io_diffout_gRegState_4                (io_diff_gRegState_4),
-    .io_diffout_gRegState_5                (io_diff_gRegState_5),
-    .io_diffout_gRegState_6                (io_diff_gRegState_6),
-    .io_diffout_gRegState_7                (io_diff_gRegState_7),
-    .io_diffout_gRegState_8                (io_diff_gRegState_8),
-    .io_diffout_gRegState_9                (io_diff_gRegState_9),
-    .io_diffout_gRegState_10               (io_diff_gRegState_10),
-    .io_diffout_gRegState_11               (io_diff_gRegState_11),
-    .io_diffout_gRegState_12               (io_diff_gRegState_12),
-    .io_diffout_gRegState_13               (io_diff_gRegState_13),
-    .io_diffout_gRegState_14               (io_diff_gRegState_14),
-    .io_diffout_gRegState_15               (io_diff_gRegState_15),
-    .io_diffout_gRegState_16               (io_diff_gRegState_16),
-    .io_diffout_gRegState_17               (io_diff_gRegState_17),
-    .io_diffout_gRegState_18               (io_diff_gRegState_18),
-    .io_diffout_gRegState_19               (io_diff_gRegState_19),
-    .io_diffout_gRegState_20               (io_diff_gRegState_20),
-    .io_diffout_gRegState_21               (io_diff_gRegState_21),
-    .io_diffout_gRegState_22               (io_diff_gRegState_22),
-    .io_diffout_gRegState_23               (io_diff_gRegState_23),
-    .io_diffout_gRegState_24               (io_diff_gRegState_24),
-    .io_diffout_gRegState_25               (io_diff_gRegState_25),
-    .io_diffout_gRegState_26               (io_diff_gRegState_26),
-    .io_diffout_gRegState_27               (io_diff_gRegState_27),
-    .io_diffout_gRegState_28               (io_diff_gRegState_28),
-    .io_diffout_gRegState_29               (io_diff_gRegState_29),
-    .io_diffout_gRegState_30               (io_diff_gRegState_30),
-    .io_diffout_gRegState_31               (io_diff_gRegState_31)
+    .io_debug_pc                  (_writeBackUnit_io_debug_pc),
+    .io_debug_rf_wnum             (_writeBackUnit_io_debug_rf_wnum),
+    .io_debug_rf_wdata            (_writeBackUnit_io_debug_rf_wdata),
+    .io_info_valid                (_writeBackUnit_io_info_valid),
+    .io_diffout_instrCommit_valid (io_diff_instrCommit_valid),
+    .io_diffout_instrCommit_pc    (io_diff_instrCommit_pc),
+    .io_diffout_instrCommit_wdest (io_diff_instrCommit_wdest),
+    .io_diffout_instrCommit_wdata (io_diff_instrCommit_wdata)
   );
 endmodule
 
 module core_top(
   input         clock,
                 reset,
-  input  [31:0] io_base_ram_ctrl_data_in,
-  output [31:0] io_base_ram_ctrl_ctrl_data_out,
-  output [19:0] io_base_ram_ctrl_ctrl_addr,
-  output [3:0]  io_base_ram_ctrl_ctrl_be_n,
-  output        io_base_ram_ctrl_ctrl_ce_n,
-                io_base_ram_ctrl_ctrl_oe_n,
-                io_base_ram_ctrl_ctrl_we_n,
-                io_base_ram_ctrl_ctrl_data_en,
-  input  [31:0] io_ext_ram_ctrl_data_in,
-  output [31:0] io_ext_ram_ctrl_ctrl_data_out,
-  output [19:0] io_ext_ram_ctrl_ctrl_addr,
-  output [3:0]  io_ext_ram_ctrl_ctrl_be_n,
-  output        io_ext_ram_ctrl_ctrl_ce_n,
-                io_ext_ram_ctrl_ctrl_oe_n,
-                io_ext_ram_ctrl_ctrl_we_n,
-                io_ext_ram_ctrl_ctrl_data_en,
-  input         io_rxd_uart_ready,
-  output        io_rxd_uart_clear,
-  input  [7:0]  io_rxd_uart_data,
-  output        io_txd_uart_start,
-  output [7:0]  io_txd_uart_data,
-  input         io_txd_uart_busy,
-  output [3:0]  io_diffout_instrCommit_coreid,
-  output [7:0]  io_diffout_instrCommit_index,
-  output        io_diffout_instrCommit_valid,
-  output [31:0] io_diffout_instrCommit_pc,
-                io_diffout_instrCommit_instr,
-  output        io_diffout_instrCommit_skip,
-                io_diffout_instrCommit_is_TLBFILL,
-  output [7:0]  io_diffout_instrCommit_TLBFILL_index,
-  output        io_diffout_instrCommit_is_CNTinst,
-  output [63:0] io_diffout_instrCommit_timer_64_value,
-  output        io_diffout_instrCommit_wen,
-  output [4:0]  io_diffout_instrCommit_wdest,
-  output [31:0] io_diffout_instrCommit_wdata,
-  output        io_diffout_instrCommit_csr_rstat,
-  output [31:0] io_diffout_instrCommit_csr_data,
-  output [3:0]  io_diffout_excpEvent_coreid,
-  output        io_diffout_excpEvent_excp_valid,
-                io_diffout_excpEvent_eret,
-  output [10:0] io_diffout_excpEvent_intrNo,
-  output [4:0]  io_diffout_excpEvent_cause,
-  output [31:0] io_diffout_excpEvent_exceptionPC,
-                io_diffout_excpEvent_exceptionInst,
-  output [3:0]  io_diffout_trapEvent_coreid,
-  output        io_diffout_trapEvent_valid,
-  output [31:0] io_diffout_trapEvent_code,
-                io_diffout_trapEvent_pc,
-  output [63:0] io_diffout_trapEvent_cycleCnt,
-                io_diffout_trapEvent_instrCnt,
-  output [3:0]  io_diffout_storeEvent_coreid,
-  output [7:0]  io_diffout_storeEvent_index,
-                io_diffout_storeEvent_valid,
-  output [31:0] io_diffout_storeEvent_storePAddr,
-                io_diffout_storeEvent_storeVAddr,
-                io_diffout_storeEvent_storeData,
-  output [3:0]  io_diffout_loadEvent_coreid,
-  output [7:0]  io_diffout_loadEvent_index,
-                io_diffout_loadEvent_valid,
-  output [31:0] io_diffout_loadEvent_paddr,
-                io_diffout_loadEvent_vaddr,
-                io_diffout_csrRegState_0,
-                io_diffout_csrRegState_1,
-                io_diffout_csrRegState_2,
-                io_diffout_csrRegState_3,
-                io_diffout_csrRegState_4,
-                io_diffout_csrRegState_5,
-                io_diffout_csrRegState_6,
-                io_diffout_csrRegState_7,
-                io_diffout_csrRegState_8,
-                io_diffout_csrRegState_9,
-                io_diffout_csrRegState_10,
-                io_diffout_csrRegState_11,
-                io_diffout_csrRegState_12,
-                io_diffout_csrRegState_13,
-                io_diffout_csrRegState_14,
-                io_diffout_csrRegState_15,
-                io_diffout_csrRegState_16,
-                io_diffout_csrRegState_17,
-                io_diffout_csrRegState_18,
-                io_diffout_csrRegState_19,
-                io_diffout_csrRegState_20,
-                io_diffout_csrRegState_21,
-                io_diffout_csrRegState_22,
-                io_diffout_csrRegState_23,
-                io_diffout_csrRegState_24,
-                io_diffout_csrRegState_25,
-                io_diffout_csrRegState_26,
-                io_diffout_csrRegState_27,
-                io_diffout_csrRegState_28,
-                io_diffout_csrRegState_29,
-                io_diffout_csrRegState_30,
-                io_diffout_csrRegState_31,
-                io_diffout_gRegState_0,
-                io_diffout_gRegState_1,
-                io_diffout_gRegState_2,
-                io_diffout_gRegState_3,
-                io_diffout_gRegState_4,
-                io_diffout_gRegState_5,
-                io_diffout_gRegState_6,
-                io_diffout_gRegState_7,
-                io_diffout_gRegState_8,
-                io_diffout_gRegState_9,
-                io_diffout_gRegState_10,
-                io_diffout_gRegState_11,
-                io_diffout_gRegState_12,
-                io_diffout_gRegState_13,
-                io_diffout_gRegState_14,
-                io_diffout_gRegState_15,
-                io_diffout_gRegState_16,
-                io_diffout_gRegState_17,
-                io_diffout_gRegState_18,
-                io_diffout_gRegState_19,
-                io_diffout_gRegState_20,
-                io_diffout_gRegState_21,
-                io_diffout_gRegState_22,
-                io_diffout_gRegState_23,
-                io_diffout_gRegState_24,
-                io_diffout_gRegState_25,
-                io_diffout_gRegState_26,
-                io_diffout_gRegState_27,
-                io_diffout_gRegState_28,
-                io_diffout_gRegState_29,
-                io_diffout_gRegState_30,
-                io_diffout_gRegState_31
+                io_mei,
+                io_msi,
+                io_mti,
+                io_sei,
+  output        io_inst_sram_en,
+  output [3:0]  io_inst_sram_wen,
+  output [31:0] io_inst_sram_addr,
+                io_inst_sram_wdata,
+  input  [31:0] io_inst_sram_rdata,
+  output        io_data_sram_en,
+  output [7:0]  io_data_sram_wen,
+  output [31:0] io_data_sram_addr,
+  output [63:0] io_data_sram_wdata,
+  input  [63:0] io_data_sram_rdata,
+  output [3:0]  io_debug_commit,
+  output [31:0] io_debug_pc,
+  output [4:0]  io_debug_rf_wnum,
+  output [31:0] io_debug_rf_wdata
 );
 
+  wire [19:0] _core_io_base_ram_ctrl_ctrl_addr;
+  wire        _core_io_base_ram_ctrl_ctrl_ce_n;
+  wire [31:0] _core_io_ext_ram_ctrl_ctrl_data_out;
+  wire [19:0] _core_io_ext_ram_ctrl_ctrl_addr;
+  wire [3:0]  _core_io_ext_ram_ctrl_ctrl_be_n;
+  wire        _core_io_ext_ram_ctrl_ctrl_ce_n;
+  wire        _core_io_ext_ram_ctrl_ctrl_we_n;
+  wire        _core_io_diff_instrCommit_valid;
   Core core (
     .clock                          (clock),
     .reset                          (reset),
-    .io_base_ram_ctrl_data_in       (io_base_ram_ctrl_data_in),
-    .io_base_ram_ctrl_ctrl_data_out (io_base_ram_ctrl_ctrl_data_out),
-    .io_base_ram_ctrl_ctrl_addr     (io_base_ram_ctrl_ctrl_addr),
-    .io_base_ram_ctrl_ctrl_be_n     (io_base_ram_ctrl_ctrl_be_n),
-    .io_base_ram_ctrl_ctrl_ce_n     (io_base_ram_ctrl_ctrl_ce_n),
-    .io_base_ram_ctrl_ctrl_oe_n     (io_base_ram_ctrl_ctrl_oe_n),
-    .io_base_ram_ctrl_ctrl_we_n     (io_base_ram_ctrl_ctrl_we_n),
-    .io_base_ram_ctrl_ctrl_data_en  (io_base_ram_ctrl_ctrl_data_en),
-    .io_ext_ram_ctrl_data_in        (io_ext_ram_ctrl_data_in),
-    .io_ext_ram_ctrl_ctrl_data_out  (io_ext_ram_ctrl_ctrl_data_out),
-    .io_ext_ram_ctrl_ctrl_addr      (io_ext_ram_ctrl_ctrl_addr),
-    .io_ext_ram_ctrl_ctrl_be_n      (io_ext_ram_ctrl_ctrl_be_n),
-    .io_ext_ram_ctrl_ctrl_ce_n      (io_ext_ram_ctrl_ctrl_ce_n),
-    .io_ext_ram_ctrl_ctrl_oe_n      (io_ext_ram_ctrl_ctrl_oe_n),
-    .io_ext_ram_ctrl_ctrl_we_n      (io_ext_ram_ctrl_ctrl_we_n),
-    .io_ext_ram_ctrl_ctrl_data_en   (io_ext_ram_ctrl_ctrl_data_en),
-    .io_rxd_uart_ready              (io_rxd_uart_ready),
-    .io_rxd_uart_clear              (io_rxd_uart_clear),
-    .io_rxd_uart_data               (io_rxd_uart_data),
-    .io_txd_uart_start              (io_txd_uart_start),
-    .io_txd_uart_data               (io_txd_uart_data),
-    .io_txd_uart_busy               (io_txd_uart_busy),
-    .io_diff_instrCommit_valid      (io_diffout_instrCommit_valid),
-    .io_diff_instrCommit_pc         (io_diffout_instrCommit_pc),
-    .io_diff_instrCommit_instr      (io_diffout_instrCommit_instr),
-    .io_diff_instrCommit_wen        (io_diffout_instrCommit_wen),
-    .io_diff_instrCommit_wdest      (io_diffout_instrCommit_wdest),
-    .io_diff_instrCommit_wdata      (io_diffout_instrCommit_wdata),
-    .io_diff_storeEvent_coreid      (io_diffout_storeEvent_coreid),
-    .io_diff_storeEvent_index       (io_diffout_storeEvent_index),
-    .io_diff_storeEvent_valid       (io_diffout_storeEvent_valid),
-    .io_diff_storeEvent_storePAddr  (io_diffout_storeEvent_storePAddr),
-    .io_diff_storeEvent_storeVAddr  (io_diffout_storeEvent_storeVAddr),
-    .io_diff_storeEvent_storeData   (io_diffout_storeEvent_storeData),
-    .io_diff_loadEvent_coreid       (io_diffout_loadEvent_coreid),
-    .io_diff_loadEvent_index        (io_diffout_loadEvent_index),
-    .io_diff_loadEvent_valid        (io_diffout_loadEvent_valid),
-    .io_diff_loadEvent_paddr        (io_diffout_loadEvent_paddr),
-    .io_diff_loadEvent_vaddr        (io_diffout_loadEvent_vaddr),
-    .io_diff_gRegState_0            (io_diffout_gRegState_0),
-    .io_diff_gRegState_1            (io_diffout_gRegState_1),
-    .io_diff_gRegState_2            (io_diffout_gRegState_2),
-    .io_diff_gRegState_3            (io_diffout_gRegState_3),
-    .io_diff_gRegState_4            (io_diffout_gRegState_4),
-    .io_diff_gRegState_5            (io_diffout_gRegState_5),
-    .io_diff_gRegState_6            (io_diffout_gRegState_6),
-    .io_diff_gRegState_7            (io_diffout_gRegState_7),
-    .io_diff_gRegState_8            (io_diffout_gRegState_8),
-    .io_diff_gRegState_9            (io_diffout_gRegState_9),
-    .io_diff_gRegState_10           (io_diffout_gRegState_10),
-    .io_diff_gRegState_11           (io_diffout_gRegState_11),
-    .io_diff_gRegState_12           (io_diffout_gRegState_12),
-    .io_diff_gRegState_13           (io_diffout_gRegState_13),
-    .io_diff_gRegState_14           (io_diffout_gRegState_14),
-    .io_diff_gRegState_15           (io_diffout_gRegState_15),
-    .io_diff_gRegState_16           (io_diffout_gRegState_16),
-    .io_diff_gRegState_17           (io_diffout_gRegState_17),
-    .io_diff_gRegState_18           (io_diffout_gRegState_18),
-    .io_diff_gRegState_19           (io_diffout_gRegState_19),
-    .io_diff_gRegState_20           (io_diffout_gRegState_20),
-    .io_diff_gRegState_21           (io_diffout_gRegState_21),
-    .io_diff_gRegState_22           (io_diffout_gRegState_22),
-    .io_diff_gRegState_23           (io_diffout_gRegState_23),
-    .io_diff_gRegState_24           (io_diffout_gRegState_24),
-    .io_diff_gRegState_25           (io_diffout_gRegState_25),
-    .io_diff_gRegState_26           (io_diffout_gRegState_26),
-    .io_diff_gRegState_27           (io_diffout_gRegState_27),
-    .io_diff_gRegState_28           (io_diffout_gRegState_28),
-    .io_diff_gRegState_29           (io_diffout_gRegState_29),
-    .io_diff_gRegState_30           (io_diffout_gRegState_30),
-    .io_diff_gRegState_31           (io_diffout_gRegState_31)
+    .io_base_ram_ctrl_data_in       (io_inst_sram_rdata),
+    .io_base_ram_ctrl_ctrl_data_out (io_inst_sram_wdata),
+    .io_base_ram_ctrl_ctrl_addr     (_core_io_base_ram_ctrl_ctrl_addr),
+    .io_base_ram_ctrl_ctrl_be_n     (io_inst_sram_wen),
+    .io_base_ram_ctrl_ctrl_ce_n     (_core_io_base_ram_ctrl_ctrl_ce_n),
+    .io_ext_ram_ctrl_data_in        (io_data_sram_rdata[31:0]),
+    .io_ext_ram_ctrl_ctrl_data_out  (_core_io_ext_ram_ctrl_ctrl_data_out),
+    .io_ext_ram_ctrl_ctrl_addr      (_core_io_ext_ram_ctrl_ctrl_addr),
+    .io_ext_ram_ctrl_ctrl_be_n      (_core_io_ext_ram_ctrl_ctrl_be_n),
+    .io_ext_ram_ctrl_ctrl_ce_n      (_core_io_ext_ram_ctrl_ctrl_ce_n),
+    .io_ext_ram_ctrl_ctrl_we_n      (_core_io_ext_ram_ctrl_ctrl_we_n),
+    .io_diff_instrCommit_valid      (_core_io_diff_instrCommit_valid),
+    .io_diff_instrCommit_pc         (io_debug_pc),
+    .io_diff_instrCommit_wdest      (io_debug_rf_wnum),
+    .io_diff_instrCommit_wdata      (io_debug_rf_wdata)
   );
-  assign io_diffout_instrCommit_coreid = 4'h0;
-  assign io_diffout_instrCommit_index = 8'h0;
-  assign io_diffout_instrCommit_skip = 1'h0;
-  assign io_diffout_instrCommit_is_TLBFILL = 1'h0;
-  assign io_diffout_instrCommit_TLBFILL_index = 8'h0;
-  assign io_diffout_instrCommit_is_CNTinst = 1'h0;
-  assign io_diffout_instrCommit_timer_64_value = 64'h0;
-  assign io_diffout_instrCommit_csr_rstat = 1'h0;
-  assign io_diffout_instrCommit_csr_data = 32'h0;
-  assign io_diffout_excpEvent_coreid = 4'h0;
-  assign io_diffout_excpEvent_excp_valid = 1'h0;
-  assign io_diffout_excpEvent_eret = 1'h0;
-  assign io_diffout_excpEvent_intrNo = 11'h0;
-  assign io_diffout_excpEvent_cause = 5'h0;
-  assign io_diffout_excpEvent_exceptionPC = 32'h0;
-  assign io_diffout_excpEvent_exceptionInst = 32'h0;
-  assign io_diffout_trapEvent_coreid = 4'h0;
-  assign io_diffout_trapEvent_valid = 1'h0;
-  assign io_diffout_trapEvent_code = 32'h0;
-  assign io_diffout_trapEvent_pc = 32'h0;
-  assign io_diffout_trapEvent_cycleCnt = 64'h0;
-  assign io_diffout_trapEvent_instrCnt = 64'h0;
-  assign io_diffout_csrRegState_0 = 32'h0;
-  assign io_diffout_csrRegState_1 = 32'h0;
-  assign io_diffout_csrRegState_2 = 32'h0;
-  assign io_diffout_csrRegState_3 = 32'h0;
-  assign io_diffout_csrRegState_4 = 32'h0;
-  assign io_diffout_csrRegState_5 = 32'h0;
-  assign io_diffout_csrRegState_6 = 32'h0;
-  assign io_diffout_csrRegState_7 = 32'h0;
-  assign io_diffout_csrRegState_8 = 32'h0;
-  assign io_diffout_csrRegState_9 = 32'h0;
-  assign io_diffout_csrRegState_10 = 32'h0;
-  assign io_diffout_csrRegState_11 = 32'h0;
-  assign io_diffout_csrRegState_12 = 32'h0;
-  assign io_diffout_csrRegState_13 = 32'h0;
-  assign io_diffout_csrRegState_14 = 32'h0;
-  assign io_diffout_csrRegState_15 = 32'h0;
-  assign io_diffout_csrRegState_16 = 32'h0;
-  assign io_diffout_csrRegState_17 = 32'h0;
-  assign io_diffout_csrRegState_18 = 32'h0;
-  assign io_diffout_csrRegState_19 = 32'h0;
-  assign io_diffout_csrRegState_20 = 32'h0;
-  assign io_diffout_csrRegState_21 = 32'h0;
-  assign io_diffout_csrRegState_22 = 32'h0;
-  assign io_diffout_csrRegState_23 = 32'h0;
-  assign io_diffout_csrRegState_24 = 32'h0;
-  assign io_diffout_csrRegState_25 = 32'h0;
-  assign io_diffout_csrRegState_26 = 32'h0;
-  assign io_diffout_csrRegState_27 = 32'h0;
-  assign io_diffout_csrRegState_28 = 32'h0;
-  assign io_diffout_csrRegState_29 = 32'h0;
-  assign io_diffout_csrRegState_30 = 32'h0;
-  assign io_diffout_csrRegState_31 = 32'h0;
+  assign io_inst_sram_en = ~_core_io_base_ram_ctrl_ctrl_ce_n;
+  assign io_inst_sram_addr = {10'h200, _core_io_base_ram_ctrl_ctrl_addr, 2'h0};
+  assign io_data_sram_en = ~_core_io_ext_ram_ctrl_ctrl_ce_n;
+  assign io_data_sram_wen =
+    _core_io_ext_ram_ctrl_ctrl_we_n ? 8'h0 : {4'h0, ~_core_io_ext_ram_ctrl_ctrl_be_n};
+  assign io_data_sram_addr = {10'h201, _core_io_ext_ram_ctrl_ctrl_addr, 2'h0};
+  assign io_data_sram_wdata = {32'h0, _core_io_ext_ram_ctrl_ctrl_data_out};
+  assign io_debug_commit = {4{_core_io_diff_instrCommit_valid}};
 endmodule
 

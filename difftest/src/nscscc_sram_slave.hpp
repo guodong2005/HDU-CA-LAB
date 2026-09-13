@@ -38,7 +38,8 @@ public:
                     do_write(((pin.data_sram_addr & address_mask) & 0xfffffff8) + addr, len, ((uint8_t *)&(pin.data_sram_wdata)) + addr);
                 }
             }
-            do_read(pin.data_sram_addr & address_mask, 8, (uint8_t *)&(pin.data_sram_rdata));
+            do_read(pin.data_sram_addr & address_mask, 4,
+                    (uint8_t *)&(pin.data_sram_rdata));
         }
     }
     void set_address_mask(uint32_t new_mask)

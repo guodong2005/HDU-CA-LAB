@@ -270,10 +270,11 @@ void riscv_test_run(Vtop *top, nscscc_sram_ref &mmio_ref,
         printf("PC = 0x%016lx\n", cemu_rvcore.debug_pc);
         pc_cnt = 0;
       }
-      if ((top->debug_pc != cemu_rvcore.debug_pc ||
+      if ((top->debug_pc != static_cast<uint32_t>(cemu_rvcore.debug_pc) ||
            cemu_rvcore.debug_reg_num != 0 &&
                (top->debug_rf_wnum != cemu_rvcore.debug_reg_num ||
-                top->debug_rf_wdata != cemu_rvcore.debug_reg_wdata)) &&
+                top->debug_rf_wdata !=
+                    static_cast<uint32_t>(cemu_rvcore.debug_reg_wdata))) &&
           !delayslot_cnt) {
         printf("\033[1;31mError!\033[0m\n");
         printf("reference: PC = 0x%016lx, wb_rf_wnum = 0x%02lx, wb_rf_wdata = "

@@ -278,6 +278,8 @@ private:
             case OPCODE_LOAD:
             {
                 uint64_t mem_addr = GPR[inst->i_type.rs1] + (inst->i_type.imm12);
+                if (run_riscv_test)
+                    mem_addr = static_cast<uint32_t>(mem_addr);
                 switch (inst->i_type.funct3)
                 {
                 case FUNCT3_LB:
@@ -344,6 +346,8 @@ private:
             case OPCODE_STORE:
             {
                 uint64_t mem_addr = GPR[inst->s_type.rs1] + ((inst->s_type.imm_11_5 << 5) | (inst->s_type.imm_4_0));
+                if (run_riscv_test)
+                    mem_addr = static_cast<uint32_t>(mem_addr);
                 switch (inst->i_type.funct3)
                 {
                 case FUNCT3_SB:
