@@ -30,7 +30,7 @@ class Core extends Module {
   val memSize = Reg(UInt(2.W)); val memSigned = Reg(Bool()); val memIsLoad = Reg(Bool())
   val draining = RegInit(false.B); val halted = RegInit(false.B); val illegalSeen = RegInit(false.B)
   val vectorCore = Module(new VectorCore)
-  val cubeCore = Module(new CubeCore)
+  val cubeCore = Module(new CubeCluster(6))
   vectorCore.io.testWriteEnable := false.B
   vectorCore.io.testWriteAddr := 0.U
   vectorCore.io.testWriteData := VecInit(Seq.fill(4)(0.U(32.W)))
