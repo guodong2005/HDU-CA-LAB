@@ -58,3 +58,12 @@ make algorithm-tests
 ```
 
 This runs an assembly bubble sort with final array assertions and an assembly Bellman–Ford shortest-path test with final distance assertions. Both are checked against the independent reference model.
+
+The long-running B-tree regression is separate:
+
+```sh
+cd chisel
+make btree-test
+```
+
+It inserts `N=10000` pseudo-random keys into an order-four B-tree, exercises node splitting and recursive insertion, then checks the in-order count, ordering, and checksum before executing `EBREAK`.

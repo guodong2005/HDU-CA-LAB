@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
   if (!mem.load_binary(argv[1]) || !ref.load_binary(argv[1])) { std::fprintf(stderr, "cannot load %s\n", argv[1]); return 2; }
   top.reset = 1; top.io_mei = top.io_msi = top.io_mti = top.io_sei = 0; top.clock = 0; top.eval();
   unsigned commits = 0;
-  for (unsigned cycle=0; cycle<1000000 && !top.io_halted && !Verilated::gotFinish(); ++cycle) {
+  unsigned cycle = 0;
+  for (; cycle<100000000 && !top.io_halted && !Verilated::gotFinish(); ++cycle) {
     bool ar_ready, r_valid, r_last, aw_ready, w_ready, b_valid; uint32_t r_data; uint8_t r_id, b_id;
     if (top.reset) {
       top.io_axi_ar_ready = top.io_axi_aw_ready = top.io_axi_w_ready = 0; top.io_axi_r_valid = top.io_axi_b_valid = 0;
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
     }
     mem.tick(); top.clock = 0; top.eval();
   }
-  if (!top.io_halted) { std::fprintf(stderr, "DIFFTEST FAIL: core did not halt\n"); return 1; }
+  if (!top.io_halted) { std::fprintf(stderr, "DIFFTEST FAIL: core did not halt after %u cycles and %u commits\n", cycle, commits); return 1; }
   if (!ref.at_ebreak()) { std::fprintf(stderr, "DIFFTEST FAIL: RTL halted but reference is not at EBREAK\n"); return 1; }
   if (!commits) { std::fprintf(stderr, "DIFFTEST FAIL: zero instructions compared\n"); return 1; }
   std::printf("DIFFTEST PASS: compared %u commits; RTL and RV32IM reference reached EBREAK\n", commits);

@@ -59,10 +59,17 @@ algorithm-tests: verilog
 	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_sort.bin)
 	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_shortest_path.bin)
 
+btree-test: verilog
+	mkdir -p $(BUILD_DIR)/tests
+	$(RV32_CC) -march=rv32im -mabi=ilp32 -O2 -ffreestanding -fno-pic -fno-stack-protector -msmall-data-limit=0 -nostdlib -nostartfiles -Wl,--no-relax,-T,playground/test/resources/rv32_btree.ld playground/test/resources/rv32_btree_start.S playground/test/resources/rv32_btree.c -o $(BUILD_DIR)/tests/rv32_btree.elf
+	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_btree.elf $(BUILD_DIR)/tests/rv32_btree.bin
+	cp $(BUILD_DIR)/core_top.v ../difftest/core_top.v
+	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_btree.bin)
+
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke algorithm-tests clean
+.PHONY: test verilog help compile bsp reformat checkformat rv32-smoke axi-smoke algorithm-tests btree-test clean
 
 sim:
 	@echo "Write this Makefile by yourself."
