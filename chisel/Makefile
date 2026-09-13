@@ -147,7 +147,7 @@ heterogeneous-trace: verilog
 	$(RV32_CC) -march=rv32im -mabi=ilp32 -nostdlib -nostartfiles -Wl,-Ttext=0x80000000 playground/test/resources/rv32_heterogeneous_overlap.S -o $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.elf
 	$(RV32_OBJCOPY) -O binary $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.elf $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.bin
 	$(MAKE) -C ../difftest sim PROGRAM=$(abspath $(BUILD_DIR)/tests/rv32_heterogeneous_overlap.bin) OPTIONS=--heterogeneous-trace | tee $(BUILD_DIR)/heterogeneous-overlap.trace
-	python3 ../difftest/check_heterogeneous_cycles.py $(BUILD_DIR)/heterogeneous-overlap.trace $(BUILD_DIR)/heterogeneous-sequential.trace
+	python3 ../difftest/check_heterogeneous_cycles.py $(BUILD_DIR)/heterogeneous-overlap.trace $(BUILD_DIR)/heterogeneous-sequential.trace $(BUILD_DIR)/heterogeneous_cycles.csv
 
 heterogeneous-check: vector-test cube-test heterogeneous-test heterogeneous-trace
 

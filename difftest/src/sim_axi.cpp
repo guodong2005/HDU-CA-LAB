@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     top.clock = 1; top.eval();
     if (trace) {
       std::printf("TRACE cycle=%u commit=%d pc=%08x instr=%08x vector_issue=%d vector_write=%d vector_vd=%u cube_launch=%d cube_busy=%d cube_done=%d cube_wait_stall=%d stall_reason=%u\n",
-                  cycle, top.io_debug_commit, top.io_debug_pc, top.io_debug_instr,
+                  cycle - 1, top.io_debug_commit, top.io_debug_pc, top.io_debug_instr,
                   top.io_debug_vector_issue, top.io_debug_vector_write, top.io_debug_vector_vd,
                   top.io_debug_cube_launch, top.io_debug_cube_busy, top.io_debug_cube_done,
                   top.io_debug_cube_wait_stall, top.io_debug_stall_reason);
