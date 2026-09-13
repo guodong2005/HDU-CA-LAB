@@ -7,7 +7,14 @@ import cpu.defines._
 /** Four-line direct-mapped, write-through, single-beat cache. */
 class AxiCache(val lines: Int = 4) extends Module {
   require(lines >= 2 && isPow2(lines))
-  val io = IO(new Bundle { val cpu = Flipped(new AxiMaster); val mem = new AxiMaster })
+  val io = IO(new Bundle {
+    val cpu = Flipped(new AxiMaster)
+    val mem = new AxiMaster
+    val perfAccess = Output(Bool())
+    val perfHit = Output(Bool())
+    val perfMiss = Output(Bool())
+    val perfMissStall = Output(Bool())
+  })
   val indexBits = log2Ceil(lines)
   val tagBits = 32 - 2 - indexBits
   val valid = RegInit(VecInit(Seq.fill(lines)(false.B)))
@@ -24,6 +31,10 @@ class AxiCache(val lines: Int = 4) extends Module {
   val cpuIndex = io.cpu.ar.bits.addr(indexBits + 1, 2)
   val cpuTag = io.cpu.ar.bits.addr(31, indexBits + 2)
   val hit = valid(cpuIndex) && tags(cpuIndex) === cpuTag
+  io.perfAccess := io.cpu.ar.fire
+  io.perfHit := io.cpu.ar.fire && hit
+  io.perfMiss := io.cpu.ar.fire && !hit
+  io.perfMissStall := state === sReadReq || state === sReadWait
 
   // Write priority is explicit. At most one CPU request can handshake in idle.
   io.cpu.aw.ready := state === sIdle && io.cpu.aw.valid

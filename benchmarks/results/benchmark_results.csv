@@ -1,0 +1,22 @@
+category,benchmark,input_size,mode,correctness,cycles,instructions,cpi,cache_accesses,cache_hits,cache_misses,cache_hit_rate,cache_miss_stall_cycles,stores,axi_ar_stall_cycles,axi_aw_stall_cycles,axi_w_stall_cycles,vector_issues,cube_launches,cube_busy_cycles,cube_wait_cycles
+scalar,arithmetic,,normal,PASS,932,303,3.075908,403,396,7,98.263027,24,0,0,0,0,0,0,0,0
+scalar,branch,,normal,PASS,8915,1302,6.847158,1702,0,1702,0.000000,5109,0,0,0,0,0,0,0,0
+scalar,sequential_memory,,normal,PASS,3028,387,7.824289,515,0,515,0.000000,1548,64,0,0,0,0,0,0,0
+scalar,random_memory,,normal,PASS,3668,515,7.122330,643,0,643,0.000000,1932,64,0,0,0,0,0,0,0
+scalar,muldiv,,normal,PASS,5021,1002,5.010978,1202,398,804,33.111481,2415,0,0,0,0,0,0,0,0
+icache,sequential_fetch,sequential,normal,PASS,6618,1202,5.505824,1402,199,1203,14.194009,3612,0,0,0,0,0,0,0,0
+icache,small_loop,small_loop,normal,PASS,646,127,5.086614,152,48,104,31.578947,315,0,0,0,0,0,0,0,0
+icache,over_capacity,over_capacity,normal,PASS,3343,658,5.080547,666,0,666,0.000000,2001,0,0,0,0,0,0,0,0
+vector,gather_8,8,normal,PASS,21,2,10.500000,3,0,3,0.000000,12,0,0,0,0,2,0,0,0
+vector,shift_8,8,normal,PASS,21,2,10.500000,3,0,3,0.000000,12,0,0,0,0,2,0,0,0
+vector,gather_16,16,normal,PASS,31,4,7.750000,5,0,5,0.000000,18,0,0,0,0,4,0,0,0
+vector,shift_16,16,normal,PASS,31,4,7.750000,5,0,5,0.000000,18,0,0,0,0,4,0,0,0
+vector,gather_32,32,normal,PASS,51,8,6.375000,9,0,9,0.000000,30,0,0,0,0,8,0,0,0
+vector,shift_32,32,normal,PASS,51,8,6.375000,9,0,9,0.000000,30,0,0,0,0,8,0,0,0
+vector,gather_64,64,normal,PASS,91,16,5.687500,17,0,17,0.000000,54,0,0,0,0,16,0,0,0
+vector,shift_64,64,normal,PASS,91,16,5.687500,17,0,17,0.000000,54,0,0,0,0,16,0,0,0
+cube,sequential,6 tasks,normal,PASS,3275,42,77.976190,43,0,43,0.000000,132,0,0,0,0,24,6,3072,3072
+cube,overlapped,6 tasks,normal,PASS,580,42,13.809524,43,0,43,0.000000,132,0,0,0,0,24,6,537,362
+axi,sequential_memory_backpressure,64 stores/loads,backpressure,PASS,3384,387,8.744186,515,0,515,0.000000,1840,48,452,32,32,0,0,0,0
+store_fifo,depth4_vs_disabled,not implemented,unavailable,UNAVAILABLE,,,,,,,,,,,,,,,,
+uart,rv32_mmio_output,no RV32 UART port,unavailable,UNAVAILABLE,,,,,,,,,,,,,,,,

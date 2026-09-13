@@ -46,6 +46,11 @@ _default:
 ifeq ($(notdir $(CURDIR)),HDU-CA-LAB)
 .PHONY: test axi-smoke axi-backpressure algorithm-tests btree-test rv32-m-test pipeline-test illegal-test vector-test cube-test heterogeneous-test heterogeneous-trace heterogeneous-check rv32-check
 
+benchmarks:
+	python3 benchmarks/run_benchmarks.py
+
+.PHONY: benchmarks
+
 test:
 	$(MAKE) -C chisel test
 

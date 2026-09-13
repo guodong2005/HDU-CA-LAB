@@ -10,6 +10,7 @@ class core_top extends Module {
     val debug_vector_issue = Output(Bool()); val debug_vector_write = Output(Bool()); val debug_vector_vd = Output(UInt(3.W))
     val debug_cube_launch = Output(Bool()); val debug_cube_busy = Output(Bool()); val debug_cube_done = Output(Bool())
     val debug_cube_wait_stall = Output(Bool()); val debug_stall_reason = Output(UInt(4.W))
+    val perf_cache_access = Output(Bool()); val perf_cache_hit = Output(Bool()); val perf_cache_miss = Output(Bool()); val perf_cache_miss_stall = Output(Bool())
   })
   val core = Module(new Core)
   val cache = Module(new AxiCache(4))
@@ -20,4 +21,6 @@ class core_top extends Module {
   io.debug_vector_issue := core.io.debug_vector_issue; io.debug_vector_write := core.io.debug_vector_write; io.debug_vector_vd := core.io.debug_vector_vd
   io.debug_cube_launch := core.io.debug_cube_launch; io.debug_cube_busy := core.io.debug_cube_busy; io.debug_cube_done := core.io.debug_cube_done
   io.debug_cube_wait_stall := core.io.debug_cube_wait_stall; io.debug_stall_reason := core.io.debug_stall_reason
+  io.perf_cache_access := cache.io.perfAccess; io.perf_cache_hit := cache.io.perfHit
+  io.perf_cache_miss := cache.io.perfMiss; io.perf_cache_miss_stall := cache.io.perfMissStall
 }
